@@ -26,8 +26,8 @@
 
 ## 5. Núcleo: tráfico
 
-- [ ] 5.1 Implementar el tráfico como función pura de semilla y número de grupo, con densidad e irregularidad; verificar con pruebas sobre mil semillas el carril libre y la separación mínima, y con pruebas los escenarios de calle vacía, densidad e irregularidad
-- [ ] 5.2 Implementar el movimiento del tráfico y la materialización por ventana alrededor del conductor; verificar con pruebas que el tráfico es alcanzable, no se toca entre sí durante un minuto simulado y sigue existiendo tras diez kilómetros
+- [x] 5.1 Implementar el tráfico como función pura de semilla y número de grupo, con densidad e irregularidad; verificar con pruebas sobre mil semillas el carril libre y la separación mínima, y con pruebas los escenarios de calle vacía, densidad e irregularidad
+- [x] 5.2 Implementar el movimiento del tráfico y la materialización por ventana alrededor del conductor; verificar con pruebas que el tráfico es alcanzable, no se toca entre sí durante un minuto simulado y sigue existiendo tras diez kilómetros
 
 ## 6. Núcleo: mundo y contrato de controlador
 
