@@ -15,9 +15,9 @@
 
 ## 3. Núcleo: pista
 
-- [ ] 3.1 Implementar la pista por línea central, ancho y carriles, con bordes desplazados unidos en inglete y rechazo de curvas demasiado cerradas; verificar con pruebas los escenarios de bordes en recta y en pista con curva
-- [ ] 3.2 Implementar centro de carril y progreso por proyección con búsqueda desde el último tramo; verificar con pruebas los escenarios de avanzar, cambiar de carril, retroceder y recorrer una curva
-- [ ] 3.3 Implementar la calle recta de 2, 3 o 4 carriles con 3 por defecto; verificar con pruebas el valor por defecto y el rechazo de cantidades no admitidas y de carriles inexistentes
+- [x] 3.1 Implementar la pista por línea central, ancho y carriles, con bordes desplazados unidos en inglete y rechazo de curvas demasiado cerradas; verificar con pruebas los escenarios de bordes en recta y en pista con curva
+- [x] 3.2 Implementar centro de carril y progreso por proyección con búsqueda desde el último tramo; verificar con pruebas los escenarios de avanzar, cambiar de carril, retroceder y recorrer una curva
+- [x] 3.3 Implementar la calle recta de 2, 3 o 4 carriles con 3 por defecto; verificar con pruebas el valor por defecto y el rechazo de cantidades no admitidas y de carriles inexistentes
 
 ## 4. Núcleo: auto y sensores
 
