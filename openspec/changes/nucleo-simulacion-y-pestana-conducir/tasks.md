@@ -38,10 +38,10 @@
 
 ## 7. Idiomas, preferencias y ayuda contextual
 
-- [ ] 7.1 Implementar el sistema de idiomas (diccionarios `es` y `en`, traducción con parámetros, reescritura en vivo, idioma inicial, texto faltante); verificar con pruebas la paridad de claves, la elección del idioma inicial y el uso del otro idioma cuando falta un texto
-- [ ] 7.2 Implementar las preferencias recordadas con tolerancia a la falta de almacenamiento; verificar con una prueba que usa un almacenamiento que falla y obtiene los valores por defecto sin error
-- [ ] 7.3 Implementar el sistema de tooltips en dos partes (aparición con espera y con foco, cierre con Escape, ubicación dentro de la ventana, controles no disponibles con `aria-disabled`); verificar en el navegador cada escenario de la spec de ayuda contextual
-- [ ] 7.4 Implementar la función de auditoría de tooltips; verificar que reporta un control dejado a propósito sin ayuda y que no reporta nada al corregirlo
+- [x] 7.1 Implementar el sistema de idiomas (diccionarios `es` y `en`, traducción con parámetros, reescritura en vivo, idioma inicial, texto faltante); verificar con pruebas la paridad de claves, la elección del idioma inicial y el uso del otro idioma cuando falta un texto
+- [x] 7.2 Implementar las preferencias recordadas con tolerancia a la falta de almacenamiento; verificar con una prueba que usa un almacenamiento que falla y obtiene los valores por defecto sin error
+- [x] 7.3 Implementar el sistema de tooltips en dos partes (aparición con espera y con foco, cierre con Escape, ubicación dentro de la ventana, controles no disponibles con `aria-disabled`); verificar en el navegador cada escenario de la spec de ayuda contextual
+- [x] 7.4 Implementar la función de auditoría de tooltips; verificar que reporta un control dejado a propósito sin ayuda y que no reporta nada al corregirlo
 
 ## 8. Estructura de la app
 

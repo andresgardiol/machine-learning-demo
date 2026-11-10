@@ -1,0 +1,80 @@
+// Sistema de idiomas: diccionarios de claves planas, traducción con parámetros,
+// reescritura en vivo del DOM y elección del idioma inicial.
+//
+// Los elementos declaran su texto con atributos:
+//   data-i18n="clave"                 -> textContent
+//   data-i18n-attr="aria-label:clave"  -> atributos (varios separados por ";")
+//   data-i18n-params='{"n": 3}'        -> parámetros para {n} en el texto
+// Los textos con valores que cambian se suscriben con onChange.
+
+export const LANGUAGES = Object.freeze(['es', 'en']);
+
+/** Idioma inicial: la preferencia recordada manda; si no, español si el navegador prefiere español, inglés en cualquier otro caso. */
+export function pickInitialLanguage({ stored = null, browserLanguages = [] } = {}) {
+  if (LANGUAGES.includes(stored)) return stored;
+  const first = String(browserLanguages[0] ?? '').toLowerCase();
+  return first === 'es' || first.startsWith('es-') ? 'es' : 'en';
+}
+
+/** Reemplaza {nombre} por params.nombre. Los marcadores sin valor quedan como están. */
+export function format(text, params) {
+  if (!params) return text;
+  return text.replace(/\{(\w+)\}/g, (whole, name) => (name in params ? String(params[name]) : whole));
+}
+
+/**
+ * @param {{dictionaries: Record<string, Record<string,string>>, language?: string}} spec
+ */
+export function createI18n({ dictionaries, language = 'es' }) {
+  let current = LANGUAGES.includes(language) ? language : 'es';
+  const listeners = new Set();
+
+  const other = (lang) => LANGUAGES.find((l) => l !== lang);
+
+  /** Texto de `key` en el idioma activo; si falta, el del otro idioma; si falta en ambos, la clave. */
+  function t(key, params) {
+    const own = dictionaries[current]?.[key];
+    const text = own ?? dictionaries[other(current)]?.[key] ?? key;
+    return format(text, params);
+  }
+
+  const has = (key) => LANGUAGES.some((l) => typeof dictionaries[l]?.[key] === 'string');
+
+  function setLanguage(next) {
+    if (!LANGUAGES.includes(next) || next === current) return;
+    current = next;
+    for (const fn of [...listeners]) fn(current);
+  }
+
+  function onChange(fn) {
+    listeners.add(fn);
+    return () => listeners.delete(fn);
+  }
+
+  /** Reescribe los textos declarados con data-i18n dentro de `root` (incluido root). */
+  function translateTree(root) {
+    if (!root || typeof root.querySelectorAll !== 'function') return;
+    const nodes = [root, ...root.querySelectorAll('[data-i18n], [data-i18n-attr]')];
+    for (const el of nodes) {
+      if (!el.getAttribute) continue;
+      let params;
+      const raw = el.getAttribute('data-i18n-params');
+      if (raw) { try { params = JSON.parse(raw); } catch { params = undefined; } }
+      const key = el.getAttribute('data-i18n');
+      if (key) el.textContent = t(key, params);
+      const attrs = el.getAttribute('data-i18n-attr');
+      if (attrs) {
+        for (const pair of attrs.split(';')) {
+          const [name, k] = pair.split(':').map((s) => s.trim());
+          if (name && k) el.setAttribute(name, t(k, params));
+        }
+      }
+    }
+  }
+
+  return {
+    t, has, setLanguage, onChange, translateTree,
+    get language() { return current; },
+    get dictionaries() { return dictionaries; },
+  };
+}

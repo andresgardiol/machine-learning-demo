@@ -1,0 +1,49 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { placeTooltip, helpKeys } from '../src/ui/tooltips.js';
+
+const viewport = { width: 1280, height: 800 };
+const size = { width: 260, height: 120 };
+const rect = (left, top, w, h) => ({ left, top, right: left + w, bottom: top + h });
+const overlaps = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+const box = (p) => ({ left: p.left, top: p.top, right: p.left + size.width, bottom: p.top + size.height });
+const inside = (b) => b.left >= 0 && b.top >= 0 && b.right <= viewport.width && b.bottom <= viewport.height;
+
+test('control junto al borde derecho: el tooltip se ve completo y no tapa el control', () => {
+  const control = rect(1240, 20, 32, 32);
+  const p = placeTooltip(control, size, viewport);
+  assert.equal(p.placement, 'below');
+  assert.equal(p.left, viewport.width - 8 - size.width);
+  assert.equal(p.top, 60);
+  assert.ok(inside(box(p)));
+  assert.ok(!overlaps(box(p), control));
+});
+
+test('control junto al borde inferior: el tooltip va arriba, completo y sin tapar el control', () => {
+  const control = rect(600, 760, 80, 32);
+  const p = placeTooltip(control, size, viewport);
+  assert.equal(p.placement, 'above');
+  assert.equal(p.top, 760 - 8 - size.height);
+  assert.ok(inside(box(p)));
+  assert.ok(!overlaps(box(p), control));
+});
+
+test('control junto al borde izquierdo: el tooltip no se sale por la izquierda', () => {
+  const control = rect(0, 100, 40, 30);
+  const p = placeTooltip(control, size, viewport);
+  assert.equal(p.left, 8);
+  assert.ok(inside(box(p)));
+  assert.ok(!overlaps(box(p), control));
+});
+
+test('control alto que no deja lugar arriba ni abajo: el tooltip va al costado', () => {
+  const control = rect(1000, 10, 60, 780);
+  const p = placeTooltip(control, size, viewport);
+  assert.equal(p.placement, 'left');
+  assert.ok(inside(box(p)));
+  assert.ok(!overlaps(box(p), control));
+});
+
+test('claves de ayuda en dos partes', () => {
+  assert.deepEqual(helpKeys('guide'), { what: 'help.guide.what', why: 'help.guide.why' });
+});
