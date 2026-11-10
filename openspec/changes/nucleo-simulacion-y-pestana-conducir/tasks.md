@@ -31,10 +31,10 @@
 
 ## 6. Núcleo: mundo y contrato de controlador
 
-- [ ] 6.1 Definir el contrato de controlador y la percepción, e implementar el paso del mundo (controladores, física, tráfico, choques, sensores); verificar con pruebas que un controlador que solo avanza mueve el auto y que la percepción cumple sus escenarios
-- [ ] 6.2 Implementar choque, reinicio y pausa; verificar con pruebas los escenarios de choque contra borde y tráfico, controles ignorados, reinicio idéntico a un mundo nuevo y pausa sin efecto en la evolución
-- [ ] 6.3 Escribir la prueba de reproducibilidad: dos corridas con la misma semilla y los mismos controles coinciden en todos los pasos, y con otra semilla el tráfico difiere; verificar que pasa
-- [ ] 6.4 Documentar en `README.md` la arquitectura por capas y el contrato de controlador; verificar que la descripción coincide con los módulos existentes
+- [x] 6.1 Definir el contrato de controlador y la percepción, e implementar el paso del mundo (controladores, física, tráfico, choques, sensores); verificar con pruebas que un controlador que solo avanza mueve el auto y que la percepción cumple sus escenarios
+- [x] 6.2 Implementar choque, reinicio y pausa; verificar con pruebas los escenarios de choque contra borde y tráfico, controles ignorados, reinicio idéntico a un mundo nuevo y pausa sin efecto en la evolución
+- [x] 6.3 Escribir la prueba de reproducibilidad: dos corridas con la misma semilla y los mismos controles coinciden en todos los pasos, y con otra semilla el tráfico difiere; verificar que pasa
+- [x] 6.4 Documentar en `README.md` la arquitectura por capas y el contrato de controlador; verificar que la descripción coincide con los módulos existentes
 
 ## 7. Idiomas, preferencias y ayuda contextual
 
