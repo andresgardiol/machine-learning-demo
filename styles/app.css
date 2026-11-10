@@ -41,3 +41,151 @@ code { background: var(--color-surface-2); padding: 0 var(--space-1); border-rad
   text-transform: uppercase;
   color: var(--color-accent);
 }
+
+/* ---- Estructura común ---------------------------------------------------- */
+#app { height: 100%; }
+.app {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  height: 100vh;
+  min-width: 0;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.muted { color: var(--color-text-muted); }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+.brand { font-weight: 700; white-space: nowrap; }
+/* El nombre de la app cede su lugar a las pestañas en ventanas medianas (sigue en el título del navegador). */
+@media (max-width: 1439.98px) { .brand { display: none; } }
+.tabbar { display: flex; gap: 2px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.tab::before {
+  content: attr(data-step);
+  display: inline-grid;
+  place-items: center;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 12px;
+}
+.tab:hover { background: var(--color-surface-2); }
+.tab[aria-selected="true"] { background: var(--color-surface-2); border-color: var(--color-accent); color: var(--color-text); font-weight: 600; }
+.tab[aria-disabled="true"] { color: var(--color-text-muted); cursor: not-allowed; opacity: 0.6; }
+.tab[aria-disabled="true"]:hover { background: transparent; }
+
+.tools { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
+.tool {
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.tool:hover { border-color: var(--color-accent); }
+.tool.primary { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-bg); font-weight: 600; }
+
+.switch {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  background: transparent; border: 1px solid var(--color-border); border-radius: var(--radius);
+  cursor: pointer;
+}
+.switch-track {
+  position: relative; width: 30px; height: 16px;
+  border-radius: 8px; background: var(--color-surface-2); border: 1px solid var(--color-border);
+}
+.switch-track::after {
+  content: ""; position: absolute; top: 1px; left: 1px; width: 12px; height: 12px;
+  border-radius: 50%; background: var(--color-text-muted); transition: transform 0.15s;
+}
+.switch[aria-checked="true"] .switch-track { background: var(--color-accent); border-color: var(--color-accent); }
+.switch[aria-checked="true"] .switch-track::after { transform: translateX(14px); background: var(--color-bg); }
+
+.lang { display: inline-flex; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; }
+.lang-option { padding: var(--space-1) var(--space-2); background: transparent; border: 0; cursor: pointer; }
+.lang-option[aria-pressed="true"] { background: var(--color-accent); color: var(--color-bg); font-weight: 700; }
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--panel-width);
+  min-height: 0;
+}
+.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: var(--color-bg); }
+.stage:focus { outline: none; }
+.panel {
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+}
+.panel-title { margin: 0 0 var(--space-3); font-size: 20px; }
+
+/* Interruptor de guía: oculta textos de guía y misiones sin desmontarlos (conservan su progreso). */
+.app[data-guide="off"] .guide { display: none !important; }
+
+/* ---- Créditos -------------------------------------------------------------- */
+.credits {
+  max-width: 480px;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+.credits::backdrop { background: rgb(0 0 0 / 0.6); }
+.credits h2 { margin-top: 0; }
+.credits a { color: var(--color-accent); }
+
+/* ---- Fallas ------------------------------------------------------------------ */
+.error-overlay {
+  position: fixed; inset: 0; z-index: 900;
+  display: grid; place-items: center;
+  background: rgb(0 0 0 / 0.65);
+}
+.error-overlay[hidden] { display: none; }
+.error-box {
+  max-width: 440px; padding: var(--space-4);
+  background: var(--color-surface); border: 1px solid var(--color-car-crashed); border-radius: var(--radius);
+}
+.error-box h2 { margin-top: 0; }
+
+/* ---- Ventana angosta: aviso en lugar de una disposición rota ---------------- */
+.narrow-notice { display: none; }
+@media (max-width: 1023.98px) {
+  .app > .topbar, .app > .workspace { display: none; }
+  .app { grid-template-rows: 1fr; }
+  .narrow-notice {
+    display: block;
+    align-self: center;
+    max-width: 520px;
+    margin: var(--space-4) auto;
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+}

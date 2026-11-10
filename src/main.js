@@ -5,6 +5,18 @@ import { createI18n, pickInitialLanguage } from './ui/i18n.js';
 import { createPreferences } from './ui/preferences.js';
 import { installTooltips } from './ui/tooltips.js';
 import { auditTooltips } from './ui/audit.js';
+import { createApp } from './ui/app.js';
+import * as driveTab from './tabs/drive/index.js';
+
+// Pestañas del recorrido, en orden. Las que no tienen módulo se muestran como no disponibles.
+const TABS = [
+  { id: 'drive', module: driveTab },
+  { id: 'rules' },
+  { id: 'train' },
+  { id: 'compete' },
+  { id: 'inspect' },
+  { id: 'lab' },
+];
 
 document.getElementById('fallback')?.remove();
 
@@ -15,12 +27,17 @@ const i18n = createI18n({
   language: pickInitialLanguage({ stored: preferences.language, browserLanguages: navigator.languages ?? [navigator.language] }),
 });
 document.documentElement.lang = i18n.language;
-i18n.onChange((lang) => { document.documentElement.lang = lang; i18n.translateTree(document.body); });
+document.title = i18n.t('app.title');
+i18n.onChange((lang) => {
+  document.documentElement.lang = lang;
+  document.title = i18n.t('app.title');
+  i18n.translateTree(document.body);
+});
 const tooltips = installTooltips({ doc: document, i18n });
-i18n.translateTree(document.body);
+const app = createApp({ root: document.getElementById('app'), tabs: TABS, i18n, preferences });
 
 // Ayudas para la verificación manual desde la consola del navegador.
 window.mlLab = {
-  i18n, preferences, tooltips,
+  app, i18n, preferences, tooltips,
   auditTooltips: (root = document) => auditTooltips({ root, dictionaries }),
 };

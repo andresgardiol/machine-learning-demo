@@ -45,12 +45,12 @@
 
 ## 8. Estructura de la app
 
-- [ ] 8.1 Implementar el registro de pestañas con montar y desmontar, la barra con las seis pestañas (una habilitada) y la disposición de escenario a la izquierda y panel a la derecha; verificar en el navegador el orden, la pestaña activa y que las no disponibles no se abren
-- [ ] 8.2 Implementar el selector de idioma y el interruptor de guía, conectados a las preferencias; verificar en el navegador el cambio en vivo y que ambos se recuerdan al recargar
-- [ ] 8.3 Implementar los créditos con enlace al curso; verificar que se abren desde la pestaña y que el enlace abre en otra pestaña del navegador
-- [ ] 8.4 Implementar el aviso para ventanas de menos de 1024 píxeles; verificar achicando y agrandando la ventana
-- [ ] 8.5 Implementar el manejo de fallas inesperadas con mensaje y reinicio de la pestaña; verificar provocando un error desde la consola
-- [ ] 8.6 Escribir los tooltips y los textos en español e inglés de todos los controles de la estructura, incluidas las pestañas no disponibles; verificar que la auditoría no reporta faltantes y que la prueba de paridad pasa
+- [x] 8.1 Implementar el registro de pestañas con montar y desmontar, la barra con las seis pestañas (una habilitada) y la disposición de escenario a la izquierda y panel a la derecha; verificar en el navegador el orden, la pestaña activa y que las no disponibles no se abren
+- [x] 8.2 Implementar el selector de idioma y el interruptor de guía, conectados a las preferencias; verificar en el navegador el cambio en vivo y que ambos se recuerdan al recargar
+- [x] 8.3 Implementar los créditos con enlace al curso; verificar que se abren desde la pestaña y que el enlace abre en otra pestaña del navegador
+- [x] 8.4 Implementar el aviso para ventanas de menos de 1024 píxeles; verificar achicando y agrandando la ventana
+- [x] 8.5 Implementar el manejo de fallas inesperadas con mensaje y reinicio de la pestaña; verificar provocando un error desde la consola
+- [x] 8.6 Escribir los tooltips y los textos en español e inglés de todos los controles de la estructura, incluidas las pestañas no disponibles; verificar que la auditoría no reporta faltantes y que la prueba de paridad pasa
 
 ## 9. Vista del escenario y teclado
 
