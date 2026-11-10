@@ -68,6 +68,20 @@ export default {
   'help.tab.lab.soon.what': 'Próximamente: esta pestaña todavía no está disponible.',
   'help.tab.lab.soon.why': 'Va a enseñar backpropagation (la forma de corregir una red a partir de sus errores) en un espacio libre para experimentar.',
 
+  // Cámara del escenario
+  'camera.zoomIn': '+',
+  'camera.zoomOut': '−',
+  'camera.reset': 'Seguir al auto (V)',
+  'camera.zoomIn.label': 'Acercar',
+  'camera.zoomOut.label': 'Alejar',
+  'camera.reset.label': 'Restablecer la vista y seguir al auto',
+  'help.camera.zoomIn.what': 'Acerca la vista. También podés usar la rueda del mouse sobre el escenario.',
+  'help.camera.zoomIn.why': 'De cerca se ve con detalle dónde toca cada rayo y cuánto espacio queda entre los autos.',
+  'help.camera.zoomOut.what': 'Aleja la vista. También podés usar la rueda del mouse sobre el escenario.',
+  'help.camera.zoomOut.why': 'De lejos se ve más calle y más tráfico, para anticipar lo que viene.',
+  'help.camera.reset.what': 'Vuelve a seguir al auto con el zoom inicial. Atajo: tecla V. Para mover la vista, arrastrá el escenario con el mouse.',
+  'help.camera.reset.why': 'Si moviste o agrandaste la vista para mirar algo, así recuperás el encuadre de siempre sin perder el auto.',
+
   // Pestaña 1: El problema
   'drive.title': 'El problema',
 };

@@ -37,11 +37,11 @@ index.html
 styles/          tokens.css (colores y medidas), app.css
 src/
   core/          geometry, random, constants, track, car, sensors, traffic, controller, world
-  input/         controlador de teclado (adapta eventos al contrato)      [pendiente]
-  render/        cámara y dibujo del escenario en canvas                  [pendiente]
-  ui/            estructura, pestañas, tooltips, idiomas, preferencias    [pendiente]
-  i18n/          es.js, en.js                                             [pendiente]
-  tabs/drive/    composición de la pestaña 1                              [pendiente]
+  input/         keyboard.js: controlador de teclado (adapta eventos al contrato)
+  render/        camera.js y view.js: cámara y dibujo del escenario en canvas
+  ui/            app, dom, store, loop, i18n, tooltips, audit, preferences
+  i18n/          es.js, en.js
+  tabs/drive/    composición de la pestaña 1                              [en construcción]
   main.js
 tests/           pruebas del núcleo, de textos y de arquitectura
 tools/serve.mjs  servidor local de desarrollo
@@ -81,6 +81,16 @@ una operación, `control(perception)`:
 El mundo lo consulta una vez por paso. Dos controles opuestos a la vez se
 anulan. Se entrega con `createWorld({ controller })` o `world.setController(c)`.
 Para probar sin teclado: `constantController({ forward: true })` en `core/controller.js`.
+
+Piezas de la interfaz:
+
+- `ui/loop.js`: bucle de paso fijo (acumula tiempo real, máximo 5 pasos por cuadro, se detiene con la página oculta).
+- `render/camera.js` y `render/view.js`: cámara que sigue al auto (zoom con rueda y botones, paneo arrastrando, tecla V para volver) y dibujo de pista, tráfico, auto y rayos con los colores de `styles/tokens.css`.
+- `input/keyboard.js`: flechas y W A S D; ignora campos de texto y suelta todo al perder el foco.
+- `ui/i18n.js` e `i18n/`: textos por clave (`data-i18n`); `ui/tooltips.js`: ayuda "qué hace / por qué importa" por clave (`data-help`).
+
+Para la verificación manual, la consola del navegador expone `mlLab`: por ejemplo
+`mlLab.auditTooltips()` lista los controles sin tooltip (debe devolver `[]`).
 
 ## Cómo publicar como sitio estático
 

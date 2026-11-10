@@ -68,6 +68,20 @@ export default {
   'help.tab.lab.soon.what': 'Coming soon: this tab is not available yet.',
   'help.tab.lab.soon.why': 'It will teach backpropagation (the way to correct a network from its mistakes) in an open space for experimenting.',
 
+  // Stage camera
+  'camera.zoomIn': '+',
+  'camera.zoomOut': '−',
+  'camera.reset': 'Follow the car (V)',
+  'camera.zoomIn.label': 'Zoom in',
+  'camera.zoomOut.label': 'Zoom out',
+  'camera.reset.label': 'Reset the view and follow the car',
+  'help.camera.zoomIn.what': 'Zooms in. You can also use the mouse wheel over the stage.',
+  'help.camera.zoomIn.why': 'Up close you can see exactly where each ray hits and how much room is left between cars.',
+  'help.camera.zoomOut.what': 'Zooms out. You can also use the mouse wheel over the stage.',
+  'help.camera.zoomOut.why': 'From afar you see more road and more traffic, so you can anticipate what is coming.',
+  'help.camera.reset.what': 'Goes back to following the car at the initial zoom. Shortcut: V key. To move the view, drag the stage with the mouse.',
+  'help.camera.reset.why': 'If you moved or zoomed the view to look at something, this brings back the usual framing without losing the car.',
+
   // Tab 1: The problem
   'drive.title': 'The problem',
 };

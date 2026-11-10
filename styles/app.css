@@ -189,3 +189,19 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
     border-radius: var(--radius);
   }
 }
+
+/* ---- Escenario ---------------------------------------------------------------- */
+.stage-canvas { position: absolute; inset: 0; display: block; cursor: grab; touch-action: none; }
+.stage-canvas.dragging { cursor: grabbing; }
+.camera-controls {
+  position: absolute; top: var(--space-2); right: var(--space-2);
+  display: flex; gap: var(--space-1);
+}
+.camera-button {
+  min-width: 32px; height: 32px; padding: 0 var(--space-2);
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius);
+  cursor: pointer; font-size: 14px;
+}
+.camera-button:hover { border-color: var(--color-accent); }
+/* La cámara no sigue al auto: el botón para volver se destaca. */
+.camera-button[data-active="true"] { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-bg); font-weight: 600; }

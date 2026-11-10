@@ -54,12 +54,12 @@
 
 ## 9. Vista del escenario y teclado
 
-- [ ] 9.1 Implementar el bucle de paso fijo con acumulador, tope de pasos por cuadro y pausa al ocultarse la página; verificar con pruebas que 60 Hz y 144 Hz ejecutan la misma cantidad de pasos en el mismo tiempo y que una pausa larga no provoca un salto
-- [ ] 9.2 Implementar el dibujo de pista, carriles, auto, tráfico y auto chocado, con ajuste al tamaño y a la densidad de píxeles, tomando los colores de `tokens.css`; verificar en el navegador contra los escenarios de dibujo y de cambio de tamaño
-- [ ] 9.3 Implementar el dibujo de los rayos con sus dos tramos, la opción de ocultarlos y la opción que omite pista y tráfico; verificar en el navegador cada opción
-- [ ] 9.4 Implementar la cámara (seguimiento, zoom con rueda y botones con límites, paneo, restablecer con control y atajo); verificar con pruebas que el zoom mantiene fijo el punto bajo el cursor y respeta los límites, y en el navegador el paneo y el restablecimiento
-- [ ] 9.5 Implementar el controlador de teclado (flechas y WASD, varias teclas, ignorar campos de texto, no desplazar la página, soltar al perder el foco); verificar con pruebas usando eventos simulados cada escenario de la spec de controladores
-- [ ] 9.6 Escribir los tooltips y los textos en español e inglés de los controles de cámara; verificar que la auditoría no reporta faltantes y que la prueba de paridad pasa
+- [x] 9.1 Implementar el bucle de paso fijo con acumulador, tope de pasos por cuadro y pausa al ocultarse la página; verificar con pruebas que 60 Hz y 144 Hz ejecutan la misma cantidad de pasos en el mismo tiempo y que una pausa larga no provoca un salto
+- [x] 9.2 Implementar el dibujo de pista, carriles, auto, tráfico y auto chocado, con ajuste al tamaño y a la densidad de píxeles, tomando los colores de `tokens.css`; verificar en el navegador contra los escenarios de dibujo y de cambio de tamaño
+- [x] 9.3 Implementar el dibujo de los rayos con sus dos tramos, la opción de ocultarlos y la opción que omite pista y tráfico; verificar en el navegador cada opción
+- [x] 9.4 Implementar la cámara (seguimiento, zoom con rueda y botones con límites, paneo, restablecer con control y atajo); verificar con pruebas que el zoom mantiene fijo el punto bajo el cursor y respeta los límites, y en el navegador el paneo y el restablecimiento
+- [x] 9.5 Implementar el controlador de teclado (flechas y WASD, varias teclas, ignorar campos de texto, no desplazar la página, soltar al perder el foco); verificar con pruebas usando eventos simulados cada escenario de la spec de controladores
+- [x] 9.6 Escribir los tooltips y los textos en español e inglés de los controles de cámara; verificar que la auditoría no reporta faltantes y que la prueba de paridad pasa
 
 ## 10. Pestaña 1: El problema
 
