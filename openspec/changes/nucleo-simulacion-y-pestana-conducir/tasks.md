@@ -10,8 +10,8 @@
 
 ## 2. Núcleo: geometría y azar
 
-- [ ] 2.1 Implementar la geometría del núcleo (vectores, intersección de segmentos, contorno de un rectángulo rotado, contacto entre contornos); verificar con pruebas que cubren cruce, no cruce, segmentos paralelos y contornos que se tocan
-- [ ] 2.2 Implementar el generador de azar con semilla y la derivación por índice; verificar con pruebas que misma semilla da la misma secuencia y semillas distintas dan secuencias distintas
+- [x] 2.1 Implementar la geometría del núcleo (vectores, intersección de segmentos, contorno de un rectángulo rotado, contacto entre contornos); verificar con pruebas que cubren cruce, no cruce, segmentos paralelos y contornos que se tocan
+- [x] 2.2 Implementar el generador de azar con semilla y la derivación por índice; verificar con pruebas que misma semilla da la misma secuencia y semillas distintas dan secuencias distintas
 
 ## 3. Núcleo: pista
 
