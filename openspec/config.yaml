@@ -1,0 +1,76 @@
+schema: spec-driven
+
+context: |
+  Language: es
+  All artifacts must be written in es.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Proyecto: laboratorio web interactivo para enseñar machine learning de forma
+  visual y práctica, con un autito como hilo conductor. Dos públicos: el
+  principiante que lo usa solo y el mentor que lo usa para enseñar.
+  La constitución completa está en CONSTITUCION.md (raíz del repo) y manda
+  sobre cualquier artefacto.
+
+  Stack y restricciones:
+  - JavaScript, HTML y CSS sin frameworks ni dependencias de terceros.
+  - Módulos ES nativos; sitio 100% estático, sin paso de build obligatorio.
+  - Núcleo de simulación sin DOM, determinista (paso fijo y azar con semilla).
+  - Teclado, pseudocódigo y red neuronal cumplen un mismo contrato de
+    controlador: lecturas de sensores entran, controles salen.
+  - Solo escritorio. Interfaz en español e inglés con selector de idioma.
+
+  Prioridades cuando hay conflicto (gana la primera):
+  1. Claridad didáctica  2. Usabilidad  3. Cantidad de features  4. Realismo
+
+  Principios (resumen de la constitución):
+  1. Enseñar primero: cada feature hace visible un concepto enunciable en una
+     oración.
+  2. Mostrar antes que explicar: ver, tocar, nombrar.
+  3. Causa y efecto inmediatos: todo control produce un cambio visible.
+  4. Un concepto por vez: buenos valores por defecto, lo avanzado colapsado.
+  5. Autoexplicable: tooltip "qué hace / por qué importa" en todo control.
+  6. Dos públicos, una app: las guías se ocultan, lo avanzado no abruma.
+  7. Honestidad técnica: nombres correctos; se visualiza el cálculo real.
+  8. Nunca falla en vivo: determinismo, cerebros preentrenados, reinicio.
+  9. Consistencia: misma disposición, colores y controles en toda la app.
+  10. Fluidez: la animación fluida es parte de la experiencia.
+  11. Bilingüe de origen: ningún texto visible fijo en el código.
+  12. Simple por dentro: módulos cohesivos y desacoplados, dependencias hacia
+      el núcleo.
+
+  Filtro de entrada para toda feature nueva:
+  1. ¿Qué concepto hace visible?
+  2. ¿Se entiende sin que nadie lo explique?
+  3. ¿El mentor puede ignorarla u ocultarla?
+  4. ¿Qué pasa si se usa mal, y cómo se vuelve atrás?
+
+rules:
+  proposal:
+    - Declarar en una oración qué concepto de ML hace visible el cambio; si es infraestructura, qué feature didáctica habilita.
+    - Responder las cuatro preguntas del filtro de entrada para cada feature visible al usuario.
+    - Indicar a qué público sirve (principiante, mentor o ambos) y cómo evita entorpecer al otro.
+    - Declarar explícitamente qué queda fuera de alcance.
+  specs:
+    - Todo control nuevo incluye un requisito de tooltip ("qué hace / por qué importa") y de textos en español e inglés.
+    - Incluir un escenario del estado por defecto (funciona sin configurar nada) y uno de vuelta atrás (reinicio o deshacer).
+    - El comportamiento de simulación se especifica de forma determinista (misma semilla, mismo resultado).
+  design:
+    - Mantener el núcleo de simulación sin DOM y las dependencias apuntando hacia el núcleo; justificar cualquier excepción.
+    - No introducir dependencias de terceros ni un paso de build obligatorio.
+    - Indicar el impacto en rendimiento cuando el cambio toca el bucle de simulación o de dibujo.
+  tasks:
+    - Incluir tareas explícitas para tooltips, textos en ambos idiomas y pruebas del núcleo.
+    - Mantener las tareas chicas y verificables una por una.
+    - Cerrar con una verificación manual en el navegador contra el filtro de entrada.
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
