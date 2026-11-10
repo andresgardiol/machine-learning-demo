@@ -21,8 +21,8 @@
 
 ## 4. Núcleo: auto y sensores
 
-- [ ] 4.1 Implementar la física del auto (aceleración, velocidad máxima, marcha atrás, fricción, giro, controles contradictorios); verificar con una prueba por cada escenario de la spec de simulación y de controladores
-- [ ] 4.2 Implementar los sensores (abanico, lectura normalizada, orden estable, detección de bordes y vehículos, ajuste de valores fuera de rango, valores por defecto); verificar con una prueba por cada escenario de la spec de sensores
+- [x] 4.1 Implementar la física del auto (aceleración, velocidad máxima, marcha atrás, fricción, giro, controles contradictorios); verificar con una prueba por cada escenario de la spec de simulación y de controladores
+- [x] 4.2 Implementar los sensores (abanico, lectura normalizada, orden estable, detección de bordes y vehículos, ajuste de valores fuera de rango, valores por defecto); verificar con una prueba por cada escenario de la spec de sensores
 
 ## 5. Núcleo: tráfico
 
