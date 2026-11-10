@@ -2,11 +2,11 @@
 
 ## 1. Base del proyecto
 
-- [ ] 1.1 Crear `package.json` con `"type": "module"`, scripts `test` y `start`, y sin dependencias; verificar que `npm test` corre y termina sin errores
-- [ ] 1.2 Crear `tools/serve.mjs` sobre el módulo `http` de Node; verificar que `npm start` sirve `index.html` y entrega los `.js` con el tipo de contenido correcto
+- [x] 1.1 Crear `package.json` con `"type": "module"`, scripts `test` y `start`, y sin dependencias; verificar que `npm test` corre y termina sin errores
+- [x] 1.2 Crear `tools/serve.mjs` sobre el módulo `http` de Node; verificar que `npm start` sirve `index.html` y entrega los `.js` con el tipo de contenido correcto
 - [ ] 1.3 Crear `index.html`, `styles/tokens.css`, `styles/app.css` y `src/main.js` con el mensaje estático de respaldo que el arranque elimina; verificar en el navegador que la página carga sin errores en consola y que al abrir el archivo con doble clic queda visible el mensaje de respaldo
-- [ ] 1.4 Crear la prueba de arquitectura que prohíbe en `src/core` importar fuera de `core` y usar `document`, `window`, `Math.random`, `Date.now` y `performance.now`; verificar que falla al agregar a propósito un uso prohibido y que pasa al quitarlo
-- [ ] 1.5 Escribir `README.md` (qué es, cómo ejecutar, cómo probar, cómo publicar como sitio estático, créditos) y agregar `.nojekyll`; verificar que cada comando documentado funciona tal como está escrito
+- [x] 1.4 Crear la prueba de arquitectura que prohíbe en `src/core` importar fuera de `core` y usar `document`, `window`, `Math.random`, `Date.now` y `performance.now`; verificar que falla al agregar a propósito un uso prohibido y que pasa al quitarlo
+- [x] 1.5 Escribir `README.md` (qué es, cómo ejecutar, cómo probar, cómo publicar como sitio estático, créditos) y agregar `.nojekyll`; verificar que cada comando documentado funciona tal como está escrito
 
 ## 2. Núcleo: geometría y azar
 

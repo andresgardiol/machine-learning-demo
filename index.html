@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Machine learning demo</title>
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/app.css">
+</head>
+<body>
+  <!-- Mensaje de respaldo: el arranque (src/main.js) lo elimina. Si los módulos no cargan
+       (por ejemplo al abrir este archivo con doble clic), queda a la vista. -->
+  <div id="fallback" class="fallback" role="alert">
+    <p><strong>Esta aplicación necesita un servidor local.</strong>
+       Abrila con <code>npm start</code> y visitá <code>http://localhost:8000</code>.</p>
+    <p><strong>This app needs a local server.</strong>
+       Run <code>npm start</code> and visit <code>http://localhost:8000</code>.</p>
+  </div>
+  <div id="app"></div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

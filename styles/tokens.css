@@ -1,0 +1,27 @@
+/* Única fuente de la paleta y las medidas. El dibujo en canvas lee estas variables. */
+:root {
+  --color-bg: #12161c;
+  --color-surface: #1b212a;
+  --color-surface-2: #242c37;
+  --color-text: #eef1f5;
+  --color-text-muted: #aab3c0;
+  --color-border: #3a4554;
+  --color-accent: #4ea1ff;
+
+  /* Significado constante en toda la app */
+  --color-road: #2b323d;
+  --color-road-edge: #f2f4f7;
+  --color-lane-line: #8b95a5;
+  --color-car: #3ddc84;
+  --color-car-crashed: #ff5a5a;
+  --color-traffic: #ffb020;
+  --color-sensor: #4ea1ff;
+  --color-sensor-hit: #ff5a5a;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --radius: 8px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
