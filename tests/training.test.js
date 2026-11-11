@@ -57,7 +57,7 @@ test('inicio de una generación: 100 autos detenidos en la misma posición, cada
 test('configuración por defecto del entrenamiento', () => {
   assert.deepEqual(normalizeTrainingConfig({}), {
     population: 100, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false,
-    fitness: 'distance', maxDuration: 60, slowRule: true, trafficMode: 'new', lanes: 3, density: 50, irregularity: 50,
+    fitness: 'distance', maxDuration: 60, selectionMode: 'auto', slowRule: true, trafficMode: 'new', lanes: 3, density: 50, irregularity: 50,
     maxSpeed: 20, hidden: [6], activation: 'step', sensors: { count: 5, range: 3, spread: 90 },
   });
   assert.deepEqual(normalizeTrainingConfig({ hidden: [20, 0, 4, 4, 4], population: 1 }).hidden, [16, 1, 4]);
@@ -331,7 +331,7 @@ test('cerebro del campeón: pasa la validación y acumula generaciones y escenar
   assert.equal(b.training.seed, 2);
   assert.equal(b.training.maxSpeed, 20);
   assert.deepEqual(b.training.fitness, { kind: 'distance', best: t.champion.fitness });
-  assert.deepEqual(b.training.evolution, { population: 6, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, maxDuration: 10, slowRule: true });
+  assert.deepEqual(b.training.evolution, { population: 6, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, maxDuration: 10, slowRule: true, selectionMode: 'auto' });
   assert.deepEqual(b.network, t.champion.network);
   assert.deepEqual(b.sensors, { count: 5, range: 3, spread: 90 });
 });
@@ -500,4 +500,484 @@ test('volver al mismo tráfico: desde la generación siguiente todas usan el tr�
     assert.equal(t.config.trafficMode, 'same');
     assert.equal(t.world.seed, SCENARIO_TRAFFIC_SEED);
   }
+});
+
+// --- Selección manual (cambio seleccion-manual) -------------------------------------------------
+
+import { childrenOf, rankPopulation } from '../src/core/evolution.js';
+import { MAX_CHOICES } from '../src/core/training.js';
+
+/** Elige al líder en cuanto su red difiere de la del padre actual, sin salir de la generación en curso. */
+function chooseSoon(t, limit = 5000) {
+  const g = t.generation;
+  for (let i = 0; i < limit; i++) {
+    const choice = t.chooseLeader();
+    if (choice) return choice;
+    t.step();
+    assert.equal(t.generation, g, 'la generación terminó antes de poder elegir');
+  }
+  assert.fail('no hubo un líder distinto del padre');
+}
+
+const manual = (seed, config = {}) => createTraining({ seed, config: { population: 10, maxDuration: 10, selectionMode: 'manual', ...config } });
+
+// 2.1 Modo de selección como configuración
+
+test('modo de selección: sin indicarlo es automática, y un valor inválido vuelve a automática', () => {
+  assert.equal(DEFAULT_TRAINING_CONFIG.selectionMode, 'auto');
+  assert.equal(normalizeTrainingConfig({}).selectionMode, 'auto');
+  assert.equal(normalizeTrainingConfig({ selectionMode: 'persona' }).selectionMode, 'auto');
+  assert.equal(normalizeTrainingConfig({ selectionMode: 7 }).selectionMode, 'auto');
+  assert.equal(normalizeTrainingConfig({ selectionMode: 'manual' }).selectionMode, 'manual');
+  const t = createTraining({ seed: 1, config: { population: 10 } });
+  assert.equal(t.config.selectionMode, 'auto');
+  assert.deepEqual(t.selection, { applied: 'auto', desired: 'auto' });
+  assert.equal(t.parent, null);
+  assert.equal(t.choiceCount, 0);
+});
+
+test('cambio de modo de selección durante la generación 6: la 6 sigue igual y la 7 se forma con selección manual', () => {
+  const t = createTraining({ seed: 6, config: { population: 10, maxDuration: 10 } });
+  const u = createTraining({ seed: 6, config: { population: 10, maxDuration: 10 } });
+  runUntilGeneration(t, 6);
+  runUntilGeneration(u, 6);
+  for (let i = 0; i < 50; i++) { t.step(); u.step(); }
+  assert.deepEqual(t.configure({ selectionMode: 'manual' }), { selectionMode: 'manual' });
+  assert.deepEqual(t.pending, { selectionMode: 'manual' });
+  assert.equal(t.config.selectionMode, 'auto');
+  assert.deepEqual(t.selection, { applied: 'auto', desired: 'manual' });
+  let ended = null;
+  while (!ended) {
+    ended = t.step();
+    const other = u.step();
+    assert.deepEqual(t.world.agentsSnapshot(), u.world.agentsSnapshot());
+    if (ended) assert.deepEqual(ended, other);
+  }
+  assert.equal(t.generation, 7);
+  assert.equal(t.pending, null);
+  assert.deepEqual(t.selection, { applied: 'manual', desired: 'manual' });
+  // La 7 sale del campeón de la 6 (selección manual) y no del orden de fitness.
+  assert.deepEqual(t.parent, { source: 'champion', generation: 6, fitness: t.champion.fitness, fitnessKind: 'distance' });
+  assert.equal(t.eliteCount, 1);
+  assert.deepEqual(t.networks, childrenOf(t.champion.network, t.config, randomFor(deriveSeed(6, 2), 6)));
+  assert.notDeepEqual(t.networks, u.networks);
+});
+
+// 2.2 Elegir al líder y deshacer
+
+test('elegir durante la generación 4: el padre tiene la red del líder y registra la generación 4 y el fitness que llevaba', () => {
+  const t = clones([1, 0, 0, 0], { density: 0, selectionMode: 'manual' });
+  runUntilGeneration(t, 4);
+  t.undoChoice(); // el cerebro inicial deja de ser el padre
+  while (t.fitnessOf() < 310) t.step();
+  const meters = t.fitnessOf();
+  assert.ok(meters >= 310 && meters < 311, `llevaba ${meters} m`);
+  const choice = t.chooseLeader();
+  assert.deepEqual(choice.network, t.networks[t.leaderIndex]);
+  assert.notEqual(choice.network, t.networks[t.leaderIndex]); // es una copia
+  assert.deepEqual(t.parent, { source: 'leader', generation: 4, fitness: meters, fitnessKind: 'distance' });
+  assert.equal(t.choiceCount, 1);
+});
+
+test('elegir dos veces en la misma generación: el padre elegido es el segundo líder', () => {
+  // Individuo 0 quieto (copia del cerebro), los demás mutados con fuerza total: alguno lo supera.
+  const t = createTraining({ seed: 3, config: { population: 8, mutationStrength: 100, density: 0, selectionMode: 'manual' }, brain: brainOf(fixedNetwork([0, 0, 0, 0])) });
+  t.undoChoice();
+  const first = t.chooseLeader();
+  assert.equal(t.leaderIndex, 0);
+  assert.deepEqual(first.network, fixedNetwork([0, 0, 0, 0]));
+  while (t.leaderIndex === 0) t.step();
+  const second = t.chooseLeader();
+  assert.deepEqual(second.network, t.networks[t.leaderIndex]);
+  assert.notDeepEqual(second.network, first.network);
+  assert.equal(t.choiceCount, 2);
+  t.finishGeneration();
+  assert.deepEqual(t.networks[0], second.network);
+});
+
+test('elegir al que ya es el padre: el padre y el historial de elecciones no cambian', () => {
+  const t = clones([1, 0, 0, 0], { density: 0, selectionMode: 'manual' });
+  assert.deepEqual(t.parent, { source: 'brain', generation: 0, fitness: 1, fitnessKind: 'distance', name: 'B' });
+  assert.equal(t.choiceCount, 1);
+  for (let i = 0; i < 100; i++) t.step();
+  assert.equal(t.chooseLeader(), null); // el líder es una copia sin cambios del cerebro
+  assert.equal(t.choiceCount, 1);
+  assert.equal(t.parent.source, 'brain');
+  t.finishGeneration();
+  assert.equal(t.chooseLeader(), null); // la copia del padre en la generación 2
+  assert.equal(t.choiceCount, 1);
+});
+
+test('elegir a mitad de una generación: los autos de esa generación siguen manejando igual', () => {
+  const t = manual(4);
+  const u = manual(4);
+  for (let i = 0; i < 80; i++) { t.step(); u.step(); }
+  const networks = t.networks.slice();
+  assert.ok(t.chooseLeader());
+  assert.deepEqual(t.networks, networks);
+  networks.forEach((n, i) => assert.equal(t.networks[i], n));
+  let ended = null;
+  while (!ended) {
+    ended = t.step();
+    const other = u.step();
+    assert.deepEqual(t.world.agentsSnapshot(), u.world.agentsSnapshot());
+    if (ended) assert.deepEqual(ended, other);
+  }
+});
+
+test('deshacer con dos elecciones: el padre vuelve a ser el de la generación 3', () => {
+  const t = manual(5);
+  runUntilGeneration(t, 3);
+  chooseSoon(t);
+  runUntilGeneration(t, 5);
+  chooseSoon(t);
+  assert.equal(t.parent.generation, 5);
+  assert.equal(t.choiceCount, 2);
+  const networks = t.networks.slice();
+  const steps = t.world.steps;
+  assert.equal(t.undoChoice(), true);
+  assert.equal(t.parent.generation, 3);
+  assert.equal(t.parent.source, 'leader');
+  assert.equal(t.choiceCount, 1);
+  assert.equal(t.generation, 5);
+  assert.equal(t.world.steps, steps);
+  networks.forEach((n, i) => assert.equal(t.networks[i], n));
+});
+
+test('deshacer la única elección: no queda padre y la generación siguiente es al azar', () => {
+  const t = manual(5);
+  for (let i = 0; i < 40; i++) t.step();
+  const chosen = t.chooseLeader();
+  assert.equal(t.undoChoice(), true);
+  assert.equal(t.parent, null);
+  assert.equal(t.choiceCount, 0);
+  t.finishGeneration();
+  assert.equal(t.eliteCount, 0);
+  for (const n of t.networks) assert.notDeepEqual(n, chosen.network);
+});
+
+test('deshacer sin elecciones: nada cambia', () => {
+  const t = manual(5);
+  for (let i = 0; i < 40; i++) t.step();
+  const snapshot = t.world.agentsSnapshot();
+  assert.equal(t.undoChoice(), false);
+  assert.equal(t.parent, null);
+  assert.equal(t.choiceCount, 0);
+  assert.deepEqual(t.world.agentsSnapshot(), snapshot);
+});
+
+test('más de veinte elecciones: tras 21 elecciones y 20 deshacer no queda padre', () => {
+  assert.equal(MAX_CHOICES, 20);
+  const t = manual(2, { population: 20, mutationStrength: 100 });
+  // Una elección por generación, en cuanto el líder no es la copia del padre.
+  let made = 0;
+  for (let guard = 0; made < 21 && guard < 200000; guard++) {
+    if (t.chooseLeader()) {
+      made += 1;
+      assert.equal(t.choiceCount, Math.min(made, 20));
+      t.finishGeneration();
+    } else {
+      t.step();
+    }
+  }
+  assert.equal(made, 21);
+  assert.equal(t.choiceCount, 20);
+  for (let n = 0; n < 19; n++) assert.equal(t.undoChoice(), true);
+  assert.notEqual(t.parent, null);
+  assert.equal(t.undoChoice(), true);
+  assert.equal(t.parent, null);
+  assert.equal(t.choiceCount, 0);
+  assert.equal(t.undoChoice(), false);
+});
+
+// 2.3 Cría al terminar la generación
+
+test('generación desde el padre: 100 individuos, el primero idéntico al padre y los otros 99 distintos', () => {
+  const t = createTraining({ seed: 9, config: { population: 100, maxDuration: 10, mutationStrength: 10, selectionMode: 'manual' } });
+  for (let i = 0; i < 60; i++) t.step();
+  const parent = t.chooseLeader();
+  t.finishGeneration();
+  assert.equal(t.networks.length, 100);
+  assert.equal(t.world.agents.length, 100);
+  assert.deepEqual(t.networks[0], parent.network);
+  for (let i = 1; i < 100; i++) assert.notDeepEqual(t.networks[i], parent.network);
+  assert.equal(t.eliteCount, 1);
+  assert.deepEqual(t.networks, childrenOf(parent.network, t.config, randomFor(deriveSeed(9, 2), 1)));
+});
+
+test('generación desde el padre con mutación en cero: todos idénticos al padre', () => {
+  const t = manual(9, { mutationStrength: 0 });
+  for (let i = 0; i < 60; i++) t.step();
+  const parent = t.chooseLeader();
+  t.finishGeneration();
+  assert.equal(t.networks.length, 10);
+  for (const n of t.networks) assert.deepEqual(n, parent.network);
+});
+
+test('dos generaciones sin elección: las dos siguientes salen del mismo padre', () => {
+  const t = manual(11);
+  for (let i = 0; i < 60; i++) t.step();
+  const parent = t.chooseLeader();
+  t.finishGeneration(); // generación 2
+  assert.deepEqual(t.networks[0], parent.network);
+  for (let i = 0; i < 60; i++) t.step();
+  t.finishGeneration(); // generación 3
+  assert.deepEqual(t.networks[0], parent.network);
+  assert.deepEqual(t.networks, childrenOf(parent.network, t.config, randomFor(deriveSeed(11, 2), 2)));
+  assert.deepEqual(t.parent, { source: 'leader', generation: 1, fitness: parent.fitness, fitnessKind: 'distance' });
+  assert.equal(t.choiceCount, 1);
+  assert.equal(t.eliteCount, 1);
+});
+
+test('generaciones al azar: sin elegir a nadie, las redes de las generaciones 1, 2 y 3 son distintas entre sí y repetibles', () => {
+  const run = () => {
+    const t = manual(13);
+    const gens = [t.networks];
+    for (let g = 0; g < 2; g++) {
+      for (let i = 0; i < 30; i++) t.step();
+      t.finishGeneration();
+      assert.equal(t.eliteCount, 0);
+      gens.push(t.networks);
+    }
+    return gens;
+  };
+  const a = run();
+  const keys = new Set(a.flat().map((n) => JSON.stringify(n)));
+  assert.equal(keys.size, 30); // ninguna red se repite entre las tres generaciones
+  // La generación 2 sale del flujo de poblaciones nuevas (4), con la generación que empieza.
+  const fresh = deriveSeed(deriveSeed(13, 4), 2);
+  assert.deepEqual(a[1][3], createNetwork({ inputs: 6, hidden: [6], outputs: 4, activation: 'step', random: randomFor(fresh, 3) }));
+  assert.deepEqual(run(), a);
+});
+
+test('fin de generación con selección manual: todos fuera de carrera termina la generación sin esperar ninguna elección', () => {
+  const t = clones([1, 1, 0, 0], { density: 0, selectionMode: 'manual' });
+  t.undoChoice();
+  let record = null;
+  let steps = 0;
+  while (!record && steps < 5000) { record = t.step(); steps += 1; }
+  assert.equal(record.reason, 'allCrashed');
+  assert.equal(t.generation, 2);
+  assert.ok(steps < 600, `tardó ${steps} pasos`);
+  assert.equal(t.eliteCount, 0); // sin padre: población al azar
+});
+
+// 2.4 Padre al cambiar de modo y al continuar desde un cerebro
+
+test('de automática a manual en la generación 12 sin elegir: la 13 sale del campeón de la 12', () => {
+  const t = createTraining({ seed: 3, config: { population: 6, maxDuration: 10 } });
+  runUntilGeneration(t, 12);
+  for (let i = 0; i < 20; i++) t.step();
+  t.configure({ selectionMode: 'manual' });
+  assert.equal(t.parent, null);
+  runUntilGeneration(t, 13);
+  assert.equal(t.champion.generation, 12);
+  assert.deepEqual(t.parent, { source: 'champion', generation: 12, fitness: t.history[11].best, fitnessKind: 'distance' });
+  assert.deepEqual(t.networks[0], t.champion.network);
+  assert.equal(t.history.length, 12);
+});
+
+test('elegir antes de que rija el cambio: la 13 sale del líder elegido y no del campeón', () => {
+  const t = createTraining({ seed: 3, config: { population: 6, maxDuration: 10 } });
+  runUntilGeneration(t, 12);
+  t.configure({ selectionMode: 'manual' });
+  while (t.leaderIndex === 0) t.step(); // un líder que no es la copia del campeón anterior
+  const chosen = t.chooseLeader();
+  assert.equal(chosen.generation, 12);
+  runUntilGeneration(t, 13);
+  assert.notDeepEqual(t.champion.network, chosen.network);
+  assert.deepEqual(t.networks[0], chosen.network);
+  assert.equal(t.parent.source, 'leader');
+  assert.equal(t.choiceCount, 1);
+});
+
+test('de manual a automática: la generación siguiente se forma por fitness de la población en curso y no queda padre', () => {
+  const t = manual(7);
+  for (let i = 0; i < 60; i++) t.step();
+  t.chooseLeader();
+  t.finishGeneration();
+  for (let i = 0; i < 60; i++) t.step();
+  t.configure({ selectionMode: 'auto' });
+  assert.notEqual(t.parent, null); // hasta que rija, la elección sigue
+  const networks = t.networks.slice();
+  const fitnesses = t.fitnesses();
+  t.finishGeneration();
+  assert.equal(t.parent, null);
+  assert.equal(t.choiceCount, 0);
+  const expected = nextGeneration({ networks, fitnesses, config: { ...t.config }, random: randomFor(deriveSeed(7, 2), 2) });
+  assert.deepEqual(t.networks, expected.networks);
+  assert.equal(t.eliteCount, 1);
+});
+
+test('volver a manual más tarde: el padre es el campeón de la generación que termina, no el elegido antes', () => {
+  const t = createTraining({ seed: 8, config: { population: 6, maxDuration: 10 } });
+  t.configure({ selectionMode: 'manual' });
+  runUntilGeneration(t, 2);
+  for (let i = 0; i < 40; i++) t.step();
+  chooseSoon(t);
+  assert.equal(t.parent.generation, 2);
+  t.configure({ selectionMode: 'auto' });
+  runUntilGeneration(t, 5); // generaciones 3 y 4 automáticas
+  assert.equal(t.parent, null);
+  t.configure({ selectionMode: 'manual' });
+  runUntilGeneration(t, 6);
+  assert.deepEqual(t.parent, { source: 'champion', generation: 5, fitness: t.history[4].best, fitnessKind: 'distance' });
+  assert.deepEqual(t.networks[0], t.champion.network);
+});
+
+test('continuar un cerebro con selección manual: es el padre inicial y la segunda generación sale de él', () => {
+  const network = createNetwork({ inputs: 6, hidden: [6], outputs: 4, random: createRandom(21) });
+  const brain = brainOf(network, { generations: 7 });
+  const t = createTraining({ seed: 4, config: { population: 10, maxDuration: 10, selectionMode: 'manual' }, brain });
+  assert.deepEqual(t.parent, { source: 'brain', generation: 7, fitness: 1, fitnessKind: 'distance', name: 'B' });
+  assert.equal(t.choiceCount, 1);
+  runUntilGeneration(t, 9); // termina la 8 sin elegir a nadie
+  assert.deepEqual(t.networks[0], network);
+  assert.deepEqual(t.networks, childrenOf(network, t.config, randomFor(deriveSeed(4, 2), 8)));
+  assert.equal(t.eliteCount, 1);
+  // Con selección automática el cerebro no queda como padre.
+  assert.equal(createTraining({ seed: 4, config: { population: 10 }, brain }).parent, null);
+});
+
+// 2.6 Reproducibilidad con elecciones, selección y élite en manual, y automática sin cambios
+
+test('mismas elecciones: dos entrenamientos manuales con las mismas elecciones y deshechas en los mismos pasos son idénticos', () => {
+  const run = () => {
+    const t = manual(17, { population: 12, mutationStrength: 40 });
+    const populations = [t.networks];
+    t.onGeneration(() => populations.push(t.networks));
+    // Guion: en cada paso indicado, elegir (E) o deshacer (Z).
+    const script = new Map([[30, 'E'], [700, 'E'], [710, 'Z'], [1300, 'E'], [1900, 'Z'], [1950, 'Z'], [2600, 'E'], [3100, 'E']]);
+    for (let n = 0; n < 4000; n++) {
+      const action = script.get(n);
+      if (action === 'E') t.chooseLeader();
+      if (action === 'Z') t.undoChoice();
+      t.step();
+    }
+    return { t, populations };
+  };
+  const a = run();
+  const b = run();
+  assert.ok(a.t.history.length >= 5, `terminaron ${a.t.history.length} generaciones`);
+  assert.deepEqual(a.t.history, b.t.history);
+  assert.equal(a.populations.length, b.populations.length);
+  a.populations.forEach((p, g) => assert.deepEqual(p, b.populations[g], `generación ${g + 1}`));
+  assert.deepEqual(a.t.parent, b.t.parent);
+  assert.equal(a.t.choiceCount, b.t.choiceCount);
+});
+
+test('con selección manual la selección no se usa: los de mayor fitness no pasan a ser padres por serlo', () => {
+  const config = { population: 20, selection: 10, elite: 0, mutationStrength: 0 };
+  // Un gemelo dice quién va a ser el campeón de la generación 1.
+  const twin = manual(19, config);
+  runUntilGeneration(twin, 2);
+  const championIndex = twin.champion.index;
+  const t = manual(19, config);
+  assert.equal(t.leaderIndex, 0); // al empezar, el líder es el primero, que no será el campeón
+  assert.notEqual(championIndex, 0);
+  const chosen = t.chooseLeader();
+  runUntilGeneration(t, 2);
+  assert.equal(t.champion.index, championIndex);
+  assert.notDeepEqual(chosen.network, t.champion.network);
+  // Con mutación 0, toda la generación es copia del elegido; ninguna, del campeón ni de los otros del 10 % mejor.
+  for (const n of t.networks) {
+    assert.deepEqual(n, chosen.network);
+    assert.notDeepEqual(n, t.champion.network);
+  }
+});
+
+test('con selección manual la élite no se usa: con élite 3 hay una sola copia sin cambios, la del padre', () => {
+  const t = manual(23, { population: 20, elite: 3, mutationStrength: 10 });
+  for (let i = 0; i < 30; i++) t.step();
+  const chosen = t.chooseLeader();
+  const before = t.networks.slice();
+  t.finishGeneration();
+  assert.equal(t.eliteCount, 1);
+  const unchanged = t.networks.filter((n) => before.some((b) => JSON.stringify(b) === JSON.stringify(n)));
+  assert.equal(unchanged.length, 1);
+  assert.deepEqual(unchanged[0], chosen.network);
+  assert.deepEqual(t.networks[0], chosen.network);
+});
+
+test('selección automática sin cambios: diez generaciones dan el mismo historial que antes de existir el modo manual', () => {
+  // Valores tomados con el código anterior a este cambio (commit 6666eea).
+  const reference = {
+    7: {
+      config: { population: 20 },
+      history: [[173.09611111111008, 12.323868334683358, 'allCrashed'], [177.02611111111764, 56.59658782841579, 'allCrashed'], [215.45611111111066, 45.57227185857482, 'allCrashed'], [230.4333333333343, 97.66567684199762, 'allCrashed'], [654.7100000000501, 187.71093141383827, 'timeLimit'], [623.1050000000541, 189.2358953869945, 'timeLimit'], [622.7300000000541, 189.33111692576713, 'timeLimit'], [576.488333333371, 196.5945833333404, 'allCrashed'], [623.1500000000524, 213.01127777778456, 'timeLimit'], [603.9411111111549, 177.04788888889453, 'allCrashed']],
+      champion: [0.7200939933564513, -0.20062512566754592, -0.39658241034718233, -0.311009442126844, -0.6131282534566708, -0.2090255785142071, 0.3704336073459126, -0.17201321303797884],
+      network5: [0.7295786444472148, -0.22580245024249887, -0.3229296427567024, -0.22090159799293607, -0.6430286154069472, -0.15366096351561132, 0.3554913577160332, -0.17638623934010975],
+    },
+    3: {
+      config: { population: 30, crossover: true, elite: 2, fitness: 'speed', maxDuration: 20 },
+      history: [[8.616268620560946, 0.48746722943157494, 'allCrashed'], [18.619047619049006, 4.2924902346862615, 'allCrashed'], [18.62559241706161, 7.870541346565223, 'allCrashed'], [19.320843091334897, 10.1866169026929, 'allCrashed'], [18.599033816426527, 13.744880632604765, 'timeLimit'], [19.599999999999596, 11.503707517202429, 'timeLimit'], [18.84633799206913, 18.601855370207463, 'allCrashed'], [19.359823399559144, 18.87872351578132, 'allCrashed'], [18.84633799206913, 18.597254088575543, 'allCrashed'], [19.51260504201681, 17.247306881782233, 'allCrashed']],
+      champion: [0.547849652684154, 0.5372338201839011, 0.08799074937007391, 0.5655069567912258, -0.6659191250396846, -0.5379186205567932, -0.4824922658099234, 0.3178409683696227],
+      network5: [0.49328364287248777, 0.43262509838573165, 0.017533420586376455, 0.39066568043404903, -0.6954464549300592, -0.5794628636168255, -0.4206782795032262, 0.2548412419457105],
+    },
+  };
+  for (const [seed, ref] of Object.entries(reference)) {
+    const t = createTraining({ seed: Number(seed), config: ref.config });
+    while (t.completed < 10) t.step();
+    assert.deepEqual(t.history.map((h) => [h.best, h.average, h.reason]), ref.history, `semilla ${seed}`);
+    assert.deepEqual(flatValues(t.champion.network).slice(0, 8), ref.champion);
+    assert.deepEqual(flatValues(t.networks[5]).slice(0, 8), ref.network5);
+    assert.equal(t.parent, null);
+  }
+});
+
+// 2.5 Cerebro del entrenamiento según el modo vigente
+
+const NOW = '2026-11-12T11:00:00.000Z';
+
+test('cerebro del entrenamiento con selección automática tras la generación 8: la red del campeón de la 8 y modo automático', () => {
+  const t = createTraining({ seed: 5, config: { population: 8, maxDuration: 10 } });
+  runUntilGeneration(t, 9);
+  const b = t.brain({ id: 'x', name: 'Auto', now: NOW });
+  assert.equal(validateBrain(b), null);
+  assert.equal(t.champion.generation, 8);
+  assert.deepEqual(b.network, t.champion.network);
+  assert.deepEqual(b.training.fitness, { kind: 'distance', best: t.history[7].best });
+  assert.equal(b.training.evolution.selectionMode, 'auto');
+  assert.equal(b.training.generations, 8);
+});
+
+test('cerebro del entrenamiento con selección manual: la red del padre elegido en la 5, su fitness como mejor y modo manual', () => {
+  const t = clones([1, 0, 0, 0], { density: 0, maxDuration: 30, selectionMode: 'manual' });
+  runUntilGeneration(t, 5);
+  while (t.fitnessOf() < 310) t.step();
+  t.undoChoice(); // el cerebro inicial deja de ser el padre: el líder es su copia
+  const chosen = t.chooseLeader();
+  const meters = chosen.fitness;
+  assert.ok(meters >= 310 && meters < 311);
+  runUntilGeneration(t, 7); // el padre persiste y siguen terminando generaciones
+  const b = t.brain({ id: 'x', name: 'Manual', now: NOW });
+  assert.equal(validateBrain(b), null);
+  assert.deepEqual(b.network, chosen.network);
+  assert.deepEqual(b.training.fitness, { kind: 'distance', best: meters });
+  assert.equal(b.training.evolution.selectionMode, 'manual');
+  assert.equal(b.training.generations, 6);
+});
+
+test('cerebro del entrenamiento con selección manual sin padre: no se entrega ningún cerebro', () => {
+  const t = manual(3);
+  runUntilGeneration(t, 3);
+  assert.equal(t.parent, null);
+  assert.ok(t.champion);
+  assert.equal(t.brain({ id: 'x', name: 'Nada', now: NOW }), null);
+});
+
+test('cerebro del entrenamiento: mientras el cambio a manual no rige sigue siendo el campeón, y un padre de un cerebro conserva su fitness', () => {
+  const t = createTraining({ seed: 5, config: { population: 8, maxDuration: 10 } });
+  runUntilGeneration(t, 2);
+  t.configure({ selectionMode: 'manual' });
+  t.chooseLeader();
+  const b = t.brain({ id: 'x', name: 'x', now: NOW });
+  assert.deepEqual(b.network, t.champion.network);
+  assert.equal(b.training.evolution.selectionMode, 'auto');
+  const brain = brainOf(createNetwork({ inputs: 6, hidden: [6], outputs: 4, random: createRandom(9) }), { generations: 4 });
+  const u = createTraining({ seed: 2, config: { population: 6, selectionMode: 'manual' }, brain });
+  const fromBrain = u.brain({ id: 'y', name: 'y', now: NOW });
+  assert.deepEqual(fromBrain.network, brain.network);
+  assert.deepEqual(fromBrain.training.fitness, { kind: 'distance', best: 1 });
+  assert.equal(fromBrain.training.generations, 4);
 });

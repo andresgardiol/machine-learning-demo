@@ -8,7 +8,8 @@
 //     outputs: ['forward', 'left', 'right', 'reverse'],
 //     training: { generations, seed, maxSpeed,
 //                 fitness: { kind, best },
-//                 evolution: { population, elite, selection, mutationStrength, mutationRate, crossover, maxDuration },
+//                 evolution: { population, elite, selection, mutationStrength, mutationRate, crossover, maxDuration,
+//                              selectionMode? },   // opcional; sin el dato, selección automática
 //                 scenarios: [{ track, lanes, density, irregularity, trafficMode, generations }] } }
 //
 // El núcleo no usa reloj ni identificadores al azar: `id` y las fechas llegan como parámetros.

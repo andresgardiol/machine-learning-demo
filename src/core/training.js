@@ -16,14 +16,15 @@
 //   training.configure(partial)  queda pendiente hasta la próxima generación; rechaza cambios de red o de sensores
 //   training.generation | history | champion | leaderIndex | aliveCount
 //   training.config | pending | world | eliteCount
-//   training.brain({ id, name, now })   cerebro del campeón con sus datos
+//   training.brain({ id, name, now })   cerebro del entrenamiento: el campeón o, con selección manual, el padre elegido
+//   training.chooseLeader() | undoChoice() | parent | choiceCount | selection   selección manual (design.md D2)
 //   training.onGeneration(fn)    avisa al cerrar cada generación
 //
 // Todo el azar sale de la semilla del entrenamiento (design.md D5).
 import { createWorld } from './world.js';
 import { createNetwork, copyNetwork, ACTIVATIONS, DEFAULT_ACTIVATION, NETWORK_LIMITS } from './network.js';
 import {
-  normalizeEvolution, DEFAULT_EVOLUTION, createStats, recordStep, fitnessOf, rankPopulation, nextGeneration, mutate,
+  normalizeEvolution, DEFAULT_EVOLUTION, createStats, recordStep, fitnessOf, rankPopulation, nextGeneration, mutate, childrenOf,
 } from './evolution.js';
 import {
   createNetworkController, createBrain, assertBrain, addScenarioGenerations, BRAIN_OUTPUTS, TRAFFIC_MODES,
@@ -53,12 +54,20 @@ export const END_REASONS = Object.freeze(['allCrashed', 'timeLimit', 'stalled', 
 const STREAM_INITIAL = 1;
 const STREAM_BREEDING = 2;
 const STREAM_TRAFFIC = 3;
+const STREAM_FRESH = 4; // poblaciones al azar nuevas de la selección manual sin padre (design.md D3)
+
+/** Modos de selección (design.md D1): los padres salen del orden de fitness o de un padre elegido. */
+export const SELECTION_MODES = Object.freeze(['auto', 'manual']);
+
+/** Cantidad de elecciones de padre que se recuerdan para deshacer (design.md D2). */
+export const MAX_CHOICES = 20;
 
 /** Ajustes que solo pueden cambiar con un entrenamiento nuevo: la forma de la red y los sensores. */
 export const NEW_TRAINING_KEYS = Object.freeze(['hidden', 'activation', 'sensors']);
 
 export const DEFAULT_TRAINING_CONFIG = Object.freeze({
   ...DEFAULT_EVOLUTION,
+  selectionMode: 'auto',
   slowRule: true,
   trafficMode: 'new',
   lanes: DEFAULT_LANES,
@@ -99,6 +108,7 @@ export function normalizeTrainingConfig(partial = {}) {
   const p = { ...DEFAULT_TRAINING_CONFIG, ...(partial ?? {}) };
   return {
     ...normalizeEvolution(p),
+    selectionMode: SELECTION_MODES.includes(p.selectionMode) ? p.selectionMode : DEFAULT_TRAINING_CONFIG.selectionMode,
     slowRule: p.slowRule === undefined ? DEFAULT_TRAINING_CONFIG.slowRule : Boolean(p.slowRule),
     trafficMode: TRAFFIC_MODES.includes(p.trafficMode) ? p.trafficMode : DEFAULT_TRAINING_CONFIG.trafficMode,
     lanes: ALLOWED_LANES.includes(Number(p.lanes)) ? Number(p.lanes) : DEFAULT_LANES,
@@ -112,6 +122,17 @@ export function normalizeTrainingConfig(partial = {}) {
 }
 
 const sameValue = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/** ¿Son la misma red? Comparación estructural: forma, activación, pesos y sesgos. */
+function sameNetwork(a, b) {
+  if (a.activation !== b.activation || a.sizes.length !== b.sizes.length) return false;
+  if (a.sizes.some((n, i) => n !== b.sizes[i])) return false;
+  return a.layers.every((layer, l) => {
+    const other = b.layers[l];
+    return layer.biases.every((v, j) => v === other.biases[j])
+      && layer.weights.every((row, j) => row.every((v, i) => v === other.weights[j][i]));
+  });
+}
 
 /** Claves cuyos valores difieren entre dos configuraciones normalizadas. */
 export function changedKeys(before, after) {
@@ -153,6 +174,22 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
   let scenarios = brain ? brain.training.scenarios.map((s) => ({ ...s })) : [];
   const history = [];
   let champion = null;
+
+  // Elecciones de padre de la selección manual (design.md D2): una pila; el padre elegido es la última.
+  let choices = [];
+  const pushChoice = (choice) => {
+    choices.push(choice);
+    if (choices.length > MAX_CHOICES) choices.shift();
+  };
+  const summaryOf = ({ source, generation: g, fitness, fitnessKind, name }) => (source === 'brain'
+    ? { source, generation: g, fitness, fitnessKind, name }
+    : { source, generation: g, fitness, fitnessKind });
+  if (brain && config.selectionMode === 'manual') {
+    pushChoice({
+      network: copyNetwork(brain.network), source: 'brain', generation: brain.training.generations,
+      fitness: brain.training.fitness.best, fitnessKind: brain.training.fitness.kind, name: brain.name,
+    });
+  }
 
   // --- Población inicial ---------------------------------------------------------------------
   const initialStream = deriveSeed(seed, STREAM_INITIAL);
@@ -235,16 +272,36 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     completed += 1;
 
     // Cambios pendientes: rigen desde la generación siguiente.
+    const wasManual = config.selectionMode === 'manual';
     if (pending) {
       config = normalizeTrainingConfig({ ...config, ...pending });
       pending = null;
     }
-    const next = nextGeneration({
-      networks, fitnesses: values, config,
-      random: randomFor(deriveSeed(seed, STREAM_BREEDING), generation),
-    });
-    networks = next.networks;
-    eliteN = next.elite.length;
+    const breeding = randomFor(deriveSeed(seed, STREAM_BREEDING), generation);
+    if (config.selectionMode === 'manual') {
+      // Al pasar de automática a manual sin elección, el padre es el campeón de la que termina.
+      if (!wasManual && choices.length === 0) {
+        pushChoice({ network: copyNetwork(champion.network), source: 'champion', generation, fitness: best, fitnessKind: champion.fitnessKind });
+      }
+      const parent = choices[choices.length - 1];
+      if (parent) {
+        networks = childrenOf(parent.network, config, breeding);
+        eliteN = 1;
+      } else {
+        // Sin padre: población al azar nueva, propia de la generación que empieza.
+        const fresh = deriveSeed(deriveSeed(seed, STREAM_FRESH), generation + 1);
+        networks = Array.from({ length: config.population }, (_, i) => createNetwork({
+          inputs: config.sensors.count + 1, hidden: config.hidden, outputs: BRAIN_OUTPUTS.length,
+          activation: config.activation, random: randomFor(fresh, i),
+        }));
+        eliteN = 0;
+      }
+    } else {
+      choices = [];
+      const next = nextGeneration({ networks, fitnesses: values, config, random: breeding });
+      networks = next.networks;
+      eliteN = next.elite.length;
+    }
     generation += 1;
     startGeneration();
     for (const fn of [...listeners]) fn(record);
@@ -290,22 +347,62 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     return pending;
   }
 
-  /** Cerebro del campeón con sus datos de entrenamiento, o null si todavía no terminó ninguna generación. */
-  function brainOfChampion({ id, name, now, createdAt } = {}) {
-    if (!champion) return null;
+  /**
+   * Toma al líder de ahora como padre elegido (design.md D2): copia su red y el fitness que lleva con
+   * la función vigente. No toca el mundo ni la población en curso. Si su red es idéntica a la del
+   * padre actual, no cambia nada y devuelve null; si no, devuelve la elección, con una copia de la red.
+   */
+  function chooseLeader() {
+    const network = networks[leaderIndex];
+    const last = choices[choices.length - 1];
+    if (last && sameNetwork(last.network, network)) return null;
+    const choice = {
+      network: copyNetwork(network), source: 'leader', generation,
+      fitness: fitnessOf(config.fitness, stats[leaderIndex]), fitnessKind: config.fitness,
+    };
+    pushChoice(choice);
+    return { ...summaryOf(choice), network: copyNetwork(choice.network) };
+  }
+
+  /** Deshace la última elección; devuelve true si había algo que deshacer. */
+  function undoChoice() {
+    if (choices.length === 0) return false;
+    choices.pop();
+    return true;
+  }
+
+  /**
+   * Cerebro del entrenamiento con sus datos (design.md D4), según el modo de selección vigente: con
+   * selección automática, el del campeón (null si todavía no terminó ninguna generación); con
+   * selección manual, el del padre elegido, con el fitness que llevaba al elegirlo (null sin padre).
+   */
+  function brainOfTraining({ id, name, now, createdAt } = {}) {
+    let network;
+    let fitness;
+    if (config.selectionMode === 'manual') {
+      const parent = choices[choices.length - 1];
+      if (!parent) return null;
+      network = parent.network;
+      fitness = { kind: parent.fitnessKind, best: parent.fitness };
+    } else {
+      if (!champion) return null;
+      network = champion.network;
+      fitness = { kind: champion.fitnessKind, best: champion.fitness };
+    }
     return createBrain({
       id, name, now, createdAt,
-      network: champion.network,
+      network,
       sensors: config.sensors,
       training: {
         generations: startGenerations + completed,
         seed,
         maxSpeed: config.maxSpeed,
-        fitness: { kind: champion.fitnessKind, best: champion.fitness },
+        fitness,
         evolution: {
           population: config.population, elite: config.elite, selection: config.selection,
           mutationStrength: config.mutationStrength, mutationRate: config.mutationRate,
           crossover: config.crossover, maxDuration: config.maxDuration, slowRule: config.slowRule,
+          selectionMode: config.selectionMode,
         },
         scenarios,
       },
@@ -318,7 +415,15 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     step,
     finishGeneration: () => finishGeneration('requested'),
     configure,
-    brain: brainOfChampion,
+    brain: brainOfTraining,
+    chooseLeader,
+    undoChoice,
+    /** Resumen de la última elección (sin la red), o null si no hay padre elegido. */
+    get parent() { return choices.length > 0 ? summaryOf(choices[choices.length - 1]) : null; },
+    /** Cuántas elecciones se recuerdan. */
+    get choiceCount() { return choices.length; },
+    /** Modo de selección vigente y el que regirá desde la generación siguiente. */
+    get selection() { return { applied: config.selectionMode, desired: pending?.selectionMode ?? config.selectionMode }; },
     /** Avisa al cerrar cada generación con su registro; devuelve la función para dejar de escuchar. */
     onGeneration(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     /** Fitness actual de cada individuo de la generación en curso, con la función vigente. */

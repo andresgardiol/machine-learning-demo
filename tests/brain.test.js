@@ -211,3 +211,26 @@ test('datos de entrenamiento: cambiar el modo de tráfico cuenta como otro escen
   scenarios = addScenarioGenerations(scenarios, { ...scenario(3), trafficMode: 'new' }, 2);
   assert.deepEqual(scenarios.map((s) => [s.trafficMode, s.generations]), [['same', 4], ['new', 2]]);
 });
+
+// --- Modo de selección en los datos de entrenamiento (cambio seleccion-manual) ----------------
+
+test('modo de selección: un cerebro con selectionMode y uno sin él son válidos y conservan el dato al copiarse', () => {
+  const withMode = createBrain({
+    id: 'b-2', name: 'A mano', now: '2026-11-12T10:00:00.000Z',
+    network: createNetwork({ inputs: 6, hidden: [6], outputs: 4, random: createRandom(2) }),
+    sensors: { count: 5, range: 3, spread: 90 },
+    training: training({ evolution: { ...training().evolution, selectionMode: 'manual' } }),
+  });
+  const without = brainFor();
+  assert.equal(validateBrain(withMode), null);
+  assert.equal(validateBrain(without), null);
+  assert.equal(withMode.training.evolution.selectionMode, 'manual');
+  assert.equal('selectionMode' in without.training.evolution, false);
+  const copy = copyBrain(withMode);
+  assert.equal(copy.training.evolution.selectionMode, 'manual');
+  assert.notEqual(copy.training.evolution, withMode.training.evolution);
+  assert.equal('selectionMode' in copyBrain(without).training.evolution, false);
+  const parsed = JSON.parse(JSON.stringify(withMode));
+  assert.equal(validateBrain(parsed), null);
+  assert.equal(parsed.training.evolution.selectionMode, 'manual');
+});
