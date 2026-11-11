@@ -27,3 +27,7 @@ export const MIN_GROUP_GAP_CAR_LENGTHS = 4; // hueco mínimo entre grupos consec
 export const TRAFFIC_FIRST_GROUP = 35; // distancia del primer grupo (m): visible al abrir con la calle vertical
 export const TRAFFIC_MIN_SPACING = 24; // separación entre grupos a densidad máxima, centro a centro (m)
 export const TRAFFIC_SPACING_RANGE = 56; // se suma a la anterior cuando la densidad tiende a 0 (m)
+export const TRAFFIC_BLOCK_GROUPS = 16; // grupos por bloque: las separaciones se sortean bloque a bloque
+export const TRAFFIC_MAX_STAGGER = 4; // adelanto o atraso máximo de un vehículo dentro de su grupo (m)
+// Al cambiar el tráfico en marcha, lo que está a menos de esta distancia por delante del auto no cambia (m).
+export const TRAFFIC_CHANGE_AHEAD = 20;

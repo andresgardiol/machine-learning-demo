@@ -36,18 +36,72 @@ test('con densidad máxima, cada grupo deja al menos un carril libre (1000 semil
   }
 });
 
-test('con irregularidad máxima, entre grupos hay al menos cuatro largos de auto de hueco (1000 semillas)', () => {
+// Distancias de los vehículos de un grupo (centro del grupo más el adelanto de cada uno).
+const vehicleDistances = (g) => g.vehicles.map((v) => g.distance + v.offset);
+
+test('con irregularidad máxima, entre los vehículos más cercanos de grupos consecutivos hay al menos cuatro largos de hueco (1000 semillas)', () => {
   for (const density of [100, 50, 1]) {
     for (const seed of seeds) {
       const t = createTraffic({ seed, track: street, density, irregularity: 100 });
-      const gs = groups(t, 20);
+      const gs = groups(t, 40); // cruza el borde entre dos bloques
       for (let k = 1; k < gs.length; k++) {
-        const gap = gs[k].distance - gs[k - 1].distance - CAR_LENGTH;
-        assert.ok(gap >= 4 * CAR_LENGTH, `semilla ${seed}, densidad ${density}: hueco ${gap}`);
+        const gap = Math.min(...vehicleDistances(gs[k])) - Math.max(...vehicleDistances(gs[k - 1])) - CAR_LENGTH;
+        assert.ok(gap >= 4 * CAR_LENGTH - 1e-9, `semilla ${seed}, densidad ${density}: hueco ${gap}`);
       }
     }
   }
   assert.ok(MIN_GROUP_SPACING >= 5 * CAR_LENGTH);
+});
+
+test('separaciones variadas: con irregularidad máxima hay huecos que duplican a otros, todos por encima del mínimo', () => {
+  for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+    const t = createTraffic({ seed, track: street, irregularity: 100 });
+    const gs = groups(t, 48);
+    const gaps = gs.slice(1).map((g, i) => g.distance - gs[i].distance);
+    assert.ok(Math.min(...gaps) >= t.minGap - 1e-9);
+    assert.ok(Math.max(...gaps) >= 2 * Math.min(...gaps), `semilla ${seed}: ${Math.min(...gaps)} a ${Math.max(...gaps)}`);
+  }
+});
+
+test('la separación promedio sigue siendo la que pide la densidad', () => {
+  for (const [density, irregularity] of [[50, 50], [100, 100], [20, 80]]) {
+    const t = createTraffic({ seed: 3, track: street, density, irregularity });
+    const n = 4 * 16; // bloques completos
+    const mean = (t.groupAt(n).distance - t.groupAt(0).distance) / n;
+    assert.ok(Math.abs(mean - t.spacing) < 1e-6, `densidad ${density}: ${mean} vs ${t.spacing}`);
+  }
+});
+
+test('semilla nueva: también cambian las distancias de los grupos, no solo sus carriles', () => {
+  const a = createTraffic({ seed: 1, track: street });
+  const b = createTraffic({ seed: 2, track: street });
+  const diffs = Array.from({ length: 30 }, (_, k) => Math.abs(a.groupAt(k + 1).distance - b.groupAt(k + 1).distance));
+  const mean = diffs.reduce((x, y) => x + y, 0) / diffs.length;
+  assert.ok(mean > CAR_LENGTH, `diferencia media ${mean} m`);
+});
+
+test('grupos escalonados: con irregularidad, los vehículos de un grupo no van todos a la par', () => {
+  const t = createTraffic({ seed: 6, track: street, density: 100, irregularity: 50 });
+  const multi = groups(t, 30).filter((g) => g.vehicles.length > 1);
+  assert.ok(multi.length > 0);
+  for (const g of multi) assert.ok(new Set(g.vehicles.map((v) => v.offset)).size > 1, `grupo ${g.index} a la par`);
+});
+
+test('la ventana de vehículos coincide con recorrer todos los grupos, también en los bordes de bloque', () => {
+  for (const [density, irregularity] of [[50, 50], [100, 100], [5, 100]]) {
+    const t = createTraffic({ seed: 8, track: street, density, irregularity });
+    const time = 7.3;
+    const all = [];
+    for (let k = 0; k < 200; k++) {
+      const g = t.groupAt(k);
+      for (const v of g.vehicles) all.push({ id: `${k}:${v.lane}`, distance: g.distance + v.offset + TRAFFIC_SPEED * time });
+    }
+    for (const [from, to] of [[0, 300], [500, 760], [1000, 1100], [1700, 2400]]) {
+      const expected = all.filter((v) => v.distance >= from && v.distance <= to).map((v) => v.id).sort();
+      const got = t.vehicles(time, from, to).map((v) => v.id).sort();
+      assert.deepEqual(got, expected, `densidad ${density}, tramo ${from}-${to}`);
+    }
+  }
 });
 
 test('densidad 0 %: no hay ningún vehículo', () => {
@@ -79,6 +133,7 @@ test('irregularidad 0 %: grupos a distancias iguales y vehículos centrados en s
   const gs = groups(t, 50);
   const gaps = new Set(gs.slice(1).map((g, i) => (g.distance - gs[i].distance).toFixed(9)));
   assert.equal(gaps.size, 1);
+  assert.ok(gs.every((g) => g.vehicles.every((v) => v.offset === 0)), 'vehículos a la par');
   for (const v of t.vehicles(0, 0, 3000)) {
     assert.equal(v.lateral, 0);
     assert.equal(v.position.y, street.laneCenter(v.lane, 0).position.y);

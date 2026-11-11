@@ -19,12 +19,13 @@ todo momento.
 
 #### Scenario: Semilla nueva
 - **WHEN** se genera tráfico con una semilla distinta
-- **THEN** la disposición de los vehículos es diferente
+- **THEN** la disposición de los vehículos es diferente, incluidas las distancias a las que aparecen y no solo sus carriles
 
 ### Requirement: Tráfico siempre superable
 El tráfico MUST dejar siempre al menos un carril libre en cada grupo de
 vehículos, y MUST mantener entre grupos consecutivos una separación de al menos
-cuatro largos de auto, para que siempre exista un camino sin choque.
+cuatro largos de auto, medida entre los vehículos más cercanos de ambos
+grupos, para que siempre exista un camino sin choque.
 
 #### Scenario: Carril libre con densidad máxima
 - **WHEN** se genera tráfico con densidad máxima para mil semillas distintas
@@ -49,17 +50,42 @@ El valor por defecto SHALL ser 50 %.
 
 ### Requirement: Irregularidad configurable
 El tráfico SHALL tener una irregularidad regulable entre 0 % y 100 %. Con 0 %
-los grupos van a distancias iguales y centrados en su carril; con valores
-mayores varían la distancia entre grupos y la posición lateral dentro del
-carril. El valor por defecto SHALL ser 50 %.
+los grupos van a distancias iguales, con sus vehículos a la par y centrados en
+su carril. Con valores mayores, la distancia entre grupos se sorteará en un
+rango cada vez más amplio, los vehículos de un mismo grupo se adelantarán o
+atrasarán entre sí y variará su posición lateral dentro del carril. El valor
+por defecto SHALL ser 50 %.
 
 #### Scenario: Tráfico regular
 - **WHEN** la irregularidad es 0 %
-- **THEN** todos los grupos están a la misma distancia entre sí y cada vehículo está centrado en su carril
+- **THEN** todos los grupos están a la misma distancia entre sí y cada vehículo está a la par de los de su grupo y centrado en su carril
 
 #### Scenario: Tráfico irregular sin invadir carriles
 - **WHEN** la irregularidad es 100 %
 - **THEN** las distancias entre grupos varían y ningún vehículo sobresale de su carril
+
+#### Scenario: Separaciones variadas
+- **WHEN** la irregularidad es 100 %
+- **THEN** entre grupos consecutivos hay separaciones que duplican a otras, sin que ninguna baje del mínimo
+
+#### Scenario: Grupos escalonados
+- **WHEN** la irregularidad es mayor que 0 % y un grupo tiene más de un vehículo
+- **THEN** sus vehículos no van todos exactamente a la par
+
+### Requirement: Cambio de configuración en marcha
+La densidad y la irregularidad del tráfico SHALL poder cambiarse mientras la
+simulación avanza, sin reiniciarla. Los vehículos que están cerca del auto
+MUST seguir donde estaban. El tráfico con la nueva configuración SHALL empezar
+más adelante, separado del anterior por al menos cuatro largos de auto. Al
+reiniciar, el tráfico SHALL usar la configuración vigente desde el principio.
+
+#### Scenario: Cambiar la densidad en marcha
+- **WHEN** se cambia la densidad mientras el auto avanza
+- **THEN** los vehículos cercanos al auto siguen en el mismo lugar, ninguno aparece encima del auto y más adelante el tráfico tiene la nueva densidad
+
+#### Scenario: Unión entre configuraciones
+- **WHEN** se cambia la configuración del tráfico en marcha
+- **THEN** entre el último vehículo de la configuración anterior y el primero de la nueva hay al menos cuatro largos de auto de hueco
 
 ### Requirement: Movimiento del tráfico
 Los vehículos del tráfico SHALL avanzar por su carril a una velocidad constante

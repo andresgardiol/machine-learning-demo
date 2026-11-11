@@ -10,7 +10,7 @@ import { createStageView } from '../../render/view.js';
 import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
 import { createDriveSession } from './session.js';
-import { DEFAULT_SETTINGS, LANE_OPTIONS, SLIDERS, normalizeSettings, worldSpec } from './settings.js';
+import { DEFAULT_SETTINGS, LANE_OPTIONS, SLIDERS, needsRestart, normalizeSettings, worldSpec } from './settings.js';
 import { shortcutFor } from './shortcuts.js';
 
 export const DEFAULT_SEED = 1;
@@ -159,10 +159,20 @@ export function mount({ stage, panel, i18n, store, reportError }) {
 
   // Configuración avanzada (colapsada)
   let dragging = false; // un arrastre de deslizador cuenta como un solo reinicio
+  // Velocidad, densidad e irregularidad se aplican en marcha; carriles y sensores reinician el intento.
   function applySettings(next, { countAttempt = true } = {}) {
+    const before = settings;
     settings = normalizeSettings(next);
     store?.set({ carSpeed: settings.maxSpeed });
-    restartAttempt({ rebuild: true, countAttempt });
+    if (needsRestart(before, settings)) {
+      restartAttempt({ rebuild: true, countAttempt });
+      return;
+    }
+    if (settings.maxSpeed !== before.maxSpeed) world.setMaxSpeed(settings.maxSpeed);
+    if (settings.density !== before.density || settings.irregularity !== before.irregularity) {
+      world.setTraffic({ density: settings.density, irregularity: settings.irregularity });
+    }
+    sync();
   }
 
   const laneButtons = LANE_OPTIONS.map((n) => el('button', {

@@ -148,3 +148,95 @@ test('mundo con velocidad máxima configurada: el auto llega a ella, la percepci
   w.reset();
   assert.equal(w.car.maxSpeed, 25);
 });
+
+// --- Cambios de configuración en marcha -------------------------------------------------
+
+const near = (w, from, to) => w.vehiclesIn(from, to).map((v) => `${v.id}@${v.position.x.toFixed(9)},${v.position.y.toFixed(9)}`).sort();
+
+test('velocidad máxima en marcha: no reinicia, el auto llega al nuevo tope y baja si iba más rápido', () => {
+  const w = run(createWorld({ seed: 1, density: 0, controller: FORWARD }), 120);
+  assert.equal(w.car.speed, MAX_SPEED);
+  const steps = w.steps;
+  const x = w.car.position.x;
+  w.setMaxSpeed(30);
+  assert.equal(w.steps, steps, 'no reinicia');
+  assert.equal(w.car.position.x, x);
+  run(w, 120);
+  assert.equal(w.car.speed, 30);
+  assert.equal(w.perception.speed, 1);
+  w.setMaxSpeed(12);
+  assert.equal(w.car.speed, 12, 'baja al nuevo tope');
+  w.setMaxSpeed(5);
+  assert.equal(w.car.maxSpeed, 12, 'fuera de rango se ajusta');
+});
+
+test('tráfico en marcha: no reinicia, lo cercano sigue igual, nada aparece encima y más adelante manda la nueva configuración', () => {
+  let checked = 0;
+  for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+    const w = run(createWorld({ seed, density: 30, irregularity: 50 }), 1);
+    w.setController(constantController({ forward: true }));
+    run(w, 200);
+    if (w.crashed) continue;
+    const steps = w.steps;
+    const p = w.progress;
+    const before = near(w, p - 60, p + 20);
+    w.setTraffic({ density: 100, irregularity: 100 });
+    assert.equal(w.steps, steps, 'no reinicia');
+    assert.equal(w.crashed, false);
+    assert.deepEqual(near(w, p - 60, p + 20), before, `semilla ${seed}: lo cercano cambió`);
+    // nada nuevo cerca del auto: los vehículos nuevos empiezan después de la unión
+    const fresh = w.vehiclesIn(p - 100, p + 2000).filter((v) => v.id.includes('~'));
+    assert.ok(fresh.length > 0);
+    assert.ok(fresh.every((v) => v.distance >= p + 20 + 20 - 1e-9), `semilla ${seed}: vehículo nuevo demasiado cerca`);
+    assert.equal(w.traffic.density, 100);
+    checked += 1;
+  }
+  assert.ok(checked >= 3, `solo ${checked} semillas sin choque antes del cambio`);
+});
+
+test('unión entre configuraciones: al menos cuatro largos de hueco entre lo anterior y lo nuevo', () => {
+  for (let seed = 1; seed <= 300; seed++) {
+    const w = createWorld({ seed, density: 100, irregularity: 100 });
+    w.setTraffic({ density: (seed * 37) % 101, irregularity: (seed * 53) % 101 });
+    const all = w.vehiclesIn(-200, 600);
+    const old = all.filter((v) => !v.id.includes('~'));
+    const fresh = all.filter((v) => v.id.includes('~'));
+    if (!old.length || !fresh.length) continue;
+    const gap = Math.min(...fresh.map((v) => v.distance)) - Math.max(...old.map((v) => v.distance)) - 4;
+    assert.ok(gap >= 16 - 1e-9, `semilla ${seed}: hueco ${gap}`);
+  }
+});
+
+test('varios cambios seguidos no acumulan capas sin tramo', () => {
+  const w = createWorld({ seed: 2 });
+  for (let d = 0; d <= 100; d += 5) w.setTraffic({ density: d });
+  assert.ok(w.traffic.layers.length <= 2, `${w.traffic.layers.length} capas`);
+});
+
+test('reiniciar tras un cambio en marcha: el tráfico es el de un mundo nuevo con la configuración vigente', () => {
+  const w = run(createWorld({ seed: 4, density: 50, controller: FORWARD }), 90);
+  w.setTraffic({ density: 80, irregularity: 10 });
+  w.setMaxSpeed(25);
+  run(w, 30);
+  w.reset();
+  const fresh = createWorld({ seed: 4, density: 80, irregularity: 10, maxSpeed: 25 });
+  assert.deepEqual(near(w, -100, 3000), near(fresh, -100, 3000));
+  assert.equal(w.car.maxSpeed, 25);
+  assert.equal(w.traffic.layers, undefined, 'una sola capa');
+});
+
+test('cambios en marcha reproducibles: mismos cambios en el mismo paso, misma evolución', () => {
+  const play = () => {
+    const w = createWorld({ seed: 9, controller: FORWARD });
+    const states = [];
+    for (let i = 0; i < 600; i++) {
+      if (i === 100) w.setTraffic({ density: 90 });
+      if (i === 250) w.setMaxSpeed(22);
+      if (i === 400) w.setTraffic({ irregularity: 0 });
+      w.step();
+      states.push(JSON.stringify(w.snapshot()));
+    }
+    return states;
+  };
+  assert.deepEqual(play(), play());
+});

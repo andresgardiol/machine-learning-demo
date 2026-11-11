@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_SETTINGS, SLIDERS, normalizeSettings, worldSpec } from '../src/tabs/drive/settings.js';
+import { DEFAULT_SETTINGS, SLIDERS, needsRestart, normalizeSettings, worldSpec } from '../src/tabs/drive/settings.js';
 import { shortcutFor, isKeyboardFocusedControl } from '../src/tabs/drive/shortcuts.js';
 import { createWorld } from '../src/core/world.js';
 
@@ -94,4 +94,17 @@ test('atajos: se ignoran en un control alcanzado con el teclado, pero no en uno 
 test('atajos: se ignoran al escribir en un campo de texto y dentro de un diálogo', () => {
   assert.equal(shortcutFor(ev('KeyR', fakeElement({ tag: 'INPUT', type: 'text' }))), null);
   assert.equal(shortcutFor(ev('KeyR', fakeElement({ tag: 'SECTION', inDialog: true }))), null);
+});
+
+test('velocidad, densidad e irregularidad se aplican en marcha; carriles y sensores reinician el intento', () => {
+  const base = { ...DEFAULT_SETTINGS };
+  for (const [key, value] of [['maxSpeed', 30], ['density', 90], ['irregularity', 0]]) {
+    assert.equal(needsRestart(base, { ...base, [key]: value }), false, key);
+  }
+  for (const [key, value] of [['lanes', 4], ['sensorCount', 9], ['sensorRange', 6], ['sensorSpread', 180]]) {
+    assert.equal(needsRestart(base, { ...base, [key]: value }), true, key);
+  }
+  // restablecer solo reinicia si cambian carriles o sensores
+  assert.equal(needsRestart({ ...base, maxSpeed: 30, density: 10 }, DEFAULT_SETTINGS), false);
+  assert.equal(needsRestart({ ...base, lanes: 2 }, DEFAULT_SETTINGS), true);
 });

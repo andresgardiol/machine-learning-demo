@@ -38,6 +38,16 @@ export function normalizeSettings(partial = {}) {
   return out;
 }
 
+/** Ajustes que cambian la calle o el auto y por eso reinician el intento; el resto se aplica en marcha. */
+export const RESTART_KEYS = Object.freeze(['lanes', 'sensorCount', 'sensorRange', 'sensorSpread']);
+
+/** ¿Pasar de `before` a `after` obliga a reiniciar el intento? */
+export function needsRestart(before, after) {
+  const a = normalizeSettings(before);
+  const b = normalizeSettings(after);
+  return RESTART_KEYS.some((key) => a[key] !== b[key]);
+}
+
 /** Especificación para createWorld a partir de los ajustes y la semilla. */
 export function worldSpec(settings, seed) {
   const s = normalizeSettings(settings);

@@ -91,14 +91,39 @@ de su número de grupo. El mundo materializa solo los grupos dentro de una
 ventana alrededor del conductor.
 
 ```
- grupo k:  distancia = base + k * separacion(densidad) + desvio(semilla, k)
-           carriles ocupados = eleccion(semilla, k), siempre queda uno libre
-           en el tiempo t:  distancia + velocidad_trafico * t
+ bloque b (16 grupos):  largo = 16 * S(densidad), empieza en base + b * largo
+     huecos h_i = M + (S - M) * w_i,  con  w_i = (1 - irr) + irr * 16 * e_i / suma(e)
+                  e_i exponenciales sorteadas con (semilla, b): suman exactamente el largo
+ grupo k = 16b + i:  distancia = inicio del bloque + h_0 + ... + h_(i-1)
+     carriles ocupados = eleccion(semilla, k), siempre queda uno libre
+     cada vehiculo: adelanto en [-a, a], con a = irr * min(1 largo, (S - Mmin) / 6)
+ M = Mmin + 2a   (Mmin: 5 largos centro a centro, o sea 4 largos de hueco)
+ en el tiempo t:  distancia + velocidad_trafico * t
 ```
 
 Esto da tráfico sin fin, idéntico sin importar cómo maneje la persona, y hace
 verificables las garantías de carril libre y separación mínima con pruebas
-sobre mil semillas.
+sobre mil semillas. Las separaciones se sortean por bloques para que la
+distancia de cualquier grupo siga saliendo solo de la semilla y su número, sin
+recorrer los grupos anteriores. Que los huecos de un bloque sumen su largo fijo
+mantiene la separación promedio que pide la densidad. Con irregularidad 0 los
+huecos son todos S y no hay adelantos, como una grilla. El adelanto acota la
+amplitud (2a) con la que se cuenta al mínimo M. Así, los vehículos más cercanos
+de grupos consecutivos siempre quedan a 4 largos de hueco o más.
+
+La densidad y la irregularidad se pueden cambiar en marcha (`changeTraffic`)
+sin que aparezca un vehículo encima del auto. Lo que ya existe se conserva hasta
+20 m por delante del auto, medido en el marco del tráfico, que avanza con él. El
+tráfico con la configuración nueva empieza cuatro largos de hueco más allá, así
+que se ve llegar. Cada cambio agrega una capa con su tramo, y las capas que se
+quedan sin tramo se descartan. Reiniciar vuelve a un tráfico de una sola capa
+con la configuración actual.
+
+*Antes:* cada grupo se corría poco alrededor de una grilla fija
+(`base + k * S ± desvío`). Con los valores por defecto, el 80 % de las
+separaciones caía entre 37 y 50 m y dos semillas daban casi las mismas
+distancias. Una red podía aprender "un obstáculo cada ~44 m" en lugar de leer
+los sensores.
 
 *Alternativa:* crear vehículos al azar a medida que el conductor avanza.
 Descartado: la disposición dependería del recorrido y "mismo tráfico al
@@ -282,8 +307,12 @@ y atajos (`shortcuts.js`) no usan el DOM y se prueban con `node --test`;
 - La mejor distancia se registra al terminar el intento (choque o reinicio).
 - Las misiones cumplidas siguen marcadas hasta cerrar la aplicación, aunque la
   pestaña se vuelva a montar; su progreso vuelve a cero con cada intento.
-- Todo cambio de configuración reinicia el intento; un arrastre de deslizador
-  suma un solo intento. "Tráfico nuevo" usa la semilla siguiente.
+- La velocidad máxima, la densidad y la irregularidad se aplican en marcha
+  (`world.setMaxSpeed`, `world.setTraffic`), sin reiniciar el intento. Los
+  carriles y los sensores sí lo reinician, porque cambian la calle o lo que el
+  auto percibe; un arrastre de deslizador suma un solo intento. "Restablecer"
+  reinicia solo si cambian carriles o sensores. "Tráfico nuevo" usa la
+  semilla siguiente.
 - Un deslizador o el borde del panel enfocados con el teclado usan las
   flechas; mientras tanto el teclado no maneja el auto.
 

@@ -155,7 +155,9 @@ La pestaña SHALL ofrecer, en una sección colapsada por defecto, la velocidad
 máxima del auto (compartida por todas las pestañas), la cantidad de
 carriles (2, 3 o 4), la densidad y la irregularidad del tráfico, y la cantidad,
 el alcance y la apertura de los sensores. Todo cambio MUST aplicarse de
-inmediato reiniciando el intento con la nueva configuración.
+inmediato. La velocidad máxima, la densidad y la irregularidad MUST aplicarse
+en marcha, sin reiniciar el intento. Los carriles y los sensores SHALL
+reiniciar el intento con la nueva configuración.
 
 #### Scenario: Sección colapsada
 - **WHEN** se abre la pestaña
@@ -166,8 +168,12 @@ inmediato reiniciando el intento con la nueva configuración.
 - **THEN** el intento se reinicia de inmediato en una calle de cuatro carriles
 
 #### Scenario: Cambiar la velocidad del auto
-- **WHEN** la persona sube la velocidad máxima a 30 m/s
-- **THEN** el intento se reinicia y el auto puede llegar a 30 m/s
+- **WHEN** la persona sube la velocidad máxima a 30 m/s mientras maneja
+- **THEN** el intento sigue sin reiniciarse, con la misma distancia y los mismos intentos, y el auto puede llegar a 30 m/s
+
+#### Scenario: Cambiar el tráfico en marcha
+- **WHEN** la persona cambia la densidad o la irregularidad mientras maneja
+- **THEN** el intento sigue sin reiniciarse, los vehículos cercanos siguen donde estaban y el tráfico con la nueva configuración aparece más adelante
 
 #### Scenario: Cambiar los sensores
 - **WHEN** la persona cambia la cantidad de sensores a nueve

@@ -57,10 +57,10 @@ Piezas del núcleo:
 - `geometry.js`: vectores, intersección de segmentos y contornos de rectángulos.
 - `random.js`: azar con semilla (mulberry32) y derivación por índice.
 - `track.js`: pista por línea central, ancho y carriles; calle recta de 2, 3 o 4 carriles.
-- `traffic.js`: tráfico como función pura de semilla, número de grupo y tiempo.
+- `traffic.js`: tráfico como función pura de semilla, número de grupo y tiempo. Las separaciones entre grupos se sortean por bloques y los vehículos de un grupo van escalonados según la irregularidad; `changeTraffic` cambia la configuración en marcha a partir de un poco más adelante del auto.
 - `car.js` y `sensors.js`: física del auto y rayos de percepción.
 - La velocidad máxima del auto se configura (`createWorld({ maxSpeed })`, de 12 a 40 m/s, 15 por defecto; marcha atrás a la mitad) y siempre supera a la del tráfico (10 m/s).
-- `world.js`: une todo y avanza en pasos fijos de 1/60 s (`step()`), con `reset()`, `pause()` y `resume()`.
+- `world.js`: une todo y avanza en pasos fijos de 1/60 s (`step()`), con `reset()`, `pause()` y `resume()`. `setMaxSpeed(v)` y `setTraffic({ density, irregularity })` cambian la configuración en marcha, sin reiniciar.
 
 Unidades: metros y segundos. Ejes matemáticos (x a la derecha, y hacia arriba,
 ángulo antihorario); la vista decide cómo dibujarlos.

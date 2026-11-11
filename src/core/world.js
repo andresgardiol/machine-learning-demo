@@ -1,13 +1,13 @@
 // Mundo: une pista, tráfico, auto, sensores y controlador, y avanza en pasos fijos.
 import { createStraightStreet } from './track.js';
-import { createTraffic } from './traffic.js';
+import { changeTraffic, createTraffic } from './traffic.js';
 import {
-  createCar, stepCar, carContour, normalizedSpeed, configureSensors, resetSensors,
+  createCar, stepCar, carContour, normalizedSpeed, configureSensors, resetSensors, maxSpeedOf,
 } from './car.js';
 import { readSensors, rangeMeters } from './sensors.js';
 import { normalizeControls, idleController, isController } from './controller.js';
 import { outline, segmentIntersection, contoursTouch, distance } from './geometry.js';
-import { STEP, CAR_LENGTH } from './constants.js';
+import { STEP, CAR_LENGTH, REVERSE_FRACTION, TRAFFIC_CHANGE_AHEAD, TRAFFIC_SPEED } from './constants.js';
 
 /**
  * @param {object} spec
@@ -22,7 +22,8 @@ import { STEP, CAR_LENGTH } from './constants.js';
 export function createWorld(spec = {}) {
   const { seed = 1, lanes, density, irregularity, sensors, maxSpeed } = spec;
   const track = createStraightStreet({ lanes });
-  const traffic = createTraffic({ seed, track, density, irregularity });
+  let trafficConfig = { density, irregularity };
+  let traffic = createTraffic({ seed, track, ...trafficConfig });
   const startLane = Math.floor(track.lanes / 2);
 
   let controller = isController(spec.controller) ? spec.controller : idleController;
@@ -65,7 +66,9 @@ export function createWorld(spec = {}) {
     return null;
   }
 
+  /** Vuelve al estado inicial con la misma semilla y la configuración actual (también la del tráfico). */
   function reset() {
+    traffic = createTraffic({ seed, track, ...trafficConfig });
     car = createCar({
       position: track.laneCenter(startLane, 0).position, angle: 0,
       sensors: car ? car.sensors : sensors, maxSpeed: car ? car.maxSpeed : maxSpeed,
@@ -97,10 +100,26 @@ export function createWorld(spec = {}) {
   reset();
 
   const world = {
-    track, traffic, seed, step, reset,
+    track, seed, step, reset,
     pause() { paused = true; },
     resume() { paused = false; },
     setController(next) { if (isController(next)) controller = next; },
+    /** Cambia la velocidad máxima en marcha, sin reiniciar; si el auto va más rápido, baja al nuevo tope. */
+    setMaxSpeed(value) {
+      car.maxSpeed = maxSpeedOf(value);
+      car.speed = Math.min(Math.max(car.speed, -car.maxSpeed * REVERSE_FRACTION), car.maxSpeed);
+      look();
+    },
+    /**
+     * Cambia densidad e irregularidad en marcha, sin reiniciar: lo que está hasta TRAFFIC_CHANGE_AHEAD
+     * por delante del auto no cambia y el tráfico nuevo empieza más adelante (ver changeTraffic).
+     */
+    setTraffic(partial) {
+      trafficConfig = { ...trafficConfig, ...partial };
+      const next = createTraffic({ seed, track, ...trafficConfig });
+      traffic = changeTraffic(traffic, next, progress + TRAFFIC_CHANGE_AHEAD - TRAFFIC_SPEED * time);
+      look();
+    },
     configureSensors(partial) { configureSensors(car, partial); look(); },
     resetSensors() { resetSensors(car); look(); },
     /** Vehículos del tráfico con su posición sobre la línea central en [from, to], en el instante actual. */
@@ -114,6 +133,7 @@ export function createWorld(spec = {}) {
         perception: { sensors: [...perception.sensors], speed: perception.speed },
       };
     },
+    get traffic() { return traffic; },
     get car() { return car; },
     get time() { return time; },
     get steps() { return steps; },

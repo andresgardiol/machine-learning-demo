@@ -59,7 +59,8 @@ menor que la de avance.
 La velocidad máxima de avance del auto SHALL poder configurarse entre 12 y
 40 m/s, con 15 m/s por defecto, siempre por encima de la velocidad del
 tráfico. La marcha atrás SHALL llegar a la mitad de esa velocidad. Un valor
-fuera de rango MUST ajustarse al límite válido más cercano. La percepción
+fuera de rango MUST ajustarse al límite válido más cercano. La velocidad
+máxima SHALL poder cambiarse en marcha, sin reiniciar la simulación. La percepción
 SHALL expresar la velocidad respecto de la máxima configurada.
 
 #### Scenario: Auto más rápido
@@ -69,6 +70,10 @@ SHALL expresar la velocidad respecto de la máxima configurada.
 #### Scenario: Valor fuera de rango
 - **WHEN** se pide una velocidad máxima de 5 m/s
 - **THEN** el auto queda con 12 m/s
+
+#### Scenario: Cambio en marcha
+- **WHEN** se cambia la velocidad máxima mientras el auto avanza
+- **THEN** la simulación sigue sin reiniciarse y, si el auto iba más rápido que el nuevo tope, pasa a ir a ese tope
 
 ### Requirement: Fricción
 El auto SHALL perder velocidad de forma progresiva hasta detenerse cuando no se

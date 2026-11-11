@@ -75,6 +75,9 @@
 - [x] 10.9 Calibrar los valores de física y de tráfico por sensación de manejo y actualizar la tabla de `design.md` si cambian; verificar que todas las pruebas siguen pasando
 - [x] 10.10 Implementar la velocidad máxima configurable del auto (12 a 40 m/s, 15 por defecto, marcha atrás a la mitad) en el núcleo y en la configuración avanzada, compartida por todas las pestañas y recordada en las preferencias; verificar con pruebas el tope, el ajuste fuera de rango y la percepción, y en el navegador el cambio, el restablecer y que se recuerda al recargar
 
+- [x] 10.11 Hacer el tráfico menos regular para que las redes generalicen: separaciones entre grupos sorteadas por bloques (mínimo de 4 largos y promedio según la densidad) y vehículos de un mismo grupo escalonados según la irregularidad; verificar con pruebas el hueco mínimo entre los vehículos más cercanos sobre mil semillas, la variedad de separaciones, el promedio, que otra semilla cambia las distancias, el escalonado y la ventana de vehículos en los bordes de bloque, y en el navegador que el tráfico se ve irregular
+- [x] 10.12 Aplicar en marcha, sin reiniciar el intento, la velocidad máxima, la densidad y la irregularidad (`world.setMaxSpeed`, `world.setTraffic` con el tráfico nuevo desde un poco más adelante del auto); carriles y sensores siguen reiniciando; verificar con pruebas el nuevo tope, que lo cercano no cambia, el hueco en la unión sobre 300 semillas, el reinicio con la configuración vigente y la reproducibilidad, y en el navegador que los deslizadores no suman intentos
+
 ## 11. Verificación integral
 
 - [x] 11.1 Ejecutar `npm test` completo; verificar que todas las pruebas pasan
