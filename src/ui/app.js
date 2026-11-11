@@ -1,15 +1,18 @@
 // Estructura común de la app: barra de pestañas, selector de idioma, interruptor de guía,
-// créditos, disposición escenario/panel (con el panel ajustable arrastrando su borde), aviso
-// de ventana angosta y manejo de fallas.
+// créditos, disposición en tres zonas (escenario, tablero y panel, con dos bordes ajustables),
+// aviso de ventana angosta y manejo de fallas.
 //
 // Cada pestaña es un módulo con mount(ctx) que devuelve { unmount() }.
-//   ctx = { stage, panel, i18n, store, library, reportError }
+//   ctx = { stage, board, panel, i18n, store, library, reportError }
+// Una pestaña que no pone nada en `board` conserva la disposición de dos zonas (design.md D1).
 // La biblioteca de cerebros es una sola para toda la app: se crea al arrancar (design.md D8).
 // La lista de pestañas (incluidas las aún no disponibles) la entrega quien arranca la app.
 import { el } from './dom.js';
 import { createStore } from './store.js';
 import { LANGUAGES } from './i18n.js';
-import { PANEL_WIDTH, clampPanelWidth, maxPanelWidth } from './layout.js';
+import {
+  PANEL_WIDTH, clampPanelWidth, maxPanelWidth, ZONES, layoutMode, fitZones, stageLimits, panelLimits,
+} from './layout.js';
 import { MAX_SPEED } from '../core/constants.js';
 import { createLibrary } from './library.js';
 
@@ -89,16 +92,22 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     tabBar,
     el('div', { class: 'tools' }, guideSwitch, languageGroup, creditsButton));
 
-  // --- Disposición común: escenario a la izquierda, panel a la derecha ----
+  // --- Disposición común: escenario, tablero y panel (en ese orden de foco) ----
   const stage = el('section', { class: 'stage', i18nAttr: 'aria-label:app.stage', attrs: { tabindex: '-1' } });
+  const board = el('section', { class: 'board', i18nAttr: 'aria-label:app.board', attrs: { id: 'board' } });
   const panel = el('aside', { class: 'panel', i18nAttr: 'aria-label:app.panel', attrs: { id: 'panel' } });
-  // Borde del panel: se arrastra (o se mueve con las flechas) para agrandarlo o achicarlo.
+  // Bordes: se arrastran (o se mueven con las flechas) para repartir el ancho entre las zonas.
+  const stageSplitter = el('div', {
+    class: 'splitter', help: 'stage.resize',
+    i18nAttr: 'aria-label:app.stage.resize',
+    attrs: { role: 'separator', tabindex: '0', 'aria-orientation': 'vertical', 'aria-controls': 'board', 'data-edge': 'stage' },
+  });
   const splitter = el('div', {
     class: 'splitter', help: 'panel.resize',
     i18nAttr: 'aria-label:app.panel.resize',
-    attrs: { role: 'separator', tabindex: '0', 'aria-orientation': 'vertical', 'aria-controls': 'panel' },
+    attrs: { role: 'separator', tabindex: '0', 'aria-orientation': 'vertical', 'aria-controls': 'panel', 'data-edge': 'panel' },
   });
-  const workspace = el('main', { class: 'workspace' }, stage, splitter, panel);
+  const workspace = el('main', { class: 'workspace' }, stage, stageSplitter, board, splitter, panel);
 
   // --- Créditos ------------------------------------------------------------
   const creditsTitle = el('h2', { i18n: 'credits.title', attrs: { id: 'credits-title' } });
@@ -132,59 +141,136 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   const shell = el('div', { class: 'app' }, header, workspace, narrow, credits, errorBox);
   root.replaceChildren(shell);
 
-  // --- Ancho del panel -------------------------------------------------------------
-  let panelWidth = clampPanelWidth(preferences.panelWidth ?? PANEL_WIDTH.default, window.innerWidth);
+  // --- Anchos de las zonas (design.md D2 y D3) ----------------------------------------
+  // `chosen`: lo que la persona eligió (y se recuerda); `shown`: lo que se muestra en esta ventana.
+  const chosen = {
+    stage: preferences.stageWidth ?? ZONES.stage.default,
+    panel: preferences.panelWidth ?? PANEL_WIDTH.default,
+  };
+  const shown = { stage: chosen.stage, panel: chosen.panel };
+  let hasBoard = false; // la pestaña montada puso contenido en el tablero
+  // Ancho de la app (el de la ventana): se lee del elemento observado para no depender del orden de los avisos.
+  const windowWidth = () => shell.clientWidth || window.innerWidth;
+  const mode = () => layoutMode(windowWidth(), hasBoard);
 
-  function applyPanelWidth(width, { save = false } = {}) {
-    panelWidth = clampPanelWidth(width, window.innerWidth);
-    shell.style.setProperty('--panel-width', `${panelWidth}px`);
-    splitter.setAttribute('aria-valuenow', String(panelWidth));
-    splitter.setAttribute('aria-valuemin', String(PANEL_WIDTH.min));
-    splitter.setAttribute('aria-valuemax', String(maxPanelWidth(window.innerWidth)));
-    if (save) preferences.panelWidth = panelWidth;
+  const setVar = (name, px) => shell.style.setProperty(name, `${px}px`);
+  function setAria(node, value, { min, max }) {
+    node.setAttribute('aria-valuenow', String(value));
+    node.setAttribute('aria-valuemin', String(min));
+    node.setAttribute('aria-valuemax', String(max));
   }
 
-  let resizing = null;
-  function onSplitterDown(e) {
-    if (e.button !== 0) return;
-    e.preventDefault(); // sin selección de texto ni foco: tras arrastrar, las flechas vuelven a manejar
-    resizing = { id: e.pointerId };
-    splitter.setPointerCapture(e.pointerId);
-    shell.classList.add('resizing');
+  /** Límites del panel según la disposición: con tablero a lo ancho, también cuida al tablero y al escenario. */
+  const panelRange = () => (mode() === 'wide'
+    ? panelLimits(shown.stage, windowWidth())
+    : { min: PANEL_WIDTH.min, max: maxPanelWidth(windowWidth()) });
+  const stageRange = () => stageLimits(shown.panel, windowWidth());
+
+  function refreshAria() {
+    setAria(splitter, shown.panel, panelRange());
+    if (mode() === 'wide') setAria(stageSplitter, shown.stage, stageRange());
   }
-  function onSplitterMove(e) {
-    if (!resizing || e.pointerId !== resizing.id) return;
-    applyPanelWidth(workspace.getBoundingClientRect().right - e.clientX - splitter.offsetWidth / 2);
+
+  /** Recalcula lo que se muestra a partir de lo elegido (al arrancar, al cambiar la ventana o la pestaña). */
+  function layout() {
+    hasBoard = board.childElementCount > 0;
+    const W = windowWidth();
+    const m = mode();
+    shell.dataset.board = hasBoard ? 'on' : 'off';
+    shell.dataset.layout = layoutMode(W, true);
+    if (m === 'wide') {
+      const z = fitZones(chosen, W);
+      shown.stage = z.stage;
+      shown.panel = z.panel;
+      setVar('--stage-width', shown.stage);
+    } else {
+      shown.panel = clampPanelWidth(chosen.panel, W);
+    }
+    setVar('--panel-width', shown.panel);
+    refreshAria();
   }
-  function onSplitterUp(e) {
-    if (!resizing || e.pointerId !== resizing.id) return;
-    resizing = null;
-    shell.classList.remove('resizing');
-    applyPanelWidth(panelWidth, { save: true });
-    stage.focus({ preventScroll: true });
-  }
-  function onSplitterKey(e) {
-    const by = {
-      ArrowLeft: panelWidth + PANEL_WIDTH.step, // el borde se mueve a la izquierda: panel más ancho
-      ArrowRight: panelWidth - PANEL_WIDTH.step,
-      Home: PANEL_WIDTH.min,
-      End: maxPanelWidth(window.innerWidth),
-      Enter: PANEL_WIDTH.default,
+
+  const clampTo = (width, { min, max }) => {
+    const n = Number(width);
+    const w = Number.isFinite(n) ? Math.round(n) : min;
+    return Math.max(min, Math.min(w, max));
+  };
+
+  /**
+   * Comportamiento de un borde: arrastre con el mouse, flechas, Home y End (mínimo y máximo), Enter y
+   * doble clic (ancho inicial). `grows` es el lado hacia el que la zona crece: 'right' para el
+   * escenario y 'left' para el panel. El ancho se guarda solo al soltar o al usar el teclado.
+   */
+  function makeSplitter({ node, read, limits, apply, save, defaultWidth, grows }) {
+    const sign = grows === 'right' ? 1 : -1;
+    const set = (width, { persist = false } = {}) => {
+      apply(clampTo(width, limits()));
+      refreshAria();
+      if (persist) save(read());
     };
-    if (!(e.key in by)) return;
-    e.preventDefault();
-    applyPanelWidth(by[e.key], { save: true });
+    let drag = null;
+    function onDown(e) {
+      if (e.button !== 0) return;
+      e.preventDefault(); // sin selección de texto ni foco: tras arrastrar, las flechas vuelven a manejar
+      drag = { id: e.pointerId, x: e.clientX, width: read() };
+      node.setPointerCapture(e.pointerId);
+      shell.classList.add('resizing');
+    }
+    function onMove(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      set(drag.width + sign * (e.clientX - drag.x));
+    }
+    function onUp(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag = null;
+      shell.classList.remove('resizing');
+      set(read(), { persist: true });
+      stage.focus({ preventScroll: true });
+    }
+    function onKey(e) {
+      const { min, max } = limits();
+      const by = {
+        ArrowRight: read() + sign * ZONES.step,
+        ArrowLeft: read() - sign * ZONES.step,
+        Home: min,
+        End: max,
+        Enter: defaultWidth,
+      };
+      if (!(e.key in by)) return;
+      e.preventDefault();
+      set(by[e.key], { persist: true });
+    }
+    node.addEventListener('pointerdown', onDown);
+    node.addEventListener('pointermove', onMove);
+    node.addEventListener('pointerup', onUp);
+    node.addEventListener('pointercancel', onUp);
+    node.addEventListener('dblclick', () => set(defaultWidth, { persist: true }));
+    node.addEventListener('keydown', onKey);
   }
-  splitter.addEventListener('pointerdown', onSplitterDown);
-  splitter.addEventListener('pointermove', onSplitterMove);
-  splitter.addEventListener('pointerup', onSplitterUp);
-  splitter.addEventListener('pointercancel', onSplitterUp);
-  splitter.addEventListener('dblclick', () => applyPanelWidth(PANEL_WIDTH.default, { save: true }));
-  splitter.addEventListener('keydown', onSplitterKey);
-  // Si la ventana se achica, el panel se ajusta sin perder el ancho elegido: al agrandarla vuelve a él.
-  // (Se observa el tamaño de la app y no el evento resize, que no llega en todos los casos.)
-  new window.ResizeObserver(() => applyPanelWidth(preferences.panelWidth ?? PANEL_WIDTH.default)).observe(shell);
-  applyPanelWidth(panelWidth);
+
+  makeSplitter({
+    node: stageSplitter,
+    read: () => shown.stage,
+    limits: stageRange,
+    apply: (w) => { shown.stage = w; setVar('--stage-width', w); },
+    save: (w) => { chosen.stage = w; preferences.stageWidth = w; },
+    defaultWidth: ZONES.stage.default,
+    grows: 'right',
+  });
+  makeSplitter({
+    node: splitter,
+    read: () => shown.panel,
+    limits: panelRange,
+    apply: (w) => { shown.panel = w; setVar('--panel-width', w); },
+    save: (w) => { chosen.panel = w; preferences.panelWidth = w; },
+    defaultWidth: PANEL_WIDTH.default,
+    grows: 'left',
+  });
+  // Si la ventana se achica, las zonas se ajustan sin perder los anchos elegidos: al agrandarla vuelven.
+  // (Se observa el tamaño de la app y además el evento resize, que no llega en todos los casos.)
+  new window.ResizeObserver(() => layout()).observe(shell);
+  window.addEventListener('resize', () => layout());
+  layout();
 
   // --- Comportamiento ---------------------------------------------------------
   let active = null; // { id, instance }
@@ -215,14 +301,16 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     if (!credits.open) credits.showModal();
   }
 
-  const ctxFor = () => ({ stage, panel, i18n, store, library, reportError });
+  const ctxFor = () => ({ stage, board, panel, i18n, store, library, reportError });
 
   function mount(id) {
     const tab = tabs.find((t) => t.id === id);
     stage.replaceChildren();
+    board.replaceChildren();
     panel.replaceChildren();
     const instance = tab.module.mount(ctxFor());
     active = { id, instance };
+    layout();
     i18n.translateTree(workspace);
   }
 
@@ -232,7 +320,9 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     active = null;
     try { instance?.unmount?.(); } catch (err) { console.error(err); }
     stage.replaceChildren();
+    board.replaceChildren();
     panel.replaceChildren();
+    layout();
   }
 
   function openTab(id) {
@@ -280,7 +370,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   if (store.get().activeTab) safely(() => mount(store.get().activeTab));
 
   return {
-    store, stage, panel, library, openTab, reportError, restartTab,
+    store, stage, board, panel, library, openTab, layout, reportError, restartTab,
     get activeTab() { return active?.id ?? null; },
     get instance() { return active?.instance ?? null; },
   };

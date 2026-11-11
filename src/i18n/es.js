@@ -8,6 +8,7 @@ export default {
   'app.credits': 'Créditos',
   'app.stage': 'Escenario',
   'app.panel': 'Información y controles',
+  'app.board': 'Tablero',
 
   'language.es': 'ES',
   'language.en': 'EN',
@@ -43,8 +44,11 @@ export default {
   'tooltip.why': 'Por qué importa',
 
   'app.panel.resize': 'Ancho del panel',
-  'help.panel.resize.what': 'Arrastrá este borde para agrandar o achicar el panel. Con el teclado: flechas izquierda y derecha; Enter o doble clic vuelven al ancho inicial.',
-  'help.panel.resize.why': 'Así repartís la pantalla entre el escenario y la información según lo que quieras mirar. El ancho se recuerda para la próxima visita.',
+  'help.panel.resize.what': 'Arrastrá este borde para agrandar o achicar el panel de controles; el tablero cede o gana ese lugar. Con el teclado: flechas izquierda y derecha; Enter o doble clic vuelven al ancho inicial.',
+  'help.panel.resize.why': 'Así repartís la pantalla entre lo que medís en el tablero y los controles, según lo que quieras mirar. El ancho se recuerda para la próxima visita.',
+  'app.stage.resize': 'Ancho del escenario',
+  'help.stage.resize.what': 'Arrastrá este borde para agrandar o achicar el escenario; el tablero cede o gana ese lugar. Con el teclado: flechas izquierda y derecha; Enter o doble clic vuelven al ancho inicial.',
+  'help.stage.resize.why': 'Un escenario más ancho deja ver los rayos largos y más calle; uno más angosto agranda la curva y la red del tablero. El ancho se recuerda para la próxima visita.',
   'help.guide.what': 'Muestra u oculta los textos de guía y las misiones en toda la aplicación.',
   'help.guide.why': 'Quien recién empieza necesita saber qué mirar y qué probar; quien ya conoce el tema, o explica a otros, puede quitarlos para ganar espacio.',
   'help.language.what': 'Cambia todos los textos entre español e inglés, sin detener lo que está pasando.',
