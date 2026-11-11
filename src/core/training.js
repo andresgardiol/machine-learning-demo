@@ -60,7 +60,7 @@ export const NEW_TRAINING_KEYS = Object.freeze(['hidden', 'activation', 'sensors
 export const DEFAULT_TRAINING_CONFIG = Object.freeze({
   ...DEFAULT_EVOLUTION,
   slowRule: true,
-  trafficMode: 'same',
+  trafficMode: 'new',
   lanes: DEFAULT_LANES,
   density: DEFAULT_TRAFFIC.density,
   irregularity: DEFAULT_TRAFFIC.irregularity,

@@ -57,7 +57,7 @@ test('inicio de una generación: 100 autos detenidos en la misma posición, cada
 test('configuración por defecto del entrenamiento', () => {
   assert.deepEqual(normalizeTrainingConfig({}), {
     population: 100, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false,
-    fitness: 'distance', maxDuration: 60, slowRule: true, trafficMode: 'same', lanes: 3, density: 50, irregularity: 50,
+    fitness: 'distance', maxDuration: 60, slowRule: true, trafficMode: 'new', lanes: 3, density: 50, irregularity: 50,
     maxSpeed: 20, hidden: [6], activation: 'step', sensors: { count: 5, range: 3, spread: 90 },
   });
   assert.deepEqual(normalizeTrainingConfig({ hidden: [20, 0, 4, 4, 4], population: 1 }).hidden, [16, 1, 4]);
@@ -261,7 +261,7 @@ test('cambio de escenario: la generación en curso termina en tres carriles y la
 });
 
 test('mismo tráfico: los vehículos aparecen en las mismas posiciones al empezar cada generación', () => {
-  const t = createTraining({ seed: 1, config: { population: 4, maxDuration: 10 } });
+  const t = createTraining({ seed: 1, config: { population: 4, maxDuration: 10, trafficMode: 'same' } });
   const layout = () => t.world.vehiclesIn(0, 600).map((v) => [v.id, v.position.x, v.position.y]);
   const first = layout();
   assert.ok(first.length > 5);
@@ -322,7 +322,7 @@ test('forma heredada: desde un cerebro de 9 sensores y dos capas ocultas, todos 
 
 test('cerebro del campeón: pasa la validación y acumula generaciones y escenarios', () => {
   const brain = brainOf(createNetwork({ inputs: 6, hidden: [6], outputs: 4, random: createRandom(5) }), { generations: 10 });
-  const t = createTraining({ seed: 2, config: { population: 6, maxDuration: 10 }, brain });
+  const t = createTraining({ seed: 2, config: { population: 6, maxDuration: 10, trafficMode: 'same' }, brain });
   for (let g = 0; g < 5; g++) { for (let i = 0; i < 30; i++) t.step(); t.finishGeneration(); }
   const b = t.brain({ id: 'id-1', name: 'Campeón', now: '2026-11-12T11:00:00.000Z' });
   assert.equal(validateBrain(b), null);
@@ -450,4 +450,54 @@ test('lentos: apagar la regla durante una generación rige desde la siguiente', 
   const second = runToEnd(t);
   assert.equal(second.record.reason, 'timeLimit');
   assert.equal(second.steps, 600);
+});
+
+// --- Tráfico por generación: tráfico nuevo por defecto (design.md D15) ------------------------------
+
+test('estado por defecto: sin indicar el modo, tráfico nuevo y la generación 2 con otra disposición', () => {
+  const t = createTraining({ seed: 1, config: { population: 4, maxDuration: 10 } });
+  assert.equal(DEFAULT_TRAINING_CONFIG.trafficMode, 'new');
+  assert.equal(t.config.trafficMode, 'new');
+  const layout = () => JSON.stringify(t.world.vehiclesIn(0, 600).map((v) => [v.position.x, v.position.y]));
+  const seed1 = t.world.seed;
+  const first = layout();
+  assert.equal(seed1, deriveSeed(deriveSeed(1, 3), 1));
+  t.finishGeneration();
+  assert.equal(t.generation, 2);
+  assert.notEqual(t.world.seed, seed1);
+  assert.equal(t.world.seed, deriveSeed(deriveSeed(1, 3), 2));
+  assert.notEqual(layout(), first);
+});
+
+test('tráfico nuevo reproducible: dos entrenamientos de diez generaciones con la misma semilla enfrentan el mismo tráfico', () => {
+  const run = () => {
+    const t = createTraining({ seed: 7, config: { population: 6, maxDuration: 5, trafficMode: 'new' } });
+    const seeds = [];
+    for (let g = 0; g < 10; g++) {
+      seeds.push(t.world.seed);
+      runUntilGeneration(t, t.generation + 1);
+    }
+    return { seeds, history: t.history.map((h) => ({ generation: h.generation, best: h.best, average: h.average })) };
+  };
+  const a = run();
+  const b = run();
+  assert.equal(a.seeds.length, 10);
+  assert.equal(new Set(a.seeds).size, 10, 'cada generación enfrenta un tráfico distinto');
+  assert.deepEqual(a.seeds, b.seeds);
+  assert.equal(a.history.length, 10);
+  assert.deepEqual(a.history, b.history);
+});
+
+test('volver al mismo tráfico: desde la generación siguiente todas usan el tráfico del escenario', () => {
+  const t = createTraining({ seed: 3, config: { population: 4, maxDuration: 10 } });
+  t.finishGeneration();
+  assert.notEqual(t.world.seed, SCENARIO_TRAFFIC_SEED);
+  t.configure({ trafficMode: 'same' });
+  const during = t.world.seed;
+  assert.notEqual(during, SCENARIO_TRAFFIC_SEED, 'la generación en curso no cambia');
+  for (let g = 0; g < 3; g++) {
+    t.finishGeneration();
+    assert.equal(t.config.trafficMode, 'same');
+    assert.equal(t.world.seed, SCENARIO_TRAFFIC_SEED);
+  }
 });

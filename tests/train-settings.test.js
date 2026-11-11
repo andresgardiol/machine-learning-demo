@@ -12,7 +12,7 @@ test('valores por defecto: 100 autos, mutación 10 %, red 6-6-4 con escalón, 5 
   assert.deepEqual(DEFAULT_SETTINGS, {
     speed: 1, showSensors: true, showNetwork: true, showChart: true,
     population: 100, mutationStrength: 10, elite: 1, selection: 10, mutationRate: 100, crossover: false,
-    fitness: 'distance', maxDuration: 60, slowRule: true, trafficMode: 'same',
+    fitness: 'distance', maxDuration: 60, slowRule: true, trafficMode: 'new',
     lanes: 3, density: 50, irregularity: 50, maxSpeed: 20,
     hiddenLayers: 1, neurons1: 6, neurons2: 6, neurons3: 6, activation: 'step',
     sensorCount: 5, sensorRange: 3, sensorSpread: 90,
@@ -39,7 +39,7 @@ test('normalización: opciones inválidas vuelven al valor por defecto y los ent
   const s = normalizeSettings({ speed: 3, fitness: 'overtakes', trafficMode: 'x', lanes: 5, activation: 'softmax', population: 150.6, crossover: 1, density: 'mucho' });
   assert.equal(s.speed, 1);
   assert.equal(s.fitness, 'distance');
-  assert.equal(s.trafficMode, 'same');
+  assert.equal(s.trafficMode, 'new');
   assert.equal(s.lanes, 3);
   assert.equal(s.activation, 'step');
   assert.equal(s.population, 151);
