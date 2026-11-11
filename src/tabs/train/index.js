@@ -7,6 +7,7 @@
 // DOM vive en settings.js (y, más adelante, en session.js).
 import { createTraining } from '../../core/training.js';
 import { createStageView } from '../../render/view.js';
+import { createNetworkView } from '../../render/network-view.js';
 import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
 import { createTextSetter } from '../../ui/controls.js';
@@ -42,9 +43,30 @@ export function mount({ stage, panel, i18n, store, reportError }) {
 
   // --- Panel --------------------------------------------------------------------------
   const generation = el('p', { class: 'train-generation' });
+
+  // Red del líder: diagrama con su actividad en vivo y leyenda (solo muestra; no cambia la red).
+  const networkZone = el('div', { class: 'network-zone' });
+  const legend = el('ul', { class: 'network-legend' },
+    el('li', {}, el('span', { class: 'legend-line', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.positive' })),
+    el('li', {}, el('span', { class: 'legend-line negative', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.negative' })),
+    el('li', {}, el('span', { class: 'legend-node', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.active' })));
+  const networkSection = el('details', { class: 'train-section train-network', attrs: { open: true } },
+    el('summary', { i18n: 'train.network.title', help: 'train.network' }),
+    networkZone, legend,
+    el('p', { class: 'network-note muted', i18n: 'train.network.legend.note' }));
+
   panel.append(
     el('h1', { class: 'panel-title', i18n: 'train.title' }),
-    generation);
+    generation, networkSection);
+  const networkView = createNetworkView({ container: networkZone, i18n });
+
+  /** Diagrama de la red del líder con lo que percibe ahora; no se dibuja con la sección plegada. */
+  function drawNetwork() {
+    if (!networkSection.open) return;
+    const t = state.training;
+    const leader = t.world.agents[t.leaderIndex];
+    networkView.render(t.networks[t.leaderIndex], [...leader.perception.sensors, leader.perception.speed]);
+  }
 
   function sync() {
     setText(generation, 'train.generation', { value: state.training.generation });
@@ -60,6 +82,7 @@ export function mount({ stage, panel, i18n, store, reportError }) {
         focus: t.leaderIndex,
         elite: Array.from({ length: t.eliteCount }, (_, i) => i),
       });
+      drawNetwork();
       sync();
     },
     onError: reportError,
@@ -71,12 +94,13 @@ export function mount({ stage, panel, i18n, store, reportError }) {
   loop.start();
 
   return {
-    view, loop,
+    view, loop, networkView,
     get training() { return state.training; },
     get settings() { return { ...state.settings }; },
     unmount() {
       loop.dispose();
       offLanguage();
+      networkView.dispose();
       view.dispose();
     },
   };

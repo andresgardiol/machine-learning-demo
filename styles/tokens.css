@@ -19,6 +19,11 @@
   --color-traffic: #ffb020;
   --color-sensor: #4ea1ff;
   --color-sensor-hit: #ff5a5a;
+  /* Diagrama de la red: distintos de auto, tráfico y sensores (el signo también se ve en el trazo) */
+  --color-weight-positive: #36d6c3; /* pesos y sesgos positivos: línea continua */
+  --color-weight-negative: #ff6fb5; /* pesos y sesgos negativos: línea punteada */
+  --color-neuron-active: #f5f7fa; /* relleno de una neurona activa */
+  --color-neuron: #5b6677; /* contorno de una neurona sin sesgo (entradas) */
   /* Detalles de los vehículos (solo cosméticos, dentro de su contorno) */
   --color-car-glass: #1d2b3a;
   --color-headlight: #fff3c4;

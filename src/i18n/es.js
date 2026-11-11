@@ -197,4 +197,18 @@ export default {
   // Pestaña 3: Entrenar
   'train.title': 'Entrenar',
   'train.generation': 'Generación {value}',
+  'train.network.title': 'Red del líder',
+  'train.network.legend.positive': 'Peso positivo',
+  'train.network.legend.negative': 'Peso negativo',
+  'train.network.legend.active': 'Neurona activa',
+  'train.network.legend.note': 'Más grueso y más visible: el peso o el sesgo pesa más. El contorno de cada neurona muestra su sesgo.',
+  'help.train.network.what': 'Muestra la red neuronal del auto líder: a la izquierda lo que percibe (cada sensor y la velocidad), a la derecha los cuatro controles, y en el medio las neuronas ocultas. Cada línea es una conexión con su peso, un número que dice cuánto influye una neurona en la siguiente.',
+  'help.train.network.why': 'Ver qué entradas se encienden y qué salidas se disparan, mientras el auto maneja, muestra que la red no es magia: son números que convierten lecturas en acciones.',
+  'network.input.sensor': 'Sensor {n}',
+  'network.input.speed': 'Velocidad',
+  'network.output.forward': 'Avanzar',
+  'network.output.left': 'Izquierda',
+  'network.output.right': 'Derecha',
+  'network.output.reverse': 'Retroceder',
+  'network.aria': 'Diagrama de una red neuronal de forma {shape}, con su actividad en vivo',
 };

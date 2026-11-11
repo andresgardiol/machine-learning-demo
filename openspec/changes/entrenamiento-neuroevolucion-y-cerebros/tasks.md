@@ -86,9 +86,9 @@
 
 ## 14. Diagrama de red
 
-- [ ] 14.1 Crear en `src/render/network-view.js` la disposición del diagrama como función pura (columnas, nodos, rótulos que se resumen); verificar con pruebas la red 6-6-4, el cambio a cuatro columnas, el resumen de rótulos con 60 sensores y que la red máxima cabe en su zona
-- [ ] 14.2 Dibujar el diagrama en canvas con pesos, sesgos y actividad en vivo, agregando sus colores a `styles/tokens.css`; verificar en el navegador los escenarios de "Pesos visibles", "Sesgos visibles", "Actividad en vivo" y "Diagrama solo de lectura"
-- [ ] 14.3 Escribir en español e inglés los rótulos de entradas y salidas, la leyenda y el tooltip de la sección; verificar en el navegador en ambos idiomas, que la paridad pasa y que con el diagrama visible el promedio es de al menos 50 cuadros por segundo
+- [x] 14.1 Crear en `src/render/network-view.js` la disposición del diagrama como función pura (columnas, nodos, rótulos que se resumen); verificar con pruebas la red 6-6-4, el cambio a cuatro columnas, el resumen de rótulos con 60 sensores y que la red máxima cabe en su zona
+- [x] 14.2 Dibujar el diagrama en canvas con pesos, sesgos y actividad en vivo, agregando sus colores a `styles/tokens.css`; verificar en el navegador los escenarios de "Pesos visibles", "Sesgos visibles", "Actividad en vivo" y "Diagrama solo de lectura"
+- [x] 14.3 Escribir en español e inglés los rótulos de entradas y salidas, la leyenda y el tooltip de la sección; verificar en el navegador en ambos idiomas, que la paridad pasa y que con el diagrama visible el promedio es de al menos 50 cuadros por segundo
 
 ## 15. Curva de fitness
 

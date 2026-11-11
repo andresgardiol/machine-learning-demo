@@ -197,4 +197,18 @@ export default {
   // Tab 3: Train
   'train.title': 'Train',
   'train.generation': 'Generation {value}',
+  'train.network.title': 'Leader’s network',
+  'train.network.legend.positive': 'Positive weight',
+  'train.network.legend.negative': 'Negative weight',
+  'train.network.legend.active': 'Active neuron',
+  'train.network.legend.note': 'Thicker and more visible: the weight or bias counts more. Each neuron’s outline shows its bias.',
+  'help.train.network.what': 'Shows the leading car’s neural network: on the left, what it senses (each sensor and the speed); on the right, the four controls; in between, the hidden neurons. Each line is a connection with its weight, a number that says how much one neuron influences the next.',
+  'help.train.network.why': 'Seeing which inputs light up and which outputs fire while the car drives shows that the network is not magic: it is numbers turning readings into actions.',
+  'network.input.sensor': 'Sensor {n}',
+  'network.input.speed': 'Speed',
+  'network.output.forward': 'Forward',
+  'network.output.left': 'Left',
+  'network.output.right': 'Right',
+  'network.output.reverse': 'Reverse',
+  'network.aria': 'Diagram of a neural network shaped {shape}, with its live activity',
 };
