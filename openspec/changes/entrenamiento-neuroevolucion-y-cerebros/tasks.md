@@ -34,9 +34,9 @@
 
 ## 6. Núcleo: cerebros y controlador de red
 
-- [ ] 6.1 Crear `src/core/brain.js` con el formato versión 1, la creación y la validación con códigos de error (design D7); verificar con una prueba por cada escenario de "Validación de un cerebro", "Entradas y salidas de un cerebro" y "Compatibilidad con el auto"
-- [ ] 6.2 Implementar el controlador de red neuronal y su verificación al crearse; verificar con pruebas los escenarios de "Controlador de red neuronal" y "Red que no corresponde a la percepción", incluido que un mundo lo maneja sin cambios
-- [ ] 6.3 Implementar la acumulación de datos de entrenamiento (generaciones totales y lista de escenarios, uniendo el mismo escenario consecutivo); verificar con pruebas los dos escenarios de "Datos de entrenamiento"
+- [x] 6.1 Crear `src/core/brain.js` con el formato versión 1, la creación y la validación con códigos de error (design D7); verificar con una prueba por cada escenario de "Validación de un cerebro", "Entradas y salidas de un cerebro" y "Compatibilidad con el auto"
+- [x] 6.2 Implementar el controlador de red neuronal y su verificación al crearse; verificar con pruebas los escenarios de "Controlador de red neuronal" y "Red que no corresponde a la percepción", incluido que un mundo lo maneja sin cambios
+- [x] 6.3 Implementar la acumulación de datos de entrenamiento (generaciones totales y lista de escenarios, uniendo el mismo escenario consecutivo); verificar con pruebas los dos escenarios de "Datos de entrenamiento"
 
 ## 7. Núcleo: entrenamiento
 
