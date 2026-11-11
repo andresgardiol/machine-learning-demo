@@ -204,6 +204,7 @@ export default {
   // Tab 3: Train
   'train.title': 'Train',
   'train.guide': 'Each green car is driven by a neural network with random numbers: nobody taught it to drive. When a generation ends, the best drivers are copied with small changes (mutations) to form the next one.',
+  'train.guide.manual': 'Each green car is driven by a neural network with random numbers: nobody taught it to drive. When you see the leader do something promising, pick it: the next generation will be copies of it with small changes (mutations).',
   'train.view.title': 'View',
   'train.network.title': 'Leader’s network',
   'train.network.legend.positive': 'Positive weight',
@@ -284,6 +285,7 @@ export default {
   'train.mission.done': '✓ Done',
   'train.basic.title': 'Settings',
   'train.pending': 'There are changes waiting: they apply when the next generation starts.',
+  'train.mode.pending': 'Takes effect from the next generation.',
   'train.sensors': 'Leader’s sensors',
   'train.advanced': 'Advanced',
   'train.advanced.evolution': 'Evolution',

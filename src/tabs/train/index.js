@@ -263,6 +263,19 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   const parentLine = el('p', { class: 'parent-status', attrs: { role: 'status' } });
   const manualRow = el('div', { class: 'run-manual' }, chooseButton, undoButton);
 
+  // Quién elige al padre: encabeza la marcha (design.md D6). Es un modo, no un parámetro: decide qué
+  // botones aparecen debajo, qué se guarda y qué ajustes avanzados valen. El aviso de que rige desde
+  // la próxima generación va junto a él.
+  const selectionMode = optionGroup({
+    labelKey: 'train.setting.selectionMode',
+    labelHelp: 'train.setting.selectionMode',
+    selected: state.settings.selectionMode,
+    options: SELECTION_MODES.map((v) => ({ value: v, i18n: `train.selectionMode.${v}`, help: `train.selectionMode.${v}` })),
+    onSelect: (v) => { if (v !== state.settings.selectionMode) setSetting('selectionMode', v); },
+  });
+  selectionMode.row.classList.add('run-mode');
+  const modePending = el('p', { class: 'train-pending mode-pending', attrs: { role: 'status' }, i18n: 'train.mode.pending' });
+
   const speeds = optionGroup({
     labelKey: 'train.speed',
     labelHelp: 'train.speed',
@@ -274,6 +287,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   });
   const factor = el('p', { class: 'train-factor muted', attrs: { 'aria-live': 'off' } });
   const run = el('section', { class: 'train-run' },
+    selectionMode.row, modePending,
     el('div', { class: 'run-main' }, pauseButton, nextButton),
     manualRow, parentLine,
     speeds.row, factor,
@@ -358,16 +372,13 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
 
   // Grupos de opciones con rótulos largos: rótulo arriba y opciones a todo el ancho.
   for (const g of Object.values(choices)) g.row.classList.add('setting-stacked');
-  // Quién elige al padre: dos opciones cortas, en el mismo renglón que su rótulo (no va apilado).
-  const selectionMode = choice('selectionMode', SELECTION_MODES, 'train.selectionMode');
-
   const pendingNote = () => el('p', { class: 'train-pending', attrs: { role: 'status' }, i18n: 'train.pending' });
   const basicPending = pendingNote();
   const advancedPending = pendingNote();
 
   const basic = el('section', { class: 'train-basic' },
     el('h2', { class: 'panel-heading', i18n: 'train.basic.title' }),
-    row('population'), row('mutationStrength'), selectionMode.row, basicPending);
+    row('population'), row('mutationStrength'), basicPending);
 
   const sensorsSwitch = switchButton('train.sensors', 'train.sensors', state.settings.showSensors, () => setSetting('showSensors', !state.settings.showSensors));
   const viewSwitches = el('div', { class: 'switch-row train-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.view.title' }, sensorsSwitch);
@@ -537,6 +548,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
 
     // Selección manual (según el modo deseado): elegir y deshacer, con la línea de estado del padre.
     const manual = s.selectionMode === 'manual';
+    // La guía acompaña al modo: con selección manual, la generación siguiente sale del auto elegido.
+    setText(intro, manual ? 'train.guide.manual' : 'train.guide');
     manualRow.hidden = !manual;
     parentLine.hidden = !manual;
     if (manual) {
@@ -569,9 +582,13 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     }
 
     // Configuración
-    const pending = t.pending !== null;
-    basicPending.hidden = !pending;
-    advancedPending.hidden = !pending;
+    // Cambios que esperan a la próxima generación: el del modo se avisa junto a su ajuste; los demás,
+    // en la configuración.
+    const waiting = t.pending ? Object.keys(t.pending) : [];
+    const othersWaiting = waiting.some((k) => k !== 'selectionMode');
+    modePending.hidden = !waiting.includes('selectionMode');
+    basicPending.hidden = !othersWaiting;
+    advancedPending.hidden = !othersWaiting;
     const dragging = document.activeElement;
     for (const sl of sliders) {
       const v = s[sl.key];

@@ -23,9 +23,13 @@ problema de fondo.**
 
 ## What Changes
 
-- **Quién elige al padre: la fitness o vos.** Un ajuste nuevo, a la vista
-  junto a la población y la mutación, con la selección automática por
-  defecto (el comportamiento actual no cambia).
+- **Quién elige al padre: la fitness o vos.** Un ajuste nuevo que encabeza
+  los controles de marcha, porque es un modo que cambia toda la pestaña y no
+  un parámetro más; con la selección automática por defecto (el
+  comportamiento actual no cambia). El aviso de que rige desde la próxima
+  generación aparece junto a él.
+- **La guía de inicio acompaña al modo:** con selección manual dice que la
+  generación siguiente sale del auto que la persona elige.
 - **Elegir al líder.** Con selección manual aparece un botón, con el atajo E,
   que toma al líder de ese momento como padre. Funciona en cualquier momento
   de la generación, también en pausa.
@@ -93,8 +97,8 @@ Ninguna.
   de configuración y la reproducibilidad incluyen el modo y las elecciones.
 - `pestana-entrenar`: se agregan el ajuste de quién elige, los botones de
   elegir al líder y deshacer, la línea de estado y los ajustes que no aplican;
-  cambian la configuración básica, los controles de marcha, guardar el
-  campeón y el panel a la vista.
+  cambian la guía de inicio, los controles de marcha, guardar el campeón y el
+  panel a la vista.
 - `cerebros`: los datos de entrenamiento registran el modo de selección y el
   autoguardado usa al padre elegido.
 
@@ -111,8 +115,9 @@ Ninguna.
 - **Textos:** `src/i18n/es.js` y `en.js`.
 - **Dependencias y build:** ninguna nueva.
 - **Pruebas:** nuevas para el núcleo y la lógica sin DOM de la pestaña. De
-  las existentes cambian solo las tres aserciones que enumeran la
-  configuración o los ajustes completos, para sumar la clave nueva; el
+  las existentes cambian solo las cinco aserciones que enumeran la
+  configuración, los ajustes, los datos de evolución o los atajos completos,
+  para sumar las claves nuevas; el
   comportamiento por defecto es el actual y ninguna otra prueba cambia.
 - **Rendimiento:** la cría manual es más barata que la automática (no ordena
   ni cruza); no toca el bucle de simulación ni el de dibujo.

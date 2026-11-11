@@ -439,6 +439,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .train-run .inline-confirm { margin: 0; }
 .train-factor { margin: calc(-1 * var(--space-1)) 0 0; font-size: 13px; }
 .train-factor[hidden] { display: none; }
+/* Quién elige al padre: encabeza la marcha. Rótulo con peso de título y opciones en el resto del renglón. */
+.run-mode { margin-bottom: var(--space-1); }
+.run-mode .setting-label { font-size: 15px; font-weight: 600; }
+.run-mode .segments { display: flex; flex: 1 1 140px; margin-left: var(--space-2); }
+.run-mode .segment { flex: 1 1 auto; white-space: nowrap; }
+.train-run .train-pending { margin: calc(-1 * var(--space-1)) 0 0; }
 /* Selección manual: elegir y deshacer en un renglón, con la línea de estado del padre debajo. */
 .run-manual { display: flex; gap: var(--space-2); }
 .run-manual .tool { flex: 0 1 auto; }

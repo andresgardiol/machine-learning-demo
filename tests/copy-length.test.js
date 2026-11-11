@@ -31,6 +31,10 @@ test('Entrenar: guía de inicio de hasta 240 caracteres', () => {
   assertMax('train.guide', GUIDE_MAX);
 });
 
+test('Entrenar: guía de inicio con selección manual de hasta 240 caracteres', () => {
+  assertMax('train.guide.manual', GUIDE_MAX);
+});
+
 test('Entrenar: renglones de ayuda del tablero de hasta 120 caracteres', () => {
   for (const key of ['train.chart.hint.new', 'train.chart.hint.same', 'train.network.hint']) assertMax(key, HINT_MAX);
 });

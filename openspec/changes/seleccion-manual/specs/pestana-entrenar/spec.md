@@ -2,23 +2,37 @@
 
 ## MODIFIED Requirements
 
-### Requirement: Configuración básica
-La pestaña SHALL mostrar siempre a la vista tres ajustes: el tamaño de la
-población, la fuerza de la mutación y quién elige al padre. Sus cambios SHALL
-aplicarse desde la generación siguiente, y la pestaña MUST indicar de forma
-visible que hay cambios esperando a la próxima generación.
+### Requirement: Guía de inicio
+Con la guía activa, el panel SHALL mostrar un texto de inicio, de hasta 240
+caracteres en cada idioma, que diga qué se está viendo (autos manejados por
+redes con números al azar) y de dónde sale la generación siguiente: de los que
+mejor manejaron, con selección automática, o del auto que la persona elija,
+con selección manual. Los atajos de teclado MUST leerse en el control que
+accionan y no en el texto de inicio.
 
-#### Scenario: Cambiar la mutación
-- **WHEN** la persona sube la fuerza de mutación durante una generación
-- **THEN** aparece una indicación de que el cambio se aplica en la próxima generación y desaparece cuando esa generación empieza
+#### Scenario: Guía activa
+- **WHEN** la guía está activa
+- **THEN** el panel muestra el texto de inicio
 
-#### Scenario: Cambiar la población
-- **WHEN** la persona cambia la población a 200
-- **THEN** la generación en curso sigue con sus autos y la siguiente empieza con 200
+#### Scenario: Guía oculta
+- **WHEN** la guía está oculta
+- **THEN** el texto de inicio, los renglones de ayuda del tablero y las misiones no se muestran y el entrenamiento sigue igual
 
-#### Scenario: Cambiar quién elige
-- **WHEN** la persona pasa de "la fitness" a "vos" durante una generación
-- **THEN** aparece la indicación de cambios esperando y la generación en curso sigue con sus autos
+#### Scenario: Texto breve
+- **WHEN** el panel mide 360 píxeles de ancho y la aplicación está en español o en inglés
+- **THEN** el texto de inicio ocupa como mucho cinco renglones, con selección automática y con selección manual
+
+#### Scenario: Atajos en los controles
+- **WHEN** la persona busca cómo pausar, pasar de generación o acelerar con el teclado
+- **THEN** lee la tecla en el botón de pausa, en el de siguiente generación y en la opción de velocidad máxima
+
+#### Scenario: Guía con selección manual
+- **WHEN** la persona elige "vos" en el ajuste de quién elige al padre
+- **THEN** el texto de inicio pasa a decir que, cuando el líder haga algo prometedor, lo elija, y que la generación siguiente serán copias suyas con pequeños cambios
+
+#### Scenario: Guía al volver a selección automática
+- **WHEN** la persona vuelve a elegir la función de fitness
+- **THEN** el texto de inicio vuelve a decir que los que mejor manejaron se copian con pequeños cambios
 
 ### Requirement: Guardar el campeón
 El panel SHALL ofrecer siempre a la vista, fuera de la biblioteca plegada, un
@@ -53,16 +67,17 @@ de guardar MUST leerse junto al botón.
 - **THEN** el control está deshabilitado y su tooltip explica que primero hay que elegir un padre
 
 ### Requirement: Controles de marcha agrupados
-El panel SHALL agrupar los controles de marcha en este orden: pausar y pasar a
-la siguiente generación en un mismo renglón; con selección manual, elegir al
-líder y deshacer en el renglón siguiente, con la línea de estado del padre
-debajo; después, las velocidades en un solo renglón; y debajo, con menor peso
-visual, reiniciar y población nueva. La confirmación de reiniciar o de
-población nueva SHALL aparecer junto a esos botones.
+El panel SHALL agrupar los controles de marcha en este orden: arriba, el
+ajuste de quién elige al padre; pausar y pasar a la siguiente generación en un
+mismo renglón; con selección manual, elegir al líder y deshacer en el renglón
+siguiente, con la línea de estado del padre debajo; después, las velocidades
+en un solo renglón; y debajo, con menor peso visual, reiniciar y población
+nueva. La confirmación de reiniciar o de población nueva SHALL aparecer junto
+a esos botones.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña con el panel en 360 píxeles de ancho
-- **THEN** pausar y siguiente generación comparten renglón, las cinco velocidades entran en un renglón y reiniciar y población nueva se ven más chicos, debajo
+- **THEN** el ajuste de quién elige al padre está arriba de todo, pausar y siguiente generación comparten renglón, las cinco velocidades entran en un renglón y reiniciar y población nueva se ven más chicos, debajo
 
 #### Scenario: Confirmación junto al botón
 - **WHEN** la persona pide reiniciar con generaciones terminadas
@@ -74,7 +89,7 @@ población nueva SHALL aparecer junto a esos botones.
 
 #### Scenario: Con selección manual
 - **WHEN** la selección es manual y el panel mide 360 píxeles de ancho
-- **THEN** elegir al líder y deshacer comparten un renglón debajo de pausar y siguiente generación, y la línea de estado del padre se lee debajo de ellos
+- **THEN** elegir al líder y deshacer comparten un renglón debajo de pausar y siguiente generación, a un renglón del ajuste que los hizo aparecer, y la línea de estado del padre se lee debajo de ellos
 
 #### Scenario: Con selección automática
 - **WHEN** la selección es automática
@@ -91,7 +106,7 @@ tamaños.
 
 #### Scenario: Pantalla de 1440×900
 - **WHEN** se abre la pestaña con la ventana en 1440×900 y la guía activa
-- **THEN** el panel no tiene barra de desplazamiento y se ven la guía, los controles de marcha, el interruptor de sensores, la configuración básica, guardar el campeón, las misiones y los títulos de la biblioteca y de la sección avanzada
+- **THEN** el panel no tiene barra de desplazamiento y se ven la guía, los controles de marcha con el ajuste de quién elige al padre, el interruptor de sensores, la configuración básica, guardar el campeón, las misiones y los títulos de la biblioteca y de la sección avanzada
 
 #### Scenario: Pantalla de 1366×768
 - **WHEN** se abre la pestaña con la ventana en 1366×768 y la guía activa
@@ -103,19 +118,33 @@ tamaños.
 
 #### Scenario: Selección manual a la vista
 - **WHEN** la selección es manual, con la ventana en 1366×768 y la guía activa
-- **THEN** pausar, siguiente generación, elegir al líder, deshacer y la línea de estado del padre se ven sin desplazar el panel
+- **THEN** el ajuste de quién elige al padre, pausar, siguiente generación, elegir al líder, deshacer y la línea de estado del padre se ven sin desplazar el panel
 
 ## ADDED Requirements
 
 ### Requirement: Quién elige al padre
 La pestaña SHALL ofrecer un ajuste con dos opciones para decidir quién elige
 al padre de la generación siguiente: la función de fitness (por defecto) o la
-persona. El cambio SHALL regir desde la generación siguiente y MUST NOT
-reiniciar el entrenamiento.
+persona. El ajuste SHALL encabezar los controles de marcha, antes que
+cualquier otro control del panel, con un rótulo de mayor peso que el de un
+ajuste común. El cambio SHALL regir desde la generación siguiente, MUST NOT
+reiniciar el entrenamiento y, mientras espera, MUST indicarse junto al ajuste.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña por primera vez
 - **THEN** está elegida la opción de la función de fitness y el entrenamiento avanza solo, como siempre
+
+#### Scenario: Primero en el panel
+- **WHEN** se abre la pestaña con la guía oculta
+- **THEN** el ajuste de quién elige al padre es el primer control del panel, arriba de pausar y siguiente generación, y no está entre los ajustes de configuración
+
+#### Scenario: Cambio esperando, junto al ajuste
+- **WHEN** la persona pasa de "la fitness" a "vos" durante una generación
+- **THEN** un aviso junto al ajuste dice que rige desde la próxima generación, la generación en curso sigue con sus autos, y el aviso desaparece cuando esa generación empieza
+
+#### Scenario: El aviso de configuración no se mezcla
+- **WHEN** el único cambio que espera es el de quién elige al padre
+- **THEN** el aviso de cambios esperando de la configuración básica no se muestra
 
 #### Scenario: Pasar a selección manual con progreso
 - **WHEN** la persona elige "vos" en la generación 12 y no elige a ningún auto antes de que termine

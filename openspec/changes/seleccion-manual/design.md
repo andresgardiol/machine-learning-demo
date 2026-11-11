@@ -182,6 +182,8 @@ rige.
 
 ```
 +----------------------------------------------+
+| Quién elige al padre     [ La fitness | Vos ]|   encabeza la marcha
+| Rige desde la próxima generación.            |   solo mientras el cambio espera
 | [ Pausar (espacio) ] [ Siguiente (N)       ] |
 | [ Elegir al líder (E) ]        [Deshacer (Z)]|   solo con selección manual
 | Padre: el líder de la generación 4, que      |   solo con selección manual
@@ -192,9 +194,29 @@ rige.
 | Configuración                                |
 | Población                          100 autos |
 | Fuerza de mutación                      10 % |
-| Quién elige al padre     [ La fitness | Vos ]|   nuevo, siempre a la vista
 +----------------------------------------------+
 ```
+
+- **Dónde va el ajuste:** es el primer renglón del bloque de marcha
+  (`.train-run`), no un renglón de la configuración. Población y mutación son
+  parámetros; quién elige al padre es un modo: decide qué botones aparecen,
+  qué guarda "Guardar" y qué ajustes avanzados valen. Arriba se lee primero y
+  queda a un renglón de los botones que hace aparecer. Su rótulo lleva el
+  estilo de un título del panel (`.panel-heading`) y sus dos opciones ocupan
+  el ancho que queda del renglón.
+- **Aviso junto al ajuste:** `<p class="train-pending" role="status">` con
+  `train.mode.pending`, visible mientras `training.pending` incluye
+  `selectionMode`. El aviso de la configuración básica y el de la sección
+  avanzada se muestran solo cuando espera algún otro ajuste.
+- **Guía según el modo:** el párrafo de inicio usa `train.guide` o
+  `train.guide.manual` según el modo deseado.
+
+*Alternativas descartadas:* dejarlo en la configuración básica (queda en el
+medio, con el peso de un deslizador, lejos de los botones que hace aparecer);
+un bloque propio con las opciones a todo el ancho debajo del rótulo (suma 25
+px y el panel deja de entrar en 1440×900); ponerlo en el tablero (el tablero
+solo muestra); y pestañas internas "automático / manual" (esconde que el
+resto del panel es compartido).
 
 - **Qué decide si se ven los botones:** el modo deseado
   (`state.settings.selectionMode`). Aparecen al elegir "Vos" y desaparecen al
@@ -216,11 +238,12 @@ rige.
   padre, con `help.train.save.disabled.parent`.
 - **Autoguardado:** no cambia de código; ya omite la escritura cuando
   `training.brain()` devuelve `null`.
-- **Espacio:** el ajuste nuevo suma unos 42 px a los 800 actuales: 842 de 851
-  con selección automática. Con selección manual se suman el renglón de
-  botones y la línea de estado (unos 80 px) y el panel se desplaza, pero esos
-  controles están arriba y quedan a la vista. Las specs piden exactamente
-  eso.
+- **Espacio:** medido con la ventana en 1440×900 y la guía activa, el panel
+  ocupa 830 px de 851 con selección automática. Mover el ajuste del bloque de
+  configuración al de marcha no cambia ese total. Con selección manual se
+  suman el renglón de botones y la línea de estado y el panel se desplaza,
+  pero esos controles están arriba y quedan a la vista. Las specs piden
+  exactamente eso.
 
 ### D7. Biblioteca
 
@@ -236,6 +259,8 @@ Textos propuestos; los tooltips llevan además "qué hace" y "por qué importa".
 
 | Clave | Español | Inglés |
 |---|---|---|
+| `train.guide.manual` | Cada auto verde lo maneja una red neuronal con números al azar: nadie le enseñó a manejar. Cuando veas al líder hacer algo prometedor, elegilo: la generación siguiente serán copias suyas con pequeños cambios (mutaciones). | Each green car is driven by a neural network with random numbers: nobody taught it to drive. When you see the leader do something promising, pick it: the next generation will be copies of it with small changes (mutations). |
+| `train.mode.pending` | Rige desde la próxima generación. | Takes effect from the next generation. |
 | `train.setting.selectionMode` | Quién elige al padre | Who picks the parent |
 | `train.selectionMode.auto` | La fitness | Fitness |
 | `train.selectionMode.manual` | Vos | You |
@@ -291,9 +316,17 @@ Nuevas, sin DOM:
   válidos y conservan el dato al copiarse.
 
 Existentes que cambian, solo para sumar la clave `selectionMode: 'auto'` a
-listas completas: la configuración por defecto en `tests/training.test.js`, y
-los ajustes por defecto y la lista de ajustes por grupo en
-`tests/train-settings.test.js`. Ninguna otra.
+listas completas: en `tests/training.test.js`, la configuración por defecto y
+los datos de evolución del cerebro del campeón (D4 registra el modo también
+con selección automática); y en `tests/train-settings.test.js`, los ajustes
+por defecto y la lista de ajustes por grupo. Además, la aserción de
+`tests/train-session.test.js` que enumera los atajos de la pestaña suma
+`KeyE` y `KeyZ` (D5). Son cinco aserciones.
+
+Regla general: una aserción existente que enumera una lista completa de
+claves que este cambio amplía se actualiza solo sumando las claves nuevas,
+sin cambiar ningún valor esperado ni quitar nada, y se informa en el reporte.
+Cualquier otra falla de una prueba existente es un problema del código nuevo.
 
 Lo que depende del DOM se verifica en el navegador con los escenarios de la
 spec `pestana-entrenar`.
@@ -317,8 +350,8 @@ reescribe únicamente cuando cambia (`createTextSetter`).
   había] → solo pasa si la persona nunca eligió o deshizo todo; la línea de
   estado lo avisa antes, y al pasar de automática a manual el campeón queda
   como padre.
-- [El ajuste nuevo deja 9 px de margen en el panel a 1440×900; un texto más
-  largo en inglés lo desborda] → la tarea de verificación mide el panel en
+- [El panel tiene 21 px de margen a 1440×900; un texto más largo en inglés
+  lo desborda] → la tarea de verificación mide el panel en
   los dos idiomas. Si no entra, se ajustan espaciados; si aun así no entra,
   se consulta antes de mover u ocultar nada.
 - [El cerebro del entrenamiento sigue al modo vigente y los botones al modo

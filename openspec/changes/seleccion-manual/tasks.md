@@ -48,6 +48,16 @@ Medidas de referencia para las verificaciones en el navegador: ventana de
 - [x] 6.4 Recorrer la pestaña solo con el teclado: el ajuste y los dos botones nuevos se alcanzan con Tab y se accionan con Enter o con la barra espaciadora; los atajos E y Z funcionan donde ya funcionan la barra espaciadora, N y T (con el foco en el escenario, en los títulos del tablero y después de un clic con el mouse) y se ignoran, igual que ellos, cuando un control tiene el foco del teclado; y la barra espaciadora, N y T siguen funcionando como antes.
 - [x] 6.5 Repasar las cuatro preguntas del filtro de entrada sobre el resultado en pantalla, con la tabla de proposal.md, con la guía activa y apagada; anotar en el reporte cualquier respuesta que ya no se sostenga.
 
+## 7. El ajuste de quién elige, al frente del panel
+
+Revisión pedida por el dueño después de probar el cambio: el ajuste es un modo
+que afecta a toda la pestaña y estaba en medio de la configuración.
+
+- [x] 7.1 Mover el ajuste "Quién elige al padre" de la configuración básica al primer renglón del bloque de marcha, con su rótulo como título del panel y sus opciones ocupando el resto del renglón (design.md D6). Verificar en el navegador los escenarios "Primero en el panel" de "Quién elige al padre" y "Estado por defecto" y "Con selección manual" de "Controles de marcha agrupados".
+- [x] 7.2 Mostrar junto al ajuste el aviso `train.mode.pending` mientras espera el cambio de modo, y dejar el aviso de la configuración básica y el de la sección avanzada solo para los demás ajustes. Verificar en el navegador los escenarios "Cambio esperando, junto al ajuste" y "El aviso de configuración no se mezcla".
+- [x] 7.3 Hacer que la guía de inicio use `train.guide.manual` con selección manual, con sus textos en los dos idiomas (D8), y sumar ese texto al límite de 240 caracteres de `tests/copy-length.test.js`. Verificar con `npm test` y, en el navegador, los escenarios "Guía con selección manual", "Guía al volver a selección automática" y "Texto breve".
+- [x] 7.4 Verificar en el navegador "Panel a la vista sin desplazarse": con selección automática el panel entra en 1440×900 en español y en inglés; con selección manual, en 1440×900 y en 1366×768, se ven sin desplazar el ajuste, pausar, siguiente, elegir al líder, deshacer y la línea de estado. Correr `mlLab.auditTooltips()` y `npm test`.
+
 ## Workflow follow-up
 
 - El dueño del proyecto prueba si eligiendo a mano los autos aprenden a pasar al tráfico en pocas generaciones. El resultado orienta el cambio siguiente, sobre la fitness automática.

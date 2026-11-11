@@ -204,6 +204,7 @@ export default {
   // Pestaña 3: Entrenar
   'train.title': 'Entrenar',
   'train.guide': 'Cada auto verde lo maneja una red neuronal con números al azar: nadie le enseñó a manejar. Al terminar cada generación, los que mejor manejaron se copian con pequeños cambios (mutaciones) y forman la siguiente.',
+  'train.guide.manual': 'Cada auto verde lo maneja una red neuronal con números al azar: nadie le enseñó a manejar. Cuando veas al líder hacer algo prometedor, elegilo: la generación siguiente serán copias suyas con pequeños cambios (mutaciones).',
   'train.view.title': 'Vista',
   'train.network.title': 'Red del líder',
   'train.network.legend.positive': 'Peso positivo',
@@ -284,6 +285,7 @@ export default {
   'train.mission.done': '✓ Cumplida',
   'train.basic.title': 'Configuración',
   'train.pending': 'Hay cambios esperando: se aplican cuando empiece la próxima generación.',
+  'train.mode.pending': 'Rige desde la próxima generación.',
   'train.sensors': 'Sensores del líder',
   'train.advanced': 'Avanzado',
   'train.advanced.evolution': 'Evolución',
