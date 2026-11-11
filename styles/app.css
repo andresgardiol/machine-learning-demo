@@ -130,9 +130,22 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--panel-width);
+  grid-template-columns: minmax(0, 1fr) auto var(--panel-width);
   min-height: 0;
 }
+/* Borde ajustable del panel (como en un IDE). */
+.splitter {
+  width: 6px;
+  cursor: col-resize;
+  background: var(--color-border);
+  border-left: 2px solid var(--color-bg);
+  border-right: 2px solid var(--color-surface);
+  touch-action: none;
+}
+.splitter:hover, .app.resizing .splitter { background: var(--color-accent); }
+.splitter:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 0; background: var(--color-accent); }
+.app.resizing { cursor: col-resize; user-select: none; }
+.app.resizing .stage-canvas { cursor: col-resize; }
 .stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: var(--color-bg); }
 .stage:focus { outline: none; }
 .panel {
@@ -140,7 +153,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   overflow-y: auto;
   padding: var(--space-3);
   background: var(--color-surface);
-  border-left: 1px solid var(--color-border);
 }
 .panel-title { margin: 0 0 var(--space-3); font-size: 20px; }
 
@@ -175,7 +187,8 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 
 /* ---- Ventana angosta: aviso en lugar de una disposición rota ---------------- */
 .narrow-notice { display: none; }
-@media (max-width: 1023.98px) {
+/* Solo en pantallas de celular (menos de 600 px, ver NARROW_WIDTH en ui/app.js). */
+@media (max-width: 599.98px) {
   .app > .topbar, .app > .workspace { display: none; }
   .app { grid-template-rows: 1fr; }
   .narrow-notice {
@@ -272,7 +285,8 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .stage-badge[hidden] { display: none; }
 .pause-badge { border-color: var(--color-accent); }
 .pause-badge::before { content: "❚❚ "; color: var(--color-accent); }
-.crash-layer { position: absolute; inset: 0; display: grid; place-items: end center; padding: var(--space-4); pointer-events: none; }
+/* Arriba al centro: el auto queda abajo (calle vertical) y el mensaje no lo tapa; deja libres los controles de cámara. */
+.crash-layer { position: absolute; inset: 0; display: grid; place-items: start center; padding: 56px var(--space-4) var(--space-4); pointer-events: none; }
 .crash-layer[hidden] { display: none; }
 .crash-box {
   pointer-events: auto; max-width: 420px; padding: var(--space-3) var(--space-4);

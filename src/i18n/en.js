@@ -42,6 +42,9 @@ export default {
   'tooltip.what': 'What it does',
   'tooltip.why': 'Why it matters',
 
+  'app.panel.resize': 'Panel width',
+  'help.panel.resize.what': 'Drag this edge to make the panel wider or narrower. With the keyboard: left and right arrows; Enter or a double click restore the initial width.',
+  'help.panel.resize.why': 'This lets you split the screen between the stage and the information depending on what you want to look at. The width is remembered for your next visit.',
   'help.guide.what': 'Shows or hides the guide texts and missions across the whole app.',
   'help.guide.why': 'Newcomers need to know what to look at and what to try; people who already know the topic, or are teaching it, can hide them to save space.',
   'help.language.what': 'Switches every text between Spanish and English without stopping what is happening.',

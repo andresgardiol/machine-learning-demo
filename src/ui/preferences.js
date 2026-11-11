@@ -1,9 +1,9 @@
-// Preferencias recordadas en el navegador (idioma y guía). Toda lectura y escritura
+// Preferencias recordadas en el navegador (idioma, guía y ancho del panel). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth' });
 
-export const DEFAULT_PREFERENCES = Object.freeze({ language: null, guide: true });
+export const DEFAULT_PREFERENCES = Object.freeze({ language: null, guide: true, panelWidth: null });
 
 const defaultStorage = () => globalThis.localStorage;
 
@@ -41,5 +41,11 @@ export function createPreferences(getStorage = defaultStorage) {
       return v === 'off' ? false : v === 'on' ? true : DEFAULT_PREFERENCES.guide;
     },
     set guide(value) { write(KEYS.guide, value ? 'on' : 'off'); },
+    /** Ancho del panel derecho en píxeles, o null si no se guardó uno válido. */
+    get panelWidth() {
+      const v = Number.parseInt(read(KEYS.panelWidth) ?? '', 10);
+      return Number.isFinite(v) && v > 0 ? v : DEFAULT_PREFERENCES.panelWidth;
+    },
+    set panelWidth(value) { write(KEYS.panelWidth, String(Math.round(value))); },
   };
 }

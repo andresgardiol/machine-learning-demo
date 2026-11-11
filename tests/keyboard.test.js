@@ -157,3 +157,11 @@ test('un deslizador enfocado con el teclado usa las flechas: el auto no gira y l
   assert.deepEqual(kb.control(), NONE);
   assert.equal(e.defaultPrevented, false);
 });
+
+test('el borde del panel enfocado con el teclado usa las flechas: el auto no gira', () => {
+  const { kb, press } = setup();
+  const splitter = { tagName: 'DIV', getAttribute: (n) => (n === 'role' ? 'separator' : null) };
+  const e = press('ArrowRight', { target: splitter });
+  assert.deepEqual(kb.control(), NONE);
+  assert.equal(e.defaultPrevented, false);
+});

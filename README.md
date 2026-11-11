@@ -39,7 +39,7 @@ src/
   core/          geometry, random, constants, track, car, sensors, traffic, controller, world
   input/         keyboard.js: controlador de teclado (adapta eventos al contrato)
   render/        camera.js y view.js: cámara y dibujo del escenario en canvas
-  ui/            app, dom, store, loop, i18n, tooltips, audit, preferences
+  ui/            app, dom, store, loop, layout, i18n, tooltips, audit, preferences
   i18n/          es.js, en.js
   tabs/drive/    pestaña 1: index (composición), session, settings, shortcuts
   main.js
@@ -85,9 +85,10 @@ Para probar sin teclado: `constantController({ forward: true })` en `core/contro
 Piezas de la interfaz:
 
 - `ui/loop.js`: bucle de paso fijo (acumula tiempo real, máximo 5 pasos por cuadro, se detiene con la página oculta).
-- `render/camera.js` y `render/view.js`: cámara que sigue al auto (zoom con rueda y botones, paneo arrastrando, tecla V para volver) y dibujo de pista, tráfico, auto y rayos con los colores de `styles/tokens.css`.
+- `render/camera.js` y `render/view.js`: la calle recta se muestra vertical (se avanza hacia arriba); cámara que sigue al auto (zoom con rueda y botones, paneo arrastrando, tecla V para volver) y dibujo de pista, tráfico, auto y rayos con los colores de `styles/tokens.css`.
 - `input/keyboard.js`: flechas y W A S D; ignora campos de texto y suelta todo al perder el foco.
 - `tabs/drive/`: la pestaña 1, «El problema». `index.js` compone mundo, teclado, vista y panel; `session.js` (indicadores del intento y misiones), `settings.js` (configuración avanzada) y `shortcuts.js` (R reinicia, barra espaciadora pausa) no usan el DOM y se prueban con `node --test`.
+- `ui/app.js` y `ui/layout.js`: el borde entre escenario y panel se arrastra (o se mueve con las flechas) para cambiar el ancho del panel, entre 300 px y la mitad de la ventana; se recuerda como preferencia.
 - `ui/i18n.js` e `i18n/`: textos por clave (`data-i18n`); `ui/tooltips.js`: ayuda "qué hace / por qué importa" por clave (`data-help`).
 
 Para la verificación manual, la consola del navegador expone `mlLab`: por ejemplo

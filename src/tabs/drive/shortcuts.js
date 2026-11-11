@@ -7,7 +7,7 @@ import { isTypingTarget } from '../../input/keyboard.js';
 
 export const SHORTCUTS = Object.freeze({ KeyR: 'restart', Space: 'pause' });
 
-const CONTROL_SELECTOR = 'button, a[href], input, select, textarea, summary, [role="button"], [role="switch"], [role="tab"]';
+const CONTROL_SELECTOR = 'button, a[href], input, select, textarea, summary, [role="button"], [role="switch"], [role="tab"], [role="separator"]';
 
 /** ¿El objetivo es un control enfocado con el teclado? */
 export function isKeyboardFocusedControl(target) {

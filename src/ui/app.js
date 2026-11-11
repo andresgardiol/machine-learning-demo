@@ -1,5 +1,6 @@
 // Estructura común de la app: barra de pestañas, selector de idioma, interruptor de guía,
-// créditos, disposición escenario/panel, aviso de ventana angosta y manejo de fallas.
+// créditos, disposición escenario/panel (con el panel ajustable arrastrando su borde), aviso
+// de ventana angosta y manejo de fallas.
 //
 // Cada pestaña es un módulo con mount(ctx) que devuelve { unmount() }.
 //   ctx = { stage, panel, i18n, store, reportError }
@@ -7,6 +8,10 @@
 import { el } from './dom.js';
 import { createStore } from './store.js';
 import { LANGUAGES } from './i18n.js';
+import { PANEL_WIDTH, clampPanelWidth, maxPanelWidth } from './layout.js';
+
+/** Por debajo de este ancho (px) se muestra el aviso de uso en escritorio; coincide con styles/app.css. */
+export const NARROW_WIDTH = 600;
 
 export const COURSE_URL = 'https://www.youtube.com/watch?v=Rs_rAxEsAvI';
 
@@ -63,8 +68,14 @@ export function createApp({ root, tabs, i18n, preferences }) {
 
   // --- Disposición común: escenario a la izquierda, panel a la derecha ----
   const stage = el('section', { class: 'stage', i18nAttr: 'aria-label:app.stage', attrs: { tabindex: '-1' } });
-  const panel = el('aside', { class: 'panel', i18nAttr: 'aria-label:app.panel' });
-  const workspace = el('main', { class: 'workspace' }, stage, panel);
+  const panel = el('aside', { class: 'panel', i18nAttr: 'aria-label:app.panel', attrs: { id: 'panel' } });
+  // Borde del panel: se arrastra (o se mueve con las flechas) para agrandarlo o achicarlo.
+  const splitter = el('div', {
+    class: 'splitter', help: 'panel.resize',
+    i18nAttr: 'aria-label:app.panel.resize',
+    attrs: { role: 'separator', tabindex: '0', 'aria-orientation': 'vertical', 'aria-controls': 'panel' },
+  });
+  const workspace = el('main', { class: 'workspace' }, stage, splitter, panel);
 
   // --- Créditos ------------------------------------------------------------
   const creditsTitle = el('h2', { i18n: 'credits.title', attrs: { id: 'credits-title' } });
@@ -81,7 +92,7 @@ export function createApp({ root, tabs, i18n, preferences }) {
   // --- Aviso de ventana angosta ---------------------------------------------
   const narrow = el('div', { class: 'narrow-notice', attrs: { role: 'status' } },
     el('h2', { i18n: 'narrow.title' }),
-    el('p', { i18n: 'narrow.body', params: { width: 1024 } }));
+    el('p', { i18n: 'narrow.body', params: { width: NARROW_WIDTH } }));
 
   // --- Mensaje de falla -------------------------------------------------------
   const restartButton = el('button', {
@@ -97,6 +108,60 @@ export function createApp({ root, tabs, i18n, preferences }) {
 
   const shell = el('div', { class: 'app' }, header, workspace, narrow, credits, errorBox);
   root.replaceChildren(shell);
+
+  // --- Ancho del panel -------------------------------------------------------------
+  let panelWidth = clampPanelWidth(preferences.panelWidth ?? PANEL_WIDTH.default, window.innerWidth);
+
+  function applyPanelWidth(width, { save = false } = {}) {
+    panelWidth = clampPanelWidth(width, window.innerWidth);
+    shell.style.setProperty('--panel-width', `${panelWidth}px`);
+    splitter.setAttribute('aria-valuenow', String(panelWidth));
+    splitter.setAttribute('aria-valuemin', String(PANEL_WIDTH.min));
+    splitter.setAttribute('aria-valuemax', String(maxPanelWidth(window.innerWidth)));
+    if (save) preferences.panelWidth = panelWidth;
+  }
+
+  let resizing = null;
+  function onSplitterDown(e) {
+    if (e.button !== 0) return;
+    e.preventDefault(); // sin selección de texto ni foco: tras arrastrar, las flechas vuelven a manejar
+    resizing = { id: e.pointerId };
+    splitter.setPointerCapture(e.pointerId);
+    shell.classList.add('resizing');
+  }
+  function onSplitterMove(e) {
+    if (!resizing || e.pointerId !== resizing.id) return;
+    applyPanelWidth(workspace.getBoundingClientRect().right - e.clientX - splitter.offsetWidth / 2);
+  }
+  function onSplitterUp(e) {
+    if (!resizing || e.pointerId !== resizing.id) return;
+    resizing = null;
+    shell.classList.remove('resizing');
+    applyPanelWidth(panelWidth, { save: true });
+    stage.focus({ preventScroll: true });
+  }
+  function onSplitterKey(e) {
+    const by = {
+      ArrowLeft: panelWidth + PANEL_WIDTH.step, // el borde se mueve a la izquierda: panel más ancho
+      ArrowRight: panelWidth - PANEL_WIDTH.step,
+      Home: PANEL_WIDTH.min,
+      End: maxPanelWidth(window.innerWidth),
+      Enter: PANEL_WIDTH.default,
+    };
+    if (!(e.key in by)) return;
+    e.preventDefault();
+    applyPanelWidth(by[e.key], { save: true });
+  }
+  splitter.addEventListener('pointerdown', onSplitterDown);
+  splitter.addEventListener('pointermove', onSplitterMove);
+  splitter.addEventListener('pointerup', onSplitterUp);
+  splitter.addEventListener('pointercancel', onSplitterUp);
+  splitter.addEventListener('dblclick', () => applyPanelWidth(PANEL_WIDTH.default, { save: true }));
+  splitter.addEventListener('keydown', onSplitterKey);
+  // Si la ventana se achica, el panel se ajusta sin perder el ancho elegido: al agrandarla vuelve a él.
+  // (Se observa el tamaño de la app y no el evento resize, que no llega en todos los casos.)
+  new window.ResizeObserver(() => applyPanelWidth(preferences.panelWidth ?? PANEL_WIDTH.default)).observe(shell);
+  applyPanelWidth(panelWidth);
 
   // --- Comportamiento ---------------------------------------------------------
   let active = null; // { id, instance }

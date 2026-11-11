@@ -42,6 +42,9 @@ export default {
   'tooltip.what': 'Qué hace',
   'tooltip.why': 'Por qué importa',
 
+  'app.panel.resize': 'Ancho del panel',
+  'help.panel.resize.what': 'Arrastrá este borde para agrandar o achicar el panel. Con el teclado: flechas izquierda y derecha; Enter o doble clic vuelven al ancho inicial.',
+  'help.panel.resize.why': 'Así repartís la pantalla entre el escenario y la información según lo que quieras mirar. El ancho se recuerda para la próxima visita.',
   'help.guide.what': 'Muestra u oculta los textos de guía y las misiones en toda la aplicación.',
   'help.guide.why': 'Quien recién empieza necesita saber qué mirar y qué probar; quien ya conoce el tema, o explica a otros, puede quitarlos para ganar espacio.',
   'help.language.what': 'Cambia todos los textos entre español e inglés, sin detener lo que está pasando.',

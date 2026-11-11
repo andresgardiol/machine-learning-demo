@@ -26,12 +26,13 @@ export function isTypingTarget(target) {
 }
 
 /**
- * ¿El objetivo usa las flechas por su cuenta? Un deslizador enfocado con el teclado se ajusta con
- * ellas; mientras tanto el teclado no maneja el auto (tras un clic con el mouse, la pestaña
- * devuelve el foco al escenario).
+ * ¿El objetivo usa las flechas por su cuenta? Un deslizador o un separador (el borde del panel)
+ * enfocado con el teclado se ajusta con ellas; mientras tanto el teclado no maneja el auto
+ * (tras un clic con el mouse, la pestaña devuelve el foco al escenario).
  */
 export function ownsArrowKeys(target) {
   if (!target) return false;
+  if (typeof target.getAttribute === 'function' && ['separator', 'slider'].includes(target.getAttribute('role'))) return true;
   return String(target.tagName ?? '').toUpperCase() === 'INPUT' && String(target.type ?? '').toLowerCase() === 'range';
 }
 

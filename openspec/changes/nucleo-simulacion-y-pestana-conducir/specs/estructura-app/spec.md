@@ -44,6 +44,34 @@ de idioma y el interruptor de guía siempre en el mismo lugar.
 - **WHEN** se muestra la primera pestaña
 - **THEN** el escenario ocupa la zona izquierda y el panel la zona derecha
 
+### Requirement: Panel ajustable
+El borde entre el escenario y el panel SHALL poder arrastrarse con el mouse
+para agrandar o achicar el panel, entre un mínimo de 300 píxeles y la mitad
+del ancho de la ventana, con 360 píxeles por defecto. El borde MUST poder
+moverse también con el teclado y SHALL tener un tooltip que diga qué hace y
+por qué importa, en español y en inglés. El ancho elegido SHALL recordarse en
+el mismo navegador entre visitas.
+
+#### Scenario: Arrastrar el borde
+- **WHEN** la persona arrastra el borde del panel hacia la izquierda
+- **THEN** el panel se agranda, el escenario se achica y la simulación sigue sin cambios
+
+#### Scenario: Límites del panel
+- **WHEN** la persona arrastra el borde más allá de la mitad de la ventana o del mínimo
+- **THEN** el panel queda en la mitad de la ventana o en 300 píxeles
+
+#### Scenario: Con el teclado
+- **WHEN** la persona llega al borde con la tecla Tab y presiona la flecha izquierda
+- **THEN** el panel se agranda y el auto no gira
+
+#### Scenario: Volver al ancho inicial
+- **WHEN** la persona hace doble clic en el borde
+- **THEN** el panel vuelve a 360 píxeles
+
+#### Scenario: Ancho recordado
+- **WHEN** la persona agrandó el panel y vuelve a abrir la aplicación en el mismo navegador
+- **THEN** el panel tiene el ancho que había elegido
+
 ### Requirement: Interruptor de guía
 La aplicación SHALL ofrecer un interruptor que muestra u oculta, en toda la
 aplicación, los textos de guía y las misiones. La guía SHALL estar visible por
@@ -86,16 +114,21 @@ enlace al curso.
 - **THEN** ve el nombre del curso y de su autor, en el idioma activo, con un enlace que abre el curso en otra pestaña del navegador
 
 ### Requirement: Aviso en pantallas angostas
-Cuando la ventana mide menos de 1024 píxeles de ancho, la aplicación SHALL
-mostrar un aviso, en el idioma activo, de que está pensada para computadoras de
-escritorio, en lugar de una disposición rota.
+Cuando la ventana mide menos de 600 píxeles de ancho, como en un celular, la
+aplicación SHALL mostrar un aviso, en el idioma activo, de que está pensada
+para computadoras de escritorio, en lugar de una disposición rota. Desde 600
+píxeles de ancho la aplicación SHALL mostrarse normalmente, sin el aviso.
 
-#### Scenario: Ventana angosta
-- **WHEN** la aplicación se abre en una ventana de 800 píxeles de ancho
+#### Scenario: Ventana de celular
+- **WHEN** la aplicación se abre en una ventana de 400 píxeles de ancho
 - **THEN** se muestra el aviso de uso en escritorio
 
+#### Scenario: Ventana mediana
+- **WHEN** la aplicación se abre en una ventana de 800 píxeles de ancho
+- **THEN** no se muestra el aviso y la aplicación se usa normalmente
+
 #### Scenario: Ventana que se agranda
-- **WHEN** la persona agranda la ventana por encima de 1024 píxeles de ancho
+- **WHEN** la persona agranda la ventana por encima de 600 píxeles de ancho
 - **THEN** el aviso desaparece y la aplicación se muestra normalmente
 
 ### Requirement: Errores en lenguaje humano
