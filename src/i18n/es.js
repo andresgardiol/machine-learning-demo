@@ -55,6 +55,14 @@ export default {
   'help.credits.link.why': 'Si querés construir este auto vos mismo paso a paso, ese curso lo explica desde cero.',
   'help.credits.close.what': 'Cierra los créditos.',
   'help.credits.close.why': 'Vuelve a la pestaña tal como estaba.',
+
+  // Confirmación en línea (src/ui/controls.js)
+  'confirm.ok': 'Confirmar',
+  'confirm.cancel': 'Cancelar',
+  'help.confirm.ok.what': 'Hace lo que se pidió, tal como lo describe el mensaje.',
+  'help.confirm.ok.why': 'Algunas acciones no se pueden deshacer: por eso se pide confirmarlas antes de aplicarlas.',
+  'help.confirm.cancel.what': 'Descarta el pedido y deja todo como estaba. La tecla Escape hace lo mismo.',
+  'help.confirm.cancel.why': 'Es la salida segura cuando la acción no era la que se quería.',
   'help.error.restart.what': 'Vuelve a abrir la pestaña desde su estado inicial.',
   'help.error.restart.why': 'Después de una falla, empezar de nuevo es la forma más segura de seguir usando el laboratorio.',
 

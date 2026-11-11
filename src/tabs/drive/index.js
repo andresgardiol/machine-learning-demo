@@ -9,6 +9,7 @@ import { createKeyboardController } from '../../input/keyboard.js';
 import { createStageView } from '../../render/view.js';
 import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
+import { button, switchButton, sliderRow, optionGroup, createTextSetter } from '../../ui/controls.js';
 import { createDriveSession } from './session.js';
 import { DEFAULT_SETTINGS, LANE_OPTIONS, SLIDERS, needsRestart, normalizeSettings, worldSpec } from './settings.js';
 import { shortcutFor } from './shortcuts.js';
@@ -31,15 +32,7 @@ export function mount({ stage, panel, i18n, store, reportError }) {
   const view = createStageView({ container: stage });
   const options = { showSensors: true, machineView: false };
 
-  /** Texto variable: declara clave y parámetros (para el cambio de idioma) y lo escribe solo si cambió. */
-  function setText(node, key, params) {
-    const raw = params ? JSON.stringify(params) : null;
-    if (node.getAttribute('data-i18n') === key && node.getAttribute('data-i18n-params') === raw && node.textContent !== '') return;
-    node.setAttribute('data-i18n', key);
-    if (raw) node.setAttribute('data-i18n-params', raw);
-    else node.removeAttribute('data-i18n-params');
-    node.textContent = i18n.t(key, params);
-  }
+  const setText = createTextSetter(i18n);
 
   const focusStage = () => stage.focus({ preventScroll: true });
 
@@ -68,17 +61,7 @@ export function mount({ stage, panel, i18n, store, reportError }) {
     sync();
   }
 
-  // --- Componentes -----------------------------------------------------------------
-  const button = (key, help, onClick, cls = 'tool') => el('button', {
-    class: cls, i18n: key, help, attrs: { type: 'button' }, on: { click: onClick },
-  });
-
-  const switchButton = (key, help, checked, onToggle) => el('button', {
-    class: 'switch', help,
-    attrs: { type: 'button', role: 'switch', 'aria-checked': String(checked) },
-    on: { click: onToggle },
-  }, el('span', { class: 'switch-track', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: key }));
-
+  // --- Componentes (src/ui/controls.js) ---------------------------------------------
   // Guía de inicio
   const introWhat = el('p', { i18n: 'drive.guide.what', params: { lanes: settings.lanes } });
   const intro = el('section', { class: 'guide drive-intro' },
@@ -176,33 +159,27 @@ export function mount({ stage, panel, i18n, store, reportError }) {
     sync();
   }
 
-  const laneButtons = LANE_OPTIONS.map((n) => el('button', {
-    class: 'segment', i18n: 'drive.lanes.option', params: { n }, help: 'drive.lanes',
-    i18nAttr: 'aria-label:drive.lanes.optionLabel',
-    attrs: { type: 'button', 'aria-pressed': String(n === settings.lanes) },
-    dataset: { lanes: String(n) },
-    on: { click: () => { if (n !== settings.lanes) applySettings({ ...settings, lanes: n }); } },
-  }));
-  const lanesRow = el('div', { class: 'setting' },
-    el('span', { class: 'setting-label', i18n: 'drive.lanes' }),
-    el('div', { class: 'segments', attrs: { role: 'group' }, i18nAttr: 'aria-label:drive.lanes' }, laneButtons));
+  const lanes = optionGroup({
+    labelKey: 'drive.lanes',
+    selected: settings.lanes,
+    options: LANE_OPTIONS.map((n) => ({
+      value: n, i18n: 'drive.lanes.option', params: { n }, help: 'drive.lanes',
+      labelKey: 'drive.lanes.optionLabel', dataset: { lanes: String(n) },
+    })),
+    onSelect: (n) => { if (n !== settings.lanes) applySettings({ ...settings, lanes: n }); },
+  });
+  const lanesRow = lanes.row;
 
   const sliders = SLIDERS.map((s) => {
-    const id = `drive-${s.key}`;
-    const value = el('output', { class: 'setting-value', attrs: { for: id } });
-    const input = el('input', {
-      help: `drive.${s.key}`,
-      attrs: { type: 'range', id, min: s.min, max: s.max, step: s.step, value: settings[s.key] },
-      on: {
-        input: (e) => {
-          applySettings({ ...settings, [s.key]: Number(e.target.value) }, { countAttempt: !dragging });
-          dragging = true;
-        },
-        change: () => { dragging = false; },
+    const { row, input, value } = sliderRow({
+      id: `drive-${s.key}`, labelKey: `drive.${s.key}`, help: `drive.${s.key}`,
+      min: s.min, max: s.max, step: s.step, value: settings[s.key],
+      onInput: (v) => {
+        applySettings({ ...settings, [s.key]: v }, { countAttempt: !dragging });
+        dragging = true;
       },
+      onChange: () => { dragging = false; },
     });
-    const row = el('div', { class: 'setting' },
-      el('label', { class: 'setting-label', i18n: `drive.${s.key}`, attrs: { for: id } }), value, input);
     return { ...s, input, value, row };
   });
 
@@ -292,7 +269,7 @@ export function mount({ stage, panel, i18n, store, reportError }) {
     setText(introWhat, 'drive.guide.what', { lanes: settings.lanes });
 
     // Configuración avanzada
-    for (const b of laneButtons) b.setAttribute('aria-pressed', String(Number(b.dataset.lanes) === settings.lanes));
+    lanes.select(settings.lanes);
     for (const s of sliders) {
       if (Number(s.input.value) !== settings[s.key]) s.input.value = String(settings[s.key]);
       setText(s.value, s.format, { value: settings[s.key], kmh: Math.round(settings[s.key] * 3.6) });

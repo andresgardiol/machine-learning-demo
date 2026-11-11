@@ -55,6 +55,14 @@ export default {
   'help.credits.link.why': 'If you want to build this car yourself step by step, that course explains it from scratch.',
   'help.credits.close.what': 'Closes the credits.',
   'help.credits.close.why': 'Takes you back to the tab exactly as it was.',
+
+  // Inline confirmation (src/ui/controls.js)
+  'confirm.ok': 'Confirm',
+  'confirm.cancel': 'Cancel',
+  'help.confirm.ok.what': 'Does what was requested, exactly as the message describes it.',
+  'help.confirm.ok.why': 'Some actions cannot be undone, which is why they ask for confirmation first.',
+  'help.confirm.cancel.what': 'Drops the request and leaves everything as it was. The Escape key does the same.',
+  'help.confirm.cancel.why': 'It is the safe way out when the action was not the one you wanted.',
   'help.error.restart.what': 'Reopens the tab from its initial state.',
   'help.error.restart.why': 'After a failure, starting over is the safest way to keep using the lab.',
 

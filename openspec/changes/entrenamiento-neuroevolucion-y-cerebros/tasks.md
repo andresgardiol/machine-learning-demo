@@ -8,8 +8,8 @@
 
 ## 2. Componentes de panel compartidos
 
-- [ ] 2.1 Extraer botón, interruptor, fila con deslizador, grupo de opciones y texto variable de `src/tabs/drive/index.js` a `src/ui/controls.js` y usarlos desde la pestaña 1, sin cambiar su comportamiento; verificar que `npm test` pasa y que la pestaña 1 se ve y responde igual en el navegador
-- [ ] 2.2 Agregar a `src/ui/controls.js` la confirmación en línea (mensaje, confirmar, cancelar, Escape cancela, foco en cancelar al abrir) con sus textos en español e inglés; verificar con pruebas la lógica de abrir, confirmar y cancelar, y que la paridad pasa
+- [x] 2.1 Extraer botón, interruptor, fila con deslizador, grupo de opciones y texto variable de `src/tabs/drive/index.js` a `src/ui/controls.js` y usarlos desde la pestaña 1, sin cambiar su comportamiento; verificar que `npm test` pasa y que la pestaña 1 se ve y responde igual en el navegador
+- [x] 2.2 Agregar a `src/ui/controls.js` la confirmación en línea (mensaje, confirmar, cancelar, Escape cancela, foco en cancelar al abrir) con sus textos en español e inglés; verificar con pruebas la lógica de abrir, confirmar y cancelar, y que la paridad pasa
 
 ## 3. Núcleo: red neuronal
 
