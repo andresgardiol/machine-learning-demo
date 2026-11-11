@@ -118,8 +118,8 @@
 
 ## 18. Tooltips y textos de la pestaña 3
 
-- [ ] 18.1 Escribir en español e inglés el tooltip (qué hace y por qué importa) de cada control de la pestaña 3 y de la biblioteca, usando el término técnico real y definiéndolo; verificar que la auditoría de tooltips no reporta faltantes y que la paridad pasa
-- [ ] 18.2 Revisar que los tooltips de las funciones de fitness, de eliminar a los lentos, del modo de tráfico, de la mutación y de la velocidad máxima digan lo que piden los escenarios de "Controles de la pestaña explicados" y que el de velocidad máxima avise que el entrenamiento se detiene con la página oculta; verificar leyéndolos en el navegador en ambos idiomas
+- [x] 18.1 Escribir en español e inglés el tooltip (qué hace y por qué importa) de cada control de la pestaña 3 y de la biblioteca, usando el término técnico real y definiéndolo; verificar que la auditoría de tooltips no reporta faltantes y que la paridad pasa
+- [x] 18.2 Revisar que los tooltips de las funciones de fitness, de eliminar a los lentos, del modo de tráfico, de la mutación y de la velocidad máxima digan lo que piden los escenarios de "Controles de la pestaña explicados" y que el de velocidad máxima avise que el entrenamiento se detiene con la página oculta; verificar leyéndolos en el navegador en ambos idiomas
 
 ## 19. Verificación integral
 

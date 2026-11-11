@@ -358,7 +358,7 @@ export default {
   'help.train.setting.trafficMode.what': 'Elige si todas las generaciones practican con el mismo tráfico o con uno nuevo cada vez.',
   'help.train.setting.trafficMode.why': 'Practicar siempre con el mismo tráfico puede llevar a memorizarlo en lugar de aprender a manejar.',
   'help.train.trafficMode.same.what': 'Todas las generaciones enfrentan los mismos vehículos en las mismas posiciones.',
-  'help.train.trafficMode.same.why': 'La comparación entre generaciones es justa, pero la población puede memorizar este tráfico.',
+  'help.train.trafficMode.same.why': 'La comparación entre generaciones es justa, pero practicar siempre con el mismo tráfico puede llevar a memorizarlo en lugar de aprender a manejar.',
   'help.train.trafficMode.new.what': 'Cada generación enfrenta un tráfico distinto.',
   'help.train.trafficMode.new.why': 'Obliga a aprender a manejar en general en lugar de memorizar, aunque la curva sube con más ruido.',
   'help.train.setting.lanes.what': 'Cuántos carriles tiene la calle: 2, 3 o 4. Rige desde la próxima generación.',

@@ -236,6 +236,7 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
 
   const speeds = optionGroup({
     labelKey: 'train.speed',
+    labelHelp: 'train.speed',
     selected: state.settings.speed,
     options: SPEEDS.map((s) => (s === 'max'
       ? { value: s, i18n: 'train.speed.max', help: 'train.speed.max', labelKey: 'train.speed.maxLabel' }
@@ -297,6 +298,7 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
   });
   const choice = (key, values, optionKey, confirm) => optionGroup({
     labelKey: `train.setting.${key}`,
+    labelHelp: `train.setting.${key}`,
     selected: state.settings[key],
     options: values.map((v) => ({ value: v, i18n: `${optionKey}.${v}`, help: `${optionKey}.${v}` })),
     onSelect: (v) => { if (v !== state.settings[key]) setSetting(key, v, confirm); },
@@ -317,6 +319,7 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
     trafficMode: choice('trafficMode', TRAFFIC_MODES, 'train.trafficMode'),
     lanes: optionGroup({
       labelKey: 'train.setting.lanes',
+      labelHelp: 'train.setting.lanes',
       selected: state.settings.lanes,
       options: ALLOWED_LANES.map((n) => ({ value: n, i18n: 'drive.lanes.option', params: { n }, help: 'train.setting.lanes', labelKey: 'drive.lanes.optionLabel' })),
       onSelect: (v) => { if (v !== state.settings.lanes) setSetting('lanes', v); },

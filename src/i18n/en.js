@@ -358,7 +358,7 @@ export default {
   'help.train.setting.trafficMode.what': 'Chooses whether every generation practices with the same traffic or with new traffic each time.',
   'help.train.setting.trafficMode.why': 'Always practicing with the same traffic can lead to memorizing it instead of learning to drive.',
   'help.train.trafficMode.same.what': 'Every generation faces the same vehicles in the same positions.',
-  'help.train.trafficMode.same.why': 'The comparison between generations is fair, but the population may memorize this traffic.',
+  'help.train.trafficMode.same.why': 'The comparison between generations is fair, but always practicing with the same traffic can lead to memorizing it instead of learning to drive.',
   'help.train.trafficMode.new.what': 'Each generation faces different traffic.',
   'help.train.trafficMode.new.why': 'It forces learning to drive in general instead of memorizing, although the curve rises with more noise.',
   'help.train.setting.lanes.what': 'How many lanes the street has: 2, 3 or 4. Applies from the next generation.',

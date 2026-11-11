@@ -41,11 +41,12 @@ export function sliderRow({ id, labelKey, help, min, max, step, value, onInput, 
 
 /**
  * Grupo de opciones excluyentes (botones con aria-pressed).
- * @param {{labelKey:string, options:{value:any, i18n:string, params?:object, help:string,
+ * @param {{labelKey:string, labelHelp?:string, options:{value:any, i18n:string, params?:object, help:string,
  *          labelKey?:string, dataset?:object}[], selected:any, onSelect:(value:any)=>void}} spec
+ *   labelHelp: tooltip del ajuste completo, sobre su rótulo (cada opción tiene el suyo).
  * @returns {{row: HTMLElement, buttons: HTMLButtonElement[], select:(value:any)=>void}}
  */
-export function optionGroup({ labelKey, options, selected, onSelect }) {
+export function optionGroup({ labelKey, labelHelp, options, selected, onSelect }) {
   const buttons = options.map((o) => {
     const b = el('button', {
       class: 'segment', i18n: o.i18n, params: o.params, help: o.help,
@@ -58,7 +59,7 @@ export function optionGroup({ labelKey, options, selected, onSelect }) {
     return b;
   });
   const row = el('div', { class: 'setting' },
-    el('span', { class: 'setting-label', i18n: labelKey }),
+    el('span', { class: 'setting-label', i18n: labelKey, help: labelHelp }),
     el('div', { class: 'segments', attrs: { role: 'group' }, i18nAttr: `aria-label:${labelKey}` }, buttons));
   /** Marca como elegida la opción `value`. */
   const select = (value) => {
