@@ -149,3 +149,11 @@ test('al desechar el controlador deja de escuchar', () => {
   press('ArrowUp');
   assert.deepEqual(kb.control(), NONE);
 });
+
+test('un deslizador enfocado con el teclado usa las flechas: el auto no gira y la flecha no se bloquea', () => {
+  const { kb, press } = setup();
+  const slider = { tagName: 'INPUT', type: 'range' };
+  const e = press('ArrowLeft', { target: slider });
+  assert.deepEqual(kb.control(), NONE);
+  assert.equal(e.defaultPrevented, false);
+});

@@ -41,7 +41,7 @@ src/
   render/        camera.js y view.js: cámara y dibujo del escenario en canvas
   ui/            app, dom, store, loop, i18n, tooltips, audit, preferences
   i18n/          es.js, en.js
-  tabs/drive/    composición de la pestaña 1                              [en construcción]
+  tabs/drive/    pestaña 1: index (composición), session, settings, shortcuts
   main.js
 tests/           pruebas del núcleo, de textos y de arquitectura
 tools/serve.mjs  servidor local de desarrollo
@@ -87,6 +87,7 @@ Piezas de la interfaz:
 - `ui/loop.js`: bucle de paso fijo (acumula tiempo real, máximo 5 pasos por cuadro, se detiene con la página oculta).
 - `render/camera.js` y `render/view.js`: cámara que sigue al auto (zoom con rueda y botones, paneo arrastrando, tecla V para volver) y dibujo de pista, tráfico, auto y rayos con los colores de `styles/tokens.css`.
 - `input/keyboard.js`: flechas y W A S D; ignora campos de texto y suelta todo al perder el foco.
+- `tabs/drive/`: la pestaña 1, «El problema». `index.js` compone mundo, teclado, vista y panel; `session.js` (indicadores del intento y misiones), `settings.js` (configuración avanzada) y `shortcuts.js` (R reinicia, barra espaciadora pausa) no usan el DOM y se prueban con `node --test`.
 - `ui/i18n.js` e `i18n/`: textos por clave (`data-i18n`); `ui/tooltips.js`: ayuda "qué hace / por qué importa" por clave (`data-help`).
 
 Para la verificación manual, la consola del navegador expone `mlLab`: por ejemplo

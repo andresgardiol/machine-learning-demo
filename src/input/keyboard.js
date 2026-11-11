@@ -2,8 +2,9 @@
 // del núcleo (control(perception) -> { forward, reverse, left, right }).
 //
 // Flechas y W A S D (por posición física de la tecla), varias a la vez. Ignora las teclas
-// mientras se escribe en un campo de texto, evita que las flechas desplacen la página y
-// suelta todo cuando la ventana pierde el foco o la página se oculta.
+// mientras se escribe en un campo de texto o se ajusta un deslizador con el teclado, evita
+// que las flechas desplacen la página y suelta todo cuando la ventana pierde el foco o la
+// página se oculta.
 
 export const KEY_BINDINGS = Object.freeze({
   ArrowUp: 'forward', KeyW: 'forward',
@@ -25,6 +26,16 @@ export function isTypingTarget(target) {
 }
 
 /**
+ * ¿El objetivo usa las flechas por su cuenta? Un deslizador enfocado con el teclado se ajusta con
+ * ellas; mientras tanto el teclado no maneja el auto (tras un clic con el mouse, la pestaña
+ * devuelve el foco al escenario).
+ */
+export function ownsArrowKeys(target) {
+  if (!target) return false;
+  return String(target.tagName ?? '').toUpperCase() === 'INPUT' && String(target.type ?? '').toLowerCase() === 'range';
+}
+
+/**
  * @param {{target?: EventTarget, doc?: EventTarget & {hidden?: boolean}}} [spec]
  *   target: donde se escuchan las teclas y la pérdida de foco (la ventana)
  */
@@ -34,7 +45,7 @@ export function createKeyboardController({ target = globalThis.window, doc = glo
   function onKeyDown(e) {
     const action = KEY_BINDINGS[e.code];
     if (!action || e.ctrlKey || e.metaKey || e.altKey) return;
-    if (isTypingTarget(e.target)) return;
+    if (isTypingTarget(e.target) || ownsArrowKeys(e.target)) return;
     pressed.add(e.code);
     if (e.code.startsWith('Arrow')) e.preventDefault(); // que las flechas no desplacen la página
   }

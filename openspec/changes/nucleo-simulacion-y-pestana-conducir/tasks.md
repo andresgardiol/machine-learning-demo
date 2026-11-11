@@ -63,14 +63,14 @@
 
 ## 10. Pestaña 1: El problema
 
-- [ ] 10.1 Componer la pestaña (mundo, controlador de teclado, vista) con su estado por defecto; verificar en el navegador que abre con calle de tres carriles, auto detenido, tráfico y sensores visibles, y que la flecha arriba mueve el auto
-- [ ] 10.2 Implementar los indicadores del intento (distancia, vehículos superados, intentos, mejor distancia); verificar con pruebas el cálculo y en el navegador que se actualizan al manejar
-- [ ] 10.3 Implementar el fin del intento por choque, reiniciar (botón y tecla R), tráfico nuevo y pausa (botón y barra espaciadora, con indicación visible); verificar en el navegador cada escenario, incluido que reiniciar conserva el tráfico y tráfico nuevo lo cambia
-- [ ] 10.4 Implementar las barras de percepción, los cuatro indicadores de acción y el interruptor de sensores; verificar en el navegador que las barras siguen a los rayos en orden y que los indicadores responden a las teclas
-- [ ] 10.5 Implementar el modo ver como la máquina; verificar en el navegador que oculta calle y tráfico, mantiene rayos y barras, y vuelve a mostrar todo al chocar o desactivarlo
-- [ ] 10.6 Implementar el texto de guía y las tres misiones con su progreso; verificar con pruebas la lógica de progreso, cumplimiento y reinicio al chocar, y en el navegador que se ocultan con el interruptor de guía
-- [ ] 10.7 Implementar la configuración avanzada colapsada (carriles, densidad, irregularidad, sensores) con aplicación inmediata y el botón de restablecer; verificar en el navegador cada escenario
-- [ ] 10.8 Escribir los tooltips y los textos en español e inglés de todos los controles, indicadores, misiones y mensajes de la pestaña; verificar que la auditoría no reporta faltantes y que la prueba de paridad pasa
+- [x] 10.1 Componer la pestaña (mundo, controlador de teclado, vista) con su estado por defecto; verificar en el navegador que abre con calle de tres carriles, auto detenido, tráfico y sensores visibles, y que la flecha arriba mueve el auto
+- [x] 10.2 Implementar los indicadores del intento (distancia, vehículos superados, intentos, mejor distancia); verificar con pruebas el cálculo y en el navegador que se actualizan al manejar
+- [x] 10.3 Implementar el fin del intento por choque, reiniciar (botón y tecla R), tráfico nuevo y pausa (botón y barra espaciadora, con indicación visible); verificar en el navegador cada escenario, incluido que reiniciar conserva el tráfico y tráfico nuevo lo cambia
+- [x] 10.4 Implementar las barras de percepción, los cuatro indicadores de acción y el interruptor de sensores; verificar en el navegador que las barras siguen a los rayos en orden y que los indicadores responden a las teclas
+- [x] 10.5 Implementar el modo ver como la máquina; verificar en el navegador que oculta calle y tráfico, mantiene rayos y barras, y vuelve a mostrar todo al chocar o desactivarlo
+- [x] 10.6 Implementar el texto de guía y las tres misiones con su progreso; verificar con pruebas la lógica de progreso, cumplimiento y reinicio al chocar, y en el navegador que se ocultan con el interruptor de guía
+- [x] 10.7 Implementar la configuración avanzada colapsada (carriles, densidad, irregularidad, sensores) con aplicación inmediata y el botón de restablecer; verificar en el navegador cada escenario
+- [x] 10.8 Escribir los tooltips y los textos en español e inglés de todos los controles, indicadores, misiones y mensajes de la pestaña; verificar que la auditoría no reporta faltantes y que la prueba de paridad pasa
 - [ ] 10.9 Calibrar los valores de física y de tráfico por sensación de manejo y actualizar la tabla de `design.md` si cambian; verificar que todas las pruebas siguen pasando
 
 ## 11. Verificación integral

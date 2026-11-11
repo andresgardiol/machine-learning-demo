@@ -205,3 +205,79 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .camera-button:hover { border-color: var(--color-accent); }
 /* La cámara no sigue al auto: el botón para volver se destaca. */
 .camera-button[data-active="true"] { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-bg); font-weight: 600; }
+
+/* ---- Pestaña 1: El problema ------------------------------------------------------- */
+.panel > * + * { margin-top: var(--space-3); }
+.panel-heading { margin: 0 0 var(--space-2); font-size: 15px; }
+.panel-subheading { margin: var(--space-2) 0 var(--space-1); font-size: 13px; color: var(--color-text-muted); font-weight: 600; }
+.caption { margin: var(--space-1) 0 0; font-size: 13px; color: var(--color-text-muted); }
+.drive-intro p { margin: 0 0 var(--space-2); font-size: 14px; }
+.drive-intro p:last-child { margin-bottom: 0; }
+.drive-keys { color: var(--color-text-muted); }
+
+.drive-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.drive-toolbar .tool { flex: 1 1 auto; }
+.tool[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-bg); font-weight: 600; }
+
+.drive-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-bottom: 0; }
+.stat { padding: var(--space-2); background: var(--color-surface-2); border-radius: var(--radius); min-width: 0; }
+.stat dt { font-size: 12px; color: var(--color-text-muted); }
+.stat-value { margin: 0; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.mission-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.mission { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-2); font-size: 14px; }
+.mission-status { font-variant-numeric: tabular-nums; color: var(--color-text-muted); white-space: nowrap; }
+.mission[data-done="true"] .mission-status { color: var(--color-car); font-weight: 700; }
+.mission-bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--color-surface-2); overflow: hidden; }
+.mission-fill { display: block; height: 100%; width: 0; background: var(--color-accent); }
+.mission[data-done="true"] .mission-fill { background: var(--color-car); }
+
+.switch-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.perception-block[hidden] { display: none; }
+.sensor-bars {
+  display: grid; grid-template-columns: repeat(var(--bars, 5), minmax(0, 1fr)); gap: 2px;
+  height: 64px; padding: var(--space-1); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius);
+}
+.sensor-bar { position: relative; display: block; background: var(--color-surface-2); border-radius: 2px; overflow: hidden; }
+.sensor-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: var(--color-sensor); }
+
+.action-keys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-1); }
+.action-key {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0;
+  padding: var(--space-1); border: 1px solid var(--color-border); border-radius: var(--radius);
+  background: var(--color-surface-2); color: var(--color-text-muted); font-size: 12px;
+}
+.action-glyph { font-size: 18px; line-height: 1; }
+.action-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Accionado: cambia el fondo, el borde y el peso del texto (no solo el color). */
+.action-key[data-on="true"] { background: var(--color-accent); border-color: var(--color-text); color: var(--color-bg); font-weight: 700; }
+
+.drive-advanced { border: 1px solid var(--color-border); border-radius: var(--radius); }
+.drive-advanced > summary { padding: var(--space-2) var(--space-3); cursor: pointer; font-weight: 600; }
+.drive-advanced > summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.advanced-body { padding: 0 var(--space-3) var(--space-3); display: grid; gap: var(--space-2); }
+.setting { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-1) var(--space-2); font-size: 14px; }
+.setting input[type="range"] { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: var(--color-accent); }
+.setting input[type="range"]:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.setting-value { font-variant-numeric: tabular-nums; color: var(--color-text-muted); white-space: nowrap; }
+.segments { display: inline-flex; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; }
+.segment { min-width: 36px; padding: var(--space-1) var(--space-2); background: transparent; border: 0; cursor: pointer; }
+.segment + .segment { border-left: 1px solid var(--color-border); }
+.segment[aria-pressed="true"] { background: var(--color-accent); color: var(--color-bg); font-weight: 700; }
+.segment:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+/* Mensajes sobre el escenario */
+.stage-badges { position: absolute; top: var(--space-2); left: var(--space-2); display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); pointer-events: none; }
+.stage-badge { padding: var(--space-1) var(--space-2); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 14px; font-weight: 600; }
+.stage-badge[hidden] { display: none; }
+.pause-badge { border-color: var(--color-accent); }
+.pause-badge::before { content: "❚❚ "; color: var(--color-accent); }
+.crash-layer { position: absolute; inset: 0; display: grid; place-items: end center; padding: var(--space-4); pointer-events: none; }
+.crash-layer[hidden] { display: none; }
+.crash-box {
+  pointer-events: auto; max-width: 420px; padding: var(--space-3) var(--space-4);
+  background: var(--color-surface); border: 2px solid var(--color-car-crashed); border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
+}
+.crash-box h2 { margin: 0 0 var(--space-2); font-size: 18px; }
+.crash-box p { margin: 0 0 var(--space-2); }
