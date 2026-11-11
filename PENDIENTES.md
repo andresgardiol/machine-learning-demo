@@ -6,36 +6,6 @@ propuesta de OpenSpec antes de implementarse.
 
 ## Próximo
 
-- **Revisar la UX del panel de la pestaña Entrenar.** El panel derecho tiene
-  demasiada información y no está bien distribuida, lo que va contra el ADN
-  del proyecto (artículos 2, 4 y 6: mostrar antes que explicar, un concepto
-  por vez y dos públicos). Lo que se ve hoy, de las capturas del dueño:
-  - todo va en una sola columna larga: guía, cuatro botones, velocidad,
-    cinco indicadores, misiones, configuración, sensores, curva, red,
-    biblioteca y avanzado, y lo importante queda fuera de la vista;
-  - el indicador "Terminó porque" ocupa cuatro renglones con letra grande
-    ("todos quedaron fuera de carrera");
-  - en la biblioteca, el nombre "Autoguardado" se parte en dos renglones
-    ("Autoguarda / do") al lado del origen, y el origen repite la palabra;
-  - la curva y la red, que son lo que enseña la pestaña, quedan plegadas o
-    muy abajo.
-
-  Cómo encararlo:
-  1. Revisar qué skills de diseño y UX hay instaladas que ayuden. Hoy
-     aparecen, del plugin `design`: `design-critique` (crítica de la
-     pantalla), `ux-copy` (textos de controles, mensajes y estados vacíos),
-     `accessibility-review` (auditoría WCAG), `design-system` (consistencia
-     entre pestañas), `user-research` y `research-synthesis` (probar con
-     personas); y `artifact-design`, para presentar las propuestas.
-  2. Que el cambio de OpenSpec tenga como resultado dos o tres propuestas
-     de distribución distintas (por ejemplo: pestañas internas dentro del
-     panel; un panel corto con lo esencial y lo demás en capas sobre el
-     escenario; o la curva y la red como protagonistas debajo del
-     escenario), comparadas contra la constitución, para elegir la mejor y
-     aplicarla.
-  3. Revisar también el panel de la pestaña 1 con el mismo criterio, para
-     que las dos pestañas compartan la solución (artículo 9).
-
 - **Los autos aprenden a seguir al tráfico, no a pasarlo.** Con la
   configuración por defecto la población se estabiliza en unos 620 a 650 m:
   es lo que recorre en 60 s un auto que va detrás de un vehículo, apenas más
@@ -57,6 +27,20 @@ propuesta de OpenSpec antes de implementarse.
     a manejar, no solo a no chocar. Conviene explorarlo en un cambio propio.
 
 ## Ideas
+
+- **Detalles que dejó el tablero de aprendizaje** (cambio
+  `tablero-de-aprendizaje`, noviembre de 2026):
+  - Con el foco puesto con Tab en un botón común del panel, los atajos
+    (espacio, N, T, R) se siguen ignorando para no accionar el botón dos
+    veces; solo los títulos de las tarjetas del tablero los dejan pasar.
+    Revisar si conviene extender esa excepción a otros controles.
+  - En ventanas de 600 a 959 px el tablero queda debajo del escenario con el
+    45 % del alto: las tarjetas conservan sus 160 px y el tablero se
+    desplaza. Con menos de 360 px de ancho, los indicadores y las acciones
+    pasan a dos columnas. Revisarlo con personas en una pantalla mediana.
+  - El tablero de El problema tiene espacio libre a la derecha de las barras
+    en pantallas anchas (lo anticipaba el design.md, riesgos).
+
 
 - **"Ver como la máquina" en la pestaña Entrenar.** Como en la pestaña 1:
   ocultar calle y tráfico y mostrar solo lo que perciben los sensores del

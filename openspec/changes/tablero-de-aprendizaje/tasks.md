@@ -75,13 +75,13 @@ Medidas de referencia para las verificaciones en el navegador: ventana de
 
 ## 10. Verificación integral
 
-- [ ] 10.1 Correr `npm test` y confirmar que pasa todo; listar en el reporte las pruebas nuevas y las modificadas, que solo pueden ser las que design.md D14 enumera (`tests/library-view.test.js`, `tests/training.test.js` y `tests/train-settings.test.js`).
-- [ ] 10.2 Recorrer las dos pestañas en español y en inglés con anchos de ventana de 590, 600, 800, 959, 960, 1000, 1366, 1440 y 1920 píxeles: aviso de pantalla angosta solo por debajo de 600, tablero debajo del escenario hasta 959, tres columnas desde 960, y ningún texto cortado, pisado o desbordado en ningún caso.
-- [ ] 10.3 Recorrer cada pestaña solo con el teclado: el foco pasa por escenario, tablero y panel en ese orden, los dos bordes se mueven con las flechas sin que el auto gire, y los atajos (espacio, N, T, R) siguen funcionando con el foco en cualquier control.
-- [ ] 10.4 Medir la tasa de cuadros durante diez segundos en cada pestaña con la configuración por defecto y el tablero completo a la vista, y mientras se arrastra un borde: al menos 50 cuadros por segundo de promedio. Si no se alcanza, detenerse y consultar con las medidas.
-- [ ] 10.5 Correr `mlLab.auditTooltips()` en las dos pestañas con todo desplegado, en los dos idiomas, y comprobar que ningún texto visible muestra una clave en lugar de su traducción.
-- [ ] 10.6 Repasar las cuatro preguntas del filtro de entrada sobre el resultado en pantalla, con la tabla de proposal.md, usando la app con la guía activa y con la guía apagada; anotar en el reporte cualquier respuesta que ya no se sostenga.
-- [ ] 10.7 Actualizar `PENDIENTES.md`: quitar de "Próximo" la revisión de UX del panel y dejar anotado lo que haya quedado sin resolver.
+- [x] 10.1 Correr `npm test` y confirmar que pasa todo; listar en el reporte las pruebas nuevas y las modificadas, que solo pueden ser las que design.md D14 enumera (`tests/library-view.test.js`, `tests/training.test.js` y `tests/train-settings.test.js`).
+- [x] 10.2 Recorrer las dos pestañas en español y en inglés con anchos de ventana de 590, 600, 800, 959, 960, 1000, 1366, 1440 y 1920 píxeles: aviso de pantalla angosta solo por debajo de 600, tablero debajo del escenario hasta 959, tres columnas desde 960, y ningún texto cortado, pisado o desbordado en ningún caso.
+- [x] 10.3 Recorrer cada pestaña solo con el teclado: el foco pasa por escenario, tablero y panel en ese orden, los dos bordes se mueven con las flechas sin que el auto gire, y los atajos (espacio, N, T, R) siguen funcionando con el foco en cualquier control.
+- [x] 10.4 Medir la tasa de cuadros durante diez segundos en cada pestaña con la configuración por defecto y el tablero completo a la vista, y mientras se arrastra un borde: al menos 50 cuadros por segundo de promedio. Si no se alcanza, detenerse y consultar con las medidas.
+- [x] 10.5 Correr `mlLab.auditTooltips()` en las dos pestañas con todo desplegado, en los dos idiomas, y comprobar que ningún texto visible muestra una clave en lugar de su traducción.
+- [x] 10.6 Repasar las cuatro preguntas del filtro de entrada sobre el resultado en pantalla, con la tabla de proposal.md, usando la app con la guía activa y con la guía apagada; anotar en el reporte cualquier respuesta que ya no se sostenga.
+- [x] 10.7 Actualizar `PENDIENTES.md`: quitar de "Próximo" la revisión de UX del panel y dejar anotado lo que haya quedado sin resolver.
 
 ## Workflow follow-up
 
