@@ -222,3 +222,33 @@ test('la tercera misión solo cuenta los metros recorridos en el modo ver como l
 test('las misiones son las de la spec, en orden', () => {
   assert.deepEqual(MISSIONS.map((m) => [m.id, m.goal]), [['pass', 5], ['distance', 500], ['machine', 200]]);
 });
+
+// --- Lecturas como números (design.md D10) -------------------------------------------------------
+import { readings, READINGS_MAX } from '../src/tabs/drive/session.js';
+
+test('lecturas con 5 sensores: redondeadas a dos decimales, y la velocidad', () => {
+  const r = readings({ sensors: [0, 0.123, 0.4249, 0.996, 1], speed: 0.6543 });
+  assert.deepEqual(r, { sensors: [0, 0.12, 0.42, 1, 1], speed: 0.65 });
+});
+
+test('lecturas con 12 sensores: todavía con número', () => {
+  assert.equal(READINGS_MAX, 12);
+  const sensors = Array.from({ length: 12 }, (_, i) => i / 11);
+  const r = readings({ sensors, speed: 1 });
+  assert.equal(r.sensors.length, 12);
+  assert.deepEqual(r.sensors, sensors.map((v) => Math.round(v * 100) / 100));
+  assert.equal(r.sensors[1], 0.09);
+  assert.equal(r.speed, 1);
+});
+
+test('lecturas con 30 sensores: sin números en las barras, la velocidad conserva el suyo', () => {
+  const r = readings({ sensors: Array.from({ length: 30 }, () => 0.5), speed: 0.333 });
+  assert.equal(r.sensors, null);
+  assert.equal(r.speed, 0.33);
+  assert.equal(readings({ sensors: Array(13).fill(0), speed: 0 }).sensors, null);
+});
+
+test('lecturas: la velocidad se devuelve también cuando es negativa (marcha atrás)', () => {
+  assert.equal(readings({ sensors: [0, 0, 0, 0, 0], speed: -0.256 }).speed, -0.26);
+  assert.equal(readings({ sensors: Array(30).fill(0), speed: -1 }).speed, -1);
+});

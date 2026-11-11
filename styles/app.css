@@ -212,7 +212,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   padding: var(--space-3);
   background: var(--color-surface);
 }
-.panel-title { margin: 0 0 var(--space-3); font-size: 20px; }
 
 /* Interruptor de guía: oculta textos de guía y misiones sin desmontarlos (conservan su progreso). */
 .app[data-guide="off"] .guide { display: none !important; }
@@ -282,18 +281,13 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .panel-heading { margin: 0 0 var(--space-2); font-size: 15px; }
 .panel-subheading { margin: var(--space-2) 0 var(--space-1); font-size: 13px; color: var(--color-text-muted); font-weight: 600; }
 .caption { margin: var(--space-1) 0 0; font-size: 13px; color: var(--color-text-muted); }
-.drive-intro p { margin: 0 0 var(--space-2); font-size: 14px; }
+.drive-intro p { margin: 0 0 var(--space-1); font-size: 14px; }
+.drive-run { display: grid; gap: var(--space-2); }
 .drive-intro p:last-child { margin-bottom: 0; }
 .drive-keys { color: var(--color-text-muted); }
 
-.drive-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.drive-toolbar .tool { flex: 1 1 auto; }
 .tool[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-bg); font-weight: 600; }
 
-.drive-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-bottom: 0; }
-.stat { padding: var(--space-2); background: var(--color-surface-2); border-radius: var(--radius); min-width: 0; }
-.stat dt { font-size: 12px; color: var(--color-text-muted); }
-.stat-value { margin: 0; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .mission-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
 .mission { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-2); font-size: 14px; }
@@ -304,11 +298,31 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .mission[data-done="true"] .mission-fill { background: var(--color-car); }
 
 .switch-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.perception-block[hidden] { display: none; }
+/* Percepción (design.md D10): las barras ocupan el alto libre de su tarjeta (de 64 a 240 px), con su
+   lectura debajo; la velocidad va aparte, rotulada y siempre con su número. */
+.perception { display: flex; gap: var(--space-3); flex: 1 1 auto; min-height: 0; }
+.perception-sensors { display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 auto; min-width: 0; }
 .sensor-bars {
   display: grid; grid-template-columns: repeat(var(--bars, 5), minmax(0, 1fr)); gap: var(--bar-gap, 2px);
-  height: 64px; padding: var(--space-1); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius);
+  flex: 1 1 auto; min-height: 64px; max-height: 240px;
+  padding: var(--space-1); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius);
 }
+.sensor-values {
+  display: grid; grid-template-columns: repeat(var(--bars, 5), minmax(0, 1fr)); gap: var(--bar-gap, 2px);
+  padding: 0 calc(var(--space-1) + 1px);
+}
+.sensor-values[hidden] { display: none; }
+.sensor-value { font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; }
+.perception-speed {
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-1);
+  flex: 0 0 auto; min-width: 64px; padding-left: var(--space-3); border-left: 1px solid var(--color-border);
+}
+.speed-bar {
+  flex: 1 1 auto; width: 28px; min-height: 64px; max-height: 240px;
+  outline: 1px solid var(--color-border); outline-offset: var(--space-1);
+}
+.speed-fill { background: var(--color-accent); }
+.speed-label { font-size: 12px; color: var(--color-text-muted); white-space: nowrap; }
 .sensor-bar { position: relative; display: block; background: var(--color-surface-2); border-radius: 2px; overflow: hidden; }
 .sensor-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: var(--color-sensor); }
 
@@ -363,8 +377,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Escenario angosto (design.md D7): con menos de 360 px, las insignias y el mensaje de choque bajan
    para no pisarse con los controles de cámara. */
 .stage { container: stage / inline-size; }
+/* Las insignias no llegan a los controles de cámara (arriba a la derecha): pasan a otro renglón. */
+.stage-badges { max-width: calc(100% - 232px); }
 @container stage (max-width: 359.98px) {
-  .stage-badges { top: 48px; }
+  .stage-badges { top: 48px; max-width: calc(100% - 16px); }
   .crash-layer { padding-top: calc(56px + 48px); }
 }
 

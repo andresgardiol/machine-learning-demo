@@ -39,3 +39,20 @@ test('Entrenar: nombres de misiones de hasta 34 caracteres, con su meta real', (
   assert.equal(TRAIN_MISSIONS.length, 4);
   for (const m of TRAIN_MISSIONS) assertMax(`train.mission.${m.id}`, MISSION_MAX, { goal: m.goal });
 });
+
+// --- El problema --------------------------------------------------------------------------------
+import { MISSIONS as DRIVE_MISSIONS } from '../src/tabs/drive/session.js';
+
+test('El problema: guía de inicio de hasta 240 caracteres con 3 carriles, y renglón de teclas de hasta 120', () => {
+  assertMax('drive.guide.what', GUIDE_MAX, { lanes: 3 });
+  assertMax('drive.guide.keys', HINT_MAX);
+});
+
+test('El problema: renglones de ayuda del tablero de hasta 120 caracteres', () => {
+  for (const key of ['drive.perception.hint', 'drive.action.hint']) assertMax(key, HINT_MAX);
+});
+
+test('El problema: nombres de misiones de hasta 34 caracteres, con su meta real', () => {
+  assert.equal(DRIVE_MISSIONS.length, 3);
+  for (const m of DRIVE_MISSIONS) assertMax(`drive.mission.${m.id}`, MISSION_MAX, { goal: m.goal });
+});

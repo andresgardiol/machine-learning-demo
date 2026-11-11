@@ -15,6 +15,22 @@ export const MISSIONS = Object.freeze([
   Object.freeze({ id: 'machine', goal: 200, unit: 'meters' }),
 ]);
 
+/** Con más sensores que este, las barras se muestran sin su número debajo (design.md D10). */
+export const READINGS_MAX = 12;
+
+const round2 = (v) => Math.round((Number(v) || 0) * 100) / 100 || 0;
+
+/**
+ * Lecturas que se escriben como número debajo de las barras: la de cada sensor (solo con hasta
+ * `max` sensores; si no, null) y la de la velocidad (siempre, de −1 a 1), redondeadas a dos decimales.
+ * @param {{sensors:number[], speed:number}} perception
+ * @returns {{sensors:number[]|null, speed:number}}
+ */
+export function readings(perception, { max = READINGS_MAX } = {}) {
+  const sensors = perception.sensors.length <= max ? perception.sensors.map(round2) : null;
+  return { sensors, speed: round2(perception.speed) };
+}
+
 /**
  * Un vehículo cuenta como superado cuando todo el auto quedó por delante de él (la cola del auto
  * pasó el frente del vehículo) y deja de contar si vuelve a quedar por completo delante del auto.
