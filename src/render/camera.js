@@ -15,6 +15,12 @@ export const CAMERA_DEFAULTS = Object.freeze({
   step: 1.25, // factor de los botones de acercar y alejar
 });
 
+/** Distancia (px) que hay que arrastrar para que empiece un paneo: un clic no deja de seguir al auto. */
+export const PAN_THRESHOLD = 5;
+
+/** ¿Un arrastre de (dx, dy) píxeles desde donde se apretó el botón ya es un paneo? */
+export const panStarts = (dx, dy) => Math.hypot(dx, dy) > PAN_THRESHOLD;
+
 /** Punto de seguimiento con la calle recta vertical: centrado y al 70 % del alto (más pista por delante, arriba). */
 export const VERTICAL_ANCHOR = Object.freeze({ x: 0.5, y: 0.7 });
 

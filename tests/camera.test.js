@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCamera, CAMERA_DEFAULTS, orientationFor, VERTICAL_ANCHOR } from '../src/render/camera.js';
+import { createCamera, CAMERA_DEFAULTS, orientationFor, VERTICAL_ANCHOR, panStarts, PAN_THRESHOLD } from '../src/render/camera.js';
 import { createStraightStreet, createTrack } from '../src/core/track.js';
 
 const vp = { width: 900, height: 700 };
@@ -187,4 +187,12 @@ test('calle vertical: restablecer y reiniciar vuelven al punto de seguimiento ve
 test('las pistas con curvas (circuitos) se muestran sin girar', () => {
   const curved = createTrack({ centerline: [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 170, y: 70 }], width: 12, lanes: 3 });
   assert.deepEqual(orientationFor(curved), { rotation: 0, anchor: CAMERA_DEFAULTS.anchor });
+});
+
+test('un clic con un temblor del mouse no es un paneo; un arrastre real sí', () => {
+  assert.equal(PAN_THRESHOLD, 5);
+  assert.equal(panStarts(1, 1), false);
+  assert.equal(panStarts(3, 4), false, 'justo 5 px todavía es un clic');
+  assert.equal(panStarts(6, 0), true);
+  assert.equal(panStarts(0, -8), true);
 });

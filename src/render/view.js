@@ -7,7 +7,7 @@
 // declaran con data-i18n / data-help y los completa el sistema de idiomas de la interfaz.
 import { carContour } from '../core/car.js';
 import { CAR_LENGTH } from '../core/constants.js';
-import { createCamera, orientationFor } from './camera.js';
+import { createCamera, orientationFor, panStarts } from './camera.js';
 
 const COLOR_VARS = {
   background: '--color-bg',
@@ -108,16 +108,21 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     syncFollowIndicator();
   }
 
-  // Paneo arrastrando con el mouse.
+  // Paneo arrastrando con el mouse. Un clic (aunque el mouse se mueva un poco) no es un paneo:
+  // el arrastre empieza recién al superar PAN_THRESHOLD píxeles, así la cámara sigue al auto.
   let drag = null;
   function onPointerDown(e) {
     if (e.button !== 0) return;
-    drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, panning: false };
     canvas.setPointerCapture(e.pointerId);
-    canvas.classList.add('dragging');
   }
   function onPointerMove(e) {
     if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.panning) {
+      if (!panStarts(e.clientX - drag.startX, e.clientY - drag.startY)) return;
+      drag.panning = true;
+      canvas.classList.add('dragging');
+    }
     const dx = e.clientX - drag.x;
     const dy = e.clientY - drag.y;
     if (dx === 0 && dy === 0) return;
