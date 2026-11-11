@@ -80,8 +80,9 @@ export function mount({ stage, panel, i18n, store, reportError }) {
   }, el('span', { class: 'switch-track', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: key }));
 
   // Guía de inicio
+  const introWhat = el('p', { i18n: 'drive.guide.what', params: { lanes: settings.lanes } });
   const intro = el('section', { class: 'guide drive-intro' },
-    el('p', { i18n: 'drive.guide.what' }),
+    introWhat,
     el('p', { i18n: 'drive.guide.try' }),
     el('p', { class: 'drive-keys', i18n: 'drive.guide.keys' }));
 
@@ -286,6 +287,9 @@ export function mount({ stage, panel, i18n, store, reportError }) {
     if (crashed) {
       setText(crashBody, world.crashCause === 'vehicle' ? 'drive.crash.vehicle' : 'drive.crash.edge', meters(session.distance));
     }
+
+    // Guía: nombra la cantidad de carriles elegida
+    setText(introWhat, 'drive.guide.what', { lanes: settings.lanes });
 
     // Configuración avanzada
     for (const b of laneButtons) b.setAttribute('aria-pressed', String(Number(b.dataset.lanes) === settings.lanes));

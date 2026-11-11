@@ -87,7 +87,7 @@ export default {
 
   // Tab 1: The problem
   'drive.title': 'The problem',
-  'drive.guide.what': 'This is your car (green) on a three-lane street with traffic (orange). The blue lines coming out of the car are its sensors: rays that measure how far away an obstacle is.',
+  'drive.guide.what': 'This is your car (green) on a {lanes}-lane street with traffic (orange). The blue lines coming out of the car are its sensors: rays that measure how far away an obstacle is.',
   'drive.guide.try': 'Try to move forward without crashing and watch how the sensor bars change and which controls light up. Those few numbers are all a machine would have to decide.',
   'drive.guide.keys': 'Drive with the arrow keys or with W A S D. R restarts the attempt and the space bar pauses.',
 

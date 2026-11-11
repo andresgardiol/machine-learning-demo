@@ -4,19 +4,22 @@ Ideas y detalles anotados para más adelante. No son parte de ningún cambio en
 curso: cada uno pasa por el filtro de entrada de la constitución y por su
 propuesta de OpenSpec antes de implementarse.
 
-## Detalles
-
-- **Guía de la pestaña 1 y cantidad de carriles.** El texto de inicio dice
-  "calle de tres carriles" aunque en la configuración avanzada se elijan 2 o 4.
-  Describe el estado por defecto, pero conviene que acompañe al valor elegido
-  (por ejemplo, con la cantidad como parámetro del texto).
-- **Separador decimal en español.** Los valores con decimales se muestran con
-  punto en los dos idiomas (por ejemplo, "1.5 largos de auto"); en español
-  debería ser coma ("1,5"). Afecta a todo texto con números, así que conviene
-  resolverlo en el sistema de idiomas y no texto por texto.
-
 ## Ideas
 
+- **Cerebro incluido que generaliza.** Los cerebros incluidos de la pestaña 3
+  se entrenan con el mismo tráfico en todas las generaciones. Falta uno
+  entrenado con tráfico nuevo en cada generación, que maneje bien en
+  escenarios que no vio, para contrastarlo con el que memorizó.
+- **Fitness por vehículos superados.** Una cuarta función de fitness que premie
+  la cantidad de vehículos del tráfico que el auto deja atrás, además de la
+  distancia, el tiempo sin chocar y la velocidad media.
+- **Elegir con un clic qué auto seguir.** En el entrenamiento la cámara sigue
+  siempre al líder; podría poder elegirse cualquier auto de la población
+  haciendo clic sobre él, y ver su red en el diagrama.
+- **Entrenar en segundo plano.** Hoy el entrenamiento se detiene con la página
+  oculta o al cambiar de pestaña. Con un Web Worker podría seguir avanzando,
+  a costa de duplicar el estado para dibujarlo y de cuidar la
+  reproducibilidad.
 - **Más variedad en el tráfico con densidad alta.** Con 4 carriles y densidad
   e irregularidad al máximo, el tráfico se ve monótono: los grupos quedan a
   distancias muy parecidas y casi siempre con 3 vehículos.

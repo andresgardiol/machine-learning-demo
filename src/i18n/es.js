@@ -87,7 +87,7 @@ export default {
 
   // Pestaña 1: El problema
   'drive.title': 'El problema',
-  'drive.guide.what': 'Este es tu auto (verde) en una calle de tres carriles con tráfico (naranja). Las líneas azules que salen del auto son sus sensores: rayos que miden a qué distancia hay un obstáculo.',
+  'drive.guide.what': 'Este es tu auto (verde) en una calle de {lanes} carriles con tráfico (naranja). Las líneas azules que salen del auto son sus sensores: rayos que miden a qué distancia hay un obstáculo.',
   'drive.guide.try': 'Probá avanzar sin chocar y mirá cómo cambian las barras de los sensores y qué controles se encienden. Esos pocos números son todo lo que tendría una máquina para decidir.',
   'drive.guide.keys': 'Manejá con las flechas o con W A S D. R reinicia el intento y la barra espaciadora pausa.',
 

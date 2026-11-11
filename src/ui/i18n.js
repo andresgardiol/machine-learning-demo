@@ -22,6 +22,28 @@ export function format(text, params) {
   return text.replace(/\{(\w+)\}/g, (whole, name) => (name in params ? String(params[name]) : whole));
 }
 
+// Números según el idioma (design.md D16): coma decimal en español, punto en inglés, sin separador
+// de miles y hasta 2 decimales. El redondeo lo decide quien llama.
+const numberFormats = new Map();
+
+/** Número escrito según el idioma `language`. */
+export function formatNumber(value, language) {
+  let nf = numberFormats.get(language);
+  if (!nf) {
+    nf = new Intl.NumberFormat(language, { useGrouping: false, maximumFractionDigits: 2 });
+    numberFormats.set(language, nf);
+  }
+  return nf.format(value);
+}
+
+/** Copia de los parámetros con cada número ya escrito según el idioma; el resto queda igual. */
+export function localizeParams(params, language) {
+  if (!params) return params;
+  const out = {};
+  for (const [k, v] of Object.entries(params)) out[k] = typeof v === 'number' && Number.isFinite(v) ? formatNumber(v, language) : v;
+  return out;
+}
+
 /**
  * @param {{dictionaries: Record<string, Record<string,string>>, language?: string}} spec
  */
@@ -36,12 +58,13 @@ export function createI18n({ dictionaries, language = 'es' }) {
   /**
    * Texto de `key` en el idioma activo; si falta, el del otro idioma; si falta en ambos, la clave.
    * Singular: si params.value es 1 y existe `<key>.one`, se usa esa variante ("1 rayo", no "1 rayos").
+   * Los parámetros numéricos se escriben según el idioma activo ("1,5" en español, "1.5" en inglés).
    */
   function t(key, params) {
     const variant = singularKey(key, params);
     const own = dictionaries[current]?.[variant];
     const text = own ?? dictionaries[other(current)]?.[variant] ?? key;
-    return format(text, params);
+    return format(text, localizeParams(params, current));
   }
 
   function singularKey(key, params) {

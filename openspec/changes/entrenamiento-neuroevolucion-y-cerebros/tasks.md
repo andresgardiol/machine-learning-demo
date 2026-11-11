@@ -2,9 +2,9 @@
 
 ## 1. Números según el idioma y pendientes de la pestaña 1
 
-- [ ] 1.1 Formatear los parámetros numéricos en `src/ui/i18n.js` con `Intl.NumberFormat` (sin separador de miles, hasta 2 decimales); verificar con pruebas "1,5" en español, "1.5" en inglés, "12345" sin separadores en ambos y que el singular con valor 1 sigue funcionando
-- [ ] 1.2 Pasar la cantidad de carriles como parámetro del texto de guía de la pestaña 1 en `es.js` y `en.js`, y actualizarlo al cambiar los carriles; verificar en el navegador con 2, 3 y 4 carriles en ambos idiomas y que la prueba de paridad pasa
-- [ ] 1.3 Quitar de `PENDIENTES.md` los dos detalles resueltos y anotar las ideas que este cambio deja fuera (cerebro incluido que generaliza, fitness por vehículos superados, elegir con un clic qué auto seguir, entrenar en segundo plano); verificar que el archivo refleja ambas cosas
+- [x] 1.1 Formatear los parámetros numéricos en `src/ui/i18n.js` con `Intl.NumberFormat` (sin separador de miles, hasta 2 decimales); verificar con pruebas "1,5" en español, "1.5" en inglés, "12345" sin separadores en ambos y que el singular con valor 1 sigue funcionando
+- [x] 1.2 Pasar la cantidad de carriles como parámetro del texto de guía de la pestaña 1 en `es.js` y `en.js`, y actualizarlo al cambiar los carriles; verificar en el navegador con 2, 3 y 4 carriles en ambos idiomas y que la prueba de paridad pasa
+- [x] 1.3 Quitar de `PENDIENTES.md` los dos detalles resueltos y anotar las ideas que este cambio deja fuera (cerebro incluido que generaliza, fitness por vehículos superados, elegir con un clic qué auto seguir, entrenar en segundo plano); verificar que el archivo refleja ambas cosas
 
 ## 2. Componentes de panel compartidos
 

@@ -79,7 +79,7 @@ test('singular: con valor 1 se usa la variante ".one" en ambos idiomas; con otro
   assert.equal(i18n.t('drive.value.rays', { value: 1 }), '1 rayo');
   assert.equal(i18n.t('drive.value.rays', { value: 5 }), '5 rayos');
   assert.equal(i18n.t('drive.value.carLengths', { value: 1 }), '1 largo de auto');
-  assert.equal(i18n.t('drive.value.carLengths', { value: 1.5 }), '1.5 largos de auto');
+  assert.equal(i18n.t('drive.value.carLengths', { value: 1.5 }), '1,5 largos de auto');
   i18n.setLanguage('en');
   assert.equal(i18n.t('drive.value.rays', { value: 1 }), '1 ray');
   assert.equal(i18n.t('drive.value.rays', { value: 2 }), '2 rays');
