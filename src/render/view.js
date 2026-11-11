@@ -1,5 +1,9 @@
 // Vista del escenario en un canvas 2D (design.md D8): pista, carriles, tráfico, auto y rayos,
 // con una cámara que sigue al auto, zoom con rueda y botones, paneo y restablecer (control y tecla V).
+// Con una población (design.md D11) dibuja a todos los autos: los que quedaron fuera de carrera muy
+// tenues y con contorno punteado, los que siguen en carrera como siluetas simples semitransparentes,
+// la élite con una marca propia y, por último, el auto en foco con todos sus detalles y sus rayos.
+// La cámara sigue al auto en foco y, cuando cambia, se desliza hasta el nuevo (camera.retarget).
 // La calle recta se muestra vertical, con el sentido de avance hacia arriba (camera.orientationFor).
 // Es la misma vista para todas las pestañas con escenario. Solo dibuja lo que cae en el encuadre.
 //
@@ -7,7 +11,9 @@
 // declaran con data-i18n / data-help y los completa el sistema de idiomas de la interfaz.
 import { carContour } from '../core/car.js';
 import { CAR_LENGTH, CAR_WIDTH } from '../core/constants.js';
-import { createCamera, orientationFor, panStarts } from './camera.js';
+import {
+  createCamera, orientationFor, panStarts, retarget, advanceBlend, blendTarget, NO_BLEND,
+} from './camera.js';
 
 const COLOR_VARS = {
   background: '--color-bg',
@@ -22,8 +28,14 @@ const COLOR_VARS = {
   glass: '--color-car-glass',
   headlight: '--color-headlight',
   taillight: '--color-taillight',
+  elite: '--color-elite',
   outline: '--color-bg',
 };
+
+// Opacidad de los autos de la población que no están en foco.
+const RACING_ALPHA = 0.4;
+const ELITE_ALPHA = 0.7;
+const OUT_ALPHA = 0.3;
 
 const DASH = 3; // largo de cada trazo de la línea de carril (m); el hueco mide lo mismo
 const RESET_VIEW_KEY = 'KeyV';
@@ -70,6 +82,11 @@ export function createStageView({ container, camera = createCamera(), doc = docu
   let viewport = { width: 0, height: 0 };
   let dpr = 1;
   let lastTarget = null;
+  // Seguimiento de un auto que cambia: mundo y agente en foco del cuadro anterior y transición en curso.
+  let focusWorld = null;
+  let focusIndex = null;
+  let blend = NO_BLEND;
+  let lastFrame = null;
 
   function resize() {
     const w = Math.max(1, container.clientWidth);
@@ -311,19 +328,97 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     }
   }
 
+  /** Siluetas simples (solo el contorno de choque) de varios autos, en un solo trazo. */
+  function silhouettes(cars, fill, alpha) {
+    if (cars.length === 0) return;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    for (const car of cars) {
+      const [a, b, c, d] = carContour(car);
+      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y);
+      ctx.closePath();
+    }
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  /** Autos fuera de carrera de la población: muy tenues, sin relleno y con contorno punteado. */
+  function drawOut(cars, px) {
+    if (cars.length === 0) return;
+    ctx.globalAlpha = OUT_ALPHA;
+    ctx.strokeStyle = colors.carCrashed;
+    ctx.lineWidth = 1.5 * px;
+    ctx.setLineDash([4 * px, 3 * px]);
+    ctx.beginPath();
+    for (const car of cars) {
+      const [a, b, c, d] = carContour(car);
+      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y);
+      ctx.closePath();
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
+
+  /** Élite: silueta más marcada, contorno propio y un rombo en el centro (no depende solo del color). */
+  function drawElite(cars, px) {
+    if (cars.length === 0) return;
+    silhouettes(cars, colors.car, ELITE_ALPHA);
+    ctx.strokeStyle = colors.elite;
+    ctx.lineWidth = 2.5 * px;
+    ctx.beginPath();
+    for (const car of cars) {
+      const [a, b, c, d] = carContour(car);
+      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y);
+      ctx.closePath();
+    }
+    ctx.stroke();
+    ctx.fillStyle = colors.elite;
+    ctx.beginPath();
+    const r = Math.max(0.5, 5 * px);
+    for (const { position: p } of cars) {
+      ctx.moveTo(p.x + r, p.y); ctx.lineTo(p.x, p.y + r); ctx.lineTo(p.x - r, p.y); ctx.lineTo(p.x, p.y - r);
+      ctx.closePath();
+    }
+    ctx.fill();
+  }
+
+  /** Objetivo de la cámara con un foco que puede cambiar (design.md D11). */
+  function focusTarget(world, focus) {
+    const now = win.performance.now();
+    const dt = lastFrame === null ? 0 : (now - lastFrame) / 1000;
+    lastFrame = now;
+    const agents = world.agents;
+    if (world !== focusWorld) {
+      blend = NO_BLEND; // mundo nuevo (otra generación o un reinicio): la cámara va directo a la salida
+    } else if (focus !== focusIndex && agents[focusIndex]) {
+      blend = retarget(blend, agents[focusIndex].car.position, agents[focus].car.position);
+    } else {
+      blend = advanceBlend(blend, dt);
+    }
+    focusWorld = world;
+    focusIndex = focus;
+    return blendTarget(agents[focus].car.position, blend);
+  }
+
   /**
    * Dibuja un cuadro.
    * @param {object} world mundo del núcleo
-   * @param {{showSensors?: boolean, machineView?: boolean}} [options]
+   * @param {{showSensors?: boolean, machineView?: boolean, focus?: number, elite?: number[]}} [options]
    *   machineView omite las capas de pista y tráfico ("ver como la máquina").
+   *   focus: índice del agente a destacar y seguir (sin focus, dibuja el primer auto como siempre).
+   *   elite: índices de los agentes de élite, que llevan una marca propia.
    */
-  function render(world, { showSensors = true, machineView = false } = {}) {
+  function render(world, { showSensors = true, machineView = false, focus, elite = [] } = {}) {
     resize();
-    const car = world.car;
-    lastTarget = car.position;
+    const population = Number.isInteger(focus) && world.agents?.[focus] !== undefined;
+    const car = population ? world.agents[focus].car : world.car;
+    const target = population ? focusTarget(world, focus) : car.position;
+    lastTarget = target;
     camera.setOrientation(orientationFor(world.track));
     syncFollowIndicator();
-    camera.update(car.position, viewport);
+    camera.update(target, viewport);
     const z = camera.zoom;
     const c = camera.center;
     const cos = Math.cos(camera.rotation);
@@ -353,6 +448,28 @@ export function createStageView({ container, camera = createCamera(), doc = docu
         && v.position.y >= b.minY - CAR_LENGTH && v.position.y <= b.maxY + CAR_LENGTH;
       drawTraffic(world.vehiclesIn(from - CAR_LENGTH, to + CAR_LENGTH).filter(inView), px);
     }
+    if (population) {
+      const b = camera.visibleBounds(viewport);
+      const margin = CAR_LENGTH;
+      const inView = (c) => c.position.x >= b.minX - margin && c.position.x <= b.maxX + margin
+        && c.position.y >= b.minY - margin && c.position.y <= b.maxY + margin;
+      const eliteSet = new Set(elite);
+      const out = [];
+      const racing = [];
+      const eliteCars = [];
+      world.agents.forEach((a, i) => {
+        if (i === focus || !inView(a.car)) return;
+        if (a.car.crashed) out.push(a.car);
+        else if (eliteSet.has(i)) eliteCars.push(a.car);
+        else racing.push(a.car);
+      });
+      drawOut(out, px);
+      silhouettes(racing, colors.car, RACING_ALPHA);
+      drawElite(eliteCars, px);
+      if (showSensors) drawRays(world.agents[focus].rays, px);
+      drawCar(car, px);
+      return;
+    }
     if (showSensors) drawRays(world.rays, px);
     drawCar(car, px);
   }
@@ -362,8 +479,8 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     camera,
     render,
     resetView,
-    /** Vuelve a seguir al auto (al reiniciar la simulación). */
-    followCar() { camera.follow(); syncFollowIndicator(); },
+    /** Vuelve a seguir al auto (al reiniciar la simulación); un cambio de foco pendiente se completa de inmediato. */
+    followCar() { camera.follow(); blend = NO_BLEND; syncFollowIndicator(); },
     refreshColors() { colors = readColors(doc); },
     get viewport() { return { ...viewport }; },
     dispose() {

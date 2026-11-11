@@ -158,3 +158,38 @@ export function createCamera(options = {}) {
     get limits() { return { min: cfg.minZoom, max: cfg.maxZoom, default: cfg.zoom, step: cfg.step }; },
   };
 }
+
+// --- Cambio del auto seguido (design.md D11) ----------------------------------------------------
+//
+// Cuando el auto seguido cambia, la vista guarda la diferencia de posición entre el anterior y el
+// nuevo y la reduce a cero en FOCUS_BLEND_SECONDS, sumándola al objetivo de la cámara: el encuadre
+// se desliza en vez de saltar. Si la diferencia supera FOCUS_JUMP_METERS, el cambio es inmediato.
+// En régimen normal no hay retraso: sin cambio de foco la diferencia es cero.
+
+export const FOCUS_BLEND_SECONDS = 0.3;
+export const FOCUS_JUMP_METERS = 50;
+
+/** Sin transición en curso. */
+export const NO_BLEND = Object.freeze({ offset: Object.freeze({ x: 0, y: 0 }), remaining: 0 });
+
+/**
+ * Transición al cambiar el foco de `from` a `to` (posiciones), partiendo de la transición actual:
+ * el objetivo de la cámara no se mueve en el instante del cambio.
+ */
+export function retarget(blend, from, to) {
+  const offset = { x: from.x + blend.offset.x - to.x, y: from.y + blend.offset.y - to.y };
+  if (Math.hypot(offset.x, offset.y) > FOCUS_JUMP_METERS) return NO_BLEND;
+  return { offset, remaining: FOCUS_BLEND_SECONDS };
+}
+
+/** Avanza la transición `dt` segundos reales: la diferencia baja en línea recta hasta cero. */
+export function advanceBlend(blend, dt) {
+  if (blend.remaining <= 0) return NO_BLEND;
+  const left = blend.remaining - Math.max(0, dt);
+  if (left <= 1e-9) return NO_BLEND; // tolerancia: 18 cuadros de 1/60 s completan los 0,3 s
+  const k = left / blend.remaining;
+  return { offset: { x: blend.offset.x * k, y: blend.offset.y * k }, remaining: left };
+}
+
+/** Objetivo de la cámara: la posición del auto seguido más la diferencia que queda. */
+export const blendTarget = (position, blend) => ({ x: position.x + blend.offset.x, y: position.y + blend.offset.y });

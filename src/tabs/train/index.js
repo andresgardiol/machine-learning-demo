@@ -54,7 +54,12 @@ export function mount({ stage, panel, i18n, store, reportError }) {
   const loop = createLoop({
     step: () => state.training.step(),
     render: () => {
-      view.render(state.training.world, { showSensors: state.settings.showSensors });
+      const t = state.training;
+      view.render(t.world, {
+        showSensors: state.settings.showSensors,
+        focus: t.leaderIndex,
+        elite: Array.from({ length: t.eliteCount }, (_, i) => i),
+      });
       sync();
     },
     onError: reportError,

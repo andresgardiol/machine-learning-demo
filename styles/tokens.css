@@ -15,6 +15,7 @@
   --color-lane-line: #8b95a5;
   --color-car: #3ddc84;
   --color-car-crashed: #ff5a5a;
+  --color-elite: #c792ff; /* marca de la élite: los autos que pasaron sin cambios de la generación anterior */
   --color-traffic: #ffb020;
   --color-sensor: #4ea1ff;
   --color-sensor-hit: #ff5a5a;

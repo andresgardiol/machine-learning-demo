@@ -80,9 +80,9 @@
 
 ## 13. Vista del escenario con población
 
-- [ ] 13.1 Extender `src/render/view.js` para dibujar todos los agentes: foco con detalles y rayos, resto atenuado, chocados con aspecto propio y élite marcada, sin cambiar el dibujo de un mundo de un auto; verificar en el navegador los escenarios de "Dibujo de una población" y "Marca de la élite", y que la pestaña 1 se ve igual
-- [ ] 13.2 Implementar el desplazamiento continuo al cambiar el auto seguido como función pura más su uso en la vista (design D11); verificar con pruebas que la diferencia se reduce a cero y que un salto mayor de 50 metros es inmediato, y en el navegador los tres escenarios de "Seguimiento del líder"
-- [ ] 13.3 Medir la tasa de cuadros con 100 y con 500 autos a velocidad normal; verificar que el promedio es de al menos 50 y 30 cuadros por segundo
+- [x] 13.1 Extender `src/render/view.js` para dibujar todos los agentes: foco con detalles y rayos, resto atenuado, chocados con aspecto propio y élite marcada, sin cambiar el dibujo de un mundo de un auto; verificar en el navegador los escenarios de "Dibujo de una población" y "Marca de la élite", y que la pestaña 1 se ve igual
+- [x] 13.2 Implementar el desplazamiento continuo al cambiar el auto seguido como función pura más su uso en la vista (design D11); verificar con pruebas que la diferencia se reduce a cero y que un salto mayor de 50 metros es inmediato, y en el navegador los tres escenarios de "Seguimiento del líder"
+- [x] 13.3 Medir la tasa de cuadros con 100 y con 500 autos a velocidad normal; verificar que el promedio es de al menos 50 y 30 cuadros por segundo
 
 ## 14. Diagrama de red
 

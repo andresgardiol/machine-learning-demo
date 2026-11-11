@@ -49,6 +49,12 @@ Resultado obtenido (Node 24.2, macOS en Apple Silicon, peor de 5 corridas):
 
 No hace falta un índice espacial para sensores y choques.
 
+Tasa de cuadros de la pestaña «Entrenar» a velocidad normal, medida en el
+navegador durante 10 segundos (Apple Silicon, pantalla de 180 Hz): 180 cuadros
+por segundo con 100 autos y 180 con 500, también con cambios de generación
+cada 2 segundos (objetivo: 50 y 30). Un cambio de generación con 500 autos
+tarda de 4 a 6 ms; un paso, 0,75 ms, y un dibujo, 0,65 ms.
+
 ## Arquitectura
 
 Capas con dependencias que apuntan hacia el núcleo:
