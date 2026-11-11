@@ -263,6 +263,19 @@ export function createLibrary({ storage = null, clock, newId, schedule = (fn, ms
       return { ok: true };
     },
 
+    /**
+     * Empieza un entrenamiento nuevo identificado por `session`: el autoguardado del que se abandona
+     * pasa a "entrenamiento anterior". Solo hay autoguardado si ese entrenamiento terminó al menos una
+     * generación; si no terminó ninguna, el "entrenamiento anterior" que había se conserva.
+     */
+    beginTraining(session) {
+      if (!autosaves.current || autosaves.current.session === session) return;
+      autosaves.previous = autosaves.current;
+      autosaves.current = null;
+      writeAutosaves();
+      notify();
+    },
+
     /** Escribe ya el autoguardado pendiente (al pausar, salir de la pestaña u ocultarse la página). */
     flush() {
       if (autosaveDirty) { writeAutosaves(); notify(); }

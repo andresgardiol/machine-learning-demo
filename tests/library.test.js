@@ -427,3 +427,23 @@ test('conservar un autoguardado: guardarlo con nombre lo vuelve un cerebro que l
   const current = library.list().find((e) => e.slot === 'current').brain;
   assert.equal(library.remove(current.id).code, 'protected');
 });
+
+test('empezar un entrenamiento nuevo pasa el autoguardado del anterior a "entrenamiento anterior" en el acto', () => {
+  const storage = memoryStorage();
+  const { library, clock } = setup({ storage });
+  library.autosave(brain({ generations: 30 }), { session: 'a' });
+  clock.advance(2000);
+  library.beginTraining('b');
+  assert.deepEqual(autosaves(library), [['previous', 30]]);
+  assert.deepEqual(autosaves(setup({ storage }).library), [['previous', 30]]);
+  // El nuevo termina su primera generación.
+  library.autosave(brain({ generations: 1 }), { session: 'b' });
+  assert.deepEqual(autosaves(library), [['current', 1], ['previous', 30]]);
+  // Se abandona "c" sin terminar ninguna generación: al empezar "d", "b" pasa a anterior.
+  library.beginTraining('c');
+  assert.deepEqual(autosaves(library), [['previous', 1]]);
+  library.beginTraining('d');
+  assert.deepEqual(autosaves(library), [['previous', 1]], '"c" no tenía autoguardado: el anterior se conserva');
+  library.beginTraining('d');
+  assert.deepEqual(autosaves(library), [['previous', 1]]);
+});

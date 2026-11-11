@@ -75,7 +75,7 @@ src/
   ui/            app, dom, store, loop, layout, i18n, tooltips, audit, preferences, controls, library, chart
   i18n/          es.js, en.js
   tabs/drive/    pestaña 1: index (composición), session, settings, shortcuts
-  tabs/train/    pestaña 3: index (composición), settings
+  tabs/train/    pestaña 3: index (composición), settings, session, shortcuts
   main.js
 tests/           pruebas del núcleo, de textos y de arquitectura
 tools/           serve.mjs (servidor local de desarrollo), bench.mjs (rendimiento del mundo)
@@ -262,7 +262,7 @@ Piezas de la interfaz:
 - `render/network-view.js`: diagrama de una red en canvas. La disposición (`layoutNetwork`: columnas, nodos y rótulos que se resumen con muchas entradas) es una función pura; los pesos y sesgos se ven por signo (color y trazo continuo o punteado) y magnitud (grosor y opacidad), y la actividad por el relleno de cada nodo. Solo muestra: no modifica la red.
 - `ui/chart.js`: curva de fitness en SVG (mejor y promedio por generación). La escala y los puntos salen de `chartModel`, una función pura; al cambiar la función de fitness, la curva empieza de nuevo.
 - `ui/library.js`: biblioteca de cerebros, una sola para toda la app (`ctx.library`), sin DOM: almacenamiento, reloj e identificadores inyectados. Guarda, actualiza, renombra, elimina, importa y exporta cerebros, y autoguarda el campeón como máximo una vez por segundo; si el navegador no permite guardar, sigue en memoria y lo informa en `status`.
-- `tabs/train/`: la pestaña 3, «Entrenar». `index.js` compone entrenamiento, vista y bucle, y conserva el entrenamiento entre montajes; `settings.js` define los ajustes, sus rangos y su grupo (al instante, próxima generación o entrenamiento nuevo).
+- `tabs/train/`: la pestaña 3, «Entrenar». `index.js` compone entrenamiento, vista y bucle, y conserva el entrenamiento entre montajes; `settings.js` define los ajustes, sus rangos y su grupo (al instante, próxima generación o entrenamiento nuevo); `session.js`, los indicadores y las misiones, y `shortcuts.js`, los atajos (barra espaciadora pausa, T alterna la velocidad máxima, N pasa de generación). Los cambios que piden un entrenamiento nuevo se confirman en línea si ya terminó alguna generación. La protección común de los atajos (campos de texto, controles enfocados con el teclado, diálogos) está en `ui/shortcuts.js`.
 - `ui/app.js` y `ui/layout.js`: el borde entre escenario y panel se arrastra (o se mueve con las flechas) para cambiar el ancho del panel, entre 300 px y la mitad de la ventana; se recuerda como preferencia.
 - `ui/i18n.js` e `i18n/`: textos por clave (`data-i18n`); los parámetros numéricos se escriben según el idioma (coma decimal en español, punto en inglés, sin separador de miles); `ui/tooltips.js`: ayuda "qué hace / por qué importa" por clave (`data-help`).
 

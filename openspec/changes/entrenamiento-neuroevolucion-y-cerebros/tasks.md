@@ -97,15 +97,15 @@
 
 ## 16. Pestaña 3: panel
 
-- [ ] 16.1 Implementar la guía de inicio, los indicadores del entrenamiento y el número de generación sobre el escenario, con la lógica en `src/tabs/train/session.js`; verificar con pruebas el cálculo de los indicadores y en el navegador los tres escenarios de "Indicadores del entrenamiento"
-- [ ] 16.2 Implementar pausa, velocidades, velocidad máxima con su factor y siguiente generación, con los atajos barra espaciadora, T y N; verificar con pruebas el mapa de atajos y en el navegador los escenarios de "Pausa", "Velocidad del entrenamiento" y "Pasar a la siguiente generación"
-- [ ] 16.3 Implementar reiniciar y población nueva con la regla de confirmación y la rotación del autoguardado; verificar en el navegador los cuatro escenarios de "Reiniciar el entrenamiento" y el de "Población nueva"
-- [ ] 16.4 Implementar la configuración básica (población y fuerza de mutación) con la indicación de cambios pendientes; verificar en el navegador los dos escenarios de "Configuración básica"
-- [ ] 16.5 Implementar la configuración avanzada de evolución (con el interruptor "eliminar a los lentos") y de escenario, con la velocidad máxima compartida con la pestaña 1; verificar en el navegador los cuatro escenarios de "Configuración avanzada"
-- [ ] 16.6 Implementar los ajustes de red y sensores con la regla de entrenamiento nuevo, la confirmación única al soltar un deslizador y la vuelta al valor anterior al cancelar; verificar en el navegador los cuatro escenarios de "Red y sensores"
-- [ ] 16.7 Implementar restablecer la configuración; verificar en el navegador los dos escenarios de "Restablecer la configuración"
-- [ ] 16.8 Implementar el interruptor de sensores del líder y las secciones plegables de la red y de la curva; verificar en el navegador "Sensores del líder" y "Plegar el diagrama"
-- [ ] 16.9 Implementar las cuatro misiones en `src/tabs/train/session.js`; verificar con pruebas el progreso, el cumplimiento y que siguen cumplidas tras reiniciar, y en el navegador que se ocultan con el interruptor de guía
+- [x] 16.1 Implementar la guía de inicio, los indicadores del entrenamiento y el número de generación sobre el escenario, con la lógica en `src/tabs/train/session.js`; verificar con pruebas el cálculo de los indicadores y en el navegador los tres escenarios de "Indicadores del entrenamiento"
+- [x] 16.2 Implementar pausa, velocidades, velocidad máxima con su factor y siguiente generación, con los atajos barra espaciadora, T y N; verificar con pruebas el mapa de atajos y en el navegador los escenarios de "Pausa", "Velocidad del entrenamiento" y "Pasar a la siguiente generación"
+- [x] 16.3 Implementar reiniciar y población nueva con la regla de confirmación y la rotación del autoguardado; verificar en el navegador los cuatro escenarios de "Reiniciar el entrenamiento" y el de "Población nueva"
+- [x] 16.4 Implementar la configuración básica (población y fuerza de mutación) con la indicación de cambios pendientes; verificar en el navegador los dos escenarios de "Configuración básica"
+- [x] 16.5 Implementar la configuración avanzada de evolución (con el interruptor "eliminar a los lentos") y de escenario, con la velocidad máxima compartida con la pestaña 1; verificar en el navegador los cuatro escenarios de "Configuración avanzada"
+- [x] 16.6 Implementar los ajustes de red y sensores con la regla de entrenamiento nuevo, la confirmación única al soltar un deslizador y la vuelta al valor anterior al cancelar; verificar en el navegador los cuatro escenarios de "Red y sensores"
+- [x] 16.7 Implementar restablecer la configuración; verificar en el navegador los dos escenarios de "Restablecer la configuración"
+- [x] 16.8 Implementar el interruptor de sensores del líder y las secciones plegables de la red y de la curva; verificar en el navegador "Sensores del líder" y "Plegar el diagrama"
+- [x] 16.9 Implementar las cuatro misiones en `src/tabs/train/session.js`; verificar con pruebas el progreso, el cumplimiento y que siguen cumplidas tras reiniciar, y en el navegador que se ocultan con el interruptor de guía
 
 ## 17. Biblioteca en la pestaña
 
