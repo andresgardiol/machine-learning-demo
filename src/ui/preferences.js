@@ -1,7 +1,7 @@
-// Preferencias recordadas en el navegador (idioma, guía, ancho del panel y velocidad del auto). Toda lectura y escritura
+// Preferencias recordadas en el navegador (idioma, guía, ancho del panel y del escenario, y velocidad del auto). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', carSpeed: 'mlLab.carSpeed' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', carSpeed: 'mlLab.carSpeed' });
 
 export const DEFAULT_PREFERENCES = Object.freeze({ language: null, guide: true, panelWidth: null, carSpeed: null });
 
@@ -47,6 +47,12 @@ export function createPreferences(getStorage = defaultStorage) {
       return Number.isFinite(v) && v > 0 ? v : DEFAULT_PREFERENCES.panelWidth;
     },
     set panelWidth(value) { write(KEYS.panelWidth, String(Math.round(value))); },
+    /** Ancho del escenario en píxeles (con el tablero a la vista), o null si no se guardó uno válido. */
+    get stageWidth() {
+      const v = Number.parseInt(read(KEYS.stageWidth) ?? '', 10);
+      return Number.isFinite(v) && v > 0 ? v : null;
+    },
+    set stageWidth(value) { write(KEYS.stageWidth, String(Math.round(value))); },
     /** Velocidad máxima del auto elegida (m/s), compartida por todas las pestañas, o null si no se guardó una válida. */
     get carSpeed() {
       const v = Number.parseFloat(read(KEYS.carSpeed) ?? '');

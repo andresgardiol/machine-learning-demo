@@ -6,10 +6,10 @@ Medidas de referencia para las verificaciones en el navegador: ventana de
 
 ## 1. Zonas, preferencias y números sin DOM
 
-- [ ] 1.1 En `src/ui/layout.js`, agregar `ZONES`, `layoutMode`, `fitZones`, `stageLimits` y `panelLimits` según design.md D2, sin tocar `PANEL_WIDTH`, `clampPanelWidth` ni `maxPanelWidth`. Verificar con casos nuevos en `tests/layout.test.js`: modo por ancho (959 → `stacked`, 960 → `wide`, sin tablero → `plain`), `fitZones` en 1440 (400/668/360), 1000 (268/360/360) y 960 (260/360/328), preferencias fuera de rango, y los límites de los escenarios "Límites del panel", "Límite de la mitad de la ventana" y "Límites del escenario" de la spec `estructura-app` (668, 720 y 708).
-- [ ] 1.2 En `src/ui/preferences.js`, agregar `stageWidth` (`mlLab.stageWidth`) con la misma validación que `panelWidth`. Verificar en `tests/preferences.test.js`: valor válido, valor inválido y almacenamiento que falla.
-- [ ] 1.3 En `src/ui/i18n.js`, agregar `formatFixed(value, digits, language)` según D10. Verificar en `tests/number-format.test.js`: `0.4` con dos decimales da `0,40` en español y `0.40` en inglés, y `1` da `1,00` / `1.00`.
-- [ ] 1.4 Correr `npm test` y confirmar que pasan todas las pruebas, las anteriores sin modificar.
+- [x] 1.1 En `src/ui/layout.js`, agregar `ZONES`, `layoutMode`, `fitZones`, `stageLimits` y `panelLimits` según design.md D2, sin tocar `PANEL_WIDTH`, `clampPanelWidth` ni `maxPanelWidth`. Verificar con casos nuevos en `tests/layout.test.js`: modo por ancho (959 → `stacked`, 960 → `wide`, sin tablero → `plain`), `fitZones` en 1440 (400/668/360), 1000 (268/360/360) y 960 (260/360/328), preferencias fuera de rango, y los límites de los escenarios "Límites del panel", "Límite de la mitad de la ventana" y "Límites del escenario" de la spec `estructura-app` (668, 720 y 708).
+- [x] 1.2 En `src/ui/preferences.js`, agregar `stageWidth` (`mlLab.stageWidth`) con la misma validación que `panelWidth`. Verificar en `tests/preferences.test.js`: valor válido, valor inválido y almacenamiento que falla.
+- [x] 1.3 En `src/ui/i18n.js`, agregar `formatFixed(value, digits, language)` según D10. Verificar en `tests/number-format.test.js`: `0.4` con dos decimales da `0,40` en español y `0.40` en inglés, y `1` da `1,00` / `1.00`.
+- [x] 1.4 Correr `npm test` y confirmar que pasan todas las pruebas, las anteriores sin modificar.
 
 ## 2. Estructura común con tablero
 

@@ -36,6 +36,19 @@ export function formatNumber(value, language) {
   return nf.format(value);
 }
 
+const fixedFormats = new Map();
+
+/** Número con exactamente `digits` decimales según el idioma `language`, sin separador de miles ("0,40" / "0.40"). */
+export function formatFixed(value, digits, language) {
+  const key = `${language}:${digits}`;
+  let nf = fixedFormats.get(key);
+  if (!nf) {
+    nf = new Intl.NumberFormat(language, { useGrouping: false, minimumFractionDigits: digits, maximumFractionDigits: digits });
+    fixedFormats.set(key, nf);
+  }
+  return nf.format(value);
+}
+
 /** Copia de los parámetros con cada número ya escrito según el idioma; el resto queda igual. */
 export function localizeParams(params, language) {
   if (!params) return params;

@@ -74,3 +74,30 @@ test('velocidad del auto: se recuerda entre visitas; sin valor guardado es null'
   createPreferences(() => storage).carSpeed = 28;
   assert.equal(createPreferences(() => storage).carSpeed, 28);
 });
+
+test('ancho del escenario: un valor válido se recuerda entre visitas', () => {
+  const storage = memoryStorage();
+  assert.equal(createPreferences(() => storage).stageWidth, null);
+  createPreferences(() => storage).stageWidth = 512.4;
+  assert.equal(storage.getItem('mlLab.stageWidth'), '512');
+  assert.equal(createPreferences(() => storage).stageWidth, 512);
+});
+
+test('ancho del escenario: un valor guardado inválido es null', () => {
+  const storage = memoryStorage();
+  storage.setItem('mlLab.stageWidth', 'ancho');
+  assert.equal(createPreferences(() => storage).stageWidth, null);
+  storage.setItem('mlLab.stageWidth', '-40');
+  assert.equal(createPreferences(() => storage).stageWidth, null);
+  storage.setItem('mlLab.stageWidth', '0');
+  assert.equal(createPreferences(() => storage).stageWidth, null);
+});
+
+test('ancho del escenario con un almacenamiento que falla o no existe: null sin error', () => {
+  const failing = createPreferences(failingStorage);
+  assert.doesNotThrow(() => { failing.stageWidth = 300; });
+  assert.equal(failing.stageWidth, null);
+  const throwing = createPreferences(() => { throw new Error('SecurityError'); });
+  assert.doesNotThrow(() => { throwing.stageWidth = 300; });
+  assert.equal(throwing.stageWidth, null);
+});

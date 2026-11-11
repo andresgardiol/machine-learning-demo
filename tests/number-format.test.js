@@ -51,3 +51,21 @@ test('números: los parámetros que no son números no cambian', () => {
   const i18n = createI18n({ dictionaries: { es: { s: '{name}' }, en: { s: '{name}' } }, language: 'es' });
   assert.equal(i18n.t('s', { name: '1.5' }), '1.5');
 });
+
+import { formatFixed } from '../src/ui/i18n.js';
+
+test('dos decimales fijos: 0,40 en español y 0.40 en inglés', () => {
+  assert.equal(formatFixed(0.4, 2, 'es'), '0,40');
+  assert.equal(formatFixed(0.4, 2, 'en'), '0.40');
+});
+
+test('dos decimales fijos: 1 da 1,00 y 1.00', () => {
+  assert.equal(formatFixed(1, 2, 'es'), '1,00');
+  assert.equal(formatFixed(1, 2, 'en'), '1.00');
+});
+
+test('dos decimales fijos: redondea, conserva el signo y no agrupa miles', () => {
+  assert.equal(formatFixed(0.426, 2, 'es'), '0,43');
+  assert.equal(formatFixed(-0.25, 2, 'en'), '-0.25');
+  assert.equal(formatFixed(12345.5, 2, 'es'), '12345,50');
+});
