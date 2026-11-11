@@ -19,10 +19,10 @@
 
 ## 4. Núcleo: mundo con varios autos
 
-- [ ] 4.1 Generalizar `src/core/world.js` a una lista de agentes conservando la interfaz de un solo auto (design D1); verificar que las 194 pruebas existentes pasan y que `git diff --stat main -- tests/` no muestra cambios en archivos que ya existían
-- [ ] 4.2 Consultar el tráfico una vez por paso y repartirlo por agente (design D2); verificar con pruebas los escenarios "Controladores distintos", "Un auto choca y los demás siguen" y "Autos superpuestos"
-- [ ] 4.3 Escribir las pruebas de equivalencia (50 autos contra 50 mundos de un auto, paso a paso), de reproducibilidad (100 autos, 1000 pasos, dos corridas) y de reinicio de una población; verificar que pasan
-- [ ] 4.4 Crear `tools/bench.mjs` (100 autos, 3600 pasos) y documentar en `README.md` cómo correrlo y el resultado obtenido; verificar que supera 20 veces el tiempo real y, si no, detenerse y consultar antes de seguir
+- [x] 4.1 Generalizar `src/core/world.js` a una lista de agentes conservando la interfaz de un solo auto (design D1); verificar que las 194 pruebas existentes pasan y que `git diff --stat main -- tests/` no muestra cambios en archivos que ya existían
+- [x] 4.2 Consultar el tráfico una vez por paso y repartirlo por agente (design D2); verificar con pruebas los escenarios "Controladores distintos", "Un auto choca y los demás siguen" y "Autos superpuestos"
+- [x] 4.3 Escribir las pruebas de equivalencia (50 autos contra 50 mundos de un auto, paso a paso), de reproducibilidad (100 autos, 1000 pasos, dos corridas) y de reinicio de una población; verificar que pasan
+- [x] 4.4 Crear `tools/bench.mjs` (100 autos, 3600 pasos) y documentar en `README.md` cómo correrlo y el resultado obtenido; verificar que supera 20 veces el tiempo real y, si no, detenerse y consultar antes de seguir
 
 ## 5. Núcleo: operadores de evolución
 

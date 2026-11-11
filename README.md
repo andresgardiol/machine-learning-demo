@@ -28,6 +28,27 @@ npm test
 Usa el ejecutor incluido en Node (`node --test`). No abre ningún navegador. La
 interfaz se verifica a mano en el navegador.
 
+## Cómo medir el rendimiento del núcleo
+
+```bash
+node tools/bench.mjs
+```
+
+Simula 100 autos durante 3600 pasos (60 segundos simulados) en Node y dice
+cuántas veces el tiempo real se logra. El objetivo es superar 20 veces. Mide
+dos casos: 100 redes al azar, como la primera generación de un entrenamiento,
+y el peor caso para el costo por paso, con los 100 autos en carrera los 60
+segundos y tráfico al alcance de sus sensores.
+
+Resultado obtenido (Node 24.2, macOS en Apple Silicon, peor de 5 corridas):
+
+| Caso | Tiempo | Factor sobre el tiempo real |
+|---|---|---|
+| Redes al azar | 387 a 415 ms | 144,5× |
+| Todos en carrera | 502 a 520 ms | 115,5× |
+
+No hace falta un índice espacial para sensores y choques.
+
 ## Arquitectura
 
 Capas con dependencias que apuntan hacia el núcleo:
