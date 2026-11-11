@@ -30,8 +30,8 @@ pocos números (sus sensores) para decidir lo mismo.
 - Se agrega la vista del escenario en canvas, con cámara que sigue al auto,
   zoom y paneo, reutilizable por todas las pestañas con escenario.
 - Se agrega la estructura de la app: barra con las seis pestañas del recorrido
-  (solo la primera habilitada), disposición fija de escenario a la izquierda y
-  panel a la derecha, interruptor de guía, créditos al curso de Radu
+  (solo la primera habilitada), disposición común de escenario a la izquierda y
+  panel de ancho ajustable a la derecha, interruptor de guía, créditos al curso de Radu
   Mariescu-Istodor.
 - Se agrega el sistema de idiomas (español e inglés, con selector) y el
   sistema único de tooltips "qué hace / por qué importa".
@@ -50,7 +50,7 @@ pocos números (sus sensores) para decidir lo mismo.
 | Ver los controles accionados | La salida del problema son cuatro acciones | Las teclas se iluminan al presionarlas | Se oculta junto con los sensores | Sin efecto sobre la simulación |
 | Modo "ver como la máquina" | Decidir solo con las lecturas de los sensores es difícil | Al activarlo desaparece la calle y quedan rayos y barras | Apagado por defecto | Se desactiva con el mismo interruptor; al chocar se vuelve a ver todo |
 | Guía y misiones | Objetivos concretos que orientan la exploración | Texto corto y progreso visible | Se oculta con el interruptor de guía | No bloquean nada; se reinician con el intento |
-| Configurar escenario y sensores | El problema cambia de dificultad según el entorno y la percepción | Tooltips por control; cambio visible al instante | Va colapsado bajo "Avanzado" | Botón para restablecer valores por defecto |
+| Configurar velocidad, escenario y sensores | El problema cambia de dificultad según la velocidad, el entorno y la percepción | Tooltips por control; cambio visible al instante | Va colapsado bajo "Avanzado" | Botón para restablecer valores por defecto |
 | Cámara con zoom y paneo | Ninguno propio: habilita observar con comodidad | Controles en pantalla con tooltip | No interfiere si no se usa | Botón para volver a seguir al auto |
 
 ### Público

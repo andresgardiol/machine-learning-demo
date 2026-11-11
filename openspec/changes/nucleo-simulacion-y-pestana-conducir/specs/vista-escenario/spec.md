@@ -50,6 +50,10 @@ en pantalla y dejando a la vista más pista por delante que por detrás.
 - **WHEN** el auto avanza por la pista
 - **THEN** el auto permanece en la misma zona de la pantalla y la pista se desplaza
 
+#### Scenario: Calle recta vertical
+- **WHEN** se muestra la calle recta
+- **THEN** la calle se ve vertical, con el sentido de avance hacia arriba y el auto en la parte de abajo
+
 ### Requirement: Zoom
 La vista SHALL permitir acercar y alejar con la rueda del mouse y con botones
 en pantalla, dentro de un límite mínimo y uno máximo. Al usar la rueda, el
@@ -71,6 +75,10 @@ vista.
 #### Scenario: Arrastrar la vista
 - **WHEN** la persona arrastra el escenario con el mouse
 - **THEN** el encuadre se desplaza con el arrastre y deja de seguir al auto
+
+#### Scenario: Clic sin arrastre
+- **WHEN** la persona hace clic sobre el escenario sin arrastrar
+- **THEN** la cámara sigue al auto
 
 ### Requirement: Restablecer la vista
 La vista SHALL ofrecer un control y un atajo de teclado que devuelven la cámara

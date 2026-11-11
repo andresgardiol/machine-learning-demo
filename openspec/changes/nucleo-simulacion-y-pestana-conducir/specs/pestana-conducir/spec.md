@@ -43,6 +43,10 @@ mejor distancia lograda desde que se abrió la pestaña.
 - **WHEN** el auto avanza y supera a un vehículo del tráfico
 - **THEN** la distancia aumenta de forma continua y los vehículos superados aumentan en uno
 
+#### Scenario: Vehículo que vuelve a pasar
+- **WHEN** un vehículo superado vuelve a quedar delante del auto, por ejemplo porque el auto frenó
+- **THEN** los vehículos superados disminuyen en uno
+
 #### Scenario: Nueva mejor distancia
 - **WHEN** un intento termina con una distancia mayor que la mejor registrada
 - **THEN** la mejor distancia pasa a ser la de ese intento

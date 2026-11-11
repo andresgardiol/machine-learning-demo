@@ -107,20 +107,28 @@ reiniciar" sería frágil.
 Todos los vehículos del tráfico van a la misma velocidad. Es lo que garantiza
 que no choquen entre sí y que el camino libre no se cierre.
 
-### D4. Unidades reales y valores iniciales
+### D4. Unidades reales y valores calibrados
 
 El núcleo trabaja en metros y segundos; la vista decide cuántos píxeles es un
-metro. Valores de partida, a ajustar por sensación de manejo:
+metro. Valores calibrados por sensación de manejo y validados por el dueño del
+proyecto:
 
 | Magnitud | Valor |
 |---|---|
 | Auto | 2 m x 4 m |
 | Ancho de carril | 4 m |
-| Velocidad máxima / marcha atrás | 15 m/s / 7,5 m/s |
+| Velocidad máxima | configurable de 12 a 40 m/s, 15 m/s por defecto |
+| Marcha atrás | la mitad de la velocidad máxima (7,5 m/s por defecto) |
 | Aceleración / fricción | 40 m/s2 / 14 m/s2 |
 | Velocidad de giro | 1,8 rad/s |
-| Velocidad del tráfico | 10 m/s |
-| Largo de la calle recta | 100 km |
+| Velocidad del tráfico | 10 m/s fijos, siempre por debajo del mínimo del auto |
+| Primer grupo de tráfico | a 35 m de la línea de salida |
+| Calle recta | 100 km por delante y 100 km por detrás de la línea de salida |
+| Sensores | 1 a 100 rayos, 1 a 25 largos de auto, 10 a 360 grados; 5 rayos, 3 largos y 90 grados por defecto |
+
+La velocidad máxima es una sola para todas las pestañas: más rápido es más
+entretenido, pero deja menos tiempo para reaccionar y hace más difícil
+entrenar. El tráfico no cambia con ella, para que siempre se pueda superar.
 
 Las pruebas verifican relaciones (el tráfico es más lento, la marcha atrás
 tiene menor tope), no estos números, para poder calibrar sin romperlas.
@@ -132,7 +140,14 @@ esa polilínea medio ancho a cada lado, uniendo los tramos en inglete. El
 progreso de una posición se calcula proyectándola sobre el tramo más cercano,
 empezando la búsqueda por el último tramo conocido del auto.
 
-La calle recta es una línea central de dos puntos. Se prueba además una pista
+La calle recta es una línea central de dos puntos. Las distancias sobre la
+pista se miden desde la línea de salida: `createTrack` acepta `start`, la
+distancia del primer punto respecto de ella (0 por defecto), y expone `start`
+y `end`. La calle recta va de -100 km a +100 km con la salida en x = 0, así
+retroceder desde la salida no saca al auto de la calle y el progreso por
+detrás es negativo; tráfico, centro de carril e indicadores no cambian.
+
+Se prueba además una pista
 abierta con una curva suave, para que la representación no quede atada a la
 recta sin que nadie lo note. La creación de una pista rechaza curvas más
 cerradas que medio ancho, donde el borde interior se cruzaría consigo mismo.
@@ -166,7 +181,17 @@ conociendo detalles de cada uno.
 ### D8. Vista en un canvas, indicadores en el DOM
 
 Un canvas 2D dibuja pista, tráfico, auto y rayos, solo lo que cae dentro del
-encuadre. La cámara es posición, zoom y un indicador de seguimiento. Los
+encuadre. La cámara es posición, zoom, giro del encuadre y un indicador de
+seguimiento. La calle recta se muestra vertical, con el sentido de avance hacia
+arriba y el auto centrado al 70 % del alto, para aprovechar el alto del
+escenario; las pistas con curvas (circuitos, de formato más cuadrado) se
+muestran sin girar (`orientationFor`). El zoom por defecto es 10 px/m, con
+límites de 2 y 40. El paneo empieza recién al superar 5 px de arrastre, para
+que un clic sobre el escenario no deje de seguir al auto.
+
+Los vehículos llevan detalles cosméticos (carrocería redondeada, parabrisas,
+luneta, ópticas y luces traseras) dibujados siempre dentro de su contorno de
+choque: lo que se ve nunca es más grande que lo que choca. Los
 colores se leen de las variables de `tokens.css`, única fuente de la paleta.
 Indicadores, barras y mensajes son elementos del DOM, porque así heredan
 idiomas, tooltips y accesibilidad sin trabajo extra. El modo "ver como la
@@ -184,6 +209,15 @@ Los componentes son funciones que devuelven un elemento.
 
 Las pestañas futuras se muestran deshabilitadas en lugar de ocultarse: el
 recorrido completo es parte de lo que se enseña.
+
+El almacén de la app guarda, además de la guía y la pestaña activa, la
+velocidad máxima del auto (`carSpeed`), que comparten todas las pestañas.
+
+El borde entre escenario y panel se arrastra para ajustar el ancho del panel,
+como en un IDE: entre 300 px y la mitad de la ventana, 360 px por defecto;
+también se mueve con las flechas del teclado y vuelve al valor por defecto con
+doble clic o Enter. El aviso de uso en escritorio aparece solo por debajo de
+600 px de ancho, en pantallas de celular; desde ahí la disposición se adapta.
 
 ### D10. Idiomas
 
@@ -219,7 +253,8 @@ agrega reglas (dónde reaparece, invulnerabilidad) que la pestaña 1 no necesita
 
 ### D13. Preferencias y errores
 
-Idioma y guía se guardan en el almacenamiento del navegador, siempre dentro de
+Idioma, guía, ancho del panel y velocidad máxima del auto se guardan en el
+almacenamiento del navegador, siempre dentro de
 un bloque que tolera su ausencia. Un manejador global y la protección del
 bucle convierten cualquier falla en un mensaje con botón de reinicio, que
 vuelve a montar la pestaña.
@@ -235,6 +270,22 @@ núcleo, la paridad de los diccionarios y la regla de arquitectura.
 `package.json` solo declara scripts, sin dependencias. El servidor local es un
 script propio sobre el módulo `http` de Node. La interfaz se verifica a mano
 en el navegador; no se incorpora un navegador automatizado.
+
+### D15. Lógica de la pestaña 1 sin DOM
+
+Indicadores y misiones (`session.js`), configuración avanzada (`settings.js`)
+y atajos (`shortcuts.js`) no usan el DOM y se prueban con `node --test`;
+`index.js` solo compone. Reglas:
+
+- Un vehículo cuenta como superado cuando la cola del auto pasó su frente, y
+  deja de contar si vuelve a quedar por completo delante (cuenta neta).
+- La mejor distancia se registra al terminar el intento (choque o reinicio).
+- Las misiones cumplidas siguen marcadas hasta cerrar la aplicación, aunque la
+  pestaña se vuelva a montar; su progreso vuelve a cero con cada intento.
+- Todo cambio de configuración reinicia el intento; un arrastre de deslizador
+  suma un solo intento. "Tráfico nuevo" usa la semilla siguiente.
+- Un deslizador o el borde del panel enfocados con el teclado usan las
+  flechas; mientras tanto el teclado no maneja el auto.
 
 ## Risks / Trade-offs
 
@@ -254,6 +305,10 @@ en el navegador; no se incorpora un navegador automatizado.
   estático de respaldo e instrucciones en el README.
 - [Los valores de física elegidos pueden sentirse mal al manejar] → Tarea de
   calibración explícita; las pruebas no dependen de los valores exactos.
+- [Con la calle vertical se ve menos distancia por delante que en horizontal]
+  → El primer grupo de tráfico se acercó a 35 m para que se vea al abrir.
+- [A velocidades altas, el giro fijo hace curvas muy abiertas] → Aceptado:
+  muestra que ir más rápido exige anticiparse; se revisará con las carreras.
 
 ## Open Questions
 

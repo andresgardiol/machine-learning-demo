@@ -31,6 +31,10 @@ carriles cuando no se indica una cantidad.
 - **WHEN** se pide una calle recta con una cantidad de carriles distinta de 2, 3 o 4
 - **THEN** la calle no se crea y se informa cuáles son las cantidades admitidas
 
+#### Scenario: Calle detrás de la salida
+- **WHEN** el auto retrocede desde la línea de salida de la calle recta
+- **THEN** sigue habiendo calle con sus bordes detrás de él y su progreso es negativo
+
 ### Requirement: Bordes de la pista
 La pista SHALL exponer un borde izquierdo y uno derecho, paralelos a la línea
 central y separados de ella por la mitad del ancho total, que delimitan la zona
