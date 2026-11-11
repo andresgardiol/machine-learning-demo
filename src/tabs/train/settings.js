@@ -4,7 +4,7 @@
 //   instant         se aplican al instante (velocidad de la simulación, sensores visibles, secciones)
 //   nextGeneration  quedan pendientes hasta la próxima generación (evolución y escenario)
 //   newTraining     piden un entrenamiento nuevo (forma de la red, activación y sensores)
-import { DEFAULT_TRAINING_CONFIG, normalizeTrainingConfig } from '../../core/training.js';
+import { DEFAULT_TRAINING_CONFIG, normalizeTrainingConfig, SELECTION_MODES } from '../../core/training.js';
 import { EVOLUTION_LIMITS, FITNESS_KINDS } from '../../core/evolution.js';
 import { ACTIVATIONS, NETWORK_LIMITS } from '../../core/network.js';
 import { SENSOR_LIMITS } from '../../core/sensors.js';
@@ -30,6 +30,7 @@ export const SETTINGS = Object.freeze([
   // Próxima generación: evolución
   { key: 'population', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.population), step: 1 },
   { key: 'mutationStrength', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.mutationStrength), step: 1 },
+  { key: 'selectionMode', group: 'nextGeneration', kind: 'choice', options: SELECTION_MODES, default: DEFAULT_TRAINING_CONFIG.selectionMode },
   { key: 'elite', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.elite), step: 1 },
   { key: 'selection', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.selection), step: 1 },
   { key: 'mutationRate', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.mutationRate), step: 1 },
@@ -111,7 +112,7 @@ export function trainingConfig(settings) {
   return normalizeTrainingConfig({
     population: s.population, elite: s.elite, selection: s.selection,
     mutationStrength: s.mutationStrength, mutationRate: s.mutationRate, crossover: s.crossover,
-    fitness: s.fitness, maxDuration: s.maxDuration, slowRule: s.slowRule, trafficMode: s.trafficMode,
+    fitness: s.fitness, maxDuration: s.maxDuration, selectionMode: s.selectionMode, slowRule: s.slowRule, trafficMode: s.trafficMode,
     lanes: s.lanes, density: s.density, irregularity: s.irregularity, maxSpeed: s.maxSpeed,
     hidden: hiddenOf(s), activation: s.activation,
     sensors: { count: s.sensorCount, range: s.sensorRange, spread: s.sensorSpread },

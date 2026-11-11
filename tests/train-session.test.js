@@ -55,7 +55,7 @@ test('con la función "tiempo sin chocar", los indicadores pasan a mostrar segun
 // --- 16.2 Atajos ----------------------------------------------------------------------------------
 
 test('atajos: barra espaciadora pausa, T alterna la velocidad máxima, N pasa de generación', () => {
-  assert.deepEqual({ ...SHORTCUTS }, { Space: 'pause', KeyT: 'turbo', KeyN: 'next' });
+  assert.deepEqual({ ...SHORTCUTS }, { Space: 'pause', KeyT: 'turbo', KeyN: 'next', KeyE: 'choose', KeyZ: 'undo' });
   assert.equal(shortcutFor({ code: 'Space' }), 'pause');
   assert.equal(shortcutFor({ code: 'KeyT' }), 'turbo');
   assert.equal(shortcutFor({ code: 'KeyN' }), 'next');
@@ -167,4 +167,64 @@ test('última generación: con un entrenamiento real, la generación terminada a
   assert.equal(r.best.key, 'train.last.best.meters');
   assert.equal(r.best.params.value, Math.floor(t.history[0].best));
   assert.equal(r.reason, 'train.last.reason.requested');
+});
+
+// --- Línea de estado del padre elegido (cambio seleccion-manual) --------------------------------
+
+import { parentStatus } from '../src/tabs/train/session.js';
+
+/** Entrenamiento de mentira con lo único que parentStatus lee. */
+const fakeTraining = (parent, applied = 'manual', desired = applied) => ({ parent, selection: { applied, desired } });
+
+test('estado del padre: el líder elegido, con la generación y el fitness redondeado en cada unidad', () => {
+  assert.deepEqual(parentStatus(fakeTraining({ source: 'leader', generation: 4, fitness: 310.87, fitnessKind: 'distance' })),
+    { key: 'train.parent.leader.meters', params: { generation: 4, value: 310 } });
+  assert.deepEqual(parentStatus(fakeTraining({ source: 'leader', generation: 9, fitness: 12.34, fitnessKind: 'survival' })),
+    { key: 'train.parent.leader.seconds', params: { generation: 9, value: 12.3 } });
+  assert.deepEqual(parentStatus(fakeTraining({ source: 'leader', generation: 2, fitness: 17.96, fitnessKind: 'speed' })),
+    { key: 'train.parent.leader.metersPerSecond', params: { generation: 2, value: 18 } });
+});
+
+test('estado del padre: el campeón que quedó al pasar a manual, en cada unidad', () => {
+  assert.deepEqual(parentStatus(fakeTraining({ source: 'champion', generation: 12, fitness: 1194.2, fitnessKind: 'distance' })),
+    { key: 'train.parent.champion.meters', params: { generation: 12, value: 1194 } });
+  assert.deepEqual(parentStatus(fakeTraining({ source: 'champion', generation: 3, fitness: 41.25, fitnessKind: 'survival' })),
+    { key: 'train.parent.champion.seconds', params: { generation: 3, value: 41.3 } });
+  assert.deepEqual(parentStatus(fakeTraining({ source: 'champion', generation: 5, fitness: 9.04, fitnessKind: 'speed' })),
+    { key: 'train.parent.champion.metersPerSecond', params: { generation: 5, value: 9 } });
+});
+
+test('estado del padre: un cerebro, por su nombre', () => {
+  assert.deepEqual(parentStatus(fakeTraining({ source: 'brain', generation: 15, fitness: 400, fitnessKind: 'distance', name: 'Prudente' })),
+    { key: 'train.parent.brain', params: { name: 'Prudente' } });
+});
+
+test('estado del padre: sin padre con el cambio a manual todavía sin regir, y sin padre con manual', () => {
+  assert.deepEqual(parentStatus(fakeTraining(null, 'auto', 'manual')), { key: 'train.parent.pending', params: {} });
+  assert.deepEqual(parentStatus(fakeTraining(null, 'manual')), { key: 'train.parent.none', params: {} });
+});
+
+test('estado del padre con un entrenamiento real: pendiente, campeón, líder elegido y, tras deshacer todo, ninguno', () => {
+  const t = createTraining({ seed: 3, config: { population: 6, maxDuration: 10 } });
+  t.configure({ selectionMode: 'manual' });
+  assert.equal(parentStatus(t).key, 'train.parent.pending');
+  for (let i = 0; i < 30; i++) t.step();
+  t.finishGeneration();
+  const champ = t.champion;
+  assert.deepEqual(parentStatus(t), { key: 'train.parent.champion.meters', params: { generation: 1, value: Math.floor(champ.fitness) } });
+  for (let i = 0; i < 200 && !t.chooseLeader(); i++) t.step();
+  assert.deepEqual(parentStatus(t).key, 'train.parent.leader.meters');
+  assert.equal(parentStatus(t).params.generation, 2);
+  while (t.undoChoice());
+  assert.deepEqual(parentStatus(t), { key: 'train.parent.none', params: {} });
+});
+
+test('atajos de la selección manual: E elige al líder y Z deshace; con Ctrl o Cmd, o escribiendo, no hacen nada', () => {
+  assert.equal(shortcutFor({ code: 'KeyE' }), 'choose');
+  assert.equal(shortcutFor({ code: 'KeyZ' }), 'undo');
+  assert.equal(shortcutFor({ code: 'KeyE', ctrlKey: true }), null);
+  assert.equal(shortcutFor({ code: 'KeyZ', metaKey: true }), null);
+  assert.equal(shortcutFor({ code: 'KeyZ', ctrlKey: true }), null);
+  assert.equal(shortcutFor({ code: 'KeyE', metaKey: true }), null);
+  assert.equal(shortcutFor({ code: 'KeyE', target: { tagName: 'INPUT', type: 'text' } }), null);
 });

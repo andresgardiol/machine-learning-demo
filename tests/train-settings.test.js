@@ -11,7 +11,7 @@ import { createRandom } from '../src/core/random.js';
 test('valores por defecto: 100 autos, mutación 10 %, red 6-6-4 con escalón, 5 sensores, velocidad normal', () => {
   assert.deepEqual(DEFAULT_SETTINGS, {
     speed: 1, showSensors: true, showNetwork: true, showChart: true,
-    population: 100, mutationStrength: 10, elite: 1, selection: 10, mutationRate: 100, crossover: false,
+    population: 100, mutationStrength: 10, selectionMode: 'auto', elite: 1, selection: 10, mutationRate: 100, crossover: false,
     fitness: 'distance', maxDuration: 60, slowRule: true, trafficMode: 'new',
     lanes: 3, density: 50, irregularity: 50, maxSpeed: 20,
     hiddenLayers: 1, neurons1: 6, neurons2: 6, neurons3: 6, activation: 'step',
@@ -52,7 +52,7 @@ test('normalización: opciones inválidas vuelven al valor por defecto y los ent
 test('clasificación: cada ajuste pertenece a su grupo', () => {
   const expected = {
     instant: ['speed', 'showSensors', 'showNetwork', 'showChart'],
-    nextGeneration: ['population', 'mutationStrength', 'elite', 'selection', 'mutationRate', 'crossover', 'fitness', 'maxDuration',
+    nextGeneration: ['population', 'mutationStrength', 'selectionMode', 'elite', 'selection', 'mutationRate', 'crossover', 'fitness', 'maxDuration',
       'slowRule', 'trafficMode', 'lanes', 'density', 'irregularity', 'maxSpeed'],
     newTraining: ['hiddenLayers', 'neurons1', 'neurons2', 'neurons3', 'activation', 'sensorCount', 'sensorRange', 'sensorSpread'],
   };
@@ -97,4 +97,17 @@ test('adoptar un cerebro: toma su red y sus sensores y conserva el resto', () =>
   assert.deepEqual([s.sensorCount, s.sensorRange, s.sensorSpread], [9, 4, 150]);
   assert.equal(s.population, 50);
   assert.deepEqual(trainingConfig(s).hidden, [12, 5]);
+});
+
+test('quién elige al padre: por defecto la fitness, lo inválido vuelve a ella y cambiarlo rige desde la próxima generación', () => {
+  assert.equal(DEFAULT_SETTINGS.selectionMode, 'auto');
+  assert.equal(groupOf('selectionMode'), 'nextGeneration');
+  assert.deepEqual(SETTINGS.find((x) => x.key === 'selectionMode').options, ['auto', 'manual']);
+  assert.equal(normalizeSettings({ selectionMode: 'persona' }).selectionMode, 'auto');
+  assert.equal(normalizeSettings({ selectionMode: 'manual' }).selectionMode, 'manual');
+  assert.deepEqual(classifyChanges(DEFAULT_SETTINGS, { ...DEFAULT_SETTINGS, selectionMode: 'manual' }), { instant: [], nextGeneration: ['selectionMode'], newTraining: [] });
+  assert.equal(needsNewTraining(DEFAULT_SETTINGS, { ...DEFAULT_SETTINGS, selectionMode: 'manual' }), false);
+  assert.equal(trainingConfig({ ...DEFAULT_SETTINGS, selectionMode: 'manual' }).selectionMode, 'manual');
+  assert.equal(trainingConfig({ ...DEFAULT_SETTINGS, selectionMode: 'x' }).selectionMode, 'auto');
+  assert.equal(trainingConfig(DEFAULT_SETTINGS).selectionMode, 'auto');
 });

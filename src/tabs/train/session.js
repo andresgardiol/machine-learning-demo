@@ -57,6 +57,27 @@ export function lastGeneration(training) {
 }
 
 /**
+ * Línea de estado del padre elegido (design.md D5): de dónde va a salir la generación siguiente.
+ *   padre elegido, el líder      train.parent.leader.<unidad>    { generation, value }
+ *   padre elegido, el campeón    train.parent.champion.<unidad>  { generation, value }
+ *   padre elegido, un cerebro    train.parent.brain              { name }
+ *   sin padre, todavía automática  train.parent.pending
+ *   sin padre, manual              train.parent.none
+ * @returns {{key:string, params:object}}
+ */
+export function parentStatus(training) {
+  const parent = training.parent;
+  if (!parent) {
+    return { key: training.selection.applied === 'manual' ? 'train.parent.none' : 'train.parent.pending', params: {} };
+  }
+  if (parent.source === 'brain') return { key: 'train.parent.brain', params: { name: parent.name } };
+  const { key, params } = fitnessText(parent.fitness ?? 0, parent.fitnessKind);
+  const unit = key.slice('train.value.'.length);
+  const kind = parent.source === 'champion' ? 'champion' : 'leader';
+  return { key: `train.parent.${kind}.${unit}`, params: { generation: parent.generation, value: params.value } };
+}
+
+/**
  * @param {{completed?: Set<string>}} [spec] `completed`: misiones cumplidas; se comparte entre
  *   montajes para que una misión cumplida siga marcada hasta cerrar la aplicación, aunque se
  *   reinicie el entrenamiento.

@@ -21,10 +21,10 @@ Medidas de referencia para las verificaciones en el navegador: ventana de
 
 ## 3. Ajustes, estado y atajos de la pestaña, sin DOM
 
-- [ ] 3.1 En `src/tabs/train/settings.js`, agregar el ajuste `selectionMode` (grupo `nextGeneration`) y pasarlo en `trainingConfig` (D5). Actualizar las dos aserciones existentes de `tests/train-settings.test.js` que enumeran los ajustes completos, sumándoles la clave nueva, y agregar un caso: un valor inválido vuelve a `'auto'` y cambiarlo se clasifica como cambio de la próxima generación.
-- [ ] 3.2 En `src/tabs/train/session.js`, agregar `parentStatus(training)` con las cinco situaciones de D5. Verificar en `tests/train-session.test.js` cada situación y cada unidad de fitness, con la clave y los parámetros exactos.
-- [ ] 3.3 En `src/tabs/train/shortcuts.js`, agregar `KeyE: 'choose'` y `KeyZ: 'undo'`. Verificar con una prueba que E y Z devuelven esas acciones y que con Ctrl o Cmd no devuelven nada, como los demás atajos.
-- [ ] 3.4 Correr `npm test` y confirmar que pasa todo.
+- [x] 3.1 En `src/tabs/train/settings.js`, agregar el ajuste `selectionMode` (grupo `nextGeneration`) y pasarlo en `trainingConfig` (D5). Actualizar las dos aserciones existentes de `tests/train-settings.test.js` que enumeran los ajustes completos, sumándoles la clave nueva, y agregar un caso: un valor inválido vuelve a `'auto'` y cambiarlo se clasifica como cambio de la próxima generación.
+- [x] 3.2 En `src/tabs/train/session.js`, agregar `parentStatus(training)` con las cinco situaciones de D5. Verificar en `tests/train-session.test.js` cada situación y cada unidad de fitness, con la clave y los parámetros exactos.
+- [x] 3.3 En `src/tabs/train/shortcuts.js`, agregar `KeyE: 'choose'` y `KeyZ: 'undo'`. Verificar con una prueba que E y Z devuelven esas acciones y que con Ctrl o Cmd no devuelven nada, como los demás atajos.
+- [x] 3.4 Correr `npm test` y confirmar que pasa todo.
 
 ## 4. Pestaña Entrenar: selección manual en el panel
 
