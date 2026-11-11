@@ -74,9 +74,9 @@
 
 ## 12. Pestaña 3: esqueleto en marcha
 
-- [ ] 12.1 Crear `src/tabs/train/settings.js` con los ajustes, sus rangos, sus valores por defecto y a qué grupo pertenece cada uno (al instante, próxima generación, entrenamiento nuevo); verificar con pruebas la normalización de valores fuera de rango y la clasificación de cada ajuste
-- [ ] 12.2 Crear la biblioteca al arrancar y entregarla a las pestañas en su contexto, registrar la pestaña en `src/main.js` y montar entrenamiento, vista y bucle con el estado conservado entre montajes; verificar en el navegador que la pestaña abre con el entrenamiento en marcha, que al ir a El problema y volver sigue en la misma generación y que solo la pestaña visible simula
-- [ ] 12.3 Reemplazar en ambos diccionarios el tooltip "próximamente" de la pestaña Entrenar por uno de qué hace y por qué importa; verificar en el navegador en ambos idiomas y que la paridad pasa
+- [x] 12.1 Crear `src/tabs/train/settings.js` con los ajustes, sus rangos, sus valores por defecto y a qué grupo pertenece cada uno (al instante, próxima generación, entrenamiento nuevo); verificar con pruebas la normalización de valores fuera de rango y la clasificación de cada ajuste
+- [x] 12.2 Crear la biblioteca al arrancar y entregarla a las pestañas en su contexto, registrar la pestaña en `src/main.js` y montar entrenamiento, vista y bucle con el estado conservado entre montajes; verificar en el navegador que la pestaña abre con el entrenamiento en marcha, que al ir a El problema y volver sigue en la misma generación y que solo la pestaña visible simula
+- [x] 12.3 Reemplazar en ambos diccionarios el tooltip "próximamente" de la pestaña Entrenar por uno de qué hace y por qué importa; verificar en el navegador en ambos idiomas y que la paridad pasa
 
 ## 13. Vista del escenario con población
 

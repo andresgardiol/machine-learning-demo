@@ -3,13 +3,28 @@
 // de ventana angosta y manejo de fallas.
 //
 // Cada pestaña es un módulo con mount(ctx) que devuelve { unmount() }.
-//   ctx = { stage, panel, i18n, store, reportError }
+//   ctx = { stage, panel, i18n, store, library, reportError }
+// La biblioteca de cerebros es una sola para toda la app: se crea al arrancar (design.md D8).
 // La lista de pestañas (incluidas las aún no disponibles) la entrega quien arranca la app.
 import { el } from './dom.js';
 import { createStore } from './store.js';
 import { LANGUAGES } from './i18n.js';
 import { PANEL_WIDTH, clampPanelWidth, maxPanelWidth } from './layout.js';
 import { MAX_SPEED } from '../core/constants.js';
+import { createLibrary } from './library.js';
+
+/** Almacenamiento del navegador, o null si no está disponible (el acceso mismo puede fallar). */
+function browserStorage() {
+  try { return window.localStorage ?? null; } catch { return null; }
+}
+
+let idCounter = 0;
+/** Identificador único para un cerebro nuevo. */
+function newId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  idCounter += 1;
+  return `brain-${Date.now().toString(36)}-${idCounter}`;
+}
 
 /** Por debajo de este ancho (px) se muestra el aviso de uso en escritorio; coincide con styles/app.css. */
 export const NARROW_WIDTH = 600;
@@ -17,9 +32,10 @@ export const NARROW_WIDTH = 600;
 export const COURSE_URL = 'https://www.youtube.com/watch?v=Rs_rAxEsAvI';
 
 /**
- * @param {{root: HTMLElement, tabs: {id:string, module?:{mount:Function}}[], i18n: object, preferences: object}} spec
+ * @param {{root: HTMLElement, tabs: {id:string, module?:{mount:Function}}[], i18n: object, preferences: object, library?: object}} spec
  */
-export function createApp({ root, tabs, i18n, preferences }) {
+export function createApp({ root, tabs, i18n, preferences, library: givenLibrary }) {
+  const library = givenLibrary ?? createLibrary({ storage: browserStorage(), clock: () => Date.now(), newId });
   // carSpeed: velocidad máxima del auto, una sola para toda la app (las pestañas la leen y la cambian acá).
   const store = createStore({
     guide: preferences.guide,
@@ -199,7 +215,7 @@ export function createApp({ root, tabs, i18n, preferences }) {
     if (!credits.open) credits.showModal();
   }
 
-  const ctxFor = () => ({ stage, panel, i18n, store, reportError });
+  const ctxFor = () => ({ stage, panel, i18n, store, library, reportError });
 
   function mount(id) {
     const tab = tabs.find((t) => t.id === id);
@@ -264,7 +280,7 @@ export function createApp({ root, tabs, i18n, preferences }) {
   if (store.get().activeTab) safely(() => mount(store.get().activeTab));
 
   return {
-    store, stage, panel, openTab, reportError, restartTab,
+    store, stage, panel, library, openTab, reportError, restartTab,
     get activeTab() { return active?.id ?? null; },
     get instance() { return active?.instance ?? null; },
   };

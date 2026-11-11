@@ -7,12 +7,13 @@ import { installTooltips } from './ui/tooltips.js';
 import { auditTooltips } from './ui/audit.js';
 import { createApp } from './ui/app.js';
 import * as driveTab from './tabs/drive/index.js';
+import * as trainTab from './tabs/train/index.js';
 
 // Pestañas del recorrido, en orden. Las que no tienen módulo se muestran como no disponibles.
 const TABS = [
   { id: 'drive', module: driveTab },
   { id: 'rules' },
-  { id: 'train' },
+  { id: 'train', module: trainTab },
   { id: 'compete' },
   { id: 'inspect' },
   { id: 'lab' },

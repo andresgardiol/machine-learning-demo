@@ -61,9 +61,10 @@ src/
                  network, evolution, brain, training
   input/         keyboard.js: controlador de teclado (adapta eventos al contrato)
   render/        camera.js y view.js: cámara y dibujo del escenario en canvas
-  ui/            app, dom, store, loop, layout, i18n, tooltips, audit, preferences, controls
+  ui/            app, dom, store, loop, layout, i18n, tooltips, audit, preferences, controls, library
   i18n/          es.js, en.js
   tabs/drive/    pestaña 1: index (composición), session, settings, shortcuts
+  tabs/train/    pestaña 3: index (composición), settings
   main.js
 tests/           pruebas del núcleo, de textos y de arquitectura
 tools/           serve.mjs (servidor local de desarrollo), bench.mjs (rendimiento del mundo)
@@ -247,6 +248,8 @@ Piezas de la interfaz:
 - `render/camera.js` y `render/view.js`: la calle recta se muestra vertical (se avanza hacia arriba); cámara que sigue al auto (zoom con rueda y botones, paneo arrastrando, tecla V para volver) y dibujo de pista, tráfico, auto y rayos con los colores de `styles/tokens.css`.
 - `input/keyboard.js`: flechas y W A S D; ignora campos de texto y suelta todo al perder el foco.
 - `tabs/drive/`: la pestaña 1, «El problema». `index.js` compone mundo, teclado, vista y panel; `session.js` (indicadores del intento y misiones), `settings.js` (configuración avanzada) y `shortcuts.js` (R reinicia, barra espaciadora pausa) no usan el DOM y se prueban con `node --test`.
+- `ui/library.js`: biblioteca de cerebros, una sola para toda la app (`ctx.library`), sin DOM: almacenamiento, reloj e identificadores inyectados. Guarda, actualiza, renombra, elimina, importa y exporta cerebros, y autoguarda el campeón como máximo una vez por segundo; si el navegador no permite guardar, sigue en memoria y lo informa en `status`.
+- `tabs/train/`: la pestaña 3, «Entrenar». `index.js` compone entrenamiento, vista y bucle, y conserva el entrenamiento entre montajes; `settings.js` define los ajustes, sus rangos y su grupo (al instante, próxima generación o entrenamiento nuevo).
 - `ui/app.js` y `ui/layout.js`: el borde entre escenario y panel se arrastra (o se mueve con las flechas) para cambiar el ancho del panel, entre 300 px y la mitad de la ventana; se recuerda como preferencia.
 - `ui/i18n.js` e `i18n/`: textos por clave (`data-i18n`); los parámetros numéricos se escriben según el idioma (coma decimal en español, punto en inglés, sin separador de miles); `ui/tooltips.js`: ayuda "qué hace / por qué importa" por clave (`data-help`).
 

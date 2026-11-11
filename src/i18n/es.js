@@ -70,8 +70,8 @@ export default {
   'help.tab.drive.why': 'Antes de enseñarle a una máquina, conviene sentir el problema: decidir qué hacer a partir de lo que se percibe.',
   'help.tab.rules.soon.what': 'Próximamente: esta pestaña todavía no está disponible.',
   'help.tab.rules.soon.why': 'Va a enseñar a programar el auto con reglas escritas a mano, y por qué esas reglas dejan de alcanzar cuando el problema crece.',
-  'help.tab.train.soon.what': 'Próximamente: esta pestaña todavía no está disponible.',
-  'help.tab.train.soon.why': 'Va a enseñar cómo una red neuronal (un conjunto de números que convierte lecturas en acciones) aprende a manejar probando y mejorando.',
+  'help.tab.train.what': 'Abre «Entrenar»: una población de autos manejados por redes neuronales (conjuntos de números que convierten lo que perciben en acciones) aprende a esquivar el tráfico, generación tras generación.',
+  'help.tab.train.why': 'Muestra que una red no se programa: se prueban muchas variantes al azar, se eligen las que mejor manejan, se las copia con pequeños cambios y se repite. Eso es aprender por evolución.',
   'help.tab.compete.soon.what': 'Próximamente: esta pestaña todavía no está disponible.',
   'help.tab.compete.soon.why': 'Va a enseñar a evaluar lo aprendido en circuitos nuevos, para ver si el auto generaliza (maneja bien donde nunca practicó).',
   'help.tab.inspect.soon.what': 'Próximamente: esta pestaña todavía no está disponible.',
@@ -193,4 +193,8 @@ export default {
   'help.drive.sensorSpread.why': 'Un abanico angosto mira solo hacia adelante; uno amplio también ve los costados, pero con los rayos más separados.',
   'help.drive.resetSettings.what': 'Devuelve el auto, la calle, el tráfico y los sensores a sus valores iniciales: velocidad máxima de 20 m/s, 3 carriles, 50 % de densidad e irregularidad, y 5 rayos de 3 largos de auto en 90 grados.',
   'help.drive.resetSettings.why': 'Si un ajuste dejó el problema irreconocible, así volvés a un punto de partida conocido.',
+
+  // Pestaña 3: Entrenar
+  'train.title': 'Entrenar',
+  'train.generation': 'Generación {value}',
 };

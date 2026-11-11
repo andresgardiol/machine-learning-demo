@@ -70,8 +70,8 @@ export default {
   'help.tab.drive.why': 'Before teaching a machine, it helps to feel the problem: deciding what to do from what you perceive.',
   'help.tab.rules.soon.what': 'Coming soon: this tab is not available yet.',
   'help.tab.rules.soon.why': 'It will teach how to program the car with hand-written rules, and why those rules stop being enough as the problem grows.',
-  'help.tab.train.soon.what': 'Coming soon: this tab is not available yet.',
-  'help.tab.train.soon.why': 'It will teach how a neural network (a set of numbers that turns readings into actions) learns to drive by trying and improving.',
+  'help.tab.train.what': 'Opens “Train”: a population of cars driven by neural networks (sets of numbers that turn what they sense into actions) learns to dodge traffic, generation after generation.',
+  'help.tab.train.why': 'It shows that a network is not programmed: many random variants are tried, the ones that drive best are kept, copied with small changes, and the cycle repeats. That is learning by evolution.',
   'help.tab.compete.soon.what': 'Coming soon: this tab is not available yet.',
   'help.tab.compete.soon.why': 'It will teach how to evaluate what was learned on new tracks, to see whether the car generalizes (drives well where it never practiced).',
   'help.tab.inspect.soon.what': 'Coming soon: this tab is not available yet.',
@@ -193,4 +193,8 @@ export default {
   'help.drive.sensorSpread.why': 'A narrow fan only looks ahead; a wide one also sees the sides, but with the rays further apart.',
   'help.drive.resetSettings.what': 'Returns the car, the street, the traffic and the sensors to their initial values: a top speed of 20 m/s, 3 lanes, 50% density and irregularity, and 5 rays of 3 car lengths over 90 degrees.',
   'help.drive.resetSettings.why': 'If a setting made the problem unrecognizable, this brings you back to a known starting point.',
+
+  // Tab 3: Train
+  'train.title': 'Train',
+  'train.generation': 'Generation {value}',
 };
