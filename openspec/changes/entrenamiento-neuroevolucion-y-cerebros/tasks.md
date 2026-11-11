@@ -49,8 +49,8 @@
 
 ## 8. Calibración de los valores por defecto
 
-- [ ] 8.1 Crear `tools/calibrate.mjs`, que entrena 20 generaciones con la configuración por defecto en 10 semillas e informa la mejor distancia de cada una; verificar que corre y muestra las 10 distancias
-- [ ] 8.2 Comprobar el criterio de design (mejor distancia de al menos 300 metros en 8 de 10 semillas); si no se cumple, ajustar los valores por defecto, actualizar las specs y `design.md` con los nuevos valores e informarlo; verificar dejando el resultado final anotado en `design.md`
+- [x] 8.1 Crear `tools/calibrate.mjs`, que entrena 20 generaciones con la configuración por defecto en 10 semillas e informa la mejor distancia de cada una; verificar que corre y muestra las 10 distancias
+- [x] 8.2 Comprobar el criterio de design (mejor distancia de al menos 300 metros en 8 de 10 semillas); si no se cumple, ajustar los valores por defecto, actualizar las specs y `design.md` con los nuevos valores e informarlo; verificar dejando el resultado final anotado en `design.md`
 
 ## 9. Biblioteca de cerebros
 

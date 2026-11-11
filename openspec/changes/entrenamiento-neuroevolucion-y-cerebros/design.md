@@ -381,6 +381,24 @@ datos. La prueba de arquitectura existente cubre los módulos nuevos de
 - [La pestaña tiene muchos controles] → Solo dos ajustes a la vista; el resto,
   en secciones plegadas, y la biblioteca también plegable.
 
+## Calibration Result
+
+Resultado de `node tools/calibrate.mjs` (tarea 8.2), con la configuración por
+defecto sin cambios (población 100, élite 1, selección 10 %, mutación 10 % con
+probabilidad 100 %, fitness por distancia, duración 60 s, mismo tráfico, red
+6-6-4 con escalón), 20 generaciones por semilla, Node 24.2 en macOS:
+
+| Semilla | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Mejor distancia (m) | 897,2 | 897,3 | 631,1 | 631,1 | 897,1 | 631,1 | 895,7 | 631,1 | 897,0 | 631,1 |
+| Generación 1 (m) | 628,0 | 755,2 | 529,1 | 381,5 | 580,0 | 629,9 | 576,9 | 630,1 | 339,7 | 625,3 |
+
+El criterio (al menos 300 metros en 8 de 10 semillas) se cumple en 10 de 10, así
+que no se cambiaron los valores por defecto. Observación: el mejor de la
+generación 1 ya supera 300 metros en las 10 semillas, de modo que el criterio no
+distingue una población que aprende de una al azar; todas las generaciones
+terminaron por tiempo.
+
 ## Migration Plan
 
 No hay datos previos que migrar. El formato de cerebro nace con número de
