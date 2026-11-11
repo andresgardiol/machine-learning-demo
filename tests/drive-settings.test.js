@@ -6,7 +6,7 @@ import { createWorld } from '../src/core/world.js';
 
 test('valores por defecto de la configuración avanzada: 3 carriles, 50 % y 50 %, 5 rayos, 3 largos, 90 grados', () => {
   assert.deepEqual(DEFAULT_SETTINGS, {
-    maxSpeed: 15, lanes: 3, density: 50, irregularity: 50, sensorCount: 5, sensorRange: 3, sensorSpread: 90,
+    maxSpeed: 20, lanes: 3, density: 50, irregularity: 50, sensorCount: 5, sensorRange: 3, sensorSpread: 90,
   });
 });
 
@@ -17,7 +17,7 @@ test('restablecer: el mundo creado con los valores por defecto tiene 3 carriles,
   assert.equal(before.perception.sensors.length, 9);
   assert.equal(before.car.maxSpeed, 32);
   const w = createWorld(worldSpec({ ...DEFAULT_SETTINGS }, 1));
-  assert.equal(w.car.maxSpeed, 15);
+  assert.equal(w.car.maxSpeed, 20);
   assert.equal(w.track.lanes, 3);
   assert.equal(w.traffic.density, 50);
   assert.equal(w.traffic.irregularity, 50);

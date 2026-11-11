@@ -57,8 +57,8 @@ test('inicio de una generación: 100 autos detenidos en la misma posición, cada
 test('configuración por defecto del entrenamiento', () => {
   assert.deepEqual(normalizeTrainingConfig({}), {
     population: 100, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false,
-    fitness: 'distance', maxDuration: 60, trafficMode: 'same', lanes: 3, density: 50, irregularity: 50,
-    maxSpeed: 15, hidden: [6], activation: 'step', sensors: { count: 5, range: 3, spread: 90 },
+    fitness: 'distance', maxDuration: 60, slowRule: true, trafficMode: 'same', lanes: 3, density: 50, irregularity: 50,
+    maxSpeed: 20, hidden: [6], activation: 'step', sensors: { count: 5, range: 3, spread: 90 },
   });
   assert.deepEqual(normalizeTrainingConfig({ hidden: [20, 0, 4, 4, 4], population: 1 }).hidden, [16, 1, 4]);
   assert.equal(DEFAULT_TRAINING_CONFIG.population, 100);
@@ -122,7 +122,8 @@ test('duración máxima: con autos que siguen avanzando, a los 60 s simulados te
 });
 
 test('nadie avanza: tras 5 s simulados sin superar su mayor distancia, termina con ese motivo', () => {
-  const t = clones([0, 0, 0, 0], { density: 0 });
+  // Con la regla de los lentos apagada (encendida, los autos quietos salen por lentos en el mismo paso).
+  const t = clones([0, 0, 0, 0], { density: 0, slowRule: false });
   let record = null;
   let steps = 0;
   while (!record && steps < 10000) { record = t.step(); steps += 1; }
@@ -176,7 +177,7 @@ test('campeón: tras una generación es el individuo de mayor fitness de esa gen
   assert.equal(t.champion.fitness, Math.max(...fitnesses));
   assert.deepEqual(t.champion.network, networks[bestIndex]);
   assert.equal(t.champion.generation, generation);
-  assert.equal(t.history[0].best, t.champion.fitness);
+  assert.equal(t.history[t.history.length - 1].best, t.champion.fitness);
   // El primero de la generación siguiente es la élite: idéntico al campeón.
   assert.deepEqual(t.networks[0], t.champion.network);
   assert.equal(t.eliteCount, 1);
@@ -328,9 +329,9 @@ test('cerebro del campeón: pasa la validación y acumula generaciones y escenar
   assert.equal(b.training.generations, 15);
   assert.deepEqual(b.training.scenarios, [{ track: 'straight', lanes: 3, density: 50, irregularity: 50, trafficMode: 'same', generations: 15 }]);
   assert.equal(b.training.seed, 2);
-  assert.equal(b.training.maxSpeed, 15);
+  assert.equal(b.training.maxSpeed, 20);
   assert.deepEqual(b.training.fitness, { kind: 'distance', best: t.champion.fitness });
-  assert.deepEqual(b.training.evolution, { population: 6, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, maxDuration: 10 });
+  assert.deepEqual(b.training.evolution, { population: 6, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, maxDuration: 10, slowRule: true });
   assert.deepEqual(b.network, t.champion.network);
   assert.deepEqual(b.sensors, { count: 5, range: 3, spread: 90 });
 });
@@ -365,4 +366,88 @@ test('el mejor nunca empeora: diez generaciones con élite 1 y mismo tráfico', 
     const bests = t.history.map((h) => h.best);
     for (let g = 1; g < bests.length; g++) assert.ok(bests[g] >= bests[g - 1], `semilla ${seed}: ${bests.join(', ')}`);
   }
+});
+
+// --- 10.3 Eliminar a los lentos ------------------------------------------------------------------
+
+/** Red que acelera solo mientras la velocidad (relativa a la máxima) es menor que `cap`. */
+const speedCap = (cap) => ({
+  sizes: [6, 4], activation: 'step',
+  layers: [{ weights: [[0, 0, 0, 0, 0, -1], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], biases: [cap, -1, -1, -1] }],
+});
+const capped = (cap, config = {}) => createTraining({
+  seed: 1, config: { population: 4, mutationStrength: 0, density: 0, maxSpeed: 20, ...config }, brain: brainOf(speedCap(cap)),
+});
+const runToEnd = (t) => { for (let i = 0; i < 50000; i++) { const r = t.step(); if (r) return { record: r, steps: i + 1 }; } return null; };
+
+test('lentos: la regla está encendida por defecto', () => {
+  assert.equal(DEFAULT_TRAINING_CONFIG.slowRule, true);
+  assert.equal(createTraining({ seed: 1, config: { population: 2 } }).config.slowRule, true);
+});
+
+test('lentos: un auto que avanza a 10 m/s o menos durante 5 s queda fuera de carrera por lento', () => {
+  // El individuo 0 es una copia exacta del cerebro que se queda en 10 m/s; los demás, hijos mutados (algunos más rápidos).
+  const t = createTraining({ seed: 2, config: { population: 12, mutationStrength: 10, density: 0, maxSpeed: 20 }, brain: brainOf(speedCap(0.5)) });
+  for (let i = 0; i < 299; i++) t.step();
+  assert.equal(t.world.agents[0].crashed, false, 'antes de los 5 s sigue en carrera');
+  const startProgress = t.world.agents.map((a) => a.progress);
+  t.step(); // paso 300: 5 s simulados
+  const slow = t.world.agents[0];
+  assert.equal(slow.crashed, true);
+  assert.equal(slow.crashCause, 'tooSlow');
+  assert.equal(slow.car.speed, 0);
+  assert.ok(slow.progress <= 50, `avanzó ${slow.progress} m`);
+  const out = t.world.agents.filter((a) => a.crashCause === 'tooSlow').length;
+  assert.ok(out >= 1 && out < 12, `salieron ${out}`);
+  assert.equal(t.aliveCount, 12 - out, 'los que salen dejan de contarse en carrera');
+  assert.equal(t.generation, 1);
+  assert.ok(startProgress.length === 12);
+});
+
+test('lentos: un auto más rápido que el tráfico sigue en carrera', () => {
+  const t = clones([1, 0, 0, 0], { density: 0, maxSpeed: 20, maxDuration: 10 });
+  const { record, steps } = runToEnd(t);
+  assert.equal(record.reason, 'timeLimit');
+  assert.equal(steps, 600);
+});
+
+test('lentos: ninguno sale antes de los 5 s; si salen todos, la generación termina con "todos fuera de carrera"', () => {
+  const t = clones([0, 0, 0, 0], { density: 0 });
+  for (let i = 0; i < 299; i++) {
+    t.step();
+    assert.equal(t.aliveCount, 6, `paso ${i + 1}`);
+  }
+  const record = t.step();
+  assert.equal(record.reason, 'allCrashed');
+  assert.equal(record.generation, 1);
+});
+
+test('lentos: el fitness es el logrado hasta salir (unos 40 m en 5 s, y 5 s sin chocar)', () => {
+  const distance = runToEnd(capped(0.4));
+  assert.equal(distance.steps, 300);
+  assert.equal(distance.record.reason, 'allCrashed');
+  assert.ok(Math.abs(distance.record.best - 40) < 0.5, String(distance.record.best));
+  const survival = runToEnd(capped(0.4, { fitness: 'survival' }));
+  assert.equal(survival.steps, 300);
+  assert.equal(survival.record.best, 5);
+});
+
+test('lentos: con la regla apagada, el auto que va detrás del tráfico sigue hasta el final de la generación', () => {
+  const t = capped(0.5, { slowRule: false, maxDuration: 10 });
+  const { record, steps } = runToEnd(t);
+  assert.equal(record.reason, 'timeLimit');
+  assert.equal(steps, 600);
+});
+
+test('lentos: apagar la regla durante una generación rige desde la siguiente', () => {
+  const t = capped(0.5, { maxDuration: 10 });
+  for (let i = 0; i < 100; i++) t.step();
+  t.configure({ slowRule: false });
+  assert.deepEqual(t.pending, { slowRule: false });
+  const first = runToEnd(t);
+  assert.equal(first.record.reason, 'allCrashed', 'la generación en curso sigue con la regla');
+  assert.equal(first.steps, 200);
+  const second = runToEnd(t);
+  assert.equal(second.record.reason, 'timeLimit');
+  assert.equal(second.steps, 600);
 });

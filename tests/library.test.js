@@ -78,13 +78,10 @@ function brain({ seed = 1, generations = 10, name = 'x', lanes = 3 } = {}) {
   });
 }
 
-const presetBrain = (key, seed) => ({ ...brain({ seed, generations: key === 'novice' ? 2 : 80 }), id: `preset-${key}`, name: key });
-const PRESETS = [{ key: 'novice', brain: presetBrain('novice', 50) }, { key: 'expert', brain: presetBrain('expert', 51) }];
-
-function setup({ storage = memoryStorage(), presets = [] } = {}) {
+function setup({ storage = memoryStorage() } = {}) {
   const clock = fakeClock();
   const schedule = fakeScheduler();
-  const library = createLibrary({ storage, clock, newId: ids(), presets, schedule });
+  const library = createLibrary({ storage, clock, newId: ids(), schedule });
   return { library, clock, schedule, storage };
 }
 
@@ -429,31 +426,4 @@ test('conservar un autoguardado: guardarlo con nombre lo vuelve un cerebro que l
   // Un autoguardado no se elimina ni se renombra desde la biblioteca.
   const current = library.list().find((e) => e.slot === 'current').brain;
   assert.equal(library.remove(current.id).code, 'protected');
-});
-
-// --- 9.5 Cerebros incluidos ------------------------------------------------------------------------
-
-test('cerebros incluidos: aparecen sin haber guardado nada', () => {
-  const { library } = setup({ presets: PRESETS });
-  assert.deepEqual(library.list().map((e) => [e.origin, e.key]), [['preset', 'novice'], ['preset', 'expert']]);
-  assert.equal(library.isPreset('preset-novice'), true);
-  assert.equal(library.isPreset('id-1'), false);
-});
-
-test('cerebros incluidos: no se pueden eliminar, renombrar ni actualizar', () => {
-  const { library, storage } = setup({ presets: PRESETS });
-  const before = JSON.stringify(library.list());
-  assert.equal(library.remove('preset-novice').code, 'protected');
-  assert.equal(library.rename('preset-novice', 'Mío').code, 'protected');
-  assert.equal(library.update('preset-expert', brain({ seed: 3 })).code, 'protected');
-  assert.equal(JSON.stringify(library.list()), before);
-  assert.equal(storage.getItem(STORAGE_KEYS.brains), null, 'no se escribió nada');
-});
-
-test('cerebros incluidos: se pueden exportar y guardar una copia propia', () => {
-  const { library } = setup({ presets: PRESETS });
-  assert.equal(JSON.parse(library.exportText('preset-expert')).id, 'preset-expert');
-  const copy = library.save(PRESETS[1].brain, { name: 'Mi experto' }).brain;
-  assert.notEqual(copy.id, 'preset-expert');
-  assert.equal(library.list().length, 3);
 });

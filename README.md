@@ -81,7 +81,7 @@ Piezas del núcleo:
 - `track.js`: pista por línea central, ancho y carriles; calle recta de 2, 3 o 4 carriles.
 - `traffic.js`: tráfico como función pura de semilla, número de grupo y tiempo. Las separaciones entre grupos se sortean por bloques y los vehículos de un grupo van escalonados según la irregularidad; `changeTraffic` cambia la configuración en marcha a partir de un poco más adelante del auto.
 - `car.js` y `sensors.js`: física del auto y rayos de percepción.
-- La velocidad máxima del auto se configura (`createWorld({ maxSpeed })`, de 12 a 40 m/s, 15 por defecto; marcha atrás a la mitad) y siempre supera a la del tráfico (10 m/s).
+- La velocidad máxima del auto se configura (`createWorld({ maxSpeed })`, de 12 a 40 m/s, 20 por defecto; marcha atrás a la mitad) y siempre supera a la del tráfico (10 m/s).
 - `world.js`: une todo y avanza en pasos fijos de 1/60 s (`step()`), con `reset()`, `pause()` y `resume()`. `setMaxSpeed(v)` y `setTraffic({ density, irregularity })` cambian la configuración en marcha, sin reiniciar. Admite varios autos (ver abajo).
 - `network.js`: red neuronal de capas totalmente conectadas como dato plano.
 - `evolution.js`: operadores de neuroevolución sin estado.
@@ -95,8 +95,9 @@ crea un mundo con un auto por elemento de `cars`, todos en el mismo punto de
 salida, sobre la misma pista y el mismo tráfico. `world.agents` los lista, cada
 uno con `car`, `controller`, `progress`, `rays`, `perception`, `crashed` y
 `crashCause`; `world.aliveCount` cuenta los que siguen en carrera y
-`world.agentsSnapshot()` copia el estado de todos. Los autos no se ven ni chocan
-entre sí. `step()` avanza a todos los que no chocaron y no hace nada cuando
+`world.agentsSnapshot()` copia el estado de todos y `world.retire(i, cause)`
+saca a uno de carrera (queda detenido, como chocado, con ese motivo). Los autos
+no se ven ni chocan entre sí. `step()` avanza a todos los que no chocaron y no hace nada cuando
 chocaron todos. El tráfico se consulta una vez por paso para el tramo que cubre
 a todos y cada auto recibe los vehículos de su propio tramo en el mismo orden
 que si estuviera solo: un auto se comporta igual solo o acompañado (lo verifica
@@ -156,7 +157,11 @@ training.brain({ id, name, now })   cerebro del campeón con sus datos
 training.onGeneration(fn)    avisa al cerrar cada generación
 ```
 
-Una generación termina cuando chocaron todos (`allCrashed`), se cumplió la
+Con la regla "eliminar a los lentos" (`slowRule`, encendida por defecto), un
+auto que en los últimos 5 segundos simulados avanzó 50 metros o menos (lo que
+avanza el tráfico) sale de carrera con el motivo `tooSlow`: así la población no
+aprende a quedarse detrás de un vehículo. Una generación termina cuando todos
+quedaron fuera de carrera (`allCrashed`), se cumplió la
 duración máxima (`timeLimit`), ningún auto en carrera superó su mayor distancia
 durante 5 segundos simulados (`stalled`) o a pedido (`requested`). Al cerrarla
 se registra en `history` (número, mejor fitness, promedio, función y motivo), el

@@ -61,11 +61,11 @@
 
 ## 10. Revisión: sin cerebros incluidos, regla de los lentos y velocidad de 20 m/s
 
-- [ ] 10.1 Quitar de `src/ui/library.js` el soporte de cerebros incluidos y sus pruebas, sin agregar `tools/train-presets.mjs` ni `src/presets/`, y anotar en `PENDIENTES.md` la idea de incluir más adelante dos o tres cerebros elegidos por el dueño (design D9); verificar que `npm test` pasa y que ningún archivo del código menciona cerebros incluidos
-- [ ] 10.2 Agregar `world.retire(index, cause)` al mundo (design D18); verificar con una prueba el escenario "Auto sacado por lento" de "Sacar un auto de carrera"
-- [ ] 10.3 Implementar en `src/core/training.js` la regla "eliminar a los lentos" como ajuste `slowRule`, encendido por defecto y aplicado desde la generación siguiente, con el motivo `tooSlow` (design D18); verificar con una prueba por cada escenario de "Eliminar a los lentos" y el de "Todos fuera de carrera", y que las pruebas de reproducibilidad y de "el mejor nunca empeora" siguen pasando
-- [ ] 10.4 Subir `MAX_SPEED` a 20 m/s (design D19), actualizar en español e inglés el tooltip de restablecer de la pestaña 1 y, con acuerdo del dueño, las dos aserciones de `tests/drive-settings.test.js` que fijaban 15; verificar con pruebas el escenario "Velocidad por defecto" y en el navegador el escenario "Restablecer" de la pestaña 1
-- [ ] 10.5 Repetir `node tools/calibrate.mjs` con la regla y la velocidad nuevas, informando también cuántos autos salieron por lentos; verificar dejando el resultado anotado en la sección de calibración de `design.md` y, si no cumple el criterio, detenerse y consultar
+- [x] 10.1 Quitar de `src/ui/library.js` el soporte de cerebros incluidos y sus pruebas, sin agregar `tools/train-presets.mjs` ni `src/presets/`, y anotar en `PENDIENTES.md` la idea de incluir más adelante dos o tres cerebros elegidos por el dueño (design D9); verificar que `npm test` pasa y que ningún archivo del código menciona cerebros incluidos
+- [x] 10.2 Agregar `world.retire(index, cause)` al mundo (design D18); verificar con una prueba el escenario "Auto sacado por lento" de "Sacar un auto de carrera"
+- [x] 10.3 Implementar en `src/core/training.js` la regla "eliminar a los lentos" como ajuste `slowRule`, encendido por defecto y aplicado desde la generación siguiente, con el motivo `tooSlow` (design D18); verificar con una prueba por cada escenario de "Eliminar a los lentos" y el de "Todos fuera de carrera", y que las pruebas de reproducibilidad y de "el mejor nunca empeora" siguen pasando
+- [x] 10.4 Subir `MAX_SPEED` a 20 m/s (design D19), actualizar en español e inglés el tooltip de restablecer de la pestaña 1 y, con acuerdo del dueño, las dos aserciones de `tests/drive-settings.test.js` que fijaban 15; verificar con pruebas el escenario "Velocidad por defecto" y en el navegador el escenario "Restablecer" de la pestaña 1
+- [x] 10.5 Repetir `node tools/calibrate.mjs` con la regla y la velocidad nuevas, informando también cuántos autos salieron por lentos; verificar dejando el resultado anotado en la sección de calibración de `design.md` y, si no cumple el criterio, detenerse y consultar
 
 ## 11. Bucle con velocidades
 

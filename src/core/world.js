@@ -202,6 +202,19 @@ export function createWorld(spec = {}) {
     },
     configureSensors(partial) { configureSensors(first.car, partial); look([first]); },
     resetSensors() { resetSensors(first.car); look([first]); },
+    /**
+     * Saca de carrera al agente `index` con un motivo (por ejemplo, 'tooSlow'): queda detenido y fuera
+     * de carrera como uno chocado, con ese motivo. Los demás no cambian. Devuelve si estaba en carrera.
+     */
+    retire(index, cause) {
+      const a = agents[index];
+      if (!a || a.car.crashed) return false;
+      a.car.crashed = true;
+      a.car.speed = 0;
+      a.crashCause = cause;
+      look([a]);
+      return true;
+    },
     /** Vehículos del tráfico con su posición sobre la línea central en [from, to], en el instante actual. */
     vehiclesIn(from, to) { return traffic.vehicles(time, from, to); },
     /** Copia plana del estado (del primer auto) para pruebas, comparaciones y dibujo. */

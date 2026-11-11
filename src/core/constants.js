@@ -7,7 +7,7 @@ export const CAR_LENGTH = 4;
 export const CAR_WIDTH = 2;
 export const LANE_WIDTH = 4;
 
-export const MAX_SPEED = 15; // velocidad máxima de avance por defecto; se puede configurar (SPEED_LIMITS)
+export const MAX_SPEED = 20; // velocidad máxima de avance por defecto (design.md D19); se puede configurar (SPEED_LIMITS)
 export const REVERSE_FRACTION = 0.5; // la marcha atrás llega a la mitad de la máxima de avance
 export const MAX_REVERSE_SPEED = MAX_SPEED * REVERSE_FRACTION;
 // Velocidad máxima configurable: siempre por encima de la del tráfico, para que se pueda superar.

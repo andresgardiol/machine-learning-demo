@@ -98,10 +98,9 @@ const parse = (text) => { try { return JSON.parse(text); } catch { return undefi
  * @param {Storage|null} [spec.storage] almacenamiento del navegador (o uno falso); null si no hay
  * @param {() => number} spec.clock milisegundos desde la época (para las fechas y el límite de escritura)
  * @param {() => string} spec.newId identificador único para cada cerebro nuevo
- * @param {{key:string, brain:object}[]} [spec.presets] cerebros incluidos (protegidos)
  * @param {(fn:Function, ms:number) => any} [spec.schedule] para escribir más tarde un autoguardado demorado
  */
-export function createLibrary({ storage = null, clock, newId, presets = [], schedule = (fn, ms) => setTimeout(fn, ms) }) {
+export function createLibrary({ storage = null, clock, newId, schedule = (fn, ms) => setTimeout(fn, ms) }) {
   const store = safeStorage(storage);
   const listeners = new Set();
   let problem = store.available ? null : 'unavailable';
@@ -109,7 +108,6 @@ export function createLibrary({ storage = null, clock, newId, presets = [], sche
   const iso = () => new Date(clock()).toISOString();
 
   // --- Estado en memoria, cargado del almacenamiento -------------------------------------------
-  const presetEntries = presets.map((p) => ({ origin: 'preset', key: p.key, brain: p.brain }));
   let saved = [];
   const loaded = parse(store.read(STORAGE_KEYS.brains));
   if (Array.isArray(loaded)) saved = loaded.filter((b) => validateBrain(b) === null);
@@ -144,7 +142,6 @@ export function createLibrary({ storage = null, clock, newId, presets = [], sche
 
   const savedNames = (exceptId) => saved.filter((b) => b.id !== exceptId).map((b) => b.name);
   const findSaved = (id) => saved.find((b) => b.id === id);
-  const isPreset = (id) => presetEntries.some((p) => p.brain.id === id);
   const isAutosave = (id) => [autosaves.current, autosaves.previous].some((s) => s?.brain.id === id);
 
   const byRecent = (a, b) => (a.updatedAt < b.updatedAt ? 1 : a.updatedAt > b.updatedAt ? -1 : 0);
@@ -166,11 +163,11 @@ export function createLibrary({ storage = null, clock, newId, presets = [], sche
 
   const library = {
     /**
-     * Todos los cerebros: incluidos, autoguardados (en curso y anterior) y guardados, estos del más
-     * reciente al más antiguo. Cada elemento: { origin: 'preset'|'autosave'|'saved', brain, key?, slot? }.
+     * Todos los cerebros: autoguardados (en curso y anterior) y guardados, estos del más reciente al
+     * más antiguo. Cada elemento: { origin: 'autosave'|'saved', brain, slot? }.
      */
     list() {
-      const out = presetEntries.map((p) => ({ origin: 'preset', key: p.key, brain: p.brain }));
+      const out = [];
       for (const slot of ['current', 'previous']) {
         if (autosaves[slot]) out.push({ origin: 'autosave', slot, brain: autosaves[slot].brain });
       }
@@ -189,7 +186,6 @@ export function createLibrary({ storage = null, clock, newId, presets = [], sche
 
     /** Actualiza un cerebro guardado con la red y los datos de `brain`, conservando nombre, identificador y creación. */
     update(id, brain) {
-      if (isPreset(id)) return fail('protected');
       const old = findSaved(id);
       if (!old) return fail('notFound');
       const problemCode = validateBrain(brain);
@@ -203,7 +199,6 @@ export function createLibrary({ storage = null, clock, newId, presets = [], sche
 
     /** Cambia el nombre de un cerebro guardado con las mismas reglas que al guardar. */
     rename(id, name) {
-      if (isPreset(id)) return fail('protected');
       const old = findSaved(id);
       if (!old) return fail('notFound');
       const clean = cleanName(name);
@@ -218,7 +213,6 @@ export function createLibrary({ storage = null, clock, newId, presets = [], sche
 
     /** Elimina un cerebro guardado (la confirmación la pide la vista antes de llamar). */
     remove(id) {
-      if (isPreset(id)) return fail('protected');
       if (!findSaved(id)) return fail(isAutosave(id) ? 'protected' : 'notFound');
       saved = saved.filter((b) => b.id !== id);
       const result = writeSaved();
@@ -276,9 +270,6 @@ export function createLibrary({ storage = null, clock, newId, presets = [], sche
 
     /** Avisa cada vez que la biblioteca cambia; devuelve la función para dejar de escuchar. */
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
-
-    /** ¿Es un cerebro incluido? */
-    isPreset,
 
     /** Estado del almacenamiento: { persistent, problem: null | 'unavailable' | 'quota' }. */
     get status() { return { persistent: store.available, problem }; },

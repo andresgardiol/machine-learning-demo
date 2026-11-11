@@ -180,3 +180,28 @@ test('reinicio de una población: todos vuelven a la salida, sin chocar, como en
   for (let i = 0; i < 200; i++) { w.step(); fresh.step(); }
   assert.deepEqual(w.agentsSnapshot(), fresh.agentsSnapshot());
 });
+
+test('sacar un auto de carrera por lento: queda detenido con ese motivo y los otros dos siguen igual', () => {
+  const spec = { seed: 9, density: 60, cars: [{ controller: ruleController(1) }, { controller: forward }, { controller: ruleController(3) }] };
+  const w = createWorld(spec);
+  const control = createWorld(spec);
+  for (let i = 0; i < 60; i++) { w.step(); control.step(); }
+  assert.equal(w.agents[1].crashed, false);
+  assert.equal(w.retire(1, 'tooSlow'), true);
+  const retired = w.agents[1];
+  assert.equal(retired.crashed, true);
+  assert.equal(retired.crashCause, 'tooSlow');
+  assert.equal(retired.car.speed, 0);
+  assert.equal(retired.perception.speed, 0);
+  const where = { ...retired.car.position };
+  assert.equal(w.aliveCount, control.aliveCount - 1);
+  for (let i = 0; i < 300; i++) {
+    w.step();
+    control.step();
+    assert.deepEqual(w.agentsSnapshot()[0], control.agentsSnapshot()[0], `paso ${i}: auto 0`);
+    assert.deepEqual(w.agentsSnapshot()[2], control.agentsSnapshot()[2], `paso ${i}: auto 2`);
+    assert.deepEqual(retired.car.position, where);
+  }
+  assert.equal(w.retire(1, 'tooSlow'), false, 'ya estaba fuera de carrera');
+  assert.equal(w.retire(7, 'tooSlow'), false, 'no existe');
+});

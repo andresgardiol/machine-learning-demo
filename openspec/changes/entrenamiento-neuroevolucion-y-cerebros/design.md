@@ -435,8 +435,23 @@ generación 1 ya supera 300 metros en las 10 semillas, de modo que el criterio n
 distingue una población que aprende de una al azar; todas las generaciones
 terminaron por tiempo.
 
-Esta medición es anterior a D18 y D19. La tarea 10.5 repite la calibración con
-la regla de los lentos y la velocidad de 20 m/s y anota aquí el resultado.
+Esta medición es anterior a D18 y D19. Se repitió en la tarea 10.5 con la
+regla de los lentos encendida y la velocidad máxima de 20 m/s (el resto igual):
+
+| Semilla | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Mejor distancia (m) | 623,3 | 1193,0 | 1193,6 | 628,6 | 1193,6 | 629,9 | 946,4 | 631,2 | 1185,6 | 624,9 |
+| Generación 1 (m) | 137,8 | 503,9 | 294,9 | 67,2 | 104,3 | 83,1 | 138,1 | 102,7 | 67,2 | 123,7 |
+| Promedio g1 → g20 (m) | 8 → 73 | 11 → 162 | 8 → 210 | 5 → 107 | 6 → 205 | 9 → 79 | 7 → 174 | 4 → 134 | 4 → 130 | 9 → 52 |
+| Salidos por lentos g1 / g20 | 68 / 56 | 70 / 36 | 73 / 34 | 70 / 78 | 69 / 11 | 67 / 68 | 70 / 28 | 73 / 53 | 68 / 24 | 63 / 27 |
+
+El criterio se cumple en 10 de 10 sin cambiar valores por defecto, y ahora
+distingue aprendizaje: en la generación 1 solo una semilla supera los 300
+metros. Cuatro semillas llegan a manejar los 60 segundos completos (unos 1195
+metros a 20 m/s). Cinco se quedan cerca de 630 metros: es el mismo tramo del
+tráfico del escenario (modo "mismo tráfico", semilla de tráfico 1), que en 20
+generaciones no aprenden a pasar. Las generaciones terminaron por tiempo en 156
+casos de 200 y con todos fuera de carrera en 44.
 
 ## Migration Plan
 
@@ -449,5 +464,5 @@ del cambio; los cerebros guardados en el navegador quedarían sin usar.
 - Colores exactos de pesos positivos, negativos y neurona activa. Se eligen al
   implementar el diagrama, cumpliendo la spec: distintos de auto, tráfico y
   sensores, y distinguibles sin depender solo del color.
-- Ventana de la regla de los lentos (5 segundos): se revisa con la
-  calibración de la tarea 10.5.
+- Ventana de la regla de los lentos (5 segundos): la calibración de la tarea
+  10.5 no mostró problemas; se revisa con el uso en la pestaña.

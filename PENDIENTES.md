@@ -6,10 +6,12 @@ propuesta de OpenSpec antes de implementarse.
 
 ## Ideas
 
-- **Cerebro incluido que generaliza.** Los cerebros incluidos de la pestaña 3
-  se entrenan con el mismo tráfico en todas las generaciones. Falta uno
-  entrenado con tráfico nuevo en cada generación, que maneje bien en
-  escenarios que no vio, para contrastarlo con el que memorizó.
+- **Cerebros incluidos elegidos por el dueño.** La app no trae cerebros
+  preentrenados: el mentor entrena y guarda los suyos antes de una charla.
+  Más adelante podrían incluirse dos o tres cerebros elegidos por el dueño
+  (por ejemplo, uno que memorizó su tráfico y otro entrenado con tráfico nuevo
+  en cada generación, que generaliza), exportados desde la app y versionados
+  como datos.
 - **Fitness por vehículos superados.** Una cuarta función de fitness que premie
   la cantidad de vehículos del tráfico que el auto deja atrás, además de la
   distancia, el tiempo sin chocar y la velocidad media.

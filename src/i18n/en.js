@@ -191,6 +191,6 @@ export default {
   'help.drive.sensorRange.why': 'A short range warns about obstacles late; a long one gives more time to react.',
   'help.drive.sensorSpread.what': 'Changes the angle of the fan formed by the rays, from 10 to 360 degrees.',
   'help.drive.sensorSpread.why': 'A narrow fan only looks ahead; a wide one also sees the sides, but with the rays further apart.',
-  'help.drive.resetSettings.what': 'Returns the car, the street, the traffic and the sensors to their initial values: a top speed of 15 m/s, 3 lanes, 50% density and irregularity, and 5 rays of 3 car lengths over 90 degrees.',
+  'help.drive.resetSettings.what': 'Returns the car, the street, the traffic and the sensors to their initial values: a top speed of 20 m/s, 3 lanes, 50% density and irregularity, and 5 rays of 3 car lengths over 90 degrees.',
   'help.drive.resetSettings.why': 'If a setting made the problem unrecognizable, this brings you back to a known starting point.',
 };

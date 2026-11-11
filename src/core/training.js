@@ -32,13 +32,20 @@ import { sensorConfig, DEFAULT_SENSORS } from './sensors.js';
 import { maxSpeedOf } from './car.js';
 import { DEFAULT_TRAFFIC } from './traffic.js';
 import { deriveSeed, randomFor } from './random.js';
-import { ALLOWED_LANES, DEFAULT_LANES, MAX_SPEED, STEP } from './constants.js';
+import { ALLOWED_LANES, DEFAULT_LANES, MAX_SPEED, STEP, TRAFFIC_SPEED } from './constants.js';
 
 /** Semilla del tráfico del escenario, la que se usa en el modo "mismo tráfico". */
 export const SCENARIO_TRAFFIC_SEED = 1;
 
 /** Segundos simulados sin que ningún auto en carrera supere su mayor distancia para dar la generación por terminada. */
 export const STALL_SECONDS = 5;
+
+/**
+ * Regla "eliminar a los lentos" (design.md D18): un auto en carrera que en los últimos SLOW_SECONDS
+ * avanzó lo mismo o menos que el tráfico en ese tiempo queda fuera de carrera con este motivo.
+ */
+export const SLOW_SECONDS = 5;
+export const SLOW_CAUSE = 'tooSlow';
 
 export const END_REASONS = Object.freeze(['allCrashed', 'timeLimit', 'stalled', 'requested']);
 
@@ -52,6 +59,7 @@ export const NEW_TRAINING_KEYS = Object.freeze(['hidden', 'activation', 'sensors
 
 export const DEFAULT_TRAINING_CONFIG = Object.freeze({
   ...DEFAULT_EVOLUTION,
+  slowRule: true,
   trafficMode: 'same',
   lanes: DEFAULT_LANES,
   density: DEFAULT_TRAFFIC.density,
@@ -91,6 +99,7 @@ export function normalizeTrainingConfig(partial = {}) {
   const p = { ...DEFAULT_TRAINING_CONFIG, ...(partial ?? {}) };
   return {
     ...normalizeEvolution(p),
+    slowRule: p.slowRule === undefined ? DEFAULT_TRAINING_CONFIG.slowRule : Boolean(p.slowRule),
     trafficMode: TRAFFIC_MODES.includes(p.trafficMode) ? p.trafficMode : DEFAULT_TRAINING_CONFIG.trafficMode,
     lanes: ALLOWED_LANES.includes(Number(p.lanes)) ? Number(p.lanes) : DEFAULT_LANES,
     density: percent(p.density, DEFAULT_TRAFFIC.density),
@@ -169,6 +178,9 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
   let lastImprovement;
   let leaderIndex;
   let maxSteps;
+  let recent; // progreso de cada agente en los últimos SLOW_STEPS pasos (anillo por agente)
+  const SLOW_STEPS = Math.round(SLOW_SECONDS / STEP);
+  const SLOW_LIMIT = TRAFFIC_SPEED * SLOW_SECONDS;
 
   function startGeneration() {
     const sensors = { ...config.sensors };
@@ -182,6 +194,8 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     lastImprovement = 0;
     leaderIndex = 0;
     maxSteps = Math.round(config.maxDuration / STEP);
+    recent = new Float64Array(networks.length * SLOW_STEPS);
+    world.agents.forEach((a, i) => recent.fill(a.progress, i * SLOW_STEPS, (i + 1) * SLOW_STEPS));
   }
 
   /** Líder: el auto en carrera que más avanzó (se conserva el actual en caso de empate); si no queda ninguno, el que llegó más lejos. */
@@ -247,7 +261,16 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
       const a = agents[i];
       if (a.progress > stats[i].best) lastImprovement = now;
       recordStep(stats[i], a);
-      if (a.crashed) running[i] = false;
+      if (a.crashed) { running[i] = false; continue; }
+      // Eliminar a los lentos: compara con el progreso de hace SLOW_STEPS pasos.
+      const slot = i * SLOW_STEPS + (now % SLOW_STEPS);
+      const before = recent[slot];
+      recent[slot] = a.progress;
+      if (config.slowRule && now >= SLOW_STEPS && a.progress - before <= SLOW_LIMIT) {
+        world.retire(i, SLOW_CAUSE);
+        stats[i].crashed = true;
+        running[i] = false;
+      }
     }
     leaderIndex = findLeader();
     if (world.aliveCount === 0) return finishGeneration('allCrashed');
@@ -282,7 +305,7 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
         evolution: {
           population: config.population, elite: config.elite, selection: config.selection,
           mutationStrength: config.mutationStrength, mutationRate: config.mutationRate,
-          crossover: config.crossover, maxDuration: config.maxDuration,
+          crossover: config.crossover, maxDuration: config.maxDuration, slowRule: config.slowRule,
         },
         scenarios,
       },

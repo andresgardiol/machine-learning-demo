@@ -191,6 +191,6 @@ export default {
   'help.drive.sensorRange.why': 'Un alcance corto avisa tarde de los obstáculos; uno largo da más tiempo para reaccionar.',
   'help.drive.sensorSpread.what': 'Cambia el ángulo del abanico que forman los rayos, de 10 a 360 grados.',
   'help.drive.sensorSpread.why': 'Un abanico angosto mira solo hacia adelante; uno amplio también ve los costados, pero con los rayos más separados.',
-  'help.drive.resetSettings.what': 'Devuelve el auto, la calle, el tráfico y los sensores a sus valores iniciales: velocidad máxima de 15 m/s, 3 carriles, 50 % de densidad e irregularidad, y 5 rayos de 3 largos de auto en 90 grados.',
+  'help.drive.resetSettings.what': 'Devuelve el auto, la calle, el tráfico y los sensores a sus valores iniciales: velocidad máxima de 20 m/s, 3 carriles, 50 % de densidad e irregularidad, y 5 rayos de 3 largos de auto en 90 grados.',
   'help.drive.resetSettings.why': 'Si un ajuste dejó el problema irreconocible, así volvés a un punto de partida conocido.',
 };
