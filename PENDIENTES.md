@@ -36,6 +36,26 @@ propuesta de OpenSpec antes de implementarse.
   3. Revisar también el panel de la pestaña 1 con el mismo criterio, para
      que las dos pestañas compartan la solución (artículo 9).
 
+- **Los autos aprenden a seguir al tráfico, no a pasarlo.** Con la
+  configuración por defecto la población se estabiliza en unos 620 a 650 m:
+  es lo que recorre en 60 s un auto que va detrás de un vehículo, apenas más
+  rápido que el tráfico (10 m/s, contra 20 m/s de máxima del auto). Pasa con
+  el mismo tráfico y con tráfico nuevo en cada generación.
+  - Medido sin navegador el 11 de noviembre de 2026: 60 generaciones,
+    semillas 1 a 4, tráfico nuevo, cada campeón probado en 20 tráficos que no
+    vio. Ninguno de estos ajustes logró campeones que pasen de 900 m en
+    tráfico nuevo: fuerza de mutación 25 %, selección 20 %, fitness por
+    velocidad media (5 de 80 pasan de 900 m, pero 62 de 80 chocan antes de
+    300 m) y la regla de los lentos exigiendo 25 % o 50 % más que el tráfico
+    (empeoran). La tabla completa está en el design.md del cambio
+    `tablero-de-aprendizaje`, decisión D15.
+  - Sin probar todavía: más alcance de los sensores (con 3 largos de auto y
+    10 m/s de diferencia quedan 1,2 s para cambiar de carril), más
+    generaciones, otra forma de red, una función de fitness que premie
+    vehículos superados (ver más abajo) y un tráfico menos denso al empezar.
+  - Importa porque es la promesa de la pestaña: que se vea al auto aprender
+    a manejar, no solo a no chocar. Conviene explorarlo en un cambio propio.
+
 ## Ideas
 
 - **"Ver como la máquina" en la pestaña Entrenar.** Como en la pestaña 1:
