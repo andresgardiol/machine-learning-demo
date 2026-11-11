@@ -327,6 +327,9 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
     activation: choice('activation', ACTIVATIONS, 'train.activation', networkConfirm),
   };
 
+  // Grupos de opciones con rótulos largos: rótulo arriba y opciones a todo el ancho.
+  for (const g of [speeds, ...Object.values(choices)]) g.row.classList.add('setting-stacked');
+
   const pendingNote = () => el('p', { class: 'train-pending', attrs: { role: 'status' }, i18n: 'train.pending' });
   const basicPending = pendingNote();
   const advancedPending = pendingNote();

@@ -370,3 +370,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .library-detail dt { color: var(--color-text-muted); }
 .library-detail dd { margin: 0; }
 .library-scenarios ul { margin: 0; padding-left: 1.1em; }
+
+/* Grupos de opciones con rótulos u opciones largas (pestaña Entrenar): rótulo arriba, opciones a todo el ancho. */
+.setting.setting-stacked { grid-template-columns: minmax(0, 1fr); }
+.setting-stacked .segments { display: flex; flex-wrap: wrap; }
+.setting-stacked .segment { flex: 1 1 auto; }
+.setting[hidden] { display: none; }
+.chart-legend[hidden] { display: none; }

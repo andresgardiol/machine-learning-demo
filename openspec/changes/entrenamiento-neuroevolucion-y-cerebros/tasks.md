@@ -123,10 +123,10 @@
 
 ## 19. Verificación integral
 
-- [ ] 19.1 Ejecutar `npm test` completo; verificar que todas las pruebas pasan
-- [ ] 19.2 Recorrer la pestaña 3 y la biblioteca en inglés (guía, indicadores, curva, diagrama, confirmaciones, misiones, mensajes de error); verificar que no aparece ningún texto en español
-- [ ] 19.4 Recorrer la pestaña 1 completa en el navegador; verificar que se comporta igual que antes del cambio, salvo el texto de guía, el formato de los números y la velocidad máxima por defecto de 20 m/s
-- [ ] 19.5 Verificar a mano en el navegador cada feature visible contra el filtro de entrada (qué concepto hace visible, si se entiende sola, si el mentor puede ocultarla, cómo se vuelve atrás) y contra los escenarios de las specs que no tienen prueba automática
+- [x] 19.1 Ejecutar `npm test` completo; verificar que todas las pruebas pasan
+- [x] 19.2 Recorrer la pestaña 3 y la biblioteca en inglés (guía, indicadores, curva, diagrama, confirmaciones, misiones, mensajes de error); verificar que no aparece ningún texto en español
+- [x] 19.4 Recorrer la pestaña 1 completa en el navegador; verificar que se comporta igual que antes del cambio, salvo el texto de guía, el formato de los números y la velocidad máxima por defecto de 20 m/s
+- [x] 19.5 Verificar a mano en el navegador cada feature visible contra el filtro de entrada (qué concepto hace visible, si se entiende sola, si el mentor puede ocultarla, cómo se vuelve atrás) y contra los escenarios de las specs que no tienen prueba automática
 
 ## Workflow follow-up
 
