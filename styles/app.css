@@ -345,3 +345,28 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .train-pending[hidden] { display: none; }
 .train-basic { margin-top: var(--space-3); }
 .generation-badge { font-variant-numeric: tabular-nums; }
+
+/* Biblioteca de cerebros */
+.library-save { display: grid; gap: var(--space-1); margin: var(--space-2) 0; }
+.library-name-input, .library-rename { width: 100%; padding: var(--space-1) var(--space-2); background: var(--color-surface-2); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius); font: inherit; }
+.library-save-actions, .library-tools, .library-actions { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.tool[aria-disabled="true"], .tool:disabled { opacity: 0.5; cursor: not-allowed; }
+.tool.small { padding: 2px var(--space-2); font-size: 12px; }
+.library-file { display: none; }
+.library-notice { margin: var(--space-2) 0 0; padding: var(--space-1) var(--space-2); border-left: 3px solid var(--color-traffic); background: var(--color-surface-2); font-size: 13px; }
+.library-message { margin: var(--space-2) 0 0; font-size: 13px; }
+.library-notice[hidden], .library-message[hidden], .library-empty[hidden] { display: none; }
+.library-empty { font-size: 13px; }
+.library-list { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.library-item { padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
+.library-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
+.library-name { font-weight: 600; overflow-wrap: anywhere; }
+.library-origin { font-size: 11px; color: var(--color-text-muted); white-space: nowrap; }
+.library-meta { margin: 2px 0 var(--space-1); font-size: 12px; color: var(--color-text-muted); }
+.library-more { margin-top: var(--space-1); font-size: 12px; }
+.library-more > summary { cursor: pointer; color: var(--color-text-muted); }
+.library-detail { margin: var(--space-1) 0 0; display: grid; gap: 2px; }
+.library-detail-row { display: grid; grid-template-columns: 9em 1fr; gap: var(--space-2); }
+.library-detail dt { color: var(--color-text-muted); }
+.library-detail dd { margin: 0; }
+.library-scenarios ul { margin: 0; padding-left: 1.1em; }

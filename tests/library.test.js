@@ -447,3 +447,12 @@ test('empezar un entrenamiento nuevo pasa el autoguardado del anterior a "entren
   library.beginTraining('d');
   assert.deepEqual(autosaves(library), [['previous', 1]]);
 });
+
+test('orden de la lista: primero los guardados (el más reciente primero) y después los autoguardados', () => {
+  const { library, clock } = setup();
+  library.autosave(brain({ generations: 3 }), { session: 'a' });
+  library.save(brain({ seed: 1 }), { name: 'Viejo' });
+  clock.advance(1000);
+  library.save(brain({ seed: 2 }), { name: 'Nuevo' });
+  assert.deepEqual(library.list().map((e) => [e.origin, e.brain.name]), [['saved', 'Nuevo'], ['saved', 'Viejo'], ['autosave', 'x']]);
+});

@@ -109,12 +109,12 @@
 
 ## 17. Biblioteca en la pestaña
 
-- [ ] 17.1 Crear `src/ui/library-view.js` con la lista de cerebros (resumen, origen y detalle desplegable); verificar en el navegador los dos escenarios de "Lista de cerebros" y "Biblioteca al abrir"
-- [ ] 17.2 Implementar guardar el campeón: deshabilitado sin campeón, nombre sugerido y las dos acciones al continuar un cerebro guardado; verificar en el navegador los tres escenarios de "Guardar el campeón"
-- [ ] 17.3 Implementar renombrar, eliminar con confirmación, exportar e importar con `src/ui/files.js` y los mensajes de error; verificar en el navegador los escenarios de "Renombrar", "Eliminar con confirmación", "Exportar" e "Importar", incluida la ida y vuelta de un archivo real
-- [ ] 17.4 Implementar seguir entrenando un cerebro; verificar en el navegador los tres escenarios de "Seguir entrenando un cerebro"
-- [ ] 17.5 Conectar el autoguardado (fin de generación, pausa, salida de la pestaña, página oculta) y el aviso de almacenamiento no disponible; verificar en el navegador "Recarga de la página" y "Reinicio del entrenamiento"
-- [ ] 17.6 Escribir en español e inglés todos los rótulos, resúmenes, confirmaciones y mensajes de error de la biblioteca; verificar en el navegador "Biblioteca en inglés" y que la paridad pasa
+- [x] 17.1 Crear `src/ui/library-view.js` con la lista de cerebros (resumen, origen y detalle desplegable); verificar en el navegador los dos escenarios de "Lista de cerebros" y "Biblioteca al abrir"
+- [x] 17.2 Implementar guardar el campeón: deshabilitado sin campeón, nombre sugerido y las dos acciones al continuar un cerebro guardado; verificar en el navegador los tres escenarios de "Guardar el campeón"
+- [x] 17.3 Implementar renombrar, eliminar con confirmación, exportar e importar con `src/ui/files.js` y los mensajes de error; verificar en el navegador los escenarios de "Renombrar", "Eliminar con confirmación", "Exportar" e "Importar", incluida la ida y vuelta de un archivo real
+- [x] 17.4 Implementar seguir entrenando un cerebro; verificar en el navegador los tres escenarios de "Seguir entrenando un cerebro"
+- [x] 17.5 Conectar el autoguardado (fin de generación, pausa, salida de la pestaña, página oculta) y el aviso de almacenamiento no disponible; verificar en el navegador "Recarga de la página" y "Reinicio del entrenamiento"
+- [x] 17.6 Escribir en español e inglés todos los rótulos, resúmenes, confirmaciones y mensajes de error de la biblioteca; verificar en el navegador "Biblioteca en inglés" y que la paridad pasa
 
 ## 18. Tooltips y textos de la pestaña 3
 

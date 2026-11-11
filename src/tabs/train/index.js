@@ -13,18 +13,19 @@
 import { createTraining, NEW_TRAINING_KEYS } from '../../core/training.js';
 import { FITNESS_KINDS } from '../../core/evolution.js';
 import { ACTIVATIONS } from '../../core/network.js';
-import { TRAFFIC_MODES } from '../../core/brain.js';
+import { TRAFFIC_MODES, copyBrain } from '../../core/brain.js';
 import { ALLOWED_LANES } from '../../core/constants.js';
 import { createStageView } from '../../render/view.js';
 import { createNetworkView } from '../../render/network-view.js';
 import { createFitnessChart } from '../../ui/chart.js';
 import { createLoop, SPEEDS } from '../../ui/loop.js';
+import { createLibraryView } from '../../ui/library-view.js';
 import { el } from '../../ui/dom.js';
 import {
   button, switchButton, sliderRow, optionGroup, createTextSetter, inlineConfirm,
 } from '../../ui/controls.js';
 import {
-  DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges,
+  DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges, adoptBrain,
 } from './settings.js';
 import { createTrainSession, indicators } from './session.js';
 import { shortcutFor, toggleTurbo } from './shortcuts.js';
@@ -76,7 +77,9 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
   if (!state) {
     const settings = normalizeSettings({ ...DEFAULT_SETTINGS, maxSpeed: store?.get().carSpeed ?? DEFAULT_SETTINGS.maxSpeed });
     state = {
-      settings, seed: DEFAULT_SEED, brain: null, paused: false,
+      settings, seed: DEFAULT_SEED, paused: false,
+      brain: null, // cerebro desde el que se continúa (copia; el de la biblioteca no cambia)
+      brainSource: null, // identificador del cerebro guardado del que vino, para ofrecer actualizarlo
       training: createTraining({ seed: DEFAULT_SEED, config: trainingConfig(settings) }),
       session: newSession(),
       missions: createTrainSession({ completed: completedMissions }),
@@ -177,6 +180,44 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
   function resetSettings() {
     const keep = { speed: state.settings.speed, showSensors: state.settings.showSensors, showNetwork: state.settings.showNetwork, showChart: state.settings.showChart };
     applySettings({ ...DEFAULT_SETTINGS, ...keep }, resetConfirm);
+  }
+
+  // --- Biblioteca: guardar el campeón y seguir entrenando ----------------------------------------
+  /** Cerebro guardado del que viene el entrenamiento en curso, si sigue en la biblioteca. */
+  function sourceEntry() {
+    if (!state.brainSource || !library) return null;
+    const e = library.get(state.brainSource);
+    return e && e.origin === 'saved' ? e : null;
+  }
+
+  function championBrain() {
+    return state.training.brain({ id: 'champion', name: 'champion', now: new Date().toISOString() });
+  }
+
+  function saveChampion({ update = false } = {}) {
+    const brain = championBrain();
+    if (!brain || !library) return;
+    const source = sourceEntry();
+    const r = update && source
+      ? library.update(source.brain.id, brain)
+      : library.save(brain, { name: nameInput.value, baseName: i18n.t('library.defaultName') });
+    if (!r.ok) { libraryView.showMessage('library.error.damaged'); return; }
+    if (!update) state.brainSource = r.brain.id; // lo que se siga entrenando se puede actualizar en este cerebro
+    nameInput.value = '';
+    state.missions.brainSaved();
+    libraryView.showMessage(r.warning ? `library.status.${r.warning}` : (update ? 'library.updated' : 'library.saved'), { name: r.brain.name });
+    sync();
+  }
+
+  /** Seguir entrenando un cerebro: adopta su red y sus sensores y empieza un entrenamiento desde él. */
+  function continueFrom(entry, confirm) {
+    withProgressCheck(confirm, 'train.confirm.continue', () => {
+      state.brain = copyBrain(entry.brain);
+      state.brainSource = entry.origin === 'saved' ? entry.brain.id : null;
+      state.settings = adoptBrain(state.settings, entry.brain);
+      startTraining();
+      libraryView.showMessage('library.continuing', { name: entry.brain.name });
+    });
   }
 
   // --- Panel: guía y controles ------------------------------------------------------------------
@@ -329,11 +370,37 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
   chartSection.addEventListener('toggle', () => { state.settings = { ...state.settings, showChart: chartSection.open }; });
   networkSection.addEventListener('toggle', () => { state.settings = { ...state.settings, showNetwork: networkSection.open }; });
 
+  // Biblioteca de cerebros (plegada al abrir): guardar el campeón y la lista.
+  const nameInput = el('input', {
+    class: 'library-name-input', help: 'train.save.name',
+    attrs: { type: 'text', maxlength: 40, id: 'train-save-name' },
+    i18nAttr: 'aria-label:train.save.name',
+    on: { keydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); if (state.training.champion) saveChampion(); } } },
+  });
+  const saveButton = el('button', {
+    class: 'tool primary', attrs: { type: 'button' },
+    on: { click: () => { if (state.training.champion) saveChampion(); } },
+  });
+  const updateButton = el('button', {
+    class: 'tool', help: 'train.save.update', attrs: { type: 'button' },
+    on: { click: () => { if (state.training.champion) saveChampion({ update: true }); } },
+  });
+  const libraryZone = el('div', { class: 'library-zone' });
+  const librarySection = el('details', { class: 'train-section train-library' },
+    el('summary', { i18n: 'library.title', help: 'library.title' }),
+    el('div', { class: 'library-save' },
+      el('label', { class: 'setting-label', i18n: 'train.save.title', attrs: { for: 'train-save-name' } }),
+      nameInput, el('div', { class: 'library-save-actions' }, saveButton, updateButton)),
+    libraryZone);
+
   panel.append(
     el('h1', { class: 'panel-title', i18n: 'train.title' }),
     intro, toolbar, toolbarConfirm.node, speeds.row, factor, statsList, missions,
     basic, el('div', { class: 'switch-row' }, sensorsSwitch),
-    chartSection, networkSection, advanced);
+    chartSection, networkSection, librarySection, advanced);
+  const libraryView = library
+    ? createLibraryView({ container: libraryZone, library, i18n, onContinue: continueFrom })
+    : { showMessage() {}, dispose() {} };
 
   const chart = createFitnessChart({ container: chartZone, i18n });
   const networkView = createNetworkView({ container: networkZone, i18n });
@@ -377,6 +444,19 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
       else setText(r.status, `train.mission.progress.${m.unit}`, { value: Math.floor(m.progress), goal: m.goal });
       const width = `${Math.round((m.done ? 1 : m.progress / m.goal) * 100)}%`;
       if (r.fill.style.width !== width) r.fill.style.width = width;
+    }
+
+    // Guardar el campeón: deshabilitado sin campeón; al continuar un cerebro guardado, actualizar o guardar como nuevo.
+    const hasChampion = t.champion !== null;
+    const source = sourceEntry();
+    saveButton.setAttribute('aria-disabled', String(!hasChampion));
+    saveButton.dataset.help = hasChampion ? 'train.save' : 'train.save.disabled';
+    setText(saveButton, source ? 'train.save.asNew' : 'train.save');
+    updateButton.hidden = !source;
+    updateButton.setAttribute('aria-disabled', String(!hasChampion));
+    if (source) setText(updateButton, 'train.save.updateNamed', { name: source.brain.name });
+    if (nameInput.placeholder !== (library ? library.suggestName(i18n.t('library.defaultName')) : '')) {
+      nameInput.placeholder = library ? library.suggestName(i18n.t('library.defaultName')) : '';
     }
 
     // Configuración
@@ -458,6 +538,11 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
     if (panel.querySelector('.inline-confirm:not([hidden])')) return;
     if (e.detail > 0 && e.target?.closest?.('button, input, summary, a, label')) focusStage();
   }
+  // Página oculta o cerrándose (recarga incluida): el autoguardado pendiente se escribe ya.
+  const onVisibility = () => { if (document.hidden) library?.flush(); };
+  const onPageHide = () => library?.flush();
+  document.addEventListener('visibilitychange', onVisibility);
+  window.addEventListener('pagehide', onPageHide);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
   panel.addEventListener('click', onClick);
@@ -477,15 +562,18 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
     get paused() { return state.paused; },
     get session() { return state.session; },
     get missions() { return state.missions; },
-    togglePause, nextGeneration, restart, newPopulation, setSpeed, applySettings, resetSettings,
+    togglePause, nextGeneration, restart, newPopulation, setSpeed, applySettings, resetSettings, saveChampion, continueFrom,
     unmount() {
       library?.flush();
       loop.dispose();
       offLanguage();
       offGeneration();
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', onPageHide);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       panel.removeEventListener('click', onClick);
+      libraryView.dispose();
       stage.removeEventListener('click', onClick);
       toolbarConfirm.dispose();
       networkConfirm.dispose();

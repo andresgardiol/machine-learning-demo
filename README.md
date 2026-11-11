@@ -72,7 +72,7 @@ src/
   input/         keyboard.js: controlador de teclado (adapta eventos al contrato)
   render/        camera.js y view.js: cámara y dibujo del escenario en canvas;
                  network-view.js: diagrama de una red neuronal
-  ui/            app, dom, store, loop, layout, i18n, tooltips, audit, preferences, controls, library, chart
+  ui/            app, dom, store, loop, layout, i18n, tooltips, audit, preferences, controls, library, library-view, files, chart, shortcuts
   i18n/          es.js, en.js
   tabs/drive/    pestaña 1: index (composición), session, settings, shortcuts
   tabs/train/    pestaña 3: index (composición), settings, session, shortcuts
@@ -263,6 +263,7 @@ Piezas de la interfaz:
 - `ui/chart.js`: curva de fitness en SVG (mejor y promedio por generación). La escala y los puntos salen de `chartModel`, una función pura; al cambiar la función de fitness, la curva empieza de nuevo.
 - `ui/library.js`: biblioteca de cerebros, una sola para toda la app (`ctx.library`), sin DOM: almacenamiento, reloj e identificadores inyectados. Guarda, actualiza, renombra, elimina, importa y exporta cerebros, y autoguarda el campeón como máximo una vez por segundo; si el navegador no permite guardar, sigue en memoria y lo informa en `status`.
 - `tabs/train/`: la pestaña 3, «Entrenar». `index.js` compone entrenamiento, vista y bucle, y conserva el entrenamiento entre montajes; `settings.js` define los ajustes, sus rangos y su grupo (al instante, próxima generación o entrenamiento nuevo); `session.js`, los indicadores y las misiones, y `shortcuts.js`, los atajos (barra espaciadora pausa, T alterna la velocidad máxima, N pasa de generación). Los cambios que piden un entrenamiento nuevo se confirman en línea si ya terminó alguna generación. La protección común de los atajos (campos de texto, controles enfocados con el teclado, diálogos) está en `ui/shortcuts.js`.
+- `ui/library-view.js` y `ui/files.js`: la biblioteca en pantalla. Cada cerebro muestra su nombre, su origen (guardado o autoguardado), generaciones, sensores, forma de la red y mejor fitness, con el detalle desplegable (`brainSummary` y `brainDetail` son puras). Acciones: seguir entrenando, exportar (descarga un archivo con su nombre), renombrar y eliminar con confirmación; importar desde un archivo, con los errores en lenguaje llano.
 - `ui/app.js` y `ui/layout.js`: el borde entre escenario y panel se arrastra (o se mueve con las flechas) para cambiar el ancho del panel, entre 300 px y la mitad de la ventana; se recuerda como preferencia.
 - `ui/i18n.js` e `i18n/`: textos por clave (`data-i18n`); los parámetros numéricos se escriben según el idioma (coma decimal en español, punto en inglés, sin separador de miles); `ui/tooltips.js`: ayuda "qué hace / por qué importa" por clave (`data-help`).
 

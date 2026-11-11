@@ -163,15 +163,15 @@ export function createLibrary({ storage = null, clock, newId, schedule = (fn, ms
 
   const library = {
     /**
-     * Todos los cerebros: autoguardados (en curso y anterior) y guardados, estos del más reciente al
-     * más antiguo. Cada elemento: { origin: 'autosave'|'saved', brain, slot? }.
+     * Todos los cerebros: primero los guardados, del más reciente al más antiguo (el que se acaba de
+     * guardar queda primero), y después los autoguardados (en curso y anterior).
+     * Cada elemento: { origin: 'saved'|'autosave', brain, slot? }.
      */
     list() {
-      const out = [];
+      const out = [...saved].sort(byRecent).map((b) => ({ origin: 'saved', brain: b }));
       for (const slot of ['current', 'previous']) {
         if (autosaves[slot]) out.push({ origin: 'autosave', slot, brain: autosaves[slot].brain });
       }
-      for (const b of [...saved].sort(byRecent)) out.push({ origin: 'saved', brain: b });
       return out;
     },
 
