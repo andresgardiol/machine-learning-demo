@@ -54,11 +54,11 @@
 
 ## 9. Biblioteca de cerebros
 
-- [ ] 9.1 Crear `src/ui/library.js` con almacenamiento, reloj e identificadores inyectados: listar, guardar con las reglas de nombre, actualizar, renombrar y eliminar; verificar con pruebas los escenarios de "Nombre propio", "Renombrar", "Eliminar con confirmación" (la parte de datos) y "Actualizar un cerebro guardado"
-- [ ] 9.2 Implementar la persistencia entre visitas, el orden por fecha y la tolerancia a almacenamiento ausente o lleno; verificar con pruebas los tres escenarios de "Biblioteca recordada" usando almacenamientos falsos que fallan
-- [ ] 9.3 Implementar importar desde texto y exportar a texto; verificar con pruebas los cuatro escenarios de "Importar" y que lo exportado contiene todo el cerebro
-- [ ] 9.4 Implementar el autoguardado con su límite de una escritura por segundo y la rotación a "entrenamiento anterior"; verificar con pruebas los tres escenarios de "Autoguardado" usando un reloj falso
-- [ ] 9.5 Implementar los cerebros incluidos dentro de la biblioteca como protegidos; verificar con pruebas que no se pueden eliminar, renombrar ni actualizar y que aparecen sin haber guardado nada
+- [x] 9.1 Crear `src/ui/library.js` con almacenamiento, reloj e identificadores inyectados: listar, guardar con las reglas de nombre, actualizar, renombrar y eliminar; verificar con pruebas los escenarios de "Nombre propio", "Renombrar", "Eliminar con confirmación" (la parte de datos) y "Actualizar un cerebro guardado"
+- [x] 9.2 Implementar la persistencia entre visitas, el orden por fecha y la tolerancia a almacenamiento ausente o lleno; verificar con pruebas los tres escenarios de "Biblioteca recordada" usando almacenamientos falsos que fallan
+- [x] 9.3 Implementar importar desde texto y exportar a texto; verificar con pruebas los cuatro escenarios de "Importar" y que lo exportado contiene todo el cerebro
+- [x] 9.4 Implementar el autoguardado con su límite de una escritura por segundo y la rotación a "entrenamiento anterior"; verificar con pruebas los tres escenarios de "Autoguardado" usando un reloj falso
+- [x] 9.5 Implementar los cerebros incluidos dentro de la biblioteca como protegidos; verificar con pruebas que no se pueden eliminar, renombrar ni actualizar y que aparecen sin haber guardado nada
 
 ## 10. Cerebros incluidos
 
