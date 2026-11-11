@@ -248,7 +248,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .switch-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .perception-block[hidden] { display: none; }
 .sensor-bars {
-  display: grid; grid-template-columns: repeat(var(--bars, 5), minmax(0, 1fr)); gap: 2px;
+  display: grid; grid-template-columns: repeat(var(--bars, 5), minmax(0, 1fr)); gap: var(--bar-gap, 2px);
   height: 64px; padding: var(--space-1); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius);
 }
 .sensor-bar { position: relative; display: block; background: var(--color-surface-2); border-radius: 2px; overflow: hidden; }

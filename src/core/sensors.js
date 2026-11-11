@@ -3,8 +3,8 @@ import { add, scale, fromAngle, distance, segmentIntersection } from './geometry
 import { CAR_LENGTH } from './constants.js';
 
 export const SENSOR_LIMITS = Object.freeze({
-  count: Object.freeze({ min: 1, max: 30 }),
-  range: Object.freeze({ min: 1, max: 10 }), // largos de auto
+  count: Object.freeze({ min: 1, max: 100 }),
+  range: Object.freeze({ min: 1, max: 25 }), // largos de auto
   spread: Object.freeze({ min: 10, max: 360 }), // grados
 });
 

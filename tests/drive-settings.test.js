@@ -42,8 +42,8 @@ test('cambiar la cantidad de sensores a nueve da nueve lecturas', () => {
 });
 
 test('ajustes fuera de rango se ajustan al límite y los carriles no admitidos vuelven a 3', () => {
-  assert.deepEqual(normalizeSettings({ maxSpeed: 99, lanes: 7, density: 140, irregularity: -5, sensorCount: 50, sensorRange: 0, sensorSpread: 400 }), {
-    lanes: 3, maxSpeed: 40, density: 100, irregularity: 0, sensorCount: 30, sensorRange: 1, sensorSpread: 360,
+  assert.deepEqual(normalizeSettings({ maxSpeed: 99, lanes: 7, density: 140, irregularity: -5, sensorCount: 150, sensorRange: 0, sensorSpread: 400 }), {
+    lanes: 3, maxSpeed: 40, density: 100, irregularity: 0, sensorCount: 100, sensorRange: 1, sensorSpread: 360,
   });
   assert.equal(normalizeSettings({ maxSpeed: 3 }).maxSpeed, 12);
 });
@@ -51,7 +51,7 @@ test('ajustes fuera de rango se ajustan al límite y los carriles no admitidos v
 test('los deslizadores cubren los rangos de la spec', () => {
   const byKey = Object.fromEntries(SLIDERS.map((s) => [s.key, [s.min, s.max]]));
   assert.deepEqual(byKey, {
-    maxSpeed: [12, 40], density: [0, 100], irregularity: [0, 100], sensorCount: [1, 30], sensorRange: [1, 10], sensorSpread: [10, 360],
+    maxSpeed: [12, 40], density: [0, 100], irregularity: [0, 100], sensorCount: [1, 100], sensorRange: [1, 25], sensorSpread: [10, 360],
   });
 });
 

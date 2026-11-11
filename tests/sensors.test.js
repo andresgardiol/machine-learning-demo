@@ -88,16 +88,17 @@ test('valores por defecto: 5 rayos, 3 largos de auto, 90 grados', () => {
 });
 
 test('valor fuera de rango se ajusta al límite más cercano', () => {
-  assert.equal(sensorConfig({ count: 50 }).count, 30);
+  assert.equal(sensorConfig({ count: 150 }).count, 100);
+  assert.equal(sensorConfig({ count: 50 }).count, 50, '50 rayos ya están dentro del rango');
   assert.equal(sensorConfig({ count: 0 }).count, 1);
-  assert.equal(sensorConfig({ range: 99 }).range, 10);
+  assert.equal(sensorConfig({ range: 99 }).range, 25);
   assert.equal(sensorConfig({ range: 0 }).range, 1);
   assert.equal(sensorConfig({ spread: 720 }).spread, 360);
   assert.equal(sensorConfig({ spread: 1 }).spread, 10);
   assert.equal(sensorConfig({ count: 'abc' }).count, 5);
-  const car = createCar({ sensors: { count: 50 } });
-  assert.equal(car.sensors.count, 30);
-  assert.equal(configureSensors(createCar(), { count: 50 }).sensors.count, 30);
+  const car = createCar({ sensors: { count: 150 } });
+  assert.equal(car.sensors.count, 100);
+  assert.equal(configureSensors(createCar(), { count: 150 }).sensors.count, 100);
 });
 
 test('restablecer devuelve 5 rayos, 3 largos y 90 grados', () => {

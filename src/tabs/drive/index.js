@@ -130,6 +130,8 @@ export function mount({ stage, panel, i18n, store, reportError }) {
     barFills = Array.from({ length: count }, () => el('span', { class: 'sensor-fill' }));
     bars.replaceChildren(...barFills.map((f) => el('span', { class: 'sensor-bar' }, f)));
     bars.style.setProperty('--bars', String(count));
+    // Con muchos rayos la separación se angosta para que cada barra conserve ancho visible.
+    bars.style.setProperty('--bar-gap', count > 60 ? '0px' : count > 30 ? '1px' : '2px');
   }
   buildBars(world.perception.sensors.length);
   const perceptionCaption = el('p', { class: 'guide caption', i18n: 'drive.perception.caption' });

@@ -63,7 +63,7 @@ izquierda del auto al más a la derecha.
 - **THEN** las lecturas mayores que 0 están al principio de la lista
 
 ### Requirement: Configuración de los sensores
-Los sensores SHALL admitir una cantidad de 1 a 30 rayos, un alcance de 1 a 10
+Los sensores SHALL admitir una cantidad de 1 a 100 rayos, un alcance de 1 a 25
 largos de auto y una apertura de 10 a 360 grados. Los valores por defecto SHALL
 ser 5 rayos, 3 largos de auto y 90 grados. Un valor fuera de rango MUST
 ajustarse al límite válido más cercano.
@@ -73,8 +73,8 @@ ajustarse al límite válido más cercano.
 - **THEN** tiene 5 rayos, con alcance de 3 largos de auto y apertura de 90 grados
 
 #### Scenario: Valor fuera de rango
-- **WHEN** se pide una cantidad de 50 rayos
-- **THEN** el auto queda con 30 rayos
+- **WHEN** se pide una cantidad de 150 rayos
+- **THEN** el auto queda con 100 rayos
 
 #### Scenario: Restablecer
 - **WHEN** se restablece la configuración de los sensores
