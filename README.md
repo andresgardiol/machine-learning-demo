@@ -72,7 +72,7 @@ src/
   input/         keyboard.js: controlador de teclado (adapta eventos al contrato)
   render/        camera.js y view.js: cámara y dibujo del escenario en canvas;
                  network-view.js: diagrama de una red neuronal
-  ui/            app, dom, store, loop, layout, i18n, tooltips, audit, preferences, controls, library
+  ui/            app, dom, store, loop, layout, i18n, tooltips, audit, preferences, controls, library, chart
   i18n/          es.js, en.js
   tabs/drive/    pestaña 1: index (composición), session, settings, shortcuts
   tabs/train/    pestaña 3: index (composición), settings
@@ -260,6 +260,7 @@ Piezas de la interfaz:
 - `input/keyboard.js`: flechas y W A S D; ignora campos de texto y suelta todo al perder el foco.
 - `tabs/drive/`: la pestaña 1, «El problema». `index.js` compone mundo, teclado, vista y panel; `session.js` (indicadores del intento y misiones), `settings.js` (configuración avanzada) y `shortcuts.js` (R reinicia, barra espaciadora pausa) no usan el DOM y se prueban con `node --test`.
 - `render/network-view.js`: diagrama de una red en canvas. La disposición (`layoutNetwork`: columnas, nodos y rótulos que se resumen con muchas entradas) es una función pura; los pesos y sesgos se ven por signo (color y trazo continuo o punteado) y magnitud (grosor y opacidad), y la actividad por el relleno de cada nodo. Solo muestra: no modifica la red.
+- `ui/chart.js`: curva de fitness en SVG (mejor y promedio por generación). La escala y los puntos salen de `chartModel`, una función pura; al cambiar la función de fitness, la curva empieza de nuevo.
 - `ui/library.js`: biblioteca de cerebros, una sola para toda la app (`ctx.library`), sin DOM: almacenamiento, reloj e identificadores inyectados. Guarda, actualiza, renombra, elimina, importa y exporta cerebros, y autoguarda el campeón como máximo una vez por segundo; si el navegador no permite guardar, sigue en memoria y lo informa en `status`.
 - `tabs/train/`: la pestaña 3, «Entrenar». `index.js` compone entrenamiento, vista y bucle, y conserva el entrenamiento entre montajes; `settings.js` define los ajustes, sus rangos y su grupo (al instante, próxima generación o entrenamiento nuevo).
 - `ui/app.js` y `ui/layout.js`: el borde entre escenario y panel se arrastra (o se mueve con las flechas) para cambiar el ancho del panel, entre 300 px y la mitad de la ventana; se recuerda como preferencia.

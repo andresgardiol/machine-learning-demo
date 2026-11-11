@@ -92,8 +92,8 @@
 
 ## 15. Curva de fitness
 
-- [ ] 15.1 Crear en `src/ui/chart.js` la escala y los puntos de la curva como función pura; verificar con pruebas una curva vacía, una de un punto, una de cinco y una con todos los valores iguales
-- [ ] 15.2 Dibujar la curva en SVG con leyenda, ejes con unidad, texto de curva vacía, valores de la generación señalada y reinicio al cambiar la función de fitness, con sus textos en español e inglés; verificar en el navegador los cuatro escenarios de "Curva de fitness" y que la paridad pasa
+- [x] 15.1 Crear en `src/ui/chart.js` la escala y los puntos de la curva como función pura; verificar con pruebas una curva vacía, una de un punto, una de cinco y una con todos los valores iguales
+- [x] 15.2 Dibujar la curva en SVG con leyenda, ejes con unidad, texto de curva vacía, valores de la generación señalada y reinicio al cambiar la función de fitness, con sus textos en español e inglés; verificar en el navegador los cuatro escenarios de "Curva de fitness" y que la paridad pasa
 
 ## 16. Pestaña 3: panel
 

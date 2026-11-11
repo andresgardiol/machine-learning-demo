@@ -8,6 +8,7 @@
 import { createTraining } from '../../core/training.js';
 import { createStageView } from '../../render/view.js';
 import { createNetworkView } from '../../render/network-view.js';
+import { createFitnessChart } from '../../ui/chart.js';
 import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
 import { createTextSetter } from '../../ui/controls.js';
@@ -55,9 +56,17 @@ export function mount({ stage, panel, i18n, store, reportError }) {
     networkZone, legend,
     el('p', { class: 'network-note muted', i18n: 'train.network.legend.note' }));
 
+  // Curva de fitness: se actualiza al terminar cada generación.
+  const chartZone = el('div', { class: 'chart-zone' });
+  const chartSection = el('details', { class: 'train-section train-chart', attrs: { open: true } },
+    el('summary', { i18n: 'train.chart.title', help: 'train.chart' }), chartZone);
+
   panel.append(
     el('h1', { class: 'panel-title', i18n: 'train.title' }),
-    generation, networkSection);
+    generation, chartSection, networkSection);
+  const chart = createFitnessChart({ container: chartZone, i18n });
+  chart.update(state.training.history);
+  const offGeneration = state.training.onGeneration(() => chart.update(state.training.history));
   const networkView = createNetworkView({ container: networkZone, i18n });
 
   /** Diagrama de la red del líder con lo que percibe ahora; no se dibuja con la sección plegada. */
@@ -89,17 +98,19 @@ export function mount({ stage, panel, i18n, store, reportError }) {
     speed: state.settings.speed,
   });
 
-  const offLanguage = i18n.onChange(() => sync());
+  const offLanguage = i18n.onChange(() => { sync(); chart.refresh(); });
   sync();
   loop.start();
 
   return {
-    view, loop, networkView,
+    view, loop, networkView, chart,
     get training() { return state.training; },
     get settings() { return { ...state.settings }; },
     unmount() {
       loop.dispose();
       offLanguage();
+      offGeneration();
+      chart.dispose();
       networkView.dispose();
       view.dispose();
     },

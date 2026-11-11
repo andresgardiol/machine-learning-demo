@@ -24,6 +24,9 @@
   --color-weight-negative: #ff6fb5; /* pesos y sesgos negativos: línea punteada */
   --color-neuron-active: #f5f7fa; /* relleno de una neurona activa */
   --color-neuron: #5b6677; /* contorno de una neurona sin sesgo (entradas) */
+  /* Curva de fitness (las series también se distinguen por trazo y marca) */
+  --color-chart-best: #eef1f5; /* mejor: línea continua con círculos */
+  --color-chart-average: #8b95a5; /* promedio: línea punteada con cuadrados */
   /* Detalles de los vehículos (solo cosméticos, dentro de su contorno) */
   --color-car-glass: #1d2b3a;
   --color-headlight: #fff3c4;
