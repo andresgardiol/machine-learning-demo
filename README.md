@@ -243,7 +243,7 @@ Para probar sin teclado: `constantController({ forward: true })` en `core/contro
 Piezas de la interfaz:
 
 - `ui/controls.js`: componentes de panel compartidos (botón, interruptor, fila con deslizador, grupo de opciones, texto variable) y la confirmación en línea, cuya lógica (`createConfirmation`) no usa el DOM.
-- `ui/loop.js`: bucle de paso fijo (acumula tiempo real, máximo 5 pasos por cuadro, se detiene con la página oculta).
+- `ui/loop.js`: bucle de paso fijo (acumula tiempo real, máximo 5 pasos por cuadro, se detiene con la página oculta). `setSpeed(1 | 2 | 4 | 8 | 'max')` acelera la simulación sin cambiar su resultado: con un factor fijo se multiplican el tiempo acumulado y el tope de pasos; con `'max'` se ejecutan pasos hasta agotar 12 ms por cuadro (al menos uno), y `achievedFactor` dice cuántas veces la velocidad real se logra. El mismo presupuesto limita los factores fijos en un equipo lento.
 - `render/camera.js` y `render/view.js`: la calle recta se muestra vertical (se avanza hacia arriba); cámara que sigue al auto (zoom con rueda y botones, paneo arrastrando, tecla V para volver) y dibujo de pista, tráfico, auto y rayos con los colores de `styles/tokens.css`.
 - `input/keyboard.js`: flechas y W A S D; ignora campos de texto y suelta todo al perder el foco.
 - `tabs/drive/`: la pestaña 1, «El problema». `index.js` compone mundo, teclado, vista y panel; `session.js` (indicadores del intento y misiones), `settings.js` (configuración avanzada) y `shortcuts.js` (R reinicia, barra espaciadora pausa) no usan el DOM y se prueban con `node --test`.

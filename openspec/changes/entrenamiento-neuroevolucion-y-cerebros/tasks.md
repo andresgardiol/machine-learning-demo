@@ -69,8 +69,8 @@
 
 ## 11. Bucle con velocidades
 
-- [ ] 11.1 Agregar a `src/ui/loop.js` los factores 1, 2, 4 y 8; verificar con pruebas que seiscientos pasos a velocidad 8 dejan el mismo estado que a velocidad normal y que las pruebas existentes del bucle pasan sin modificarse
-- [ ] 11.2 Agregar la velocidad máxima con presupuesto de tiempo por cuadro y el factor logrado, con el reloj inyectado; verificar con pruebas que ejecuta al menos un paso por cuadro, que respeta el presupuesto, que informa el factor y que se detiene con la página oculta
+- [x] 11.1 Agregar a `src/ui/loop.js` los factores 1, 2, 4 y 8; verificar con pruebas que seiscientos pasos a velocidad 8 dejan el mismo estado que a velocidad normal y que las pruebas existentes del bucle pasan sin modificarse
+- [x] 11.2 Agregar la velocidad máxima con presupuesto de tiempo por cuadro y el factor logrado, con el reloj inyectado; verificar con pruebas que ejecuta al menos un paso por cuadro, que respeta el presupuesto, que informa el factor y que se detiene con la página oculta
 
 ## 12. Pestaña 3: esqueleto en marcha
 
