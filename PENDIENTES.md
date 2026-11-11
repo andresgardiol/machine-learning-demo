@@ -4,7 +4,49 @@ Ideas y detalles anotados para más adelante. No son parte de ningún cambio en
 curso: cada uno pasa por el filtro de entrada de la constitución y por su
 propuesta de OpenSpec antes de implementarse.
 
+## Próximo
+
+- **Revisar la UX del panel de la pestaña Entrenar.** El panel derecho tiene
+  demasiada información y no está bien distribuida, lo que va contra el ADN
+  del proyecto (artículos 2, 4 y 6: mostrar antes que explicar, un concepto
+  por vez y dos públicos). Lo que se ve hoy, de las capturas del dueño:
+  - todo va en una sola columna larga: guía, cuatro botones, velocidad,
+    cinco indicadores, misiones, configuración, sensores, curva, red,
+    biblioteca y avanzado, y lo importante queda fuera de la vista;
+  - el indicador "Terminó porque" ocupa cuatro renglones con letra grande
+    ("todos quedaron fuera de carrera");
+  - en la biblioteca, el nombre "Autoguardado" se parte en dos renglones
+    ("Autoguarda / do") al lado del origen, y el origen repite la palabra;
+  - la curva y la red, que son lo que enseña la pestaña, quedan plegadas o
+    muy abajo.
+
+  Cómo encararlo:
+  1. Revisar qué skills de diseño y UX hay instaladas que ayuden. Hoy
+     aparecen, del plugin `design`: `design-critique` (crítica de la
+     pantalla), `ux-copy` (textos de controles, mensajes y estados vacíos),
+     `accessibility-review` (auditoría WCAG), `design-system` (consistencia
+     entre pestañas), `user-research` y `research-synthesis` (probar con
+     personas); y `artifact-design`, para presentar las propuestas.
+  2. Que el cambio de OpenSpec tenga como resultado dos o tres propuestas
+     de distribución distintas (por ejemplo: pestañas internas dentro del
+     panel; un panel corto con lo esencial y lo demás en capas sobre el
+     escenario; o la curva y la red como protagonistas debajo del
+     escenario), comparadas contra la constitución, para elegir la mejor y
+     aplicarla.
+  3. Revisar también el panel de la pestaña 1 con el mismo criterio, para
+     que las dos pestañas compartan la solución (artículo 9).
+
 ## Ideas
+
+- **"Ver como la máquina" en la pestaña Entrenar.** Como en la pestaña 1:
+  ocultar calle y tráfico y mostrar solo lo que perciben los sensores del
+  líder, para ver con qué decide la red. Quizás junto al diagrama de la red,
+  que ya muestra esas mismas entradas.
+- **Eliminar autoguardados.** Los cerebros guardados ya se pueden eliminar
+  con confirmación, pero los autoguardados ("entrenamiento en curso" y
+  "entrenamiento anterior") no se pueden eliminar ni renombrar, porque la
+  app los reemplaza sola. Conviene poder eliminarlos (sobre todo el
+  anterior) para limpiar la biblioteca antes de una charla.
 
 - **Cerebros incluidos elegidos por el dueño.** La app no trae cerebros
   preentrenados: el mentor entrena y guarda los suyos antes de una charla.
