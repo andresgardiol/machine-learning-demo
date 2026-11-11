@@ -11,6 +11,23 @@ export const UNITS = Object.freeze({ distance: 'meters', survival: 'seconds', sp
 
 export const CHART_LAYOUT = Object.freeze({ width: 320, height: 170, left: 44, right: 10, top: 10, bottom: 30 });
 
+/** Medidas mínimas del gráfico (px): por debajo, el SVG se achica en lugar de apretar los ejes. */
+export const CHART_MIN = Object.freeze({ width: 240, height: 120 });
+
+/**
+ * Medidas del gráfico para una zona de `width` × `height` px (design.md D5): el viewBox usa estas
+ * medidas, así un píxel del SVG es un píxel de pantalla y el texto conserva su tamaño.
+ */
+export function chartLayoutFor({ width, height }) {
+  const w = Number.isFinite(width) ? width : 0;
+  const h = Number.isFinite(height) ? height : 0;
+  return {
+    width: Math.max(CHART_MIN.width, Math.floor(w)),
+    height: Math.max(CHART_MIN.height, Math.floor(h)),
+    left: CHART_LAYOUT.left, right: CHART_LAYOUT.right, top: CHART_LAYOUT.top, bottom: CHART_LAYOUT.bottom,
+  };
+}
+
 /** Paso "redondo" (1, 2 o 5 por una potencia de 10) para que entren unas `count` marcas hasta `max`. */
 export function niceStep(max, count = 4) {
   if (!(max > 0)) return 1;
@@ -95,11 +112,15 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
  * @returns {{update:(history:object[])=>void, refresh:()=>void, dispose:()=>void, element:SVGElement}}
  */
 export function createFitnessChart({ container, i18n, doc = document }) {
-  const L = CHART_LAYOUT;
+  // Medidas vigentes: las de la zona del gráfico (se observa su tamaño).
+  let L = CHART_LAYOUT;
   const svg = doc.createElementNS(SVG_NS, 'svg');
   svg.setAttribute('class', 'fitness-chart');
   svg.setAttribute('viewBox', `0 0 ${L.width} ${L.height}`);
   svg.setAttribute('role', 'img');
+  const plotZone = doc.createElement('div');
+  plotZone.className = 'chart-plot';
+  plotZone.append(svg);
   const legend = doc.createElement('ul');
   legend.className = 'chart-legend';
   const readout = doc.createElement('p');
@@ -108,7 +129,7 @@ export function createFitnessChart({ container, i18n, doc = document }) {
   note.className = 'chart-note muted';
   const empty = doc.createElement('p');
   empty.className = 'chart-empty muted';
-  container.append(svg, legend, readout, note, empty);
+  container.append(plotZone, legend, readout, note, empty);
 
   let history = [];
   let model = chartModel(history);
@@ -123,8 +144,17 @@ export function createFitnessChart({ container, i18n, doc = document }) {
   const number = (v) => Math.round(v * 10) / 10;
   const unitText = () => (model.unit ? i18n.t(`train.chart.unit.${model.unit}`) : '');
 
+  /** Toma las medidas de la zona; si no se ve (tamaño 0), conserva las anteriores. */
+  function measure() {
+    const width = plotZone.clientWidth;
+    const height = plotZone.clientHeight;
+    if (width > 0 && height > 0) L = chartLayoutFor({ width, height });
+    svg.setAttribute('viewBox', `0 0 ${L.width} ${L.height}`);
+  }
+
   function draw() {
-    model = chartModel(history);
+    measure();
+    model = chartModel(history, L);
     svg.replaceChildren();
     const { plot } = model;
     empty.hidden = !model.empty;
@@ -190,6 +220,16 @@ export function createFitnessChart({ container, i18n, doc = document }) {
   svg.addEventListener('pointermove', onMove);
   svg.addEventListener('pointerleave', onLeave);
 
+  // Al cambiar el tamaño de la zona se redibuja con las medidas nuevas (nunca por cuadro).
+  let lastSize = '';
+  const observer = new (doc.defaultView ?? globalThis).ResizeObserver(() => {
+    const size = `${plotZone.clientWidth}x${plotZone.clientHeight}`;
+    if (size === lastSize) return;
+    lastSize = size;
+    draw();
+  });
+  observer.observe(plotZone);
+
   draw();
   return {
     element: svg,
@@ -199,7 +239,8 @@ export function createFitnessChart({ container, i18n, doc = document }) {
     dispose() {
       svg.removeEventListener('pointermove', onMove);
       svg.removeEventListener('pointerleave', onLeave);
-      svg.remove(); legend.remove(); readout.remove(); note.remove(); empty.remove();
+      observer.disconnect();
+      plotZone.remove(); legend.remove(); readout.remove(); note.remove(); empty.remove();
     },
   };
 }

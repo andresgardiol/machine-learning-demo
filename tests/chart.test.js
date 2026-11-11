@@ -77,3 +77,36 @@ test('marcas redondas y punto señalado', () => {
   assert.equal(nearestIndex(m.best, -100), 0);
   assert.equal(nearestIndex([], 5), -1);
 });
+
+// --- La curva ocupa su tarjeta (design.md D5) ---------------------------------------------------
+import { chartLayoutFor } from '../src/ui/chart.js';
+
+test('medidas de la zona: se usan tal cual, con los márgenes de los ejes', () => {
+  assert.deepEqual(chartLayoutFor({ width: 640, height: 300 }), { width: 640, height: 300, left: 44, right: 10, top: 10, bottom: 30 });
+  assert.deepEqual(chartLayoutFor({ width: 412.7, height: 233.9 }), { width: 412, height: 233, left: 44, right: 10, top: 10, bottom: 30 });
+});
+
+test('medidas de la zona: respeta los mínimos de 240 × 120', () => {
+  assert.deepEqual(chartLayoutFor({ width: 100, height: 50 }), { width: 240, height: 120, left: 44, right: 10, top: 10, bottom: 30 });
+  assert.equal(chartLayoutFor({ width: 0, height: 0 }).width, 240);
+  assert.equal(chartLayoutFor({ width: 0, height: 0 }).height, 120);
+  assert.equal(chartLayoutFor({ width: 500, height: 80 }).height, 120);
+  assert.equal(chartLayoutFor({ width: 200, height: 400 }).width, 240);
+});
+
+test('modelo con una zona de 640 × 300: área y puntos dentro de ella', () => {
+  const layout = chartLayoutFor({ width: 640, height: 300 });
+  const history = [rec(1, 120, 30), rec(2, 300, 80), rec(3, 610, 140), rec(4, 450, 160), rec(5, 640, 200)];
+  const m = chartModel(history, layout);
+  assert.deepEqual(m.plot, { x0: 44, x1: 630, y0: 270, y1: 10 });
+  assert.equal(m.best[0].x, 44);
+  assert.equal(m.best[4].x, 630);
+  assert.equal(m.yMax, 800);
+  assert.equal(m.best[4].y, 270 - (260 * 640) / 800);
+  for (const p of [...m.best, ...m.average]) {
+    assert.ok(p.x >= 44 && p.x <= 630, `x ${p.x}`);
+    assert.ok(p.y >= 10 && p.y <= 270, `y ${p.y}`);
+  }
+  for (const t of m.yTicks) assert.ok(t.y >= 10 && t.y <= 270);
+  for (const t of m.xTicks) assert.ok(t.x >= 44 && t.x <= 630);
+});

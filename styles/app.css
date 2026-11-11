@@ -381,8 +381,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .confirm-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 
 /* Pestaña Entrenar: diagrama de la red del líder */
-.network-zone { margin-top: var(--space-2); }
-.network-canvas { display: block; width: 100%; }
+.network-zone { position: relative; flex: 1 1 auto; min-height: 0; margin-top: var(--space-1); }
+/* El lienzo ocupa la zona (su tamaño lo fija network-view.js con el de la zona). */
+.network-canvas { position: absolute; inset: 0; display: block; }
 .network-legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); margin: var(--space-2) 0 0; padding: 0; list-style: none; font-size: 12px; color: var(--color-text-muted); }
 .network-legend li { display: inline-flex; align-items: center; gap: 6px; }
 .legend-line { display: inline-block; width: 22px; border-top: 2px solid var(--color-weight-positive); }
@@ -391,11 +392,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .network-note { font-size: 12px; margin: var(--space-1) 0 0; }
 
 /* Pestaña Entrenar: curva de fitness */
-.chart-zone { margin-top: var(--space-2); }
-.fitness-chart { display: block; width: 100%; height: auto; }
+.chart-zone { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; margin-top: var(--space-1); }
+.chart-plot { position: relative; flex: 1 1 auto; min-height: 0; }
+.fitness-chart { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .chart-axis { stroke: var(--color-border); stroke-width: 1; }
 .chart-grid { stroke: var(--color-border); stroke-width: 0.5; opacity: 0.5; }
-.chart-tick, .chart-label { fill: var(--color-text-muted); font-size: 9px; }
+.chart-tick, .chart-label { fill: var(--color-text-muted); font-size: 11px; }
 .chart-line { fill: none; stroke-width: 1.5; }
 .chart-line.chart-best { stroke: var(--color-chart-best); }
 .chart-line.chart-average { stroke: var(--color-chart-average); stroke-dasharray: 4 3; }

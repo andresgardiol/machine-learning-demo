@@ -27,9 +27,9 @@ Medidas de referencia para las verificaciones en el navegador: ventana de
 
 ## 4. Curva y diagrama según su zona
 
-- [ ] 4.1 En `src/ui/chart.js`, agregar `chartLayoutFor`, envolver el SVG en `.chart-plot`, observar su tamaño y dibujar con el `layout` vigente (D5); pasar el texto del gráfico a 11 px en el CSS. Verificar en `tests/chart.test.js`: `chartLayoutFor` respeta los mínimos de 240×120 y `chartModel` ubica los puntos dentro del área para un `layout` de 640×300.
-- [ ] 4.2 En `src/render/network-view.js`, tomar ancho y alto del contenedor y aplicar las medidas nuevas de `LAYOUT` y la fuente de 12 px (D6). Verificar en `tests/network-view.test.js`: los casos actuales siguen pasando y se agregan una zona de 640×380 (todos los rótulos de la red 6-6-4 presentes y dentro de la zona) y una de 328×120 (todo dentro de la zona).
-- [ ] 4.3 Correr `npm test` y confirmar que todo pasa.
+- [x] 4.1 En `src/ui/chart.js`, agregar `chartLayoutFor`, envolver el SVG en `.chart-plot`, observar su tamaño y dibujar con el `layout` vigente (D5); pasar el texto del gráfico a 11 px en el CSS. Verificar en `tests/chart.test.js`: `chartLayoutFor` respeta los mínimos de 240×120 y `chartModel` ubica los puntos dentro del área para un `layout` de 640×300.
+- [x] 4.2 En `src/render/network-view.js`, tomar ancho y alto del contenedor y aplicar las medidas nuevas de `LAYOUT` y la fuente de 12 px (D6). Verificar en `tests/network-view.test.js`: los casos actuales siguen pasando y se agregan una zona de 640×380 (todos los rótulos de la red 6-6-4 presentes y dentro de la zona) y una de 328×120 (todo dentro de la zona).
+- [x] 4.3 Correr `npm test` y confirmar que todo pasa.
 
 ## 5. Entrenar: tablero
 

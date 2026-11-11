@@ -80,3 +80,49 @@ test('actividad: entre 0 y 1 según el valor del nodo', () => {
   assert.equal(activity(-0.5), 0.5);
   assert.equal(activity(7), 1);
 });
+
+// --- El diagrama ocupa su zona (design.md D6) ----------------------------------------------------
+const inside = (l, zone) => {
+  for (const c of l.columns) {
+    for (const n of c.nodes) {
+      assert.ok(n.x - l.radius >= 0 && n.x + l.radius <= zone.width, `x ${n.x}`);
+      assert.ok(n.y - l.radius >= 0 && n.y + l.radius <= zone.height, `y ${n.y}`);
+    }
+  }
+  for (const lab of [...l.inputLabels, ...l.outputLabels]) {
+    assert.ok(lab.x >= 0 && lab.x <= zone.width, `rótulo x ${lab.x}`);
+    assert.ok(lab.y >= 0 && lab.y <= zone.height, `rótulo y ${lab.y}`);
+  }
+};
+
+test('medidas del diagrama: rótulos de 12 px y nodos de hasta 12 px de radio', () => {
+  assert.equal(LAYOUT.fontSize, 12);
+  assert.equal(LAYOUT.maxRadius, 12);
+  assert.equal(LAYOUT.labelLeft, 76);
+  assert.equal(LAYOUT.labelRight, 84);
+  assert.equal(LAYOUT.minLabelGap, 14);
+});
+
+test('zona grande de 640 × 380: la red 6-6-4 se reparte a lo ancho y a lo alto, con todos los rótulos', () => {
+  const zone = { width: 640, height: 380 };
+  const l = layoutNetwork({ sizes: [6, 6, 4], ...zone });
+  assert.equal(l.columns[0].x, 76);
+  assert.equal(l.columns[2].x, 640 - 84);
+  assert.equal(l.columns[1].x, (76 + 556) / 2);
+  assert.equal(l.radius, 12);
+  assert.equal(l.columns[0].nodes[0].y, 10 + 360 / 6 / 2);
+  assert.equal(l.columns[0].nodes[5].y, 10 + (360 / 6) * 5.5);
+  assert.deepEqual(l.inputLabels.map((x) => (x.kind === 'speed' ? 'speed' : x.n)), [1, 2, 3, 4, 5, 'speed']);
+  assert.deepEqual(l.outputLabels.map((x) => x.key), ['forward', 'left', 'right', 'reverse']);
+  inside(l, zone);
+});
+
+test('zona mínima de 328 × 120: la red por defecto entra completa', () => {
+  const zone = { width: 328, height: 120 };
+  const l = layoutNetwork({ sizes: [6, 6, 4], ...zone });
+  assert.equal(l.inputLabels.length, 6);
+  assert.equal(l.outputLabels.length, 4);
+  const ys = l.inputLabels.map((x) => x.y);
+  for (let i = 1; i < ys.length; i++) assert.ok(ys[i] - ys[i - 1] >= LAYOUT.minLabelGap);
+  inside(l, zone);
+});

@@ -17,12 +17,16 @@ export const OUTPUT_KEYS = Object.freeze(['forward', 'left', 'right', 'reverse']
 /** Medidas de la disposición (px). */
 export const LAYOUT = Object.freeze({
   padding: 10, // margen arriba y abajo
-  labelLeft: 70, // espacio para los rótulos de las entradas
-  labelRight: 78, // espacio para los rótulos de las salidas
-  maxRadius: 9,
+  labelLeft: 76, // espacio para los rótulos de las entradas
+  labelRight: 84, // espacio para los rótulos de las salidas
+  maxRadius: 12,
   minRadius: 1,
-  minLabelGap: 13, // separación vertical mínima entre dos rótulos
+  minLabelGap: 14, // separación vertical mínima entre dos rótulos
+  fontSize: 12, // px de los rótulos, constante sea cual sea el tamaño de la zona
 });
+
+/** Alto (px) que se usa si la zona todavía no tiene alto (por ejemplo, oculta). */
+export const FALLBACK_HEIGHT = 240;
 
 /** Niveles de magnitud con los que se agrupan las líneas al dibujar. */
 export const WEIGHT_LEVELS = 4;
@@ -100,10 +104,10 @@ const COLOR_VARS = {
 };
 
 /**
- * Vista del diagrama.
- * @param {{container: HTMLElement, i18n: object, doc?: Document, height?: number}} spec
+ * Vista del diagrama: ocupa el ancho y el alto de `container` (design.md D6).
+ * @param {{container: HTMLElement, i18n: object, doc?: Document}} spec
  */
-export function createNetworkView({ container, i18n, doc = document, height = 240 }) {
+export function createNetworkView({ container, i18n, doc = document }) {
   const win = doc.defaultView;
   const canvas = doc.createElement('canvas');
   canvas.className = 'network-canvas';
@@ -122,6 +126,7 @@ export function createNetworkView({ container, i18n, doc = document, height = 24
 
   function resize() {
     const w = Math.max(1, container.clientWidth);
+    const height = container.clientHeight > 0 ? container.clientHeight : FALLBACK_HEIGHT;
     const ratio = win.devicePixelRatio || 1;
     if (w === size.width && height === size.height && ratio === dpr) return;
     size = { width: w, height };
@@ -208,7 +213,7 @@ export function createNetworkView({ container, i18n, doc = document, height = 24
     });
     // Rótulos
     ctx.fillStyle = colors.label;
-    ctx.font = '11px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+    ctx.font = `${LAYOUT.fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'right';
     for (const lab of layout.inputLabels) {
