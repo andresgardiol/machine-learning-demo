@@ -60,6 +60,8 @@ const FORMATS = Object.freeze({
 let state = null;
 // Misiones cumplidas: siguen marcadas hasta cerrar la aplicación, aunque se reinicie el entrenamiento.
 const completedMissions = new Set();
+// Secciones y grupos plegables del panel abiertos: se conservan al salir de la pestaña y volver.
+const open = { library: false, advanced: false, evolution: false, scenario: false, network: false, sensors: false };
 
 let sessionCounter = 0;
 /** Identificador del entrenamiento para el autoguardado (cambia con cada entrenamiento nuevo). */
@@ -203,11 +205,11 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     const r = update && source
       ? library.update(source.brain.id, brain)
       : library.save(brain, { name: nameInput.value, baseName: i18n.t('library.defaultName') });
-    if (!r.ok) { libraryView.showMessage('library.error.damaged'); return; }
+    if (!r.ok) { showSaveMessage('library.error.damaged'); return; }
     if (!update) state.brainSource = r.brain.id; // lo que se siga entrenando se puede actualizar en este cerebro
     nameInput.value = '';
     state.missions.brainSaved();
-    libraryView.showMessage(r.warning ? `library.status.${r.warning}` : (update ? 'library.updated' : 'library.saved'), { name: r.brain.name });
+    showSaveMessage(r.warning ? `library.status.${r.warning}` : (update ? 'library.updated' : 'library.saved'), { name: r.brain.name });
     sync();
   }
 
@@ -222,19 +224,17 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     });
   }
 
-  // --- Panel: guía y controles ------------------------------------------------------------------
-  const intro = el('section', { class: 'guide train-intro' },
-    el('p', { i18n: 'train.guide.what' }),
-    el('p', { i18n: 'train.guide.generation' }),
-    el('p', { i18n: 'train.guide.try' }));
+  // --- Panel (design.md D9): guía, marcha, vista, configuración, guardar, misiones y plegables -------
+  const intro = el('p', { class: 'guide train-intro', i18n: 'train.guide' });
 
+  // Marcha: pausar y siguiente en un renglón; las velocidades en otro; reiniciar y población nueva,
+  // más chicos, debajo, con su confirmación.
   const pauseButton = button('train.pause', 'train.pause', togglePause);
   pauseButton.setAttribute('aria-pressed', 'false');
   const nextButton = button('train.next', 'train.next', nextGeneration);
-  const restartButton = button('train.restart', 'train.restart', restart);
-  const newPopulationButton = button('train.newPopulation', 'train.newPopulation', newPopulation);
+  const restartButton = button('train.restart', 'train.restart', restart, 'tool small');
+  const newPopulationButton = button('train.newPopulation', 'train.newPopulation', newPopulation, 'tool small');
   const toolbarConfirm = inlineConfirm({ i18n });
-  const toolbar = el('div', { class: 'drive-toolbar train-toolbar' }, pauseButton, nextButton, restartButton, newPopulationButton);
 
   const speeds = optionGroup({
     labelKey: 'train.speed',
@@ -246,6 +246,11 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     onSelect: setSpeed,
   });
   const factor = el('p', { class: 'train-factor muted', attrs: { 'aria-live': 'off' } });
+  const run = el('section', { class: 'train-run' },
+    el('div', { class: 'run-main' }, pauseButton, nextButton),
+    speeds.row, factor,
+    el('div', { class: 'run-secondary' }, restartButton, newPopulationButton),
+    toolbarConfirm.node);
 
   // Misiones
   const missionRows = state.missions.missions.map((m) => {
@@ -262,7 +267,10 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row)));
 
   // --- Panel: configuración ----------------------------------------------------------------------
+  // Una confirmación de entrenamiento nuevo en el grupo de red y otra en el de sensores, junto al
+  // ajuste que la pidió.
   const networkConfirm = inlineConfirm({ i18n });
+  const sensorsConfirm = inlineConfirm({ i18n });
   const resetConfirm = inlineConfirm({ i18n });
 
   /** Fila con deslizador para un ajuste. Los que piden un entrenamiento nuevo se aplican al soltar. */
@@ -297,7 +305,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     slider('elite'), slider('selection'), slider('mutationRate'), slider('maxDuration'),
     slider('density'), slider('irregularity'), slider('maxSpeed'),
     slider('hiddenLayers', networkConfirm), slider('neurons1', networkConfirm), slider('neurons2', networkConfirm), slider('neurons3', networkConfirm),
-    slider('sensorCount', networkConfirm), slider('sensorRange', networkConfirm), slider('sensorSpread', networkConfirm),
+    slider('sensorCount', sensorsConfirm), slider('sensorRange', sensorsConfirm), slider('sensorSpread', sensorsConfirm),
   ];
   const row = (key) => sliders.find((s) => s.key === key).row;
   const switches = [toggle('crossover'), toggle('slowRule')];
@@ -316,7 +324,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   };
 
   // Grupos de opciones con rótulos largos: rótulo arriba y opciones a todo el ancho.
-  for (const g of [speeds, ...Object.values(choices)]) g.row.classList.add('setting-stacked');
+  for (const g of Object.values(choices)) g.row.classList.add('setting-stacked');
 
   const pendingNote = () => el('p', { class: 'train-pending', attrs: { role: 'status' }, i18n: 'train.pending' });
   const basicPending = pendingNote();
@@ -327,26 +335,38 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     row('population'), row('mutationStrength'), basicPending);
 
   const sensorsSwitch = switchButton('train.sensors', 'train.sensors', state.settings.showSensors, () => setSetting('showSensors', !state.settings.showSensors));
+  const viewSwitches = el('div', { class: 'switch-row train-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.view.title' }, sensorsSwitch);
+
+  /** Sección o grupo plegable que recuerda si quedó abierto (variable de módulo `open`). */
+  function foldable(key, cls, summaryKey, help, ...children) {
+    const d = el('details', { class: cls, attrs: { open: open[key] } },
+      el('summary', { i18n: summaryKey, help }), ...children);
+    d.addEventListener('toggle', () => { open[key] = d.open; });
+    return d;
+  }
+  const group = (key, ...children) => foldable(key, 'group', `train.advanced.${key}`, `train.advanced.${key}`,
+    el('div', { class: 'group-body' }, ...children));
 
   const resetButton = button('train.resetSettings', 'train.resetSettings', resetSettings);
-  const advanced = el('details', { class: 'section train-advanced' },
-    el('summary', { i18n: 'train.advanced', help: 'train.advanced' }),
-    el('div', { class: 'advanced-body' },
+  const advanced = foldable('advanced', 'section train-advanced', 'train.advanced', 'train.advanced',
+    el('div', { class: 'section-body advanced-body' },
       advancedPending,
-      el('h3', { class: 'panel-subheading', i18n: 'train.advanced.evolution' }),
-      row('elite'), row('selection'), row('mutationRate'), el('div', { class: 'switch-row' }, sw('crossover')),
-      choices.fitness.row, row('maxDuration'), el('div', { class: 'switch-row' }, sw('slowRule')), choices.trafficMode.row,
-      el('h3', { class: 'panel-subheading', i18n: 'train.advanced.scenario' }),
-      choices.lanes.row, row('density'), row('irregularity'), row('maxSpeed'),
-      el('h3', { class: 'panel-subheading', i18n: 'train.advanced.network' }),
-      el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
-      row('hiddenLayers'), row('neurons1'), row('neurons2'), row('neurons3'), choices.activation.row,
-      el('h3', { class: 'panel-subheading', i18n: 'train.advanced.sensors' }),
-      row('sensorCount'), row('sensorRange'), row('sensorSpread'),
-      networkConfirm.node,
+      el('div', { class: 'groups' },
+        group('evolution',
+          row('elite'), row('selection'), row('mutationRate'), el('div', { class: 'switch-row' }, sw('crossover')),
+          choices.fitness.row, row('maxDuration'), el('div', { class: 'switch-row' }, sw('slowRule')), choices.trafficMode.row),
+        group('scenario', choices.lanes.row, row('density'), row('irregularity'), row('maxSpeed')),
+        group('network',
+          el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
+          row('hiddenLayers'), row('neurons1'), row('neurons2'), row('neurons3'), choices.activation.row,
+          networkConfirm.node),
+        group('sensors',
+          el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
+          row('sensorCount'), row('sensorRange'), row('sensorSpread'),
+          sensorsConfirm.node)),
       resetButton, resetConfirm.node));
 
-  // Biblioteca de cerebros (plegada al abrir): guardar el campeón y la lista.
+  // Guardar el campeón, siempre a la vista, con su propia línea de resultado.
   const nameInput = el('input', {
     class: 'library-name-input', help: 'train.save.name',
     attrs: { type: 'text', maxlength: 40, id: 'train-save-name' },
@@ -361,20 +381,34 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     class: 'tool', help: 'train.save.update', attrs: { type: 'button' },
     on: { click: () => { if (state.training.champion) saveChampion({ update: true }); } },
   });
+  const saveRow = el('div', { class: 'save-row' }, nameInput, saveButton);
+  const saveActions = el('div', { class: 'save-actions' }, updateButton);
+  saveActions.hidden = true;
+  const saveStatus = el('p', { class: 'save-status', attrs: { role: 'status' } });
+  saveStatus.hidden = true;
+  const saveBlock = el('section', { class: 'train-save' },
+    el('label', { class: 'panel-heading', i18n: 'train.save.title', attrs: { for: 'train-save-name' } }),
+    saveRow, saveActions, saveStatus);
+
+  /** Resultado de guardar, junto al botón. */
+  function showSaveMessage(key, params) {
+    saveStatus.hidden = !key;
+    if (key) setText(saveStatus, key, params); else saveStatus.textContent = '';
+  }
+
+  // Biblioteca (plegada al abrir); su título muestra cuántos cerebros hay.
   const libraryZone = el('div', { class: 'library-zone' });
-  const librarySection = el('details', { class: 'section train-library' },
-    el('summary', { i18n: 'library.title', help: 'library.title' }),
-    el('div', { class: 'section-body' },
-      el('div', { class: 'library-save' },
-        el('label', { class: 'setting-label', i18n: 'train.save.title', attrs: { for: 'train-save-name' } }),
-        nameInput, el('div', { class: 'library-save-actions' }, saveButton, updateButton)),
-      libraryZone));
+  const librarySummary = el('summary', { help: 'library.title' });
+  const librarySection = el('details', { class: 'section train-library', attrs: { open: open.library } },
+    librarySummary, el('div', { class: 'section-body' }, libraryZone));
+  librarySection.addEventListener('toggle', () => { open.library = librarySection.open; });
+  const countLibrary = () => setText(librarySummary, 'library.title.count', { value: library ? library.list().length : 0 });
+  countLibrary();
+  const offLibrary = library ? library.subscribe(countLibrary) : () => {};
 
   panel.append(
-    el('h1', { class: 'panel-title', i18n: 'train.title' }),
-    intro, toolbar, toolbarConfirm.node, speeds.row, factor, missions,
-    basic, el('div', { class: 'switch-row' }, sensorsSwitch),
-    librarySection, advanced);
+    el('h1', { class: 'sr-only', i18n: 'train.title' }),
+    intro, run, viewSwitches, basic, saveBlock, missions, librarySection, advanced);
   const libraryView = library
     ? createLibraryView({ container: libraryZone, library, i18n, onContinue: continueFrom })
     : { showMessage() {}, dispose() {} };
@@ -471,6 +505,10 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     saveButton.setAttribute('aria-disabled', String(!hasChampion));
     saveButton.dataset.help = hasChampion ? 'train.save' : 'train.save.disabled';
     setText(saveButton, source ? 'train.save.asNew' : 'train.save');
+    // Al continuar un cerebro guardado, actualizar y guardar como nuevo van en un segundo renglón.
+    const saveParent = source ? saveActions : saveRow;
+    if (saveButton.parentNode !== saveParent) saveParent.append(saveButton);
+    saveActions.hidden = !source;
     updateButton.hidden = !source;
     updateButton.setAttribute('aria-disabled', String(!hasChampion));
     if (source) setText(updateButton, 'train.save.updateNamed', { name: source.brain.name });
@@ -598,7 +636,9 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
       stage.removeEventListener('click', onClick);
       toolbarConfirm.dispose();
       networkConfirm.dispose();
+      sensorsConfirm.dispose();
       resetConfirm.dispose();
+      offLibrary();
       chart.dispose();
       networkView.dispose();
       view.dispose();

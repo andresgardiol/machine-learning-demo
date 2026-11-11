@@ -410,12 +410,25 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .legend-series.average { border-top: 2px dashed var(--color-chart-average); }
 .chart-readout, .chart-note, .chart-empty { font-size: 12px; margin: var(--space-1) 0 0; }
 
-/* Pestaña Entrenar: panel */
-.train-toolbar { flex-wrap: wrap; }
-.train-factor { margin: var(--space-1) 0 0; font-size: 13px; }
+/* Pestaña Entrenar: panel (design.md D9) */
+.train-intro { margin: 0; font-size: 14px; }
+.train-run { display: grid; gap: var(--space-2); }
+.run-main, .run-secondary { display: flex; gap: var(--space-2); }
+.run-main .tool { flex: 1 1 0; min-width: 0; }
+.run-secondary .tool { flex: 0 1 auto; }
+.train-run .inline-confirm { margin: 0; }
+.train-factor { margin: calc(-1 * var(--space-1)) 0 0; font-size: 13px; }
+.train-factor[hidden] { display: none; }
+.train-save { display: grid; gap: var(--space-1); }
+.train-save .panel-heading { display: block; margin: 0; }
+.save-row, .save-actions { display: flex; gap: var(--space-2); }
+.save-row .library-name-input { flex: 1 1 auto; min-width: 0; }
+.save-row .tool, .save-actions .tool { flex: 0 0 auto; }
+.save-actions[hidden], .save-status[hidden] { display: none; }
+.save-status { margin: 0; font-size: 13px; }
+.groups { display: grid; }
 .train-pending { margin: var(--space-2) 0 0; padding: var(--space-1) var(--space-2); border-left: 3px solid var(--color-accent); font-size: 13px; color: var(--color-text); background: var(--color-surface-2); border-radius: 0 var(--radius) var(--radius) 0; }
 .train-pending[hidden] { display: none; }
-.train-basic { margin-top: var(--space-3); }
 .generation-badge { font-variant-numeric: tabular-nums; }
 
 /* Biblioteca de cerebros */
