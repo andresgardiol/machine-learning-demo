@@ -171,6 +171,41 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   padding: var(--space-3); min-width: 0; min-height: 0; overflow-y: auto;
   background: var(--color-bg); border-left: 1px solid var(--color-border);
 }
+/* Renglón de indicadores: todos en un renglón, valores sin partirse. */
+.board-strip {
+  display: grid; grid-template-columns: repeat(var(--stats, 3), minmax(0, 1fr)); gap: var(--space-2);
+  margin: 0; flex: 0 0 auto;
+}
+.board-stat { min-width: 0; padding: var(--space-1) var(--space-2); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); }
+.board-stat dt { font-size: 12px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.board-stat-value { margin: 0; font-size: 18px; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* Línea de la última generación: texto corriente, no letra de número. */
+.board-last { margin: calc(-1 * var(--space-2)) 0 0; font-size: 14px; flex: 0 0 auto; }
+.board-last span + span::before { content: " "; }
+/* Tarjetas: las desplegadas se reparten el alto libre, con un mínimo de 160 px. */
+.card {
+  display: flex; flex-direction: column; min-width: 0;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius);
+}
+.card[data-open="true"] { flex: var(--grow, 1) 1 160px; min-height: 160px; }
+.card[data-open="false"] { flex: 0 0 auto; }
+.card-heading { margin: 0; font-size: 15px; }
+.card-title {
+  display: flex; align-items: center; gap: var(--space-2); width: 100%;
+  padding: var(--space-2) var(--space-3); background: transparent; border: 0; border-radius: var(--radius);
+  font-weight: 600; text-align: left; cursor: pointer;
+}
+.card-title::before { content: "▾"; display: inline-block; width: 1em; color: var(--color-text-muted); }
+.card[data-open="false"] .card-title::before { content: "▸"; }
+.card-title:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.card-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 var(--space-3) var(--space-2); }
+.card-body[hidden] { display: none; }
+.card-hint { margin: var(--space-1) 0 0; font-size: 13px; color: var(--color-text-muted); flex: 0 0 auto; }
+/* Texto solo para lectores de pantalla. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
 .panel {
   min-height: 0;
   overflow-y: auto;
@@ -288,9 +323,16 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Accionado: cambia el fondo, el borde y el peso del texto (no solo el color). */
 .action-key[data-on="true"] { background: var(--color-accent); border-color: var(--color-text); color: var(--color-bg); font-weight: 700; }
 
-.drive-advanced { border: 1px solid var(--color-border); border-radius: var(--radius); }
-.drive-advanced > summary { padding: var(--space-2) var(--space-3); cursor: pointer; font-weight: 600; }
-.drive-advanced > summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.section { border: 1px solid var(--color-border); border-radius: var(--radius); }
+.section > summary { padding: var(--space-2) var(--space-3); cursor: pointer; font-weight: 600; }
+.section > summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.section-body { padding: 0 var(--space-3) var(--space-3); }
+/* Grupos plegables dentro de una sección. */
+.group { border-top: 1px solid var(--color-border); }
+.group > summary { padding: var(--space-2) 0; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color-text-muted); }
+.group[open] > summary { color: var(--color-text); }
+.group > summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.group-body { display: grid; gap: var(--space-2); padding-bottom: var(--space-2); }
 .advanced-body { padding: 0 var(--space-3) var(--space-3); display: grid; gap: var(--space-2); }
 .setting { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-1) var(--space-2); font-size: 14px; }
 .setting input[type="range"] { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: var(--color-accent); }
@@ -318,6 +360,13 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 }
 .crash-box h2 { margin: 0 0 var(--space-2); font-size: 18px; }
 .crash-box p { margin: 0 0 var(--space-2); }
+/* Escenario angosto (design.md D7): con menos de 360 px, las insignias y el mensaje de choque bajan
+   para no pisarse con los controles de cámara. */
+.stage { container: stage / inline-size; }
+@container stage (max-width: 359.98px) {
+  .stage-badges { top: 48px; }
+  .crash-layer { padding-top: calc(56px + 48px); }
+}
 
 /* Confirmación en línea (src/ui/controls.js): dentro del panel, junto al control que la pidió. */
 .inline-confirm {
@@ -332,8 +381,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .confirm-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 
 /* Pestaña Entrenar: diagrama de la red del líder */
-.train-section { margin-top: var(--space-3); }
-.train-section > summary { cursor: pointer; font-weight: 600; }
 .network-zone { margin-top: var(--space-2); }
 .network-canvas { display: block; width: 100%; }
 .network-legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); margin: var(--space-2) 0 0; padding: 0; list-style: none; font-size: 12px; color: var(--color-text-muted); }

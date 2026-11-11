@@ -186,7 +186,7 @@ export function mount({ stage, panel, i18n, store, reportError }) {
   const resetSettingsButton = button('drive.resetSettings', 'drive.resetSettings', () => applySettings({ ...DEFAULT_SETTINGS }));
 
   const row = (key) => sliders.find((s) => s.key === key).row;
-  const advanced = el('details', { class: 'drive-advanced' },
+  const advanced = el('details', { class: 'section' },
     el('summary', { i18n: 'drive.advanced', help: 'drive.advanced' }),
     el('div', { class: 'advanced-body' },
       el('h3', { class: 'panel-subheading', i18n: 'drive.advanced.car' }),

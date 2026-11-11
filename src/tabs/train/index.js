@@ -341,7 +341,7 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
   const sensorsSwitch = switchButton('train.sensors', 'train.sensors', state.settings.showSensors, () => setSetting('showSensors', !state.settings.showSensors));
 
   const resetButton = button('train.resetSettings', 'train.resetSettings', resetSettings);
-  const advanced = el('details', { class: 'drive-advanced train-advanced' },
+  const advanced = el('details', { class: 'section train-advanced' },
     el('summary', { i18n: 'train.advanced', help: 'train.advanced' }),
     el('div', { class: 'advanced-body' },
       advancedPending,
@@ -360,7 +360,7 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
 
   // --- Panel: curva y red --------------------------------------------------------------------------
   const chartZone = el('div', { class: 'chart-zone' });
-  const chartSection = el('details', { class: 'train-section train-chart', attrs: { open: state.settings.showChart } },
+  const chartSection = el('details', { class: 'section train-chart', attrs: { open: state.settings.showChart } },
     el('summary', { i18n: 'train.chart.title', help: 'train.chart' }), chartZone);
 
   const networkZone = el('div', { class: 'network-zone' });
@@ -368,7 +368,7 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
     el('li', {}, el('span', { class: 'legend-line', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.positive' })),
     el('li', {}, el('span', { class: 'legend-line negative', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.negative' })),
     el('li', {}, el('span', { class: 'legend-node', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.active' })));
-  const networkSection = el('details', { class: 'train-section train-network', attrs: { open: state.settings.showNetwork } },
+  const networkSection = el('details', { class: 'section train-network', attrs: { open: state.settings.showNetwork } },
     el('summary', { i18n: 'train.network.title', help: 'train.network' }),
     networkZone, legend,
     el('p', { class: 'network-note muted', i18n: 'train.network.legend.note' }));
@@ -392,12 +392,13 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
     on: { click: () => { if (state.training.champion) saveChampion({ update: true }); } },
   });
   const libraryZone = el('div', { class: 'library-zone' });
-  const librarySection = el('details', { class: 'train-section train-library' },
+  const librarySection = el('details', { class: 'section train-library' },
     el('summary', { i18n: 'library.title', help: 'library.title' }),
-    el('div', { class: 'library-save' },
-      el('label', { class: 'setting-label', i18n: 'train.save.title', attrs: { for: 'train-save-name' } }),
-      nameInput, el('div', { class: 'library-save-actions' }, saveButton, updateButton)),
-    libraryZone);
+    el('div', { class: 'section-body' },
+      el('div', { class: 'library-save' },
+        el('label', { class: 'setting-label', i18n: 'train.save.title', attrs: { for: 'train-save-name' } }),
+        nameInput, el('div', { class: 'library-save-actions' }, saveButton, updateButton)),
+      libraryZone));
 
   panel.append(
     el('h1', { class: 'panel-title', i18n: 'train.title' }),

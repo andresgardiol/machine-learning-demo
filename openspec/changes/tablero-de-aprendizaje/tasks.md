@@ -20,10 +20,10 @@ Medidas de referencia para las verificaciones en el navegador: ventana de
 
 ## 3. Componentes del tablero y estilos comunes
 
-- [ ] 3.1 Crear `src/ui/board.js` con `statStrip` y `boardCard` según D4 (título con botón, `aria-expanded`, `aria-controls`, `data-help` y renglón de ayuda con la clase `guide`). Verificar que `npm test` sigue pasando, incluida `tests/architecture.test.js`.
-- [ ] 3.2 En `styles/app.css`, agregar `.board`, `.board-strip`, `.board-last`, `.card`, `.card-title`, `.card-body`, `.card-hint` y `.sr-only` con las reglas de D4, usando solo los tokens de `styles/tokens.css`.
-- [ ] 3.3 Unificar `.drive-advanced` y `.train-section` en `.section` (y `.group` para los grupos internos) en el CSS y en las dos pestañas. Verificar en el navegador que las secciones plegables de El problema y de Entrenar se ven iguales entre sí y siguen abriendo y cerrando.
-- [ ] 3.4 Agregar la regla de escenario angosto de D7 (`container` en `.stage`, insignias y mensaje de choque más abajo con menos de 360 px). Verificar en el navegador, con el escenario en 260 px, que la insignia de generación no se pisa con los controles de cámara.
+- [x] 3.1 Crear `src/ui/board.js` con `statStrip` y `boardCard` según D4 (título con botón, `aria-expanded`, `aria-controls`, `data-help` y renglón de ayuda con la clase `guide`). Verificar que `npm test` sigue pasando, incluida `tests/architecture.test.js`.
+- [x] 3.2 En `styles/app.css`, agregar `.board`, `.board-strip`, `.board-last`, `.card`, `.card-title`, `.card-body`, `.card-hint` y `.sr-only` con las reglas de D4, usando solo los tokens de `styles/tokens.css`.
+- [x] 3.3 Unificar `.drive-advanced` y `.train-section` en `.section` (y `.group` para los grupos internos) en el CSS y en las dos pestañas. Verificar en el navegador que las secciones plegables de El problema y de Entrenar se ven iguales entre sí y siguen abriendo y cerrando.
+- [x] 3.4 Agregar la regla de escenario angosto de D7 (`container` en `.stage`, insignias y mensaje de choque más abajo con menos de 360 px). Verificar en el navegador, con el escenario en 260 px, que la insignia de generación no se pisa con los controles de cámara.
 
 ## 4. Curva y diagrama según su zona
 
