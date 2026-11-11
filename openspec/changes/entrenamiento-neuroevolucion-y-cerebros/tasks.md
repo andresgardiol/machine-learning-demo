@@ -13,9 +13,9 @@
 
 ## 3. Núcleo: red neuronal
 
-- [ ] 3.1 Crear `src/core/network.js` con la creación y validación de la forma (0 a 3 capas ocultas, 1 a 16 neuronas, activaciones admitidas); verificar con una prueba por cada escenario de "Estructura por capas" y "Activación desconocida"
-- [ ] 3.2 Implementar el cálculo de salidas, la salida escalón y las cuatro activaciones de capas ocultas; verificar con una prueba por cada escenario numérico de "Cálculo de las salidas", "Salidas sí/no" y "Activación de las capas ocultas"
-- [ ] 3.3 Implementar la inicialización con semilla, el cálculo con el detalle de todas las capas y la copia independiente; verificar con pruebas los escenarios de "Inicialización reproducible", "Valores de todas las neuronas" y "Cálculo sin efectos"
+- [x] 3.1 Crear `src/core/network.js` con la creación y validación de la forma (0 a 3 capas ocultas, 1 a 16 neuronas, activaciones admitidas); verificar con una prueba por cada escenario de "Estructura por capas" y "Activación desconocida"
+- [x] 3.2 Implementar el cálculo de salidas, la salida escalón y las cuatro activaciones de capas ocultas; verificar con una prueba por cada escenario numérico de "Cálculo de las salidas", "Salidas sí/no" y "Activación de las capas ocultas"
+- [x] 3.3 Implementar la inicialización con semilla, el cálculo con el detalle de todas las capas y la copia independiente; verificar con pruebas los escenarios de "Inicialización reproducible", "Valores de todas las neuronas" y "Cálculo sin efectos"
 
 ## 4. Núcleo: mundo con varios autos
 
