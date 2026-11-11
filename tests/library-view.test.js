@@ -38,10 +38,11 @@ test('resumen de un cerebro de 5 sensores, una capa de 6 y 40 generaciones', () 
 
 test('resumen: origen de los autoguardados y mejor fitness con la unidad de su función', () => {
   const current = brainSummary({ origin: 'autosave', slot: 'current', brain: brain({ kind: 'survival', best: 28.34 }) });
-  assert.equal(current.origin, 'autosave.current');
+  assert.equal(current.origin, 'autosave');
+  assert.equal(current.nameKey, 'library.autosave.current');
   assert.equal(current.editable, false);
   assert.deepEqual(current.best, { key: 'train.value.seconds', params: { value: 28.3 } });
-  assert.equal(brainSummary({ origin: 'autosave', slot: 'previous', brain: brain() }).origin, 'autosave.previous');
+  assert.equal(brainSummary({ origin: 'autosave', slot: 'previous', brain: brain() }).origin, 'autosave');
   assert.deepEqual(brainSummary({ origin: 'saved', brain: brain({ kind: 'speed', best: 15.06 }) }).best, { key: 'train.value.metersPerSecond', params: { value: 15.1 } });
 });
 
@@ -60,4 +61,30 @@ test('detalle: función de fitness, evolución, velocidad máxima y cada escenar
   const i18n = createI18n({ dictionaries: { es, en }, language: 'es' });
   assert.equal(i18n.t('library.value.scenario.new', d.scenarios[1]), '4 carriles, densidad 70 %, irregularidad 20 %, tráfico nuevo: {value} generaciones');
   assert.equal(i18n.t('library.value.scenario.new', { ...d.scenarios[1], value: 20 }), '4 carriles, densidad 70 %, irregularidad 20 %, tráfico nuevo: 20 generaciones');
+});
+
+test('autoguardado del entrenamiento anterior: se nombra "Entrenamiento anterior" con la etiqueta "Autoguardado"', () => {
+  const previous = brainSummary({ origin: 'autosave', slot: 'previous', brain: brain() });
+  assert.equal(previous.origin, 'autosave');
+  assert.equal(previous.nameKey, 'library.autosave.previous');
+  assert.equal(previous.name, 'Prudente'); // el nombre grabado en el cerebro no cambia
+  const i18n = createI18n({ dictionaries: { es, en }, language: 'es' });
+  assert.equal(i18n.t(previous.nameKey), 'Entrenamiento anterior');
+  assert.equal(i18n.t(`library.origin.${previous.origin}`), 'Autoguardado');
+  i18n.setLanguage('en');
+  assert.equal(i18n.t(previous.nameKey), 'Previous training');
+  assert.equal(i18n.t(`library.origin.${previous.origin}`), 'Autosaved');
+});
+
+test('autoguardado del entrenamiento en curso: "Entrenamiento en curso", sin repetir "Autoguardado" en el nombre', () => {
+  const current = brainSummary({ origin: 'autosave', slot: 'current', brain: brain() });
+  const i18n = createI18n({ dictionaries: { es, en }, language: 'es' });
+  assert.equal(i18n.t(current.nameKey), 'Entrenamiento en curso');
+  assert.doesNotMatch(i18n.t(current.nameKey), /Autoguardado/);
+  i18n.setLanguage('en');
+  assert.equal(i18n.t(current.nameKey), 'Training in progress');
+});
+
+test('un cerebro guardado no trae nameKey: se muestra con su nombre', () => {
+  assert.equal('nameKey' in brainSummary({ origin: 'saved', brain: brain() }), false);
 });

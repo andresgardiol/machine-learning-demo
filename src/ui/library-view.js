@@ -21,21 +21,25 @@ function bestText(fitness) {
 
 /**
  * Resumen de un elemento de la biblioteca: nombre, origen, generaciones, sensores, forma de la red y
- * mejor fitness con su unidad.
+ * mejor fitness con su unidad. Un autoguardado trae además `nameKey`, la clave del nombre con que se
+ * muestra en el idioma activo ("Entrenamiento en curso" o "Entrenamiento anterior", design.md D11);
+ * el nombre grabado en el cerebro y el del archivo exportado no cambian.
  * @param {{origin:'saved'|'autosave', slot?:'current'|'previous', brain:object}} entry
  */
 export function brainSummary(entry) {
   const { brain } = entry;
-  return {
+  const summary = {
     id: brain.id,
     name: brain.name,
-    origin: entry.origin === 'autosave' ? `autosave.${entry.slot}` : 'saved',
+    origin: entry.origin === 'autosave' ? 'autosave' : 'saved',
     generations: brain.training.generations,
     sensors: brain.sensors.count,
     shape: brain.network.sizes.join('-'),
     best: bestText(brain.training.fitness),
     editable: entry.origin === 'saved',
   };
+  if (entry.origin === 'autosave') summary.nameKey = entry.slot === 'previous' ? 'library.autosave.previous' : 'library.autosave.current';
+  return summary;
 }
 
 /** Detalle de un cerebro: función de fitness, evolución, velocidad máxima y escenarios con sus generaciones. */
@@ -134,8 +138,8 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
     // Los autoguardados se nombran en el idioma activo; los guardados, con el nombre que les dio la persona.
     const nameNode = renaming === s.id
       ? renameInput(s)
-      : entry.origin === 'autosave'
-        ? el('span', { class: 'library-name', i18n: 'library.autosave.name' })
+      : s.nameKey
+        ? el('span', { class: 'library-name', i18n: s.nameKey })
         : el('span', { class: 'library-name', text: s.name });
     const origin = el('span', { class: `library-origin origin-${entry.origin}`, i18n: `library.origin.${s.origin}` });
     const meta = el('p', { class: 'library-meta' },

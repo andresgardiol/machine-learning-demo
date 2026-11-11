@@ -52,9 +52,9 @@ Medidas de referencia para las verificaciones en el navegador: ventana de
 
 ## 7. Biblioteca legible
 
-- [ ] 7.1 En `src/ui/library-view.js`, hacer que `brainSummary` devuelva `nameKey` para los autoguardados y `origin: 'autosave'` (D11). Actualizar `tests/library-view.test.js`, la única prueba existente que cambia, y agregar el caso del entrenamiento anterior.
-- [ ] 7.2 Mostrar el nombre del autoguardado según `nameKey`, la etiqueta `library.origin.autosave`, y cambiar el CSS del encabezado para que los nombres corten entre palabras. Agregar `library.autosave.current`, `library.autosave.previous` y `library.origin.autosave` en los dos idiomas y quitar las dos claves de origen que quedan en desuso.
-- [ ] 7.3 Verificar en el navegador los escenarios nuevos de "Lista de cerebros" de la spec `cerebros`: con el panel en 360 px "Entrenamiento en curso" no se parte; tras reiniciar aparece "Entrenamiento anterior"; al pasar a inglés cambian sin recargar; y con el panel en 300 px un nombre de siete palabras corta entre palabras con la etiqueta completa. Comprobar que exportar un autoguardado sigue descargando un archivo válido.
+- [x] 7.1 En `src/ui/library-view.js`, hacer que `brainSummary` devuelva `nameKey` para los autoguardados y `origin: 'autosave'` (D11). Actualizar `tests/library-view.test.js`, la única prueba existente que cambia, y agregar el caso del entrenamiento anterior.
+- [x] 7.2 Mostrar el nombre del autoguardado según `nameKey`, la etiqueta `library.origin.autosave`, y cambiar el CSS del encabezado para que los nombres corten entre palabras. Agregar `library.autosave.current`, `library.autosave.previous` y `library.origin.autosave` en los dos idiomas y quitar las dos claves de origen que quedan en desuso.
+- [x] 7.3 Verificar en el navegador los escenarios nuevos de "Lista de cerebros" de la spec `cerebros`: con el panel en 360 px "Entrenamiento en curso" no se parte; tras reiniciar aparece "Entrenamiento anterior"; al pasar a inglés cambian sin recargar; y con el panel en 300 px un nombre de siete palabras corta entre palabras con la etiqueta completa. Comprobar que exportar un autoguardado sigue descargando un archivo válido.
 
 ## 8. El problema: tablero y panel
 
