@@ -37,8 +37,8 @@ Medidas de referencia para las verificaciones en el navegador: ventana de
 
 ## 5. Biblioteca
 
-- [ ] 5.1 En `src/ui/library-view.js`, agregar al detalle de un cerebro la fila "Quién eligió", que muestra automática cuando el cerebro no registra el dato (D7), con su texto en los dos idiomas. Verificar en el navegador los escenarios "Cerebro elegido a mano" y "Cerebro guardado antes de este cambio" de la spec `cerebros`, con un cerebro guardado antes de este cambio (o importado sin el dato) y uno guardado con selección manual.
-- [ ] 5.2 Verificar en el navegador los escenarios nuevos de "Autoguardado": con selección manual y un padre elegido, el autoguardado del entrenamiento en curso tiene la red del padre (comprobarlo siguiendo entrenando desde él: la línea de estado lo nombra como padre); y sin padre elegido el autoguardado queda como estaba.
+- [x] 5.1 En `src/ui/library-view.js`, agregar al detalle de un cerebro la fila "Quién eligió", que muestra automática cuando el cerebro no registra el dato (D7), con su texto en los dos idiomas. Verificar en el navegador los escenarios "Cerebro elegido a mano" y "Cerebro guardado antes de este cambio" de la spec `cerebros`, con un cerebro guardado antes de este cambio (o importado sin el dato) y uno guardado con selección manual.
+- [x] 5.2 Verificar en el navegador los escenarios nuevos de "Autoguardado": con selección manual y un padre elegido, el autoguardado del entrenamiento en curso tiene la red del padre (comprobarlo siguiendo entrenando desde él: la línea de estado lo nombra como padre); y sin padre elegido el autoguardado queda como estaba.
 
 ## 6. Verificación integral
 

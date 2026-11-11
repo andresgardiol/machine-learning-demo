@@ -113,6 +113,8 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
     const e = d.evolution;
     return el('dl', { class: 'library-detail' },
       item('library.detail.fitness', `train.fitness.${d.fitness}`),
+      // Quién eligió a los padres; un cerebro que no lo registra se entrenó con selección automática.
+      item('library.detail.selectionMode', e.selectionMode === 'manual' ? 'train.selectionMode.manual' : 'train.selectionMode.auto'),
       item('library.detail.population', 'train.value.cars', { value: e.population }),
       item('library.detail.elite', 'train.value.count', { value: e.elite }),
       item('library.detail.selection', 'drive.value.percent', { value: e.selection }),
