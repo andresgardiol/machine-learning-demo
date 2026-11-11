@@ -42,11 +42,11 @@ Medidas de referencia para las verificaciones en el navegador: ventana de
 
 ## 6. Verificación integral
 
-- [ ] 6.1 Correr `npm test` y confirmar que pasa todo; listar en el reporte las pruebas nuevas y las tres aserciones existentes modificadas, que solo pueden ser las que design.md D9 enumera.
-- [ ] 6.2 Recorrer la selección manual completa en el navegador, en español y en inglés: pasar a manual con generaciones terminadas (el padre es el campeón), elegir, deshacer hasta quedar sin padre (la generación siguiente es al azar), volver a elegir, guardar al padre, seguir entrenándolo desde la biblioteca y volver a selección automática. En ningún paso se reinicia el entrenamiento ni se pierde la curva.
-- [ ] 6.3 Comprobar que reiniciar el entrenamiento con selección automática sigue repitiendo los mismos valores de la curva, y que las dos pestañas no muestran ninguna clave en lugar de su texto.
+- [x] 6.1 Correr `npm test` y confirmar que pasa todo; listar en el reporte las pruebas nuevas y las tres aserciones existentes modificadas, que solo pueden ser las que design.md D9 enumera.
+- [x] 6.2 Recorrer la selección manual completa en el navegador, en español y en inglés: pasar a manual con generaciones terminadas (el padre es el campeón), elegir, deshacer hasta quedar sin padre (la generación siguiente es al azar), volver a elegir, guardar al padre, seguir entrenándolo desde la biblioteca y volver a selección automática. En ningún paso se reinicia el entrenamiento ni se pierde la curva.
+- [x] 6.3 Comprobar que reiniciar el entrenamiento con selección automática sigue repitiendo los mismos valores de la curva, y que las dos pestañas no muestran ninguna clave en lugar de su texto.
 - [ ] 6.4 Recorrer la pestaña solo con el teclado: el ajuste, los dos botones nuevos y los atajos E y Z funcionan con el foco en cualquier control, y la barra espaciadora, N y T siguen funcionando.
-- [ ] 6.5 Repasar las cuatro preguntas del filtro de entrada sobre el resultado en pantalla, con la tabla de proposal.md, con la guía activa y apagada; anotar en el reporte cualquier respuesta que ya no se sostenga.
+- [x] 6.5 Repasar las cuatro preguntas del filtro de entrada sobre el resultado en pantalla, con la tabla de proposal.md, con la guía activa y apagada; anotar en el reporte cualquier respuesta que ya no se sostenga.
 
 ## Workflow follow-up
 
