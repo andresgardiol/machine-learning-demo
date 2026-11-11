@@ -1,12 +1,13 @@
 // Configuración avanzada de la pestaña 1, sin DOM: valores por defecto, rangos de los
 // ajustes y cómo se traducen en la especificación del mundo.
-import { DEFAULT_LANES, ALLOWED_LANES } from '../../core/constants.js';
+import { DEFAULT_LANES, ALLOWED_LANES, MAX_SPEED, SPEED_LIMITS } from '../../core/constants.js';
 import { DEFAULT_TRAFFIC } from '../../core/traffic.js';
 import { DEFAULT_SENSORS, SENSOR_LIMITS } from '../../core/sensors.js';
 
 export const LANE_OPTIONS = ALLOWED_LANES;
 
 export const DEFAULT_SETTINGS = Object.freeze({
+  maxSpeed: MAX_SPEED, // compartida por todas las pestañas (la guarda la app)
   lanes: DEFAULT_LANES,
   density: DEFAULT_TRAFFIC.density,
   irregularity: DEFAULT_TRAFFIC.irregularity,
@@ -17,6 +18,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
 
 /** Deslizadores: clave del ajuste, rango, paso y formato del valor (clave de texto). */
 export const SLIDERS = Object.freeze([
+  { key: 'maxSpeed', min: SPEED_LIMITS.min, max: SPEED_LIMITS.max, step: 1, format: 'drive.value.speed' },
   { key: 'density', min: 0, max: 100, step: 5, format: 'drive.value.percent' },
   { key: 'irregularity', min: 0, max: 100, step: 5, format: 'drive.value.percent' },
   { key: 'sensorCount', min: SENSOR_LIMITS.count.min, max: SENSOR_LIMITS.count.max, step: 1, format: 'drive.value.rays' },
@@ -42,6 +44,7 @@ export function worldSpec(settings, seed) {
   return {
     seed,
     lanes: s.lanes,
+    maxSpeed: s.maxSpeed,
     density: s.density,
     irregularity: s.irregularity,
     sensors: { count: s.sensorCount, range: s.sensorRange, spread: s.sensorSpread },

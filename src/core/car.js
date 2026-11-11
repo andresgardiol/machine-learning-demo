@@ -1,7 +1,7 @@
 // Auto: estado y física simple. Un paso avanza dt segundos.
 import { add, scale, fromAngle, rectCorners } from './geometry.js';
 import {
-  ACCELERATION, CAR_LENGTH, CAR_WIDTH, FRICTION, MAX_REVERSE_SPEED, MAX_SPEED, TURN_RATE,
+  ACCELERATION, CAR_LENGTH, CAR_WIDTH, FRICTION, MAX_SPEED, REVERSE_FRACTION, SPEED_LIMITS, TURN_RATE,
 } from './constants.js';
 import { sensorConfig } from './sensors.js';
 
@@ -21,12 +21,20 @@ export function resolveControls(controls = NO_CONTROLS) {
   };
 }
 
-export function createCar({ position = { x: 0, y: 0 }, angle = 0, sensors } = {}) {
+/** Velocidad máxima de avance válida (m/s): sin valor usa la de por defecto y fuera de rango se ajusta al límite. */
+export function maxSpeedOf(value) {
+  const n = Number(value ?? MAX_SPEED);
+  if (!Number.isFinite(n)) return MAX_SPEED;
+  return Math.min(Math.max(n, SPEED_LIMITS.min), SPEED_LIMITS.max);
+}
+
+export function createCar({ position = { x: 0, y: 0 }, angle = 0, sensors, maxSpeed } = {}) {
   return {
     position: { x: position.x, y: position.y },
     angle,
     speed: 0,
     crashed: false,
+    maxSpeed: maxSpeedOf(maxSpeed),
     sensors: sensorConfig(sensors),
   };
 }
@@ -43,7 +51,7 @@ export function stepCar(car, rawControls, dt) {
   else if (c.reverse) car.speed -= ACCELERATION * dt;
   else if (car.speed > 0) car.speed = Math.max(0, car.speed - FRICTION * dt);
   else if (car.speed < 0) car.speed = Math.min(0, car.speed + FRICTION * dt);
-  car.speed = Math.min(Math.max(car.speed, -MAX_REVERSE_SPEED), MAX_SPEED);
+  car.speed = Math.min(Math.max(car.speed, -car.maxSpeed * REVERSE_FRACTION), car.maxSpeed);
 
   const direction = car.speed > 0 ? 1 : car.speed < 0 ? -1 : 0; // solo gira en movimiento; al revés en marcha atrás
   const steer = (c.left ? 1 : 0) - (c.right ? 1 : 0);
@@ -55,8 +63,8 @@ export function stepCar(car, rawControls, dt) {
 
 export const carContour = (car) => rectCorners(car.position, car.angle, CAR_LENGTH, CAR_WIDTH);
 
-/** Velocidad respecto de la máxima de avance, entre -1 y 1. */
-export const normalizedSpeed = (car) => Math.min(Math.max(car.speed / MAX_SPEED, -1), 1);
+/** Velocidad respecto de la máxima de avance (la configurada para este auto), entre -1 y 1. */
+export const normalizedSpeed = (car) => Math.min(Math.max(car.speed / car.maxSpeed, -1), 1);
 
 export function configureSensors(car, partial) {
   car.sensors = sensorConfig({ ...car.sensors, ...partial });

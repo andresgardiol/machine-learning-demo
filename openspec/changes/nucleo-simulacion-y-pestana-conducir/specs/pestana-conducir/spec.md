@@ -147,7 +147,8 @@ función y una misión cumplida SHALL seguir marcada hasta cerrar la aplicación
 - **THEN** el progreso de esa misión vuelve a cero en el siguiente intento
 
 ### Requirement: Configuración avanzada
-La pestaña SHALL ofrecer, en una sección colapsada por defecto, la cantidad de
+La pestaña SHALL ofrecer, en una sección colapsada por defecto, la velocidad
+máxima del auto (compartida por todas las pestañas), la cantidad de
 carriles (2, 3 o 4), la densidad y la irregularidad del tráfico, y la cantidad,
 el alcance y la apertura de los sensores. Todo cambio MUST aplicarse de
 inmediato reiniciando el intento con la nueva configuración.
@@ -160,6 +161,10 @@ inmediato reiniciando el intento con la nueva configuración.
 - **WHEN** la persona elige cuatro carriles
 - **THEN** el intento se reinicia de inmediato en una calle de cuatro carriles
 
+#### Scenario: Cambiar la velocidad del auto
+- **WHEN** la persona sube la velocidad máxima a 30 m/s
+- **THEN** el intento se reinicia y el auto puede llegar a 30 m/s
+
 #### Scenario: Cambiar los sensores
 - **WHEN** la persona cambia la cantidad de sensores a nueve
 - **THEN** el auto muestra nueve rayos y el panel nueve barras
@@ -169,8 +174,8 @@ La pestaña SHALL ofrecer un botón que devuelve toda la configuración avanzada
 sus valores por defecto.
 
 #### Scenario: Restablecer
-- **WHEN** la persona cambió carriles, tráfico y sensores, y presiona restablecer
-- **THEN** la calle vuelve a tres carriles, el tráfico a densidad e irregularidad de 50 %, y los sensores a 5 rayos, 3 largos de auto y 90 grados
+- **WHEN** la persona cambió velocidad, carriles, tráfico y sensores, y presiona restablecer
+- **THEN** el auto vuelve a 15 m/s, la calle a tres carriles, el tráfico a densidad e irregularidad de 50 %, y los sensores a 5 rayos, 3 largos de auto y 90 grados
 
 ### Requirement: Controles de la pestaña explicados
 Cada control de la pestaña (reiniciar, tráfico nuevo, pausa, sensores, ver como

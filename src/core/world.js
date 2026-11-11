@@ -16,10 +16,11 @@ import { STEP, CAR_LENGTH } from './constants.js';
  * @param {number} [spec.density] % de tráfico
  * @param {number} [spec.irregularity] % de irregularidad
  * @param {object} [spec.sensors] { count, range, spread }
+ * @param {number} [spec.maxSpeed] velocidad máxima de avance del auto (m/s), de 12 a 40; 15 por defecto
  * @param {object} [spec.controller] objeto con control(perception) (ver controller.js)
  */
 export function createWorld(spec = {}) {
-  const { seed = 1, lanes, density, irregularity, sensors } = spec;
+  const { seed = 1, lanes, density, irregularity, sensors, maxSpeed } = spec;
   const track = createStraightStreet({ lanes });
   const traffic = createTraffic({ seed, track, density, irregularity });
   const startLane = Math.floor(track.lanes / 2);
@@ -65,7 +66,10 @@ export function createWorld(spec = {}) {
   }
 
   function reset() {
-    car = createCar({ position: track.laneCenter(startLane, 0).position, angle: 0, sensors: car ? car.sensors : sensors });
+    car = createCar({
+      position: track.laneCenter(startLane, 0).position, angle: 0,
+      sensors: car ? car.sensors : sensors, maxSpeed: car ? car.maxSpeed : maxSpeed,
+    });
     time = 0;
     steps = 0;
     segmentIndex = 0;

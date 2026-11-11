@@ -7,8 +7,11 @@ export const CAR_LENGTH = 4;
 export const CAR_WIDTH = 2;
 export const LANE_WIDTH = 4;
 
-export const MAX_SPEED = 15;
-export const MAX_REVERSE_SPEED = 7.5;
+export const MAX_SPEED = 15; // velocidad máxima de avance por defecto; se puede configurar (SPEED_LIMITS)
+export const REVERSE_FRACTION = 0.5; // la marcha atrás llega a la mitad de la máxima de avance
+export const MAX_REVERSE_SPEED = MAX_SPEED * REVERSE_FRACTION;
+// Velocidad máxima configurable: siempre por encima de la del tráfico, para que se pueda superar.
+export const SPEED_LIMITS = Object.freeze({ min: 12, max: 40 });
 export const ACCELERATION = 40;
 export const FRICTION = 14;
 export const TURN_RATE = 1.8; // rad/s

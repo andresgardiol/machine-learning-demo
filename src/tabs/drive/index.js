@@ -20,8 +20,9 @@ const ACTIONS = ['forward', 'reverse', 'left', 'right'];
 // Misiones cumplidas: siguen marcadas hasta cerrar la aplicación, aunque la pestaña se vuelva a montar.
 const completedMissions = new Set();
 
-export function mount({ stage, panel, i18n, reportError }) {
-  let settings = { ...DEFAULT_SETTINGS };
+export function mount({ stage, panel, i18n, store, reportError }) {
+  // La velocidad máxima del auto es una sola para toda la app: vive en el almacén de la app.
+  let settings = normalizeSettings({ ...DEFAULT_SETTINGS, maxSpeed: store?.get().carSpeed ?? DEFAULT_SETTINGS.maxSpeed });
   let seed = DEFAULT_SEED;
   const keyboard = createKeyboardController();
   const makeWorld = () => createWorld({ ...worldSpec(settings, seed), controller: keyboard });
@@ -158,6 +159,7 @@ export function mount({ stage, panel, i18n, reportError }) {
   let dragging = false; // un arrastre de deslizador cuenta como un solo reinicio
   function applySettings(next, { countAttempt = true } = {}) {
     settings = normalizeSettings(next);
+    store?.set({ carSpeed: settings.maxSpeed });
     restartAttempt({ rebuild: true, countAttempt });
   }
 
@@ -193,13 +195,16 @@ export function mount({ stage, panel, i18n, reportError }) {
 
   const resetSettingsButton = button('drive.resetSettings', 'drive.resetSettings', () => applySettings({ ...DEFAULT_SETTINGS }));
 
+  const row = (key) => sliders.find((s) => s.key === key).row;
   const advanced = el('details', { class: 'drive-advanced' },
     el('summary', { i18n: 'drive.advanced', help: 'drive.advanced' }),
     el('div', { class: 'advanced-body' },
+      el('h3', { class: 'panel-subheading', i18n: 'drive.advanced.car' }),
+      row('maxSpeed'),
       el('h3', { class: 'panel-subheading', i18n: 'drive.advanced.street' }),
-      lanesRow, sliders[0].row, sliders[1].row,
+      lanesRow, row('density'), row('irregularity'),
       el('h3', { class: 'panel-subheading', i18n: 'drive.advanced.sensors' }),
-      sliders[2].row, sliders[3].row, sliders[4].row,
+      row('sensorCount'), row('sensorRange'), row('sensorSpread'),
       resetSettingsButton));
 
   panel.append(
@@ -274,7 +279,7 @@ export function mount({ stage, panel, i18n, reportError }) {
     for (const b of laneButtons) b.setAttribute('aria-pressed', String(Number(b.dataset.lanes) === settings.lanes));
     for (const s of sliders) {
       if (Number(s.input.value) !== settings[s.key]) s.input.value = String(settings[s.key]);
-      setText(s.value, s.format, { value: settings[s.key] });
+      setText(s.value, s.format, { value: settings[s.key], kmh: Math.round(settings[s.key] * 3.6) });
     }
   }
 

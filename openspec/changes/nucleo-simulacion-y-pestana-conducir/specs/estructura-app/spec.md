@@ -91,8 +91,9 @@ importa, en español y en inglés.
 - **THEN** los textos de guía y las misiones reaparecen con el progreso que tenían
 
 ### Requirement: Preferencias recordadas
-La aplicación SHALL recordar en el mismo navegador el idioma elegido y el
-estado del interruptor de guía entre visitas. Si el navegador no permite
+La aplicación SHALL recordar en el mismo navegador el idioma elegido, el
+estado del interruptor de guía y la velocidad máxima del auto entre visitas.
+La velocidad máxima del auto SHALL ser una sola para todas las pestañas. Si el navegador no permite
 guardar preferencias, la aplicación MUST funcionar igual con los valores por
 defecto.
 

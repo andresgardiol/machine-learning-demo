@@ -73,6 +73,7 @@
 - [x] 10.7 Implementar la configuración avanzada colapsada (carriles, densidad, irregularidad, sensores) con aplicación inmediata y el botón de restablecer; verificar en el navegador cada escenario
 - [x] 10.8 Escribir los tooltips y los textos en español e inglés de todos los controles, indicadores, misiones y mensajes de la pestaña; verificar que la auditoría no reporta faltantes y que la prueba de paridad pasa
 - [ ] 10.9 Calibrar los valores de física y de tráfico por sensación de manejo y actualizar la tabla de `design.md` si cambian; verificar que todas las pruebas siguen pasando
+- [x] 10.10 Implementar la velocidad máxima configurable del auto (12 a 40 m/s, 15 por defecto, marcha atrás a la mitad) en el núcleo y en la configuración avanzada, compartida por todas las pestañas y recordada en las preferencias; verificar con pruebas el tope, el ajuste fuera de rango y la percepción, y en el navegador el cambio, el restablecer y que se recuerda al recargar
 
 ## 11. Verificación integral
 

@@ -14,10 +14,10 @@ const failingStorage = () => ({
 
 test('navegador sin almacenamiento: acceder al almacenamiento lanza y se obtienen los valores por defecto sin error', () => {
   const prefs = createPreferences(() => { throw new Error('SecurityError: localStorage no disponible'); });
-  assert.doesNotThrow(() => { prefs.language = 'en'; prefs.guide = false; prefs.panelWidth = 480; });
+  assert.doesNotThrow(() => { prefs.language = 'en'; prefs.guide = false; prefs.panelWidth = 480; prefs.carSpeed = 30; });
   assert.equal(prefs.language, null);
   assert.equal(prefs.guide, true);
-  assert.deepEqual({ language: prefs.language, guide: prefs.guide, panelWidth: prefs.panelWidth }, DEFAULT_PREFERENCES);
+  assert.deepEqual({ language: prefs.language, guide: prefs.guide, panelWidth: prefs.panelWidth, carSpeed: prefs.carSpeed }, DEFAULT_PREFERENCES);
 });
 
 test('almacenamiento que falla al leer y escribir: valores por defecto sin error', () => {
@@ -66,4 +66,11 @@ test('ancho del panel con un almacenamiento que falla: null sin error', () => {
   const prefs = createPreferences(failingStorage);
   assert.doesNotThrow(() => { prefs.panelWidth = 500; });
   assert.equal(prefs.panelWidth, null);
+});
+
+test('velocidad del auto: se recuerda entre visitas; sin valor guardado es null', () => {
+  const storage = memoryStorage();
+  assert.equal(createPreferences(() => storage).carSpeed, null);
+  createPreferences(() => storage).carSpeed = 28;
+  assert.equal(createPreferences(() => storage).carSpeed, 28);
 });

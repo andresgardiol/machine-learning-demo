@@ -106,3 +106,25 @@ test('un auto chocado queda detenido y no responde a los controles', () => {
   assert.deepEqual(car.position, { x: 0, y: 0 });
   assert.equal(car.angle, 0);
 });
+
+test('velocidad máxima configurable: se estabiliza en la configurada y la marcha atrás llega a la mitad', async () => {
+  const { createCar, stepCar, normalizedSpeed } = await import('../src/core/car.js');
+  const fast = createCar({ maxSpeed: 30 });
+  for (let i = 0; i < 600; i++) stepCar(fast, { forward: true }, STEP);
+  assert.equal(fast.speed, 30);
+  assert.equal(normalizedSpeed(fast), 1);
+  const back = createCar({ maxSpeed: 30 });
+  for (let i = 0; i < 600; i++) stepCar(back, { reverse: true }, STEP);
+  assert.equal(back.speed, -15);
+});
+
+test('velocidad máxima fuera de rango: se ajusta a 12 o 40 m/s, siempre por encima del tráfico', async () => {
+  const { createCar, maxSpeedOf } = await import('../src/core/car.js');
+  const { SPEED_LIMITS } = await import('../src/core/constants.js');
+  assert.deepEqual(SPEED_LIMITS, { min: 12, max: 40 });
+  assert.equal(createCar({ maxSpeed: 5 }).maxSpeed, 12);
+  assert.equal(createCar({ maxSpeed: 90 }).maxSpeed, 40);
+  assert.equal(createCar().maxSpeed, MAX_SPEED);
+  assert.equal(maxSpeedOf('rápido'), MAX_SPEED);
+  assert.ok(TRAFFIC_SPEED < SPEED_LIMITS.min);
+});

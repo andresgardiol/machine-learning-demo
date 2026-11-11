@@ -59,6 +59,7 @@ Piezas del núcleo:
 - `track.js`: pista por línea central, ancho y carriles; calle recta de 2, 3 o 4 carriles.
 - `traffic.js`: tráfico como función pura de semilla, número de grupo y tiempo.
 - `car.js` y `sensors.js`: física del auto y rayos de percepción.
+- La velocidad máxima del auto se configura (`createWorld({ maxSpeed })`, de 12 a 40 m/s, 15 por defecto; marcha atrás a la mitad) y siempre supera a la del tráfico (10 m/s).
 - `world.js`: une todo y avanza en pasos fijos de 1/60 s (`step()`), con `reset()`, `pause()` y `resume()`.
 
 Unidades: metros y segundos. Ejes matemáticos (x a la derecha, y hacia arriba,

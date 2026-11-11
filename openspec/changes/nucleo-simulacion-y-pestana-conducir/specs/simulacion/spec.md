@@ -55,6 +55,21 @@ menor que la de avance.
 - **WHEN** se mantiene el control de retroceder durante un tiempo prolongado
 - **THEN** el auto retrocede y su velocidad se estabiliza en un tope menor que el de avance
 
+### Requirement: Velocidad máxima configurable
+La velocidad máxima de avance del auto SHALL poder configurarse entre 12 y
+40 m/s, con 15 m/s por defecto, siempre por encima de la velocidad del
+tráfico. La marcha atrás SHALL llegar a la mitad de esa velocidad. Un valor
+fuera de rango MUST ajustarse al límite válido más cercano. La percepción
+SHALL expresar la velocidad respecto de la máxima configurada.
+
+#### Scenario: Auto más rápido
+- **WHEN** se configura una velocidad máxima de 30 m/s y se mantiene el control de avanzar
+- **THEN** la velocidad se estabiliza en 30 m/s y la velocidad de la percepción es 1
+
+#### Scenario: Valor fuera de rango
+- **WHEN** se pide una velocidad máxima de 5 m/s
+- **THEN** el auto queda con 12 m/s
+
 ### Requirement: Fricción
 El auto SHALL perder velocidad de forma progresiva hasta detenerse cuando no se
 acciona avanzar ni retroceder.

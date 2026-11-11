@@ -9,6 +9,7 @@ import { el } from './dom.js';
 import { createStore } from './store.js';
 import { LANGUAGES } from './i18n.js';
 import { PANEL_WIDTH, clampPanelWidth, maxPanelWidth } from './layout.js';
+import { MAX_SPEED } from '../core/constants.js';
 
 /** Por debajo de este ancho (px) se muestra el aviso de uso en escritorio; coincide con styles/app.css. */
 export const NARROW_WIDTH = 600;
@@ -19,7 +20,13 @@ export const COURSE_URL = 'https://www.youtube.com/watch?v=Rs_rAxEsAvI';
  * @param {{root: HTMLElement, tabs: {id:string, module?:{mount:Function}}[], i18n: object, preferences: object}} spec
  */
 export function createApp({ root, tabs, i18n, preferences }) {
-  const store = createStore({ guide: preferences.guide, activeTab: tabs.find((t) => t.module)?.id ?? null });
+  // carSpeed: velocidad máxima del auto, una sola para toda la app (las pestañas la leen y la cambian acá).
+  const store = createStore({
+    guide: preferences.guide,
+    activeTab: tabs.find((t) => t.module)?.id ?? null,
+    carSpeed: preferences.carSpeed ?? MAX_SPEED,
+  });
+  store.subscribe((state, prev) => { if (state.carSpeed !== prev.carSpeed) preferences.carSpeed = state.carSpeed; });
 
   // --- Barra de pestañas -------------------------------------------------
   const tabButtons = tabs.map((tab, index) => {

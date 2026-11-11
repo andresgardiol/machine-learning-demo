@@ -140,3 +140,11 @@ test('retroceder desde la salida no saca al auto de la calle: sigue habiendo bor
   assert.equal(turning.crashCause, 'edge');
   assert.ok(turning.car.position.x < 0, 'choca contra un borde detrás de la salida');
 });
+
+test('mundo con velocidad máxima configurada: el auto llega a ella, la percepción da 1 y el reinicio la conserva', () => {
+  const w = run(createWorld({ seed: 1, density: 0, maxSpeed: 25, controller: constantController({ forward: true }) }), 120);
+  assert.equal(w.car.speed, 25);
+  assert.equal(w.perception.speed, 1);
+  w.reset();
+  assert.equal(w.car.maxSpeed, 25);
+});
