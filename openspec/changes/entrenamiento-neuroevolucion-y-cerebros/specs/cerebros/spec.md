@@ -111,8 +111,8 @@ cerebros no se conservarán, sugiriendo exportarlos.
 - **THEN** un mensaje explica que no hay espacio y sugiere exportar o eliminar cerebros, y los cerebros ya guardados quedan intactos
 
 ### Requirement: Lista de cerebros
-La biblioteca SHALL mostrar de cada cerebro su nombre, su origen (incluido,
-guardado o autoguardado), las generaciones entrenadas, la cantidad de sensores,
+La biblioteca SHALL mostrar de cada cerebro su nombre, su origen (guardado o
+autoguardado), las generaciones entrenadas, la cantidad de sensores,
 la forma de su red y su mejor fitness; y, al desplegarlo, el resto de sus datos
 de entrenamiento, con los escenarios que vio.
 
@@ -190,24 +190,6 @@ llano y dejar la biblioteca como estaba.
 #### Scenario: Archivo dañado
 - **WHEN** la persona importa un cerebro con pesos faltantes
 - **THEN** un mensaje explica que el archivo está dañado o incompleto y la biblioteca no cambia
-
-### Requirement: Cerebros incluidos
-La aplicación SHALL incluir al menos dos cerebros ya entrenados, rotulados como
-incluidos: "Novato", con 2 generaciones de entrenamiento, y "Experto", capaz de
-manejar 120 segundos simulados sin chocar en su escenario de entrenamiento. Los
-cerebros incluidos MUST NOT poder eliminarse, renombrarse ni actualizarse.
-
-#### Scenario: Disponibles sin haber entrenado
-- **WHEN** una persona abre la biblioteca por primera vez
-- **THEN** ve "Novato" y "Experto" rotulados como incluidos
-
-#### Scenario: Experto en su escenario
-- **WHEN** "Experto" maneja 120 segundos simulados en el escenario y el tráfico con los que fue entrenado
-- **THEN** no choca
-
-#### Scenario: Incluidos protegidos
-- **WHEN** la persona mira las acciones de un cerebro incluido
-- **THEN** eliminar y renombrar no están disponibles y un tooltip explica por qué
 
 ### Requirement: Autoguardado
 Al terminar cada generación, la aplicación SHALL guardar sola el campeón del

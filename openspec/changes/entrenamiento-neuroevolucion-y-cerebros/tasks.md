@@ -58,13 +58,14 @@
 - [x] 9.2 Implementar la persistencia entre visitas, el orden por fecha y la tolerancia a almacenamiento ausente o lleno; verificar con pruebas los tres escenarios de "Biblioteca recordada" usando almacenamientos falsos que fallan
 - [x] 9.3 Implementar importar desde texto y exportar a texto; verificar con pruebas los cuatro escenarios de "Importar" y que lo exportado contiene todo el cerebro
 - [x] 9.4 Implementar el autoguardado con su límite de una escritura por segundo y la rotación a "entrenamiento anterior"; verificar con pruebas los tres escenarios de "Autoguardado" usando un reloj falso
-- [x] 9.5 Implementar los cerebros incluidos dentro de la biblioteca como protegidos; verificar con pruebas que no se pueden eliminar, renombrar ni actualizar y que aparecen sin haber guardado nada
 
-## 10. Cerebros incluidos
+## 10. Revisión: sin cerebros incluidos, regla de los lentos y velocidad de 20 m/s
 
-- [ ] 10.1 Crear `tools/train-presets.mjs` y generar `src/presets/brains.js` con "Novato" y "Experto" según design D9; verificar que dos ejecuciones del script producen un archivo idéntico y, si "Experto" no se logra dentro del tope, detenerse y consultar
-- [ ] 10.2 Escribir las pruebas de los cerebros incluidos (pasan la validación, "Novato" tiene 2 generaciones, "Experto" maneja 120 segundos simulados sin chocar en su escenario) y agregar sus nombres a los dos diccionarios; verificar que las pruebas y la paridad pasan
-- [ ] 10.3 Documentar en `README.md` cómo regenerar los cerebros incluidos; verificar que el comando documentado funciona tal como está escrito
+- [ ] 10.1 Quitar de `src/ui/library.js` el soporte de cerebros incluidos y sus pruebas, sin agregar `tools/train-presets.mjs` ni `src/presets/`, y anotar en `PENDIENTES.md` la idea de incluir más adelante dos o tres cerebros elegidos por el dueño (design D9); verificar que `npm test` pasa y que ningún archivo del código menciona cerebros incluidos
+- [ ] 10.2 Agregar `world.retire(index, cause)` al mundo (design D18); verificar con una prueba el escenario "Auto sacado por lento" de "Sacar un auto de carrera"
+- [ ] 10.3 Implementar en `src/core/training.js` la regla "eliminar a los lentos" como ajuste `slowRule`, encendido por defecto y aplicado desde la generación siguiente, con el motivo `tooSlow` (design D18); verificar con una prueba por cada escenario de "Eliminar a los lentos" y el de "Todos fuera de carrera", y que las pruebas de reproducibilidad y de "el mejor nunca empeora" siguen pasando
+- [ ] 10.4 Subir `MAX_SPEED` a 20 m/s (design D19), actualizar en español e inglés el tooltip de restablecer de la pestaña 1 y, con acuerdo del dueño, las dos aserciones de `tests/drive-settings.test.js` que fijaban 15; verificar con pruebas el escenario "Velocidad por defecto" y en el navegador el escenario "Restablecer" de la pestaña 1
+- [ ] 10.5 Repetir `node tools/calibrate.mjs` con la regla y la velocidad nuevas, informando también cuántos autos salieron por lentos; verificar dejando el resultado anotado en la sección de calibración de `design.md` y, si no cumple el criterio, detenerse y consultar
 
 ## 11. Bucle con velocidades
 
@@ -100,7 +101,7 @@
 - [ ] 16.2 Implementar pausa, velocidades, velocidad máxima con su factor y siguiente generación, con los atajos barra espaciadora, T y N; verificar con pruebas el mapa de atajos y en el navegador los escenarios de "Pausa", "Velocidad del entrenamiento" y "Pasar a la siguiente generación"
 - [ ] 16.3 Implementar reiniciar y población nueva con la regla de confirmación y la rotación del autoguardado; verificar en el navegador los cuatro escenarios de "Reiniciar el entrenamiento" y el de "Población nueva"
 - [ ] 16.4 Implementar la configuración básica (población y fuerza de mutación) con la indicación de cambios pendientes; verificar en el navegador los dos escenarios de "Configuración básica"
-- [ ] 16.5 Implementar la configuración avanzada de evolución y de escenario, con la velocidad máxima compartida con la pestaña 1; verificar en el navegador los cuatro escenarios de "Configuración avanzada"
+- [ ] 16.5 Implementar la configuración avanzada de evolución (con el interruptor "eliminar a los lentos") y de escenario, con la velocidad máxima compartida con la pestaña 1; verificar en el navegador los cuatro escenarios de "Configuración avanzada"
 - [ ] 16.6 Implementar los ajustes de red y sensores con la regla de entrenamiento nuevo, la confirmación única al soltar un deslizador y la vuelta al valor anterior al cancelar; verificar en el navegador los cuatro escenarios de "Red y sensores"
 - [ ] 16.7 Implementar restablecer la configuración; verificar en el navegador los dos escenarios de "Restablecer la configuración"
 - [ ] 16.8 Implementar el interruptor de sensores del líder y las secciones plegables de la red y de la curva; verificar en el navegador "Sensores del líder" y "Plegar el diagrama"
@@ -118,14 +119,13 @@
 ## 18. Tooltips y textos de la pestaña 3
 
 - [ ] 18.1 Escribir en español e inglés el tooltip (qué hace y por qué importa) de cada control de la pestaña 3 y de la biblioteca, usando el término técnico real y definiéndolo; verificar que la auditoría de tooltips no reporta faltantes y que la paridad pasa
-- [ ] 18.2 Revisar que los tooltips de las funciones de fitness, del modo de tráfico, de la mutación y de la velocidad máxima digan lo que piden los escenarios de "Controles de la pestaña explicados" y que el de velocidad máxima avise que el entrenamiento se detiene con la página oculta; verificar leyéndolos en el navegador en ambos idiomas
+- [ ] 18.2 Revisar que los tooltips de las funciones de fitness, de eliminar a los lentos, del modo de tráfico, de la mutación y de la velocidad máxima digan lo que piden los escenarios de "Controles de la pestaña explicados" y que el de velocidad máxima avise que el entrenamiento se detiene con la página oculta; verificar leyéndolos en el navegador en ambos idiomas
 
 ## 19. Verificación integral
 
 - [ ] 19.1 Ejecutar `npm test` completo; verificar que todas las pruebas pasan
 - [ ] 19.2 Recorrer la pestaña 3 y la biblioteca en inglés (guía, indicadores, curva, diagrama, confirmaciones, misiones, mensajes de error); verificar que no aparece ningún texto en español
-- [ ] 19.3 Verificar en el navegador que "Experto" maneja 120 segundos sin chocar al cargarlo en su escenario, y anotar el resultado
-- [ ] 19.4 Recorrer la pestaña 1 completa en el navegador; verificar que se comporta igual que antes del cambio, salvo el texto de guía y el formato de los números
+- [ ] 19.4 Recorrer la pestaña 1 completa en el navegador; verificar que se comporta igual que antes del cambio, salvo el texto de guía, el formato de los números y la velocidad máxima por defecto de 20 m/s
 - [ ] 19.5 Verificar a mano en el navegador cada feature visible contra el filtro de entrada (qué concepto hace visible, si se entiende sola, si el mentor puede ocultarla, cómo se vuelve atrás) y contra los escenarios de las specs que no tienen prueba automática
 
 ## Workflow follow-up

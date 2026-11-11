@@ -31,7 +31,8 @@ context: |
   5. Autoexplicable: tooltip "qué hace / por qué importa" en todo control.
   6. Dos públicos, una app: las guías se ocultan, lo avanzado no abruma.
   7. Honestidad técnica: nombres correctos; se visualiza el cálculo real.
-  8. Nunca falla en vivo: determinismo, cerebros preentrenados, reinicio.
+  8. Nunca falla en vivo: determinismo, cerebros guardados y exportables,
+     reinicio.
   9. Consistencia: misma disposición, colores y controles en toda la app.
   10. Fluidez: la animación fluida es parte de la experiencia.
   11. Bilingüe de origen: ningún texto visible fijo en el código.

@@ -22,3 +22,11 @@ cantidad de carriles que la calle tiene en ese momento.
 #### Scenario: Carriles elegidos
 - **WHEN** la persona elige cuatro carriles en la configuración avanzada
 - **THEN** el texto de inicio pasa a hablar de una calle de 4 carriles, en el idioma activo
+
+### Requirement: Restablecer la configuración
+La pestaña SHALL ofrecer un botón que devuelve toda la configuración avanzada a
+sus valores por defecto.
+
+#### Scenario: Restablecer
+- **WHEN** la persona cambió velocidad, carriles, tráfico y sensores, y presiona restablecer
+- **THEN** el auto vuelve a 20 m/s, la calle a tres carriles, el tráfico a densidad e irregularidad de 50 %, y los sensores a 5 rayos, 3 largos de auto y 90 grados

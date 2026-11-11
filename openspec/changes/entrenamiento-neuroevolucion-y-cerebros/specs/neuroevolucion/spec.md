@@ -33,13 +33,14 @@ ajustarse al límite válido más cercano.
 
 ### Requirement: Fin de la generación
 Una generación SHALL terminar cuando ocurre lo primero de esto: todos los autos
-chocaron; se cumplió la duración máxima (de 10 a 300 segundos simulados, 60 por
+quedaron fuera de carrera (porque chocaron o porque fueron eliminados por
+lentos); se cumplió la duración máxima (de 10 a 300 segundos simulados, 60 por
 defecto); o ningún auto en carrera mejoró su mayor distancia durante 5 segundos
 simulados. El motivo MUST quedar registrado.
 
-#### Scenario: Todos chocaron
-- **WHEN** choca el último auto en carrera
-- **THEN** la generación termina con el motivo "todos chocaron"
+#### Scenario: Todos fuera de carrera
+- **WHEN** choca o es eliminado por lento el último auto en carrera
+- **THEN** la generación termina con el motivo "todos quedaron fuera de carrera"
 
 #### Scenario: Duración máxima
 - **WHEN** pasan 60 segundos simulados con la duración por defecto y queda algún auto en carrera que sigue avanzando
@@ -48,6 +49,34 @@ simulados. El motivo MUST quedar registrado.
 #### Scenario: Nadie avanza
 - **WHEN** los autos en carrera llevan 5 segundos simulados sin superar su mayor distancia
 - **THEN** la generación termina con el motivo "nadie avanzaba"
+
+### Requirement: Eliminar a los lentos
+El entrenamiento SHALL ofrecer una regla, encendida por defecto, que saca de
+carrera a todo auto que en los últimos 5 segundos simulados avanzó menos que el
+tráfico en ese tiempo (50 metros, a 10 m/s). La regla MUST aplicarse recién
+cuando la generación lleva 5 segundos, MUST dejar al auto detenido y fuera de
+carrera con el motivo "demasiado lento", y su fitness SHALL ser el logrado
+hasta ese momento. Con la regla apagada, ningún auto sale de carrera por lento.
+
+#### Scenario: Auto detrás del tráfico
+- **WHEN** con la regla encendida un auto avanza a 10 m/s o menos durante 5 segundos simulados
+- **THEN** queda fuera de carrera con el motivo "demasiado lento" y deja de contarse entre los autos en carrera
+
+#### Scenario: Auto más rápido que el tráfico
+- **WHEN** con la regla encendida un auto avanza a más de 10 m/s sin chocar
+- **THEN** sigue en carrera
+
+#### Scenario: Comienzo de la generación
+- **WHEN** empiezan a moverse los autos de una generación
+- **THEN** ninguno sale por lento antes de que pasen 5 segundos simulados
+
+#### Scenario: Fitness al salir por lento
+- **WHEN** un auto sale por lento tras recorrer 40 metros en 5 segundos
+- **THEN** su fitness por distancia es 40 y por tiempo sin chocar es 5
+
+#### Scenario: Regla apagada
+- **WHEN** la regla está apagada y un auto va detrás del tráfico toda la generación
+- **THEN** sigue en carrera hasta que termina la generación
 
 ### Requirement: Pasar de generación a pedido
 El entrenamiento SHALL poder terminar la generación en curso en cualquier
@@ -209,7 +238,7 @@ lejos.
 
 ### Requirement: Cambios de configuración durante el entrenamiento
 Los cambios de población, élite, selección, mutación, cruce, función de
-fitness, duración máxima, modo de tráfico, escenario y velocidad máxima del
+fitness, duración máxima, eliminar a los lentos, modo de tráfico, escenario y velocidad máxima del
 auto SHALL aplicarse desde la generación siguiente, sin reiniciar el
 entrenamiento. Un cambio en la forma de la red, en su activación o en los
 sensores MUST requerir un entrenamiento nuevo.

@@ -5,16 +5,16 @@
 ### Requirement: Dibujo de una población
 Cuando el mundo tiene varios autos, la vista SHALL dibujarlos a todos: el auto
 líder con su aspecto completo y sus sensores, y los demás atenuados y sin
-sensores, de modo que el líder se distinga a simple vista. Los autos chocados
-MUST distinguirse de los que siguen en carrera, y no solo por el color.
+sensores, de modo que el líder se distinga a simple vista. Los autos fuera de
+carrera (chocados o eliminados por lentos) MUST distinguirse de los que siguen en carrera, y no solo por el color.
 
 #### Scenario: Población en carrera
 - **WHEN** se muestra un mundo con cien autos
 - **THEN** se ven los cien, uno de ellos destacado con sus rayos y el resto atenuado sin rayos
 
-#### Scenario: Autos chocados
-- **WHEN** parte de la población chocó
-- **THEN** los autos chocados se ven con un aspecto distinto del de los autos en carrera, reconocible sin depender del color
+#### Scenario: Autos fuera de carrera
+- **WHEN** parte de la población chocó o fue eliminada por lenta
+- **THEN** los autos fuera de carrera se ven con un aspecto distinto del de los autos en carrera, reconocible sin depender del color
 
 #### Scenario: Mundo de un solo auto
 - **WHEN** se muestra un mundo con un solo auto

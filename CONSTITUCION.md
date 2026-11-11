@@ -74,10 +74,10 @@ decorativa.
 
 ### 8. Nunca falla en vivo
 
-La simulación es determinista: misma semilla, mismo resultado. La app incluye
-cerebros preentrenados, siempre hay una forma de reiniciar o volver atrás, nada
-de lo que haga el usuario la rompe, y los errores se explican en lenguaje
-humano.
+La simulación es determinista: misma semilla, mismo resultado. Lo aprendido se
+puede guardar y exportar, de modo que el mentor prepara sus cerebros antes de
+una demostración; siempre hay una forma de reiniciar o volver atrás, nada de lo
+que haga el usuario la rompe, y los errores se explican en lenguaje humano.
 
 ### 9. Consistencia
 

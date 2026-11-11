@@ -48,8 +48,8 @@ que terminó. El número de generación MUST verse también sobre el escenario.
 - **THEN** el indicador de autos en carrera muestra 80 de 100
 
 #### Scenario: Fin de una generación
-- **WHEN** termina una generación porque todos chocaron
-- **THEN** el número de generación aumenta en uno y se muestran el mejor fitness de la generación terminada, con su unidad, y el motivo "todos chocaron"
+- **WHEN** termina una generación porque todos los autos quedaron fuera de carrera
+- **THEN** el número de generación aumenta en uno y se muestran el mejor fitness de la generación terminada, con su unidad, y el motivo "todos quedaron fuera de carrera"
 
 #### Scenario: Antes de la primera generación
 - **WHEN** todavía no terminó ninguna generación
@@ -179,7 +179,7 @@ cambios esperando a la próxima generación.
 ### Requirement: Configuración avanzada
 La pestaña SHALL ofrecer, en una sección colapsada por defecto, los ajustes de
 evolución (élite, selección, probabilidad de mutación, cruce, función de
-fitness, duración máxima y modo de tráfico) y de escenario (carriles, densidad,
+fitness, duración máxima, eliminar a los lentos y modo de tráfico) y de escenario (carriles, densidad,
 irregularidad y velocidad máxima del auto). Todos SHALL aplicarse desde la
 generación siguiente, con la misma indicación que la configuración básica.
 
@@ -194,6 +194,10 @@ generación siguiente, con la misma indicación que la configuración básica.
 #### Scenario: Cambiar los carriles
 - **WHEN** la persona elige cuatro carriles durante una generación
 - **THEN** la generación en curso termina en tres carriles y la siguiente corre en cuatro
+
+#### Scenario: Apagar la regla de los lentos
+- **WHEN** la persona apaga "eliminar a los lentos" durante una generación
+- **THEN** la generación en curso sigue con la regla y en la siguiente ningún auto sale de carrera por lento
 
 #### Scenario: Velocidad máxima compartida
 - **WHEN** la persona cambia la velocidad máxima del auto en esta pestaña y luego abre El problema
@@ -259,7 +263,7 @@ las acciones de cada cerebro y la de importar.
 
 #### Scenario: Biblioteca al abrir
 - **WHEN** una persona abre la pestaña por primera vez y despliega la biblioteca
-- **THEN** ve los cerebros incluidos
+- **THEN** ve un texto que explica que todavía no hay cerebros guardados y cómo guardar el campeón
 
 #### Scenario: Cerebro guardado
 - **WHEN** la persona guarda un cerebro
@@ -271,8 +275,8 @@ cargarlo, la pestaña MUST adoptar sus sensores y la forma y activación de su
 red, empezar un entrenamiento desde él y aplicar la regla de confirmación si
 hay generaciones terminadas.
 
-#### Scenario: Cargar un cerebro incluido
-- **WHEN** la persona elige seguir entrenando "Experto"
+#### Scenario: Cargar un cerebro guardado
+- **WHEN** la persona elige seguir entrenando el cerebro guardado "Prudente"
 - **THEN** el entrenamiento empieza desde ese cerebro, la generación en curso es la siguiente a las que ya tenía y los ajustes de red y sensores muestran los del cerebro
 
 #### Scenario: Cargar con progreso sin guardar
@@ -323,6 +327,10 @@ estar en español y en inglés.
 #### Scenario: Tooltip de una función de fitness
 - **WHEN** la persona posa el cursor sobre "tiempo sin chocar"
 - **THEN** el tooltip explica qué premia y advierte qué comportamiento no deseado puede producir
+
+#### Scenario: Tooltip de eliminar a los lentos
+- **WHEN** la persona posa el cursor sobre "eliminar a los lentos"
+- **THEN** el tooltip explica que saca de carrera a los autos que no van más rápido que el tráfico y que, sin la regla, la población aprende a quedarse detrás de un vehículo en lugar de esquivarlo
 
 #### Scenario: Tooltip del modo de tráfico
 - **WHEN** la persona posa el cursor sobre el modo de tráfico

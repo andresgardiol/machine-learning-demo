@@ -2,6 +2,15 @@
 
 ## ADDED Requirements
 
+### Requirement: Sacar un auto de carrera
+La simulación SHALL permitir sacar de carrera a un auto de un mundo con varios
+autos, indicando el motivo. El auto MUST quedar detenido y fuera de carrera
+como uno chocado, con ese motivo, y los demás MUST seguir sin cambios.
+
+#### Scenario: Auto sacado por lento
+- **WHEN** se saca de carrera a uno de tres autos con el motivo "demasiado lento"
+- **THEN** ese auto queda detenido, fuera de carrera y con ese motivo, y los otros dos evolucionan igual que si no hubiera pasado nada
+
 ### Requirement: Varios autos en un mismo mundo
 La simulación SHALL admitir uno o más autos que comparten la misma pista y el
 mismo tráfico. Cada auto MUST tener su propio controlador, sus propios
@@ -66,3 +75,29 @@ mientras corre acelerada.
 #### Scenario: Página oculta
 - **WHEN** la página queda oculta mientras la simulación corre acelerada
 - **THEN** la simulación se detiene y continúa desde el mismo estado al volver a mostrarse
+
+## MODIFIED Requirements
+
+### Requirement: Velocidad máxima configurable
+La velocidad máxima de avance del auto SHALL poder configurarse entre 12 y
+40 m/s, con 20 m/s por defecto, siempre por encima de la velocidad del
+tráfico. La marcha atrás SHALL llegar a la mitad de esa velocidad. Un valor
+fuera de rango MUST ajustarse al límite válido más cercano. La velocidad
+máxima SHALL poder cambiarse en marcha, sin reiniciar la simulación. La percepción
+SHALL expresar la velocidad respecto de la máxima configurada.
+
+#### Scenario: Velocidad por defecto
+- **WHEN** se crea un auto sin indicar velocidad máxima y se mantiene el control de avanzar
+- **THEN** la velocidad se estabiliza en 20 m/s
+
+#### Scenario: Auto más rápido
+- **WHEN** se configura una velocidad máxima de 30 m/s y se mantiene el control de avanzar
+- **THEN** la velocidad se estabiliza en 30 m/s y la velocidad de la percepción es 1
+
+#### Scenario: Valor fuera de rango
+- **WHEN** se pide una velocidad máxima de 5 m/s
+- **THEN** el auto queda con 12 m/s
+
+#### Scenario: Cambio en marcha
+- **WHEN** se cambia la velocidad máxima mientras el auto avanza
+- **THEN** la simulación sigue sin reiniciarse y, si el auto iba más rápido que el nuevo tope, pasa a ir a ese tope

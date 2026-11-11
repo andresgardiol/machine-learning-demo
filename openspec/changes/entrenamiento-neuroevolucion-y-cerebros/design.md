@@ -13,7 +13,8 @@ puede compartirse entre muchos autos sin costo de coordinación.
 
 La pestaña 1 tiene todos sus componentes de panel (botón, interruptor,
 deslizador, texto variable) definidos dentro de `tabs/drive/index.js`. La
-velocidad máxima del auto vive en el almacén de la app (`store.carSpeed`).
+velocidad máxima del auto vive en el almacén de la app (`store.carSpeed`); su
+valor por defecto (`MAX_SPEED`) era 15 m/s y este cambio lo sube a 20 m/s.
 
 Hay 194 pruebas que pasan. Restricciones: sin dependencias, sin build, núcleo
 sin DOM ni reloj ni `Math.random`, dos idiomas, solo escritorio.
@@ -25,10 +26,11 @@ Motivación y alcance: ver `proposal.md`. Comportamiento exigido: ver `specs/`.
 **Goals:**
 
 - Que todo lo que define un entrenamiento (red, evolución, generaciones,
-  cerebro) viva en el núcleo y corra en Node, para probarlo y para generar los
-  cerebros incluidos con un script.
+  cerebro) viva en el núcleo y corra en Node, para probarlo y para medirlo con
+  scripts.
 - Que el mundo de varios autos sirva también a las carreras de la pestaña 4.
-- Que la pestaña 1 no cambie de comportamiento.
+- Que la pestaña 1 no cambie de comportamiento, salvo la velocidad máxima por
+  defecto (20 m/s, D19).
 - Que un entrenamiento sea reproducible de punta a punta con una semilla.
 
 **Non-Goals:**
@@ -170,11 +172,13 @@ training.brain({ id, name, now })   cerebro del campeón con sus datos
 training.onGeneration(fn)    avisa al cerrar cada generación
 ```
 
-Motivos de fin: `allCrashed`, `timeLimit`, `stalled`, `requested`. "Nadie
-avanza" se detecta guardando el último paso en que algún agente en carrera
-superó su mayor progreso; si pasan 5 segundos simulados sin que ocurra, la
-generación termina. Es una regla de la generación, no elimina individuos: por
-eso, con la función "tiempo sin chocar", los autos que aprenden a no moverse
+Motivos de fin: `allCrashed` (todos quedaron fuera de carrera, porque
+chocaron o porque la regla de D18 los sacó por lentos), `timeLimit`,
+`stalled`, `requested`. "Nadie avanza" se detecta guardando el último paso en
+que algún agente en carrera superó su mayor progreso; si pasan 5 segundos
+simulados sin que ocurra, la generación termina. Es una regla de la
+generación, no elimina individuos: por eso, con la regla de los lentos
+apagada y la función "tiempo sin chocar", los autos que aprenden a no moverse
 siguen obteniendo el mejor fitness, que es justo lo que se quiere mostrar.
 
 Cuándo se aplica cada cambio:
@@ -182,11 +186,11 @@ Cuándo se aplica cada cambio:
 | Cuándo | Qué |
 |---|---|
 | Al instante | Pausa, velocidad, cámara, sensores visibles, secciones plegadas |
-| Próxima generación | Población, élite, selección, mutación, cruce, fitness, duración, modo de tráfico, carriles, densidad, irregularidad, velocidad máxima |
+| Próxima generación | Población, élite, selección, mutación, cruce, fitness, duración, eliminar a los lentos, modo de tráfico, carriles, densidad, irregularidad, velocidad máxima |
 | Entrenamiento nuevo | Capas ocultas, neuronas, activación, sensores, cargar un cerebro, reiniciar, población nueva |
 
 *Alternativa:* poner la lógica de generaciones en la pestaña. Descartado: no
-se podría probar sin navegador ni usar desde el script de cerebros incluidos.
+se podría probar sin navegador ni medir con los scripts de `tools/`.
 
 ### D7. Formato del cerebro, versión 1
 
@@ -229,8 +233,7 @@ verifica al crearlo.
 `src/ui/library.js` no toca el DOM: recibe el almacenamiento, el reloj y el
 generador de identificadores, y se prueba en Node con uno falso. Guarda los
 cerebros en `mlLab.brains` y los autoguardados en `mlLab.autosave.current` y
-`mlLab.autosave.previous`. Ofrece listar (incluidos, autoguardados y
-guardados), guardar, actualizar, renombrar, eliminar, importar desde texto,
+`mlLab.autosave.previous`. Ofrece listar (autoguardados y guardados), guardar, actualizar, renombrar, eliminar, importar desde texto,
 exportar a texto, autoguardar, rotar el autoguardado y suscribirse a cambios.
 Si el almacenamiento falla, sigue en memoria y lo informa con un estado que la
 vista convierte en aviso.
@@ -245,19 +248,19 @@ La descarga y la lectura de archivos (`src/ui/files.js`) y la lista
 (`src/ui/library-view.js`) sí usan el DOM. La app crea la biblioteca al
 arrancar y la entrega a cada pestaña en su contexto (`ctx.library`).
 
-### D9. Cerebros incluidos generados por un script
+### D9. Sin cerebros incluidos
 
-`tools/train-presets.mjs` entrena en Node con semillas fijas y escribe
-`src/presets/brains.js` (un módulo que exporta la lista). El archivo generado
-se versiona; el script permite regenerarlo. Sus nombres salen de los
-diccionarios (`preset.novice`, `preset.expert`), no del archivo.
+La aplicación no trae cerebros ya entrenados. El mentor entrena los suyos antes
+de una demostración, los guarda con nombre y, si cambia de equipo, los exporta
+e importa. Así decide él qué muestra cada cerebro, y la biblioteca no necesita
+cerebros protegidos. El artículo 8 de la constitución se enmendó en ese
+sentido. Más adelante podrían sumarse dos o tres cerebros elegidos por el
+dueño, como datos versionados (anotado en `PENDIENTES.md`).
 
-- **Novato:** campeón de la generación 2.
-- **Experto:** entrenado con mismo tráfico y duración de 120 segundos hasta
-  manejar los 120 segundos sin chocar, con un tope de 300 generaciones.
-
-Si "Experto" no se logra dentro del tope, no se baja el umbral: se detiene y se
-consulta.
+*Alternativa descartada:* generarlos con un script y un criterio automático
+("manejar 120 segundos sin chocar"). Se probó: el criterio se cumplía en la
+generación 1 con un auto que iba detrás del tráfico sin pasar a nadie, que no
+es lo que se quiere mostrar.
 
 ### D10. Bucle con velocidades
 
@@ -346,17 +349,49 @@ guía de la pestaña 1 pasa a recibir la cantidad de carriles como parámetro.
 
 ```
 src/core/      network.js  evolution.js  training.js  brain.js  (world.js cambia)
-src/presets/   brains.js          (generado; solo datos)
 src/render/    network-view.js    (view.js cambia)
 src/ui/        library.js  library-view.js  files.js  chart.js  controls.js
                (loop.js, i18n.js y app.js cambian)
 src/tabs/train/
-tools/         train-presets.mjs  bench.mjs  calibrate.mjs
+tools/         bench.mjs  calibrate.mjs
 ```
 
-Las dependencias siguen apuntando al núcleo; `src/presets` solo contiene
-datos. La prueba de arquitectura existente cubre los módulos nuevos de
+Las dependencias siguen apuntando al núcleo. La prueba de arquitectura existente cubre los módulos nuevos de
 `src/core` sin cambios.
+
+### D18. Eliminar a los lentos
+
+Sin otra regla, la población encuentra una salida fácil: ir detrás de un
+vehículo a su velocidad nunca choca y suma distancia sin fin, porque el
+tráfico no termina. Para que pasar al tráfico sea la única forma de seguir en
+carrera, un agente en carrera queda fuera si en los últimos 5 segundos
+simulados avanzó menos que el tráfico en ese tiempo (5 × 10 m). Se mide desde
+que pasan los primeros 5 segundos de la generación.
+
+- El mundo gana `world.retire(index, cause)`: el auto queda detenido y fuera de
+  carrera, como uno chocado, con su motivo (`tooSlow`). Lo usa el
+  entrenamiento; la pestaña 1 no.
+- La regla depende solo de la trayectoria de cada auto, así que el individuo
+  de élite repite su corrida y "el mejor nunca empeora" sigue valiendo.
+- Su fitness cuenta hasta el momento en que sale: distancia lograda y tiempo
+  en carrera hasta ahí.
+- Es un ajuste de evolución (`slowRule`), encendido por defecto, que se aplica
+  desde la generación siguiente. Apagarlo sirve para mostrar la trampa: con la
+  regla apagada, la población aprende a seguir al tráfico.
+
+*Alternativa:* una función de fitness por vehículos superados. Descartada en
+este cambio: al principio casi todos empatan en cero, lo que debilita la
+selección, y premia la maniobra aunque después choque. Con la regla, la
+distancia ya obliga a pasar autos.
+
+### D19. Velocidad máxima por defecto de 20 m/s
+
+`MAX_SPEED` pasa de 15 a 20 m/s para toda la aplicación (sigue configurable de
+12 a 40). Con 15 m/s, pasar al tráfico (10 m/s) rinde poco; con 20, un auto que
+esquiva recorre el doble que uno que lo sigue. La pestaña 1 hereda el valor: su
+restablecer vuelve a 20 m/s y el tooltip lo dice. Dos aserciones existentes de
+`tests/drive-settings.test.js` que fijaban 15 se actualizan con acuerdo del
+dueño. Una preferencia ya guardada en el navegador conserva su valor.
 
 ## Risks / Trade-offs
 
@@ -367,11 +402,12 @@ datos. La prueba de arquitectura existente cubre los módulos nuevos de
   calibración con un script: en 20 generaciones, el mejor debe superar 300
   metros en al menos 8 de 10 semillas. Si no se logra, se ajustan los valores
   por defecto, se actualizan las specs y se informa.
-- [El cerebro "Experto" no se logra entrenar] → Tope de generaciones y
-  consulta; no se baja el umbral sin acuerdo.
-- [Un cerebro entrenado en Node se comporta distinto en otro navegador por
-  diferencias en el último decimal] → Se verifica "Experto" a mano en el
-  navegador además de la prueba en Node; la limitación ya estaba aceptada.
+- [La regla de los lentos elimina a un auto que frena un momento para
+  esquivar] → La ventana de 5 segundos mide el promedio, no la velocidad de un
+  instante; si molesta, se ajusta la ventana.
+- [Un cerebro guardado en un navegador se comporta distinto en otro por
+  diferencias en el último decimal] → Limitación aceptada; el mentor prueba
+  sus cerebros en el equipo de la demostración.
 - [La regla "nadie avanza" corta una generación en la que el líder frena y
   espera] → Aceptado: esperar detenido más de 5 segundos no es manejar bien.
 - [El entrenamiento se detiene con la página oculta] → Se dice en el tooltip
@@ -399,6 +435,9 @@ generación 1 ya supera 300 metros en las 10 semillas, de modo que el criterio n
 distingue una población que aprende de una al azar; todas las generaciones
 terminaron por tiempo.
 
+Esta medición es anterior a D18 y D19. La tarea 10.5 repite la calibración con
+la regla de los lentos y la velocidad de 20 m/s y anota aquí el resultado.
+
 ## Migration Plan
 
 No hay datos previos que migrar. El formato de cerebro nace con número de
@@ -410,5 +449,5 @@ del cambio; los cerebros guardados en el navegador quedarían sin usar.
 - Colores exactos de pesos positivos, negativos y neurona activa. Se eligen al
   implementar el diagrama, cumpliendo la spec: distintos de auto, tráfico y
   sensores, y distinguibles sin depender solo del color.
-- Semillas y cantidad de generaciones de los cerebros incluidos. Las decide el
-  resultado del script, dentro del tope fijado.
+- Ventana de la regla de los lentos (5 segundos): se revisa con la
+  calibración de la tarea 10.5.

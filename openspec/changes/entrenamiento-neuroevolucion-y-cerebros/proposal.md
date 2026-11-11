@@ -35,8 +35,17 @@ copia con pequeños cambios y se repite. Eso es aprender por evolución
   entrenada y los datos de su entrenamiento (generaciones, escenarios que vio,
   función de fitness, configuración). Se guarda con nombre propio, se renombra,
   se elimina, se exporta a un archivo y se importa, y se puede cargar para
-  seguir entrenándolo. La aplicación incluye cerebros ya entrenados y guarda
-  sola el último campeón para no perder trabajo.
+  seguir entrenándolo. La aplicación guarda sola el último campeón para no
+  perder trabajo. No trae cerebros ya entrenados: el mentor entrena y guarda
+  los suyos antes de una demostración (enmienda del artículo 8 de la
+  constitución).
+- **Eliminar a los lentos.** Un auto que en los últimos 5 segundos avanzó menos
+  que el tráfico queda fuera de carrera. Sin esta regla, la población aprende
+  que ir detrás de un vehículo nunca choca y suma distancia, y deja de
+  aprender a esquivar. Es un ajuste avanzado, encendido por defecto, que se
+  puede apagar para mostrar esa trampa.
+- **Velocidad máxima por defecto de 20 m/s** en toda la aplicación (antes 15),
+  para que pasar al tráfico (10 m/s) valga la pena.
 - **Pestaña 3, "Entrenar".** Una población de autos aprende a la vista, con
   curva de fitness por generación, diagrama de la red del auto líder, control
   de velocidad con modo turbo, configuración de población, mutación, red,
@@ -62,19 +71,19 @@ copia con pequeños cambios y se repite. Eso es aprender por evolución
 | Población y mutación | Más variantes y cambios más grandes exploran más, pero con menos precisión | Tooltips; efecto desde la generación siguiente | Valores por defecto que ya aprenden | Restablecer la configuración |
 | Élite, selección y cruce | Cómo se elige quién deja descendencia | Tooltips con el término real y su definición | Colapsado bajo "Avanzado" | Restablecer la configuración |
 | Función de fitness | Se aprende lo que se premia, no lo que se quería | Cada opción avisa qué puede salir mal | Colapsado bajo "Avanzado" | Volver a "distancia"; la curva empieza de nuevo |
+| Eliminar a los lentos | Se aprende lo que se premia: sin la regla, seguir al tráfico es la salida fácil | Tooltip que nombra la trampa de ir detrás de un vehículo | Colapsado bajo "Avanzado" | Se apaga y se enciende; aplica desde la generación siguiente |
 | Tráfico igual o nuevo en cada generación | Practicar siempre lo mismo es memorizar | Tooltip con la palabra "memorizar" | Colapsado bajo "Avanzado" | Se cambia de vuelta cuando se quiera |
 | Capas ocultas, neuronas y activación | La forma de la red limita lo que puede aprender | El diagrama cambia al instante | Colapsado bajo "Avanzado" | Pide confirmación si hay progreso; campeón autoguardado |
 | Diagrama de la red | Una red es números que conectan entradas con salidas | Leyenda de colores y nodos con nombre | Sección plegable | No modifica nada |
 | Guardar, cargar y renombrar cerebros | Lo aprendido es un conjunto de números que se puede guardar y reutilizar | Nombre sugerido y resumen de cada cerebro | Sección plegable | Eliminar pide confirmación; exportar hace copia |
 | Exportar e importar | Un cerebro es un archivo que se puede compartir | Errores de importación en lenguaje llano | Dentro de la sección de cerebros | Importar nunca pisa un cerebro existente |
-| Cerebros incluidos | Diferencia entre una red sin entrenar y una entrenada | Aparecen rotulados como incluidos | No hace falta usarlos | No se pueden eliminar ni modificar |
 | Misiones | Objetivos que guían la exploración | Texto corto y progreso visible | Se ocultan con el interruptor de guía | No bloquean nada |
 
 ### Público
 
 Sirve a ambos. El principiante abre la pestaña y ve aprender a los autos sin
 tocar nada; la guía y las misiones lo llevan de "mirar" a "cambiar algo y ver
-qué pasa". El mentor oculta la guía, usa los cerebros incluidos y la semilla
+qué pasa". El mentor oculta la guía, usa cerebros que preparó y guardó antes y la semilla
 reproducible para que la demostración salga igual cada vez, y despliega
 "Avanzado" cuando quiere hablar de selección, fitness o memorización.
 
@@ -87,8 +96,8 @@ reproducible para que la demostración salga igual cada vez, y despliega
   el tema de la pestaña 4.
 - Editar pesos a mano, apagar neuronas y recorrer el cálculo paso a paso: es
   el tema de la pestaña 5. El diagrama de este cambio solo muestra.
-- Un cerebro incluido entrenado para generalizar, la función de fitness por
-  vehículos superados y elegir con un clic qué auto seguir.
+- Cerebros incluidos en la aplicación (más adelante podrían sumarse dos o tres
+  elegidos por el dueño), la función de fitness por vehículos superados y elegir con un clic qué auto seguir.
 - Entrenar con la página oculta o en segundo plano.
 - Variedad del tráfico, otros tipos de vehículos y paisaje (siguen en
   `PENDIENTES.md`).
@@ -103,7 +112,7 @@ reproducible para que la demostración salga igual cada vez, y despliega
   fitness, selección, élite, mutación, cruce y reproducibilidad.
 - `cerebros`: qué es un cerebro y qué datos lo acompañan, compatibilidad con
   los sensores, biblioteca (guardar, renombrar, eliminar, autoguardado),
-  exportar, importar y cerebros incluidos.
+  exportar e importar.
 - `vista-red`: diagrama de una red neuronal con sus conexiones y su actividad
   en vivo.
 - `pestana-entrenar`: la pestaña 3, donde una población aprende a manejar a la
@@ -112,14 +121,16 @@ reproducible para que la demostración salga igual cada vez, y despliega
 ### Modified Capabilities
 
 - `simulacion`: se agregan los mundos con varios autos que comparten pista y
-  tráfico sin chocar entre sí, y la ejecución a varias velocidades.
+  tráfico sin chocar entre sí, sacar un auto de carrera y la ejecución a
+  varias velocidades; la velocidad máxima por defecto pasa a 20 m/s.
 - `controladores`: se agrega el controlador de red neuronal.
 - `vista-escenario`: se agregan el dibujo de una población, el destaque del
   auto líder y el seguimiento de un auto que cambia.
 - `estructura-app`: la pestaña "Entrenar" pasa a estar disponible y las
   pestañas reciben la biblioteca de cerebros.
 - `internacionalizacion`: se agrega el formato de números según el idioma.
-- `pestana-conducir`: la guía de inicio nombra la cantidad de carriles elegida.
+- `pestana-conducir`: la guía de inicio nombra la cantidad de carriles elegida
+  y restablecer devuelve el auto a 20 m/s.
 
 ## Impact
 
@@ -134,8 +145,9 @@ reproducible para que la demostración salga igual cada vez, y despliega
   pestañas.
 - **Datos en el navegador:** los cerebros guardados y el autoguardado usan el
   almacenamiento local, con tolerancia a que no esté disponible.
-- **Herramientas:** un script de Node genera los cerebros incluidos de forma
-  reproducible.
+- **Constitución:** el artículo 8 deja de exigir cerebros preentrenados; pide
+  que lo aprendido se pueda guardar y exportar (también en
+  `openspec/config.yaml`).
 - **Dependencias:** ninguna nueva.
 - **Documentos:** `README.md` (arquitectura) y `PENDIENTES.md` (se quitan los
   dos detalles resueltos y se anotan las ideas que quedaron fuera).
