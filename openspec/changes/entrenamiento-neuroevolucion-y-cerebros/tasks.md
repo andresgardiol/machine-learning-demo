@@ -40,12 +40,12 @@
 
 ## 7. Núcleo: entrenamiento
 
-- [ ] 7.1 Crear `src/core/training.js` con la población inicial, el mundo de la generación, el paso, las estadísticas por agente y el líder; verificar con pruebas "Inicio de una generación" y los dos escenarios de "Líder"
-- [ ] 7.2 Implementar el fin de la generación con sus cuatro motivos, el historial y el campeón; verificar con una prueba por cada escenario de "Fin de la generación", "Pasar de generación a pedido", "Historial de generaciones" y "Campeón"
-- [ ] 7.3 Implementar los cambios de configuración pendientes hasta la generación siguiente, el rechazo de cambios de red y sensores, y los dos modos de tráfico; verificar con pruebas los escenarios de "Cambios de configuración durante el entrenamiento" y "Tráfico por generación"
-- [ ] 7.4 Implementar el inicio desde un cerebro y la obtención del cerebro del campeón con sus datos; verificar con pruebas los dos escenarios de "Continuar desde un cerebro" y que el cerebro obtenido pasa la validación
-- [ ] 7.5 Escribir las pruebas de reproducibilidad (diez generaciones, dos corridas, mismo historial y mismo campeón), de semilla distinta y de "El mejor nunca empeora con élite y mismo tráfico", usando poblaciones y duraciones chicas para que corran en pocos segundos; verificar que pasan
-- [ ] 7.6 Actualizar la sección de arquitectura de `README.md` con el mundo de varios autos, la red, la evolución, el entrenamiento y el formato del cerebro; verificar que nombra los módulos tal como quedaron
+- [x] 7.1 Crear `src/core/training.js` con la población inicial, el mundo de la generación, el paso, las estadísticas por agente y el líder; verificar con pruebas "Inicio de una generación" y los dos escenarios de "Líder"
+- [x] 7.2 Implementar el fin de la generación con sus cuatro motivos, el historial y el campeón; verificar con una prueba por cada escenario de "Fin de la generación", "Pasar de generación a pedido", "Historial de generaciones" y "Campeón"
+- [x] 7.3 Implementar los cambios de configuración pendientes hasta la generación siguiente, el rechazo de cambios de red y sensores, y los dos modos de tráfico; verificar con pruebas los escenarios de "Cambios de configuración durante el entrenamiento" y "Tráfico por generación"
+- [x] 7.4 Implementar el inicio desde un cerebro y la obtención del cerebro del campeón con sus datos; verificar con pruebas los dos escenarios de "Continuar desde un cerebro" y que el cerebro obtenido pasa la validación
+- [x] 7.5 Escribir las pruebas de reproducibilidad (diez generaciones, dos corridas, mismo historial y mismo campeón), de semilla distinta y de "El mejor nunca empeora con élite y mismo tráfico", usando poblaciones y duraciones chicas para que corran en pocos segundos; verificar que pasan
+- [x] 7.6 Actualizar la sección de arquitectura de `README.md` con el mundo de varios autos, la red, la evolución, el entrenamiento y el formato del cerebro; verificar que nombra los módulos tal como quedaron
 
 ## 8. Calibración de los valores por defecto
 
