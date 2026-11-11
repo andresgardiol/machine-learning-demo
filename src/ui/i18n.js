@@ -31,14 +31,23 @@ export function createI18n({ dictionaries, language = 'es' }) {
 
   const other = (lang) => LANGUAGES.find((l) => l !== lang);
 
-  /** Texto de `key` en el idioma activo; si falta, el del otro idioma; si falta en ambos, la clave. */
+  const has = (key) => LANGUAGES.some((l) => typeof dictionaries[l]?.[key] === 'string');
+
+  /**
+   * Texto de `key` en el idioma activo; si falta, el del otro idioma; si falta en ambos, la clave.
+   * Singular: si params.value es 1 y existe `<key>.one`, se usa esa variante ("1 rayo", no "1 rayos").
+   */
   function t(key, params) {
-    const own = dictionaries[current]?.[key];
-    const text = own ?? dictionaries[other(current)]?.[key] ?? key;
+    const variant = singularKey(key, params);
+    const own = dictionaries[current]?.[variant];
+    const text = own ?? dictionaries[other(current)]?.[variant] ?? key;
     return format(text, params);
   }
 
-  const has = (key) => LANGUAGES.some((l) => typeof dictionaries[l]?.[key] === 'string');
+  function singularKey(key, params) {
+    if (params && Number(params.value) === 1 && has(`${key}.one`)) return `${key}.one`;
+    return key;
+  }
 
   function setLanguage(next) {
     if (!LANGUAGES.includes(next) || next === current) return;

@@ -73,3 +73,23 @@ test('cambiar de idioma notifica a los suscriptores y volver restablece el idiom
   assert.deepEqual(seen, ['en', 'es']);
   assert.equal(i18n.language, 'en');
 });
+
+test('singular: con valor 1 se usa la variante ".one" en ambos idiomas; con otros valores, el plural', () => {
+  const i18n = createI18n({ dictionaries: { es, en }, language: 'es' });
+  assert.equal(i18n.t('drive.value.rays', { value: 1 }), '1 rayo');
+  assert.equal(i18n.t('drive.value.rays', { value: 5 }), '5 rayos');
+  assert.equal(i18n.t('drive.value.carLengths', { value: 1 }), '1 largo de auto');
+  assert.equal(i18n.t('drive.value.carLengths', { value: 1.5 }), '1.5 largos de auto');
+  i18n.setLanguage('en');
+  assert.equal(i18n.t('drive.value.rays', { value: 1 }), '1 ray');
+  assert.equal(i18n.t('drive.value.rays', { value: 2 }), '2 rays');
+  assert.equal(i18n.t('drive.value.carLengths', { value: 1 }), '1 car length');
+  // sin variante singular, el texto de siempre
+  assert.equal(i18n.t('drive.value.meters', { value: 1 }), '1 m');
+});
+
+test('singular: si la variante solo existe en un idioma se usa la del otro, como con cualquier texto faltante', () => {
+  const i18n = createI18n({ dictionaries: { es: { n: '{value} autos', 'n.one': '{value} auto' }, en: { n: '{value} cars' } }, language: 'en' });
+  assert.equal(i18n.t('n', { value: 1 }), '1 auto');
+  assert.equal(i18n.t('n', { value: 3 }), '3 cars');
+});

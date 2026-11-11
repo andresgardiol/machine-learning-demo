@@ -105,7 +105,9 @@ export default {
   'drive.value.count': '{value}',
   'drive.value.percent': '{value}%',
   'drive.value.rays': '{value} rays',
+  'drive.value.rays.one': '{value} ray',
   'drive.value.carLengths': '{value} car lengths',
+  'drive.value.carLengths.one': '{value} car length',
   'drive.value.degrees': '{value}°',
 
   'drive.missions.title': 'Missions',
