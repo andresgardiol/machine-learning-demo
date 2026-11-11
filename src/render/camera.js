@@ -8,7 +8,7 @@
 // la vista gira la calle recta para mostrarla vertical, con el sentido de avance hacia arriba.
 
 export const CAMERA_DEFAULTS = Object.freeze({
-  zoom: 8, // px por metro
+  zoom: 10, // px por metro
   minZoom: 2,
   maxZoom: 40,
   anchor: Object.freeze({ x: 0.3, y: 0.5 }),

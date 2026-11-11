@@ -6,7 +6,7 @@
 // Los colores salen de las variables de styles/tokens.css. Los textos de los botones se
 // declaran con data-i18n / data-help y los completa el sistema de idiomas de la interfaz.
 import { carContour } from '../core/car.js';
-import { CAR_LENGTH } from '../core/constants.js';
+import { CAR_LENGTH, CAR_WIDTH } from '../core/constants.js';
 import { createCamera, orientationFor, panStarts } from './camera.js';
 
 const COLOR_VARS = {
@@ -19,6 +19,9 @@ const COLOR_VARS = {
   traffic: '--color-traffic',
   sensor: '--color-sensor',
   sensorHit: '--color-sensor-hit',
+  glass: '--color-car-glass',
+  headlight: '--color-headlight',
+  taillight: '--color-taillight',
   outline: '--color-bg',
 };
 
@@ -208,50 +211,76 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     ctx.closePath();
   }
 
-  function drawTraffic(vehicles, px) {
-    ctx.fillStyle = colors.traffic;
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = 1.5 * px;
-    for (const v of vehicles) {
-      polygon(v.contour);
-      ctx.fill();
-      ctx.stroke();
-    }
-  }
-
-  function drawCar(car, px) {
-    const [fl, fr, rr, rl] = carContour(car);
-    polygon([fl, fr, rr, rl]);
-    if (car.crashed) {
-      // Chocado: otro color, contorno punteado y una cruz (no solo cambia el color).
-      ctx.fillStyle = colors.carCrashed;
-      ctx.fill();
-      ctx.strokeStyle = colors.roadEdge;
-      ctx.lineWidth = 2 * px;
-      ctx.setLineDash([0.5, 0.4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.strokeStyle = colors.outline;
-      ctx.lineWidth = 3 * px;
-      ctx.beginPath();
-      ctx.moveTo(fl.x, fl.y); ctx.lineTo(rr.x, rr.y);
-      ctx.moveTo(fr.x, fr.y); ctx.lineTo(rl.x, rl.y);
-      ctx.stroke();
-      return;
-    }
-    ctx.fillStyle = colors.car;
+  /**
+   * Silueta de un vehículo con detalles (parabrisas, luneta, ópticas y luces traseras), dibujada
+   * dentro de su rectángulo de choque: lo que se ve nunca es más grande que lo que choca.
+   * Ejes locales: x hacia adelante, y hacia la izquierda; el rectángulo va de -L/2 a L/2 y de -W/2 a W/2.
+   */
+  function drawVehicle(position, angle, body, px) {
+    const L = CAR_LENGTH;
+    const W = CAR_WIDTH;
+    ctx.save();
+    ctx.translate(position.x, position.y);
+    ctx.rotate(angle);
+    // Carrocería con esquinas redondeadas
+    ctx.beginPath();
+    roundedRect(-L / 2, -W / 2, L, W, 0.35);
+    ctx.fillStyle = body;
     ctx.fill();
     ctx.strokeStyle = colors.outline;
     ctx.lineWidth = 1.5 * px;
     ctx.stroke();
-    // Parabrisas: marca el frente del auto.
-    const mix = (a, b, t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
-    const wl = mix(fl, rl, 0.22);
-    const wr = mix(fr, rr, 0.22);
+    // Parabrisas (adelante, más ancho) y luneta (atrás, más angosta): marcan el frente
+    ctx.fillStyle = colors.glass;
+    trapezoid(0.35, 1.05, W / 2 - 0.22, W / 2 - 0.12);
+    trapezoid(-1.55, -1.1, W / 2 - 0.2, W / 2 - 0.26);
+    // Ópticas delanteras y luces traseras
+    ctx.fillStyle = colors.headlight;
+    ctx.fillRect(L / 2 - 0.2, W / 2 - 0.5, 0.16, 0.36);
+    ctx.fillRect(L / 2 - 0.2, -W / 2 + 0.14, 0.16, 0.36);
+    ctx.fillStyle = colors.taillight;
+    ctx.fillRect(-L / 2 + 0.04, W / 2 - 0.46, 0.14, 0.32);
+    ctx.fillRect(-L / 2 + 0.04, -W / 2 + 0.14, 0.14, 0.32);
+    ctx.restore();
+  }
+
+  /** Trapecio centrado en y = 0 entre x0 y x1, con medio ancho h0 en x0 y h1 en x1. */
+  function trapezoid(x0, x1, h0, h1) {
+    ctx.beginPath();
+    ctx.moveTo(x0, -h0); ctx.lineTo(x1, -h1); ctx.lineTo(x1, h1); ctx.lineTo(x0, h0);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function roundedRect(x, y, w, h, r) {
+    if (typeof ctx.roundRect === 'function') { ctx.roundRect(x, y, w, h, r); return; }
+    ctx.rect(x, y, w, h);
+  }
+
+  function drawTraffic(vehicles, px) {
+    for (const v of vehicles) drawVehicle(v.position, v.angle, colors.traffic, px);
+  }
+
+  function drawCar(car, px) {
+    if (!car.crashed) {
+      drawVehicle(car.position, car.angle, colors.car, px);
+      return;
+    }
+    // Chocado: otro color, contorno punteado y una cruz (no solo cambia el color).
+    const [fl, fr, rr, rl] = carContour(car);
+    polygon([fl, fr, rr, rl]);
+    ctx.fillStyle = colors.carCrashed;
+    ctx.fill();
+    ctx.strokeStyle = colors.roadEdge;
+    ctx.lineWidth = 2 * px;
+    ctx.setLineDash([0.5, 0.4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = colors.outline;
     ctx.lineWidth = 3 * px;
     ctx.beginPath();
-    ctx.moveTo(mix(wl, wr, 0.15).x, mix(wl, wr, 0.15).y);
-    ctx.lineTo(mix(wl, wr, 0.85).x, mix(wl, wr, 0.85).y);
+    ctx.moveTo(fl.x, fl.y); ctx.lineTo(rr.x, rr.y);
+    ctx.moveTo(fr.x, fr.y); ctx.lineTo(rl.x, rl.y);
     ctx.stroke();
   }
 

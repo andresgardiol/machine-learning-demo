@@ -18,6 +18,10 @@
   --color-traffic: #ffb020;
   --color-sensor: #4ea1ff;
   --color-sensor-hit: #ff5a5a;
+  /* Detalles de los vehículos (solo cosméticos, dentro de su contorno) */
+  --color-car-glass: #1d2b3a;
+  --color-headlight: #fff3c4;
+  --color-taillight: #8f1d22;
 
   --space-1: 4px;
   --space-2: 8px;
