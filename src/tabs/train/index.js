@@ -11,7 +11,7 @@
 // Cuándo se aplica cada ajuste (settings.js): al instante; desde la próxima generación (queda
 // pendiente y el panel lo indica); o con un entrenamiento nuevo, de inmediato si todavía no terminó
 // ninguna generación y con una confirmación en línea si ya terminó alguna.
-import { createTraining, NEW_TRAINING_KEYS } from '../../core/training.js';
+import { createTraining, NEW_TRAINING_KEYS, SELECTION_MODES } from '../../core/training.js';
 import { FITNESS_KINDS } from '../../core/evolution.js';
 import { ACTIVATIONS } from '../../core/network.js';
 import { TRAFFIC_MODES, copyBrain } from '../../core/brain.js';
@@ -29,7 +29,7 @@ import {
 import {
   DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges, adoptBrain,
 } from './settings.js';
-import { createTrainSession, indicators, lastGeneration } from './session.js';
+import { createTrainSession, indicators, lastGeneration, parentStatus } from './session.js';
 import { shortcutFor, toggleTurbo } from './shortcuts.js';
 
 export const DEFAULT_SEED = 1;
@@ -69,6 +69,9 @@ const newSession = () => `training-${Date.now().toString(36)}-${++sessionCounter
 
 /** Olvida el estado conservado (para reiniciar la aplicación). */
 export function resetState() { state = null; }
+
+/** Ajustes de la sección avanzada que no se usan con selección manual: hay un solo padre. */
+const NOT_IN_MANUAL = Object.freeze(['elite', 'selection', 'crossover']);
 
 /** Configuración del entrenamiento sin los ajustes que piden un entrenamiento nuevo. */
 function nextGenerationConfig(settings) {
@@ -178,6 +181,19 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     sync();
   }
   function nextGeneration() { state.training.finishGeneration(); sync(); }
+  /** ¿La persona eligió la selección manual? Decide si se ven y se atienden elegir y deshacer (design.md D6). */
+  const manualWanted = () => state.settings.selectionMode === 'manual';
+  /** Elegir al líder como padre: funciona en marcha y en pausa, sin tocar la generación en curso. */
+  function chooseLeader() {
+    if (!manualWanted()) return;
+    state.training.chooseLeader();
+    sync();
+  }
+  function undoChoice() {
+    if (!manualWanted()) return;
+    state.training.undoChoice();
+    sync();
+  }
   function setSpeed(speed) { setSetting('speed', speed); }
   function restart() { withProgressCheck(toolbarConfirm, 'train.confirm.restart', () => startTraining({ seed: state.seed })); }
   function newPopulation() { withProgressCheck(toolbarConfirm, 'train.confirm.newPopulation', () => startTraining({ seed: state.seed + 1 })); }
@@ -193,6 +209,9 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     const e = library.get(state.brainSource);
     return e && e.origin === 'saved' ? e : null;
   }
+
+  /** ¿Hay qué guardar? El campeón o, con selección manual vigente, el padre elegido (design.md D4). */
+  const canSave = () => (state.training.config.selectionMode === 'manual' ? state.training.parent !== null : state.training.champion !== null);
 
   function championBrain() {
     return state.training.brain({ id: 'champion', name: 'champion', now: new Date().toISOString() });
@@ -235,6 +254,14 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   const restartButton = button('train.restart', 'train.restart', restart, 'tool small');
   const newPopulationButton = button('train.newPopulation', 'train.newPopulation', newPopulation, 'tool small');
   const toolbarConfirm = inlineConfirm({ i18n });
+  // Selección manual: elegir al líder y deshacer en un renglón, con la línea de estado del padre debajo.
+  const chooseButton = button('train.choose', 'train.choose', chooseLeader, 'tool primary');
+  const undoButton = button('train.undo', 'train.undo', () => {
+    if (undoButton.getAttribute('aria-disabled') === 'true') return;
+    undoChoice();
+  });
+  const parentLine = el('p', { class: 'parent-status', attrs: { role: 'status' } });
+  const manualRow = el('div', { class: 'run-manual' }, chooseButton, undoButton);
 
   const speeds = optionGroup({
     labelKey: 'train.speed',
@@ -248,6 +275,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   const factor = el('p', { class: 'train-factor muted', attrs: { 'aria-live': 'off' } });
   const run = el('section', { class: 'train-run' },
     el('div', { class: 'run-main' }, pauseButton, nextButton),
+    manualRow, parentLine,
     speeds.row, factor,
     el('div', { class: 'run-secondary' }, restartButton, newPopulationButton),
     toolbarConfirm.node);
@@ -281,6 +309,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
       id: `train-${key}`, labelKey: `train.setting.${key}`, help: `train.setting.${key}`,
       min: spec.min, max: spec.max, step: spec.step, value: state.settings[key],
       onInput: (v) => {
+        // Un ajuste que no aplica (selección manual) ignora el arrastre y conserva su valor.
+        if (r.input.getAttribute('aria-disabled') === 'true') { r.input.value = String(state.settings[key]); return; }
         if (deferred) setText(r.value, FORMATS[key], { value: v, kmh: Math.round(v * 3.6) });
         else setSetting(key, v, confirm);
       },
@@ -290,7 +320,10 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   }
   const toggle = (key) => ({
     key,
-    sw: switchButton(`train.setting.${key}`, `train.setting.${key}`, state.settings[key], () => setSetting(key, !state.settings[key])),
+    sw: switchButton(`train.setting.${key}`, `train.setting.${key}`, state.settings[key], (e) => {
+      if (e.currentTarget.getAttribute('aria-disabled') === 'true') return;
+      setSetting(key, !state.settings[key]);
+    }),
   });
   const choice = (key, values, optionKey, confirm) => optionGroup({
     labelKey: `train.setting.${key}`,
@@ -325,6 +358,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
 
   // Grupos de opciones con rótulos largos: rótulo arriba y opciones a todo el ancho.
   for (const g of Object.values(choices)) g.row.classList.add('setting-stacked');
+  // Quién elige al padre: dos opciones cortas, en el mismo renglón que su rótulo (no va apilado).
+  const selectionMode = choice('selectionMode', SELECTION_MODES, 'train.selectionMode');
 
   const pendingNote = () => el('p', { class: 'train-pending', attrs: { role: 'status' }, i18n: 'train.pending' });
   const basicPending = pendingNote();
@@ -332,7 +367,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
 
   const basic = el('section', { class: 'train-basic' },
     el('h2', { class: 'panel-heading', i18n: 'train.basic.title' }),
-    row('population'), row('mutationStrength'), basicPending);
+    row('population'), row('mutationStrength'), selectionMode.row, basicPending);
 
   const sensorsSwitch = switchButton('train.sensors', 'train.sensors', state.settings.showSensors, () => setSetting('showSensors', !state.settings.showSensors));
   const viewSwitches = el('div', { class: 'switch-row train-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.view.title' }, sensorsSwitch);
@@ -371,23 +406,24 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     class: 'library-name-input', help: 'train.save.name',
     attrs: { type: 'text', maxlength: 40, id: 'train-save-name' },
     i18nAttr: 'aria-label:train.save.name',
-    on: { keydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); if (state.training.champion) saveChampion(); } } },
+    on: { keydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); if (canSave()) saveChampion(); } } },
   });
   const saveButton = el('button', {
     class: 'tool primary', attrs: { type: 'button' },
-    on: { click: () => { if (state.training.champion) saveChampion(); } },
+    on: { click: () => { if (canSave()) saveChampion(); } },
   });
   const updateButton = el('button', {
     class: 'tool', help: 'train.save.update', attrs: { type: 'button' },
-    on: { click: () => { if (state.training.champion) saveChampion({ update: true }); } },
+    on: { click: () => { if (canSave()) saveChampion({ update: true }); } },
   });
   const saveRow = el('div', { class: 'save-row' }, nameInput, saveButton);
   const saveActions = el('div', { class: 'save-actions' }, updateButton);
   saveActions.hidden = true;
   const saveStatus = el('p', { class: 'save-status', attrs: { role: 'status' } });
   saveStatus.hidden = true;
+  const saveTitle = el('label', { class: 'panel-heading', i18n: 'train.save.title', attrs: { for: 'train-save-name' } });
   const saveBlock = el('section', { class: 'train-save' },
-    el('label', { class: 'panel-heading', i18n: 'train.save.title', attrs: { for: 'train-save-name' } }),
+    saveTitle,
     saveRow, saveActions, saveStatus);
 
   /** Resultado de guardar, junto al botón. */
@@ -499,11 +535,27 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
       if (r.fill.style.width !== width) r.fill.style.width = width;
     }
 
-    // Guardar el campeón: deshabilitado sin campeón; al continuar un cerebro guardado, actualizar o guardar como nuevo.
-    const hasChampion = t.champion !== null;
+    // Selección manual (según el modo deseado): elegir y deshacer, con la línea de estado del padre.
+    const manual = s.selectionMode === 'manual';
+    manualRow.hidden = !manual;
+    parentLine.hidden = !manual;
+    if (manual) {
+      const status = parentStatus(t);
+      setText(parentLine, status.key, status.params);
+      const canUndo = t.choiceCount > 0;
+      undoButton.setAttribute('aria-disabled', String(!canUndo));
+      undoButton.dataset.help = canUndo ? 'train.undo' : 'train.undo.disabled';
+    }
+
+    // Guardar el campeón (o, con selección manual vigente, el padre elegido): deshabilitado sin qué
+    // guardar; al continuar un cerebro guardado, actualizar o guardar como nuevo.
+    const parentMode = t.config.selectionMode === 'manual';
+    const hasChampion = canSave();
     const source = sourceEntry();
+    setText(saveTitle, parentMode ? 'train.save.title.parent' : 'train.save.title');
     saveButton.setAttribute('aria-disabled', String(!hasChampion));
-    saveButton.dataset.help = hasChampion ? 'train.save' : 'train.save.disabled';
+    if (parentMode) saveButton.dataset.help = hasChampion ? 'train.save.parent' : 'train.save.disabled.parent';
+    else saveButton.dataset.help = hasChampion ? 'train.save' : 'train.save.disabled';
     setText(saveButton, source ? 'train.save.asNew' : 'train.save');
     // Al continuar un cerebro guardado, actualizar y guardar como nuevo van en un segundo renglón.
     const saveParent = source ? saveActions : saveRow;
@@ -530,6 +582,18 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     // Solo se muestran las neuronas de las capas que existen.
     [1, 2, 3].forEach((n) => { row(`neurons${n}`).hidden = n > s.hiddenLayers; });
     for (const { key, sw: b } of switches) b.setAttribute('aria-checked', String(s[key]));
+    // Selección, élite y cruce no se usan con selección manual: deshabilitados, con su explicación.
+    for (const key of NOT_IN_MANUAL) {
+      const control = key === 'crossover' ? sw(key) : sliders.find((x) => x.key === key).input;
+      const host = key === 'crossover' ? control : row(key);
+      const disabled = String(manual);
+      if (control.getAttribute('aria-disabled') !== disabled) {
+        control.setAttribute('aria-disabled', disabled);
+        control.dataset.help = manual ? 'train.setting.notInManual' : `train.setting.${key}`;
+        host.classList.toggle('not-applicable', manual);
+      }
+    }
+    selectionMode.select(s.selectionMode);
     sensorsSwitch.setAttribute('aria-checked', String(s.showSensors));
     choices.fitness.select(s.fitness);
     choices.trafficMode.select(s.trafficMode);
@@ -571,6 +635,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   function onKeyDown(e) {
     const action = shortcutFor(e);
     if (!action) return;
+    // E y Z solo existen con selección manual; con automática la tecla no hace nada.
+    if ((action === 'choose' || action === 'undo') && !manualWanted()) return;
     e.preventDefault();
     if (action === 'pause') handledSpace = true;
     if (e.target !== stage && typeof e.target?.matches === 'function' && e.target.matches('button, input, summary, a')) focusStage();
@@ -578,6 +644,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     try {
       if (action === 'pause') togglePause();
       else if (action === 'turbo') setSpeed(toggleTurbo(state.settings.speed));
+      else if (action === 'choose') chooseLeader();
+      else if (action === 'undo') undoChoice();
       else nextGeneration();
     } catch (err) {
       reportError(err);
@@ -620,7 +688,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     get paused() { return state.paused; },
     get session() { return state.session; },
     get missions() { return state.missions; },
-    togglePause, nextGeneration, restart, newPopulation, setSpeed, applySettings, resetSettings, saveChampion, continueFrom,
+    togglePause, nextGeneration, chooseLeader, undoChoice, restart, newPopulation, setSpeed, applySettings, resetSettings, saveChampion, continueFrom,
     unmount() {
       library?.flush();
       loop.dispose();

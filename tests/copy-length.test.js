@@ -56,3 +56,15 @@ test('El problema: nombres de misiones de hasta 34 caracteres, con su meta real'
   assert.equal(DRIVE_MISSIONS.length, 3);
   for (const m of DRIVE_MISSIONS) assertMax(`drive.mission.${m.id}`, MISSION_MAX, { goal: m.goal });
 });
+
+// --- Selección manual: líneas de estado del padre ---------------------------------------------------
+const PARENT_STATUS_MAX = 110;
+
+test('Entrenar: líneas de estado del padre de hasta 110 caracteres, con valores de largo realista', () => {
+  const params = { generation: 1000, value: 1194, name: 'N'.repeat(40) };
+  const keys = ['train.parent.none', 'train.parent.pending'];
+  for (const source of ['leader', 'champion']) for (const unit of ['meters', 'seconds', 'metersPerSecond']) keys.push(`train.parent.${source}.${unit}`);
+  for (const key of keys) assertMax(key, PARENT_STATUS_MAX, params);
+  // La del cerebro depende del largo del nombre: queda fuera del límite, pero tiene que existir en los dos idiomas.
+  for (const lang of Object.keys(LANGS)) assert.ok(text(lang, 'train.parent.brain', params).includes(params.name));
+});
