@@ -219,3 +219,53 @@ test('dos armados con el mismo generador dan poblaciones idénticas', () => {
   const c = nextGeneration({ networks, fitnesses, config, random: createRandom(43) });
   assert.notDeepEqual(a.networks, c.networks);
 });
+
+// --- Hijos de un solo padre (selección manual, design.md D3) ----------------------------------
+
+import { childrenOf } from '../src/core/evolution.js';
+
+test('hijos de un padre: la posición 0 es una copia idéntica e independiente del padre', () => {
+  const parent = net(7);
+  const before = copyNetwork(parent);
+  const kids = childrenOf(parent, { population: 10, mutationStrength: 10, mutationRate: 100 }, createRandom(1));
+  assert.deepEqual(kids[0], parent);
+  assert.notEqual(kids[0], parent);
+  kids[0].layers[0].weights[0][0] = 99;
+  kids[0].layers[0].biases[0] = 99;
+  assert.deepEqual(parent, before); // ni la copia ni la cría tocaron al padre
+});
+
+test('hijos de un padre: población de 100 con fuerza 10 % y probabilidad 100 % da 100 redes, las 99 últimas distintas del padre', () => {
+  const parent = net(3);
+  const kids = childrenOf(parent, { population: 100, mutationStrength: 10, mutationRate: 100 }, createRandom(5));
+  assert.equal(kids.length, 100);
+  for (let i = 1; i < kids.length; i++) assert.notDeepEqual(flatValues(kids[i]), flatValues(parent), `hijo ${i}`);
+  const p = flatValues(parent);
+  for (const kid of kids.slice(1)) flatValues(kid).forEach((v, j) => assert.ok(Math.abs(v - p[j]) <= 0.2 + 1e-12));
+});
+
+test('hijos de un padre: con fuerza 0 % todos son idénticos al padre', () => {
+  const parent = net(11);
+  const kids = childrenOf(parent, { population: 30, mutationStrength: 0, mutationRate: 100 }, createRandom(2));
+  assert.equal(kids.length, 30);
+  for (const kid of kids) assert.deepEqual(kid, parent);
+});
+
+test('hijos de un padre: dos llamadas con el mismo azar dan los mismos hijos, y con otro azar, otros', () => {
+  const parent = net(4);
+  const config = { population: 20, mutationStrength: 30, mutationRate: 50 };
+  const a = childrenOf(parent, config, createRandom(42));
+  const b = childrenOf(copyNetwork(parent), config, createRandom(42));
+  assert.deepEqual(a, b);
+  const c = childrenOf(parent, config, createRandom(43));
+  assert.notDeepEqual(a.slice(1), c.slice(1));
+});
+
+test('hijos de un padre: consume el azar hijo por hijo, como mutate en orden', () => {
+  const parent = net(9);
+  const random = createRandom(8);
+  const kids = childrenOf(parent, { population: 4, mutationStrength: 20, mutationRate: 60 }, createRandom(8));
+  const expected = [copyNetwork(parent)];
+  for (let i = 1; i < 4; i++) expected.push(mutate(parent, { strength: 20, rate: 60 }, random));
+  assert.deepEqual(kids, expected);
+});

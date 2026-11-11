@@ -186,3 +186,19 @@ export function nextGeneration({ networks, fitnesses, config, random }) {
   }
   return { networks: out, elite: Array.from({ length: eliteN }, (_, i) => i), parents };
 }
+
+/**
+ * Generación que sale de un solo padre (design.md D3), para la selección manual: una copia exacta
+ * del padre en la posición 0 y `population − 1` hijos mutados de él. No usa selección, élite ni
+ * cruce. El azar se consume hijo por hijo, en orden, cada uno en el orden canónico de mutate().
+ * @param {object} parent red del padre; no se modifica
+ * @param {{population:number, mutationStrength:number, mutationRate:number}} config se normaliza
+ * @param {() => number} random
+ * @returns {object[]} las redes de la generación nueva
+ */
+export function childrenOf(parent, { population, mutationStrength, mutationRate }, random) {
+  const c = normalizeEvolution({ population, mutationStrength, mutationRate });
+  const out = [copyNetwork(parent)];
+  while (out.length < c.population) out.push(mutate(parent, { strength: c.mutationStrength, rate: c.mutationRate }, random));
+  return out;
+}

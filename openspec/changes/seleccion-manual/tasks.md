@@ -6,8 +6,8 @@ Medidas de referencia para las verificaciones en el navegador: ventana de
 
 ## 1. Núcleo: hijos de un solo padre
 
-- [ ] 1.1 En `src/core/evolution.js`, agregar `childrenOf(parent, { population, mutationStrength, mutationRate }, random)` según design.md D3. Verificar en `tests/evolution.test.js`: la posición 0 es una copia idéntica e independiente del padre; el resultado tiene `population` individuos; con fuerza 10 % y probabilidad 100 % los demás difieren del padre; con fuerza 0 % todos son idénticos al padre; y dos llamadas con el mismo azar dan los mismos hijos.
-- [ ] 1.2 Correr `npm test` y confirmar que pasan todas las pruebas, las anteriores sin modificar.
+- [x] 1.1 En `src/core/evolution.js`, agregar `childrenOf(parent, { population, mutationStrength, mutationRate }, random)` según design.md D3. Verificar en `tests/evolution.test.js`: la posición 0 es una copia idéntica e independiente del padre; el resultado tiene `population` individuos; con fuerza 10 % y probabilidad 100 % los demás difieren del padre; con fuerza 0 % todos son idénticos al padre; y dos llamadas con el mismo azar dan los mismos hijos.
+- [x] 1.2 Correr `npm test` y confirmar que pasan todas las pruebas, las anteriores sin modificar.
 
 ## 2. Núcleo: selección manual en el entrenamiento
 
