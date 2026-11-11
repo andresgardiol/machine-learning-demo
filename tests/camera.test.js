@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCamera, CAMERA_DEFAULTS } from '../src/render/camera.js';
+import { createCamera, CAMERA_DEFAULTS, orientationFor, VERTICAL_ANCHOR } from '../src/render/camera.js';
+import { createStraightStreet, createTrack } from '../src/core/track.js';
 
 const vp = { width: 900, height: 700 };
 const close = (a, b, msg) => {
@@ -117,4 +118,73 @@ test('acercar lejos del auto hasta sacarlo de la pantalla deja de seguirlo', () 
   cam.update(car, vp);
   cam.zoomAt({ x: 880, y: 20 }, 4, vp, car);
   assert.equal(cam.following, false);
+});
+
+// --- Orientación: calle recta vertical --------------------------------------------------
+
+
+const vertical = () => {
+  const cam = createCamera();
+  cam.setOrientation(orientationFor(createStraightStreet()));
+  return cam;
+};
+
+test('la calle recta se muestra vertical: avanzar sobre la calle es subir en la pantalla', () => {
+  const cam = vertical();
+  cam.update({ x: 0, y: 0 }, vp);
+  const here = cam.worldToScreen({ x: 0, y: 0 }, vp);
+  const ahead = cam.worldToScreen({ x: 10, y: 0 }, vp);
+  close(ahead, { x: here.x, y: here.y - 10 * CAMERA_DEFAULTS.zoom }, '10 m adelante = 80 px más arriba');
+});
+
+test('calle vertical: el carril de la izquierda (y positiva) queda a la izquierda en la pantalla', () => {
+  const cam = vertical();
+  cam.update({ x: 0, y: 0 }, vp);
+  const center = cam.worldToScreen({ x: 0, y: 0 }, vp);
+  const leftLane = cam.worldToScreen({ x: 0, y: 4 }, vp);
+  assert.ok(leftLane.x < center.x);
+  assert.ok(Math.abs(leftLane.y - center.y) < 1e-9);
+});
+
+test('calle vertical: el auto queda centrado, más abajo de la mitad, con más pista por delante (arriba)', () => {
+  const cam = vertical();
+  const car = { x: 250, y: 0 };
+  cam.update(car, vp);
+  close(cam.worldToScreen(car, vp), { x: VERTICAL_ANCHOR.x * vp.width, y: VERTICAL_ANCHOR.y * vp.height }, 'punto de seguimiento');
+  const b = cam.visibleBounds(vp);
+  assert.ok(b.maxX - 250 > 250 - b.minX, 'más pista por delante (+x) que por detrás');
+  cam.update({ x: 600, y: 0 }, vp);
+  close(cam.worldToScreen({ x: 600, y: 0 }, vp), { x: 0.5 * vp.width, y: 0.7 * vp.height }, 'el auto permanece en la misma zona');
+});
+
+test('calle vertical: el zoom con la rueda deja fijo el punto bajo el cursor y el paneo acompaña al mouse', () => {
+  const cam = vertical();
+  cam.update({ x: 0, y: 0 }, vp);
+  const cursor = { x: 640, y: 210 };
+  const vehicle = cam.screenToWorld(cursor, vp);
+  for (const factor of [1.25, 0.8, 3]) {
+    cam.zoomAt(cursor, factor, vp);
+    close(cam.worldToScreen(vehicle, vp), cursor, `factor ${factor}`);
+  }
+  const grabbed = cam.screenToWorld({ x: 400, y: 400 }, vp);
+  cam.pan(120, -40);
+  close(cam.worldToScreen(grabbed, vp), { x: 520, y: 360 }, 'el punto arrastrado acompaña al mouse');
+});
+
+test('calle vertical: restablecer y reiniciar vuelven al punto de seguimiento vertical', () => {
+  const cam = vertical();
+  const car = { x: 42, y: -3 };
+  cam.pan(300, 200);
+  cam.reset();
+  cam.update(car, vp);
+  close(cam.worldToScreen(car, vp), { x: 0.5 * vp.width, y: 0.7 * vp.height }, 'tras restablecer');
+  cam.pan(10, 10);
+  cam.follow();
+  cam.update(car, vp);
+  close(cam.worldToScreen(car, vp), { x: 0.5 * vp.width, y: 0.7 * vp.height }, 'tras reiniciar');
+});
+
+test('las pistas con curvas (circuitos) se muestran sin girar', () => {
+  const curved = createTrack({ centerline: [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 170, y: 70 }], width: 12, lanes: 3 });
+  assert.deepEqual(orientationFor(curved), { rotation: 0, anchor: CAMERA_DEFAULTS.anchor });
 });

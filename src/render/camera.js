@@ -4,6 +4,8 @@
 // y hacia abajo): al pasar a pantalla se invierte y. El zoom es cuántos píxeles mide un metro.
 // Al seguir al auto, este queda en un punto fijo de la pantalla (`anchor`, en fracciones del
 // ancho y del alto), corrido hacia atrás para dejar más pista a la vista por delante.
+// La cámara puede además girar el encuadre (`rotation`, en radianes, antihorario): por ejemplo,
+// la vista gira la calle recta para mostrarla vertical, con el sentido de avance hacia arriba.
 
 export const CAMERA_DEFAULTS = Object.freeze({
   zoom: 8, // px por metro
@@ -13,26 +15,58 @@ export const CAMERA_DEFAULTS = Object.freeze({
   step: 1.25, // factor de los botones de acercar y alejar
 });
 
+/** Punto de seguimiento con la calle recta vertical: centrado y al 70 % del alto (más pista por delante, arriba). */
+export const VERTICAL_ANCHOR = Object.freeze({ x: 0.5, y: 0.7 });
+
+/**
+ * Orientación del encuadre para una pista. La calle recta (un solo tramo) se muestra vertical,
+ * con el sentido de avance hacia arriba, para aprovechar el alto del escenario; las pistas con
+ * curvas (circuitos, más cuadrados) se muestran sin girar.
+ * @param {{segments: {dir:{x:number,y:number}}[]}} track
+ */
+export function orientationFor(track) {
+  if (track?.segments?.length === 1) {
+    const { dir } = track.segments[0];
+    return { rotation: Math.PI / 2 - Math.atan2(dir.y, dir.x), anchor: VERTICAL_ANCHOR };
+  }
+  return { rotation: 0, anchor: CAMERA_DEFAULTS.anchor };
+}
+
 export function createCamera(options = {}) {
   const cfg = { ...CAMERA_DEFAULTS, ...options };
   let center = { x: 0, y: 0 };
   let zoom = cfg.zoom;
   let following = true;
-  let anchor = { ...cfg.anchor };
+  let baseAnchor = { ...cfg.anchor }; // punto de seguimiento de la orientación actual
+  let anchor = { ...baseAnchor };
+  let rotation = 0;
+  let cos = 1;
+  let sin = 0;
 
   const clampZoom = (z) => Math.min(Math.max(z, cfg.minZoom), cfg.maxZoom);
 
+  /** Gira un vector del mundo al encuadre (antihorario `rotation`). */
+  const turn = (v) => ({ x: cos * v.x - sin * v.y, y: sin * v.x + cos * v.y });
+  /** Gira un vector del encuadre al mundo. */
+  const unturn = (v) => ({ x: cos * v.x + sin * v.y, y: -sin * v.x + cos * v.y });
+
   function worldToScreen(p, vp) {
-    return { x: (p.x - center.x) * zoom + vp.width / 2, y: -(p.y - center.y) * zoom + vp.height / 2 };
+    const r = turn({ x: p.x - center.x, y: p.y - center.y });
+    return { x: r.x * zoom + vp.width / 2, y: -r.y * zoom + vp.height / 2 };
   }
 
+  /** Punto de mundo que corresponde a un punto de pantalla relativo al centro del encuadre. */
+  const offsetToWorld = (s, vp) => unturn({ x: (s.x - vp.width / 2) / zoom, y: -(s.y - vp.height / 2) / zoom });
+
   function screenToWorld(s, vp) {
-    return { x: (s.x - vp.width / 2) / zoom + center.x, y: -(s.y - vp.height / 2) / zoom + center.y };
+    const d = offsetToWorld(s, vp);
+    return { x: center.x + d.x, y: center.y + d.y };
   }
 
   /** Mueve el centro para que el punto de mundo `p` quede en el punto de pantalla `s`. */
   function place(p, s, vp) {
-    center = { x: p.x - (s.x - vp.width / 2) / zoom, y: p.y + (s.y - vp.height / 2) / zoom };
+    const d = offsetToWorld(s, vp);
+    center = { x: p.x - d.x, y: p.y - d.y };
   }
 
   /** Si sigue al auto, lo ubica en su punto fijo de la pantalla. */
@@ -68,33 +102,50 @@ export function createCamera(options = {}) {
 
   /** Desplaza el encuadre según un arrastre en píxeles de pantalla y deja de seguir al auto. */
   function pan(dx, dy) {
-    center = { x: center.x - dx / zoom, y: center.y + dy / zoom };
+    const d = unturn({ x: dx / zoom, y: -dy / zoom });
+    center = { x: center.x - d.x, y: center.y - d.y };
     following = false;
   }
 
   /** Restablecer la vista: vuelve a seguir al auto con el zoom por defecto. */
   function reset() {
     zoom = cfg.zoom;
-    anchor = { ...cfg.anchor };
+    anchor = { ...baseAnchor };
     following = true;
   }
 
   /** Vuelve a seguir al auto (por ejemplo al reiniciar la simulación), sin tocar el zoom. */
   function follow() {
-    anchor = { ...cfg.anchor };
+    anchor = { ...baseAnchor };
     following = true;
   }
 
-  /** Rectángulo de mundo visible. */
+  /**
+   * Orientación del encuadre: giro (radianes, antihorario) y punto de seguimiento del auto.
+   * Si cambia, la cámara vuelve a seguir al auto en ese punto.
+   */
+  function setOrientation({ rotation: r = 0, anchor: a = cfg.anchor } = {}) {
+    if (r === rotation && a.x === baseAnchor.x && a.y === baseAnchor.y) return;
+    rotation = r;
+    cos = Math.cos(r);
+    sin = Math.sin(r);
+    baseAnchor = { x: a.x, y: a.y };
+    anchor = { ...baseAnchor };
+    following = true;
+  }
+
+  /** Rectángulo de mundo (alineado con los ejes) que contiene todo lo visible. */
   function visibleBounds(vp) {
-    const a = screenToWorld({ x: 0, y: 0 }, vp);
-    const b = screenToWorld({ x: vp.width, y: vp.height }, vp);
-    return { minX: Math.min(a.x, b.x), maxX: Math.max(a.x, b.x), minY: Math.min(a.y, b.y), maxY: Math.max(a.y, b.y) };
+    const corners = [[0, 0], [vp.width, 0], [0, vp.height], [vp.width, vp.height]].map(([x, y]) => screenToWorld({ x, y }, vp));
+    const xs = corners.map((c) => c.x);
+    const ys = corners.map((c) => c.y);
+    return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
   }
 
   return {
-    worldToScreen, screenToWorld, update, zoomAt, zoomBy, pan, reset, follow, visibleBounds,
+    worldToScreen, screenToWorld, update, zoomAt, zoomBy, pan, reset, follow, setOrientation, visibleBounds,
     get zoom() { return zoom; },
+    get rotation() { return rotation; },
     get center() { return { ...center }; },
     get following() { return following; },
     get anchor() { return { ...anchor }; },

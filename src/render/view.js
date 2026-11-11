@@ -1,12 +1,13 @@
 // Vista del escenario en un canvas 2D (design.md D8): pista, carriles, tráfico, auto y rayos,
 // con una cámara que sigue al auto, zoom con rueda y botones, paneo y restablecer (control y tecla V).
+// La calle recta se muestra vertical, con el sentido de avance hacia arriba (camera.orientationFor).
 // Es la misma vista para todas las pestañas con escenario. Solo dibuja lo que cae en el encuadre.
 //
 // Los colores salen de las variables de styles/tokens.css. Los textos de los botones se
 // declaran con data-i18n / data-help y los completa el sistema de idiomas de la interfaz.
 import { carContour } from '../core/car.js';
 import { CAR_LENGTH } from '../core/constants.js';
-import { createCamera } from './camera.js';
+import { createCamera, orientationFor } from './camera.js';
 
 const COLOR_VARS = {
   background: '--color-bg',
@@ -94,7 +95,8 @@ export function createStageView({ container, camera = createCamera(), doc = docu
   }
 
   function syncFollowIndicator() {
-    resetButton.dataset.active = camera.following ? 'false' : 'true';
+    const active = camera.following ? 'false' : 'true';
+    if (resetButton.dataset.active !== active) resetButton.dataset.active = active;
   }
 
   // Zoom con la rueda: el punto bajo el cursor queda fijo.
@@ -285,16 +287,25 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     resize();
     const car = world.car;
     lastTarget = car.position;
+    camera.setOrientation(orientationFor(world.track));
+    syncFollowIndicator();
     camera.update(car.position, viewport);
     const z = camera.zoom;
     const c = camera.center;
+    const cos = Math.cos(camera.rotation);
+    const sin = Math.sin(camera.rotation);
     const px = 1 / z; // un píxel CSS en metros
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = colors.background;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Mundo -> pantalla: escala z, y invertida, centrado en la cámara.
-    ctx.setTransform(dpr * z, 0, 0, -dpr * z, dpr * (viewport.width / 2 - c.x * z), dpr * (viewport.height / 2 + c.y * z));
+    // Mundo -> pantalla: giro de la cámara, escala z, y invertida, centrado en la cámara.
+    ctx.setTransform(
+      dpr * z * cos, -dpr * z * sin,
+      -dpr * z * sin, -dpr * z * cos,
+      dpr * (viewport.width / 2 - z * (cos * c.x - sin * c.y)),
+      dpr * (viewport.height / 2 + z * (sin * c.x + cos * c.y)),
+    );
 
     if (!machineView) {
       const b = camera.visibleBounds(viewport);

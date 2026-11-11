@@ -21,6 +21,6 @@ export const ALLOWED_LANES = [2, 3, 4];
 
 // Tráfico (design.md D3)
 export const MIN_GROUP_GAP_CAR_LENGTHS = 4; // hueco mínimo entre grupos consecutivos, en largos de auto
-export const TRAFFIC_FIRST_GROUP = 60; // distancia del primer grupo (m)
+export const TRAFFIC_FIRST_GROUP = 35; // distancia del primer grupo (m): visible al abrir con la calle vertical
 export const TRAFFIC_MIN_SPACING = 24; // separación entre grupos a densidad máxima, centro a centro (m)
 export const TRAFFIC_SPACING_RANGE = 56; // se suma a la anterior cuando la densidad tiende a 0 (m)
