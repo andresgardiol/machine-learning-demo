@@ -26,11 +26,11 @@
 
 ## 5. Núcleo: operadores de evolución
 
-- [ ] 5.1 Crear `src/core/evolution.js` con las estadísticas por agente y las tres funciones de fitness; verificar con una prueba por cada escenario de "Funciones de fitness"
-- [ ] 5.2 Implementar el orden de la población, la selección de padres y la élite con sus límites; verificar con pruebas los escenarios de "Selección de los padres" y "Élite"
-- [ ] 5.3 Implementar la mutación con probabilidad y fuerza; verificar con pruebas los tres escenarios de "Mutación", que el padre no cambia y que con probabilidad 1 % cambia solo una fracción de los valores
-- [ ] 5.4 Implementar el cruce uniforme entre dos padres distintos; verificar con pruebas los dos escenarios de "Cruce opcional"
-- [ ] 5.5 Implementar el armado de la generación siguiente (élite, hijos, tamaño constante, valores fuera de rango ajustados) con el orden de consumo del azar de design D5; verificar con pruebas los escenarios de "Tamaño de la población" y que dos armados con el mismo generador dan poblaciones idénticas
+- [x] 5.1 Crear `src/core/evolution.js` con las estadísticas por agente y las tres funciones de fitness; verificar con una prueba por cada escenario de "Funciones de fitness"
+- [x] 5.2 Implementar el orden de la población, la selección de padres y la élite con sus límites; verificar con pruebas los escenarios de "Selección de los padres" y "Élite"
+- [x] 5.3 Implementar la mutación con probabilidad y fuerza; verificar con pruebas los tres escenarios de "Mutación", que el padre no cambia y que con probabilidad 1 % cambia solo una fracción de los valores
+- [x] 5.4 Implementar el cruce uniforme entre dos padres distintos; verificar con pruebas los dos escenarios de "Cruce opcional"
+- [x] 5.5 Implementar el armado de la generación siguiente (élite, hijos, tamaño constante, valores fuera de rango ajustados) con el orden de consumo del azar de design D5; verificar con pruebas los escenarios de "Tamaño de la población" y que dos armados con el mismo generador dan poblaciones idénticas
 
 ## 6. Núcleo: cerebros y controlador de red
 
