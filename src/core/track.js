@@ -17,17 +17,22 @@ const SEARCH_WINDOW = 3;
 
 /**
  * Crea una pista. Carril 0 = el más a la izquierda mirando hacia adelante.
- * @param {{centerline: {x:number,y:number}[], width: number, lanes: number}} spec
+ * Las distancias sobre la línea central (progreso, centro de carril) se miden desde la línea de
+ * salida. `start` es la distancia del primer punto respecto de ella: 0 si la pista empieza en la
+ * salida, negativa si continúa por detrás (como la calle recta, para que no se pueda salir de
+ * ella retrocediendo).
+ * @param {{centerline: {x:number,y:number}[], width: number, lanes: number, start?: number}} spec
  */
-export function createTrack({ centerline, width, lanes }) {
+export function createTrack({ centerline, width, lanes, start = 0 }) {
   if (!Array.isArray(centerline) || centerline.length < 2) throw new TrackError('CENTERLINE_TOO_SHORT');
   if (!(width > 0)) throw new TrackError('INVALID_WIDTH', { width });
   if (!Number.isInteger(lanes) || lanes < 1) throw new TrackError('INVALID_LANE_COUNT', { lanes });
+  if (!Number.isFinite(start)) throw new TrackError('INVALID_START', { start });
 
   const points = centerline.map((p) => ({ x: p.x, y: p.y }));
   const half = width / 2;
 
-  // Tramos: dirección, normal izquierda y distancia acumulada de inicio.
+  // Tramos: dirección, normal izquierda y distancia (desde la línea de salida) de su inicio.
   const segments = [];
   let total = 0;
   for (let i = 0; i < points.length - 1; i++) {
@@ -35,7 +40,7 @@ export function createTrack({ centerline, width, lanes }) {
     const len = vlen(delta);
     if (len === 0) throw new TrackError('ZERO_LENGTH_SEGMENT', { index: i });
     const dir = normalize(delta);
-    segments.push({ a: points[i], b: points[i + 1], dir, normal: leftOf(dir), len, start: total });
+    segments.push({ a: points[i], b: points[i + 1], dir, normal: leftOf(dir), len, start: start + total });
     total += len;
   }
 
@@ -74,7 +79,7 @@ export function createTrack({ centerline, width, lanes }) {
   const laneIndexes = Array.from({ length: lanes }, (_, i) => i);
 
   const segmentAt = (distanceOnLine) => {
-    const d = Math.min(Math.max(distanceOnLine, 0), total);
+    const d = Math.min(Math.max(distanceOnLine, start), start + total);
     let lo = 0;
     let hi = segments.length - 1;
     while (lo < hi) {
@@ -85,7 +90,7 @@ export function createTrack({ centerline, width, lanes }) {
     return { seg: segments[lo], index: lo, d };
   };
 
-  /** Posición y ángulo sobre la línea central a `distanceOnLine` metros del inicio. */
+  /** Posición y ángulo sobre la línea central a `distanceOnLine` metros de la línea de salida. */
   function pointAt(distanceOnLine) {
     const { seg, index, d } = segmentAt(distanceOnLine);
     return { position: add(seg.a, scale(seg.dir, d - seg.start)), angle: Math.atan2(seg.dir.y, seg.dir.x), segmentIndex: index };
@@ -112,7 +117,8 @@ export function createTrack({ centerline, width, lanes }) {
   }
 
   /**
-   * Progreso de `position`: distancia sobre la línea central desde el inicio, sin contar
+   * Progreso de `position`: distancia sobre la línea central desde la línea de salida (negativa
+   * por detrás de ella), sin contar
    * movimientos laterales. La búsqueda empieza en `hintSegment` (último tramo conocido).
    * Devuelve también el desplazamiento lateral (positivo a la izquierda) y el tramo hallado.
    */
@@ -144,14 +150,18 @@ export function createTrack({ centerline, width, lanes }) {
   }
 
   return Object.freeze({
-    centerline: points, width, lanes, laneWidth, length: total,
+    centerline: points, width, lanes, laneWidth, length: total, start, end: start + total,
     leftBorder, rightBorder, borderSegments, segments,
     pointAt, laneCenter, progressOf, bordersNear,
   });
 }
 
-/** Calle recta de 2, 3 o 4 carriles (3 por defecto) a lo largo de +x. */
+/**
+ * Calle recta de 2, 3 o 4 carriles (3 por defecto) a lo largo de +x. La línea de salida está en
+ * x = 0 y la calle sigue `length` metros hacia adelante y otros tantos hacia atrás, así retroceder
+ * desde la salida no saca al auto de la calle.
+ */
 export function createStraightStreet({ lanes = DEFAULT_LANES, laneWidth = LANE_WIDTH, length = STREET_LENGTH } = {}) {
   if (!ALLOWED_LANES.includes(lanes)) throw new TrackError('INVALID_LANE_COUNT', { lanes, allowed: [...ALLOWED_LANES] });
-  return createTrack({ centerline: [{ x: 0, y: 0 }, { x: length, y: 0 }], width: lanes * laneWidth, lanes });
+  return createTrack({ centerline: [{ x: -length, y: 0 }, { x: length, y: 0 }], width: lanes * laneWidth, lanes, start: -length });
 }

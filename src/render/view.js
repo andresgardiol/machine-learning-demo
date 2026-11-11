@@ -189,7 +189,7 @@ export function createStageView({ container, camera = createCamera(), doc = docu
       ctx.fill();
     });
     // Separación entre carriles: trazos fijos sobre la calle (el inicio se alinea al patrón).
-    const dashFrom = Math.max(0, Math.floor(from / (2 * DASH)) * 2 * DASH);
+    const dashFrom = Math.max(track.start, Math.floor(from / (2 * DASH)) * 2 * DASH);
     for (let i = 1; i < track.lanes; i++) {
       strokePieces(offsetPieces(track, half - i * track.laneWidth, dashFrom, to), colors.laneLine, 2 * px, [DASH, DASH]);
     }
@@ -312,8 +312,8 @@ export function createStageView({ container, camera = createCamera(), doc = docu
       const middle = { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 };
       const radius = Math.hypot(b.maxX - b.minX, b.maxY - b.minY) / 2;
       const at = world.track.progressOf(middle).progress;
-      const from = Math.max(0, at - radius);
-      const to = Math.min(world.track.length, at + radius);
+      const from = Math.max(world.track.start, at - radius);
+      const to = Math.min(world.track.end, at + radius);
       drawTrack(world.track, from, to, px);
       const inView = (v) => v.position.x >= b.minX - CAR_LENGTH && v.position.x <= b.maxX + CAR_LENGTH
         && v.position.y >= b.minY - CAR_LENGTH && v.position.y <= b.maxY + CAR_LENGTH;

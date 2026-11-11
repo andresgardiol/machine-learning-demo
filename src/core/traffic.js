@@ -68,7 +68,7 @@ export function createTraffic({ seed, track, density = DEFAULT_TRAFFIC.density, 
     for (let k = kMin; k <= kMax; k++) {
       const g = groupAt(k);
       const distance = g.distance + shift;
-      if (distance < from || distance > to || distance > track.length) continue;
+      if (distance < from || distance > to || distance > track.end) continue;
       for (const v of g.vehicles) {
         const c = track.laneCenter(v.lane, distance);
         const position = add(c.position, scale(leftOf(fromAngle(c.angle)), v.lateral));

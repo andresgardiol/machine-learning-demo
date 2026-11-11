@@ -127,3 +127,16 @@ test('los sensores se reconfiguran y restablecen sin reiniciar', () => {
   w.resetSensors();
   assert.equal(w.perception.sensors.length, 5);
 });
+
+test('retroceder desde la salida no saca al auto de la calle: sigue habiendo bordes y choca contra ellos', () => {
+  const back = createWorld({ seed: 1, density: 0, controller: constantController({ reverse: true }) });
+  run(back, 60 * 4);
+  assert.ok(back.car.position.x < -20, 'el auto retrocedió más allá de la salida');
+  assert.equal(back.crashed, false, 'en línea recta no choca: la calle sigue');
+  assert.ok(back.progress < -20, 'el progreso es negativo detrás de la salida');
+  const turning = createWorld({ seed: 1, density: 0, controller: constantController({ reverse: true, left: true }) });
+  for (let i = 0; i < 60 * 10 && !turning.crashed; i++) turning.step();
+  assert.equal(turning.crashed, true);
+  assert.equal(turning.crashCause, 'edge');
+  assert.ok(turning.car.position.x < 0, 'choca contra un borde detrás de la salida');
+});

@@ -29,8 +29,8 @@ test('carriles de igual ancho que juntos ocupan el ancho total', () => {
 
 test('bordes en la calle recta: paralelos a la línea central a medio ancho', () => {
   const s = createStraightStreet();
-  assert.deepEqual(s.leftBorder, [{ x: 0, y: 6 }, { x: 100000, y: 6 }]);
-  assert.deepEqual(s.rightBorder, [{ x: 0, y: -6 }, { x: 100000, y: -6 }]);
+  assert.deepEqual(s.leftBorder, [{ x: -100000, y: 6 }, { x: 100000, y: 6 }]);
+  assert.deepEqual(s.rightBorder, [{ x: -100000, y: -6 }, { x: 100000, y: -6 }]);
 });
 
 test('bordes en una pista con curva: continuos, a medio ancho, sin cruces', () => {
@@ -130,7 +130,24 @@ test('calle recta: 3 carriles por defecto, 2 y 4 admitidos', () => {
   assert.equal(createStraightStreet().lanes, 3);
   assert.equal(createStraightStreet({ lanes: 2 }).lanes, 2);
   assert.equal(createStraightStreet({ lanes: 4 }).lanes, 4);
-  assert.equal(createStraightStreet().length, 100000);
+  const s = createStraightStreet();
+  assert.equal(s.end, 100000, '100 km hacia adelante de la línea de salida');
+  assert.equal(s.start, -100000, 'y otros 100 km hacia atrás');
+  assert.equal(s.length, 200000);
+});
+
+test('calle recta: sigue por detrás de la línea de salida, con bordes y progreso negativo', () => {
+  const s = createStraightStreet();
+  assert.deepEqual(s.laneCenter(1, 0).position, { x: 0, y: 0 }, 'la salida sigue en x = 0');
+  assert.equal(s.progressOf({ x: -30, y: 2 }).progress, -30);
+  assert.ok(s.bordersNear({ x: -30, y: 0 }, 8).length >= 2, 'hay bordes detrás de la salida');
+});
+
+test('una pista que empieza en la línea de salida mide el progreso desde 0', () => {
+  const t = createTrack({ centerline: [{ x: 0, y: 0 }, { x: 100, y: 0 }], width: 12, lanes: 3 });
+  assert.equal(t.start, 0);
+  assert.equal(t.end, 100);
+  assert.equal(t.progressOf({ x: 40, y: 1 }).progress, 40);
 });
 
 test('cantidad de carriles no admitida: no se crea e informa las admitidas', () => {

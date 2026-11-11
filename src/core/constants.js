@@ -14,7 +14,7 @@ export const FRICTION = 14;
 export const TURN_RATE = 1.8; // rad/s
 
 export const TRAFFIC_SPEED = 10;
-export const STREET_LENGTH = 100000; // 100 km
+export const STREET_LENGTH = 100000; // 100 km hacia adelante (y otros tantos hacia atrás)
 
 export const DEFAULT_LANES = 3;
 export const ALLOWED_LANES = [2, 3, 4];
