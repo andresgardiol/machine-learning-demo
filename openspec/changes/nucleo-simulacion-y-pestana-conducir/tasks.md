@@ -77,10 +77,10 @@
 
 ## 11. Verificación integral
 
-- [ ] 11.1 Ejecutar `npm test` completo; verificar que todas las pruebas pasan
-- [ ] 11.2 Recorrer toda la aplicación en inglés (pestaña, tooltips, mensajes, créditos, aviso de ventana angosta); verificar que no aparece ningún texto en español
-- [ ] 11.3 Medir la tasa de cuadros durante diez segundos de manejo con la configuración por defecto; verificar que el promedio es de al menos 55 cuadros por segundo
-- [ ] 11.4 Verificar a mano en el navegador cada feature visible contra el filtro de entrada (qué concepto hace visible, si se entiende sola, si el mentor puede ocultarla, cómo se vuelve atrás) y contra los escenarios de las specs que no tienen prueba automática
+- [x] 11.1 Ejecutar `npm test` completo; verificar que todas las pruebas pasan
+- [x] 11.2 Recorrer toda la aplicación en inglés (pestaña, tooltips, mensajes, créditos, aviso de ventana angosta); verificar que no aparece ningún texto en español
+- [x] 11.3 Medir la tasa de cuadros durante diez segundos de manejo con la configuración por defecto; verificar que el promedio es de al menos 55 cuadros por segundo
+- [x] 11.4 Verificar a mano en el navegador cada feature visible contra el filtro de entrada (qué concepto hace visible, si se entiende sola, si el mentor puede ocultarla, cómo se vuelve atrás) y contra los escenarios de las specs que no tienen prueba automática
 
 ## Workflow follow-up
 
