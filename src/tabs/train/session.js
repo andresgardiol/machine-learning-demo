@@ -40,6 +40,23 @@ export function indicators(training) {
 }
 
 /**
+ * Última generación terminada, para la línea del tablero (design.md D8): su número y su mejor
+ * fitness con la clave de su unidad, y la clave de la oración con el motivo por el que terminó.
+ * null si todavía no terminó ninguna.
+ * @returns {null | {best:{key:string, params:{generation:number, value:number}}, reason:string}}
+ */
+export function lastGeneration(training) {
+  const last = training.history[training.history.length - 1] ?? null;
+  if (!last) return null;
+  const { key, params } = fitnessText(last.best, last.fitness);
+  const unit = key.slice('train.value.'.length);
+  return {
+    best: { key: `train.last.best.${unit}`, params: { generation: last.generation, value: params.value } },
+    reason: `train.last.reason.${last.reason}`,
+  };
+}
+
+/**
  * @param {{completed?: Set<string>}} [spec] `completed`: misiones cumplidas; se comparte entre
  *   montajes para que una misión cumplida siga marcada hasta cerrar la aplicación, aunque se
  *   reinicie el entrenamiento.

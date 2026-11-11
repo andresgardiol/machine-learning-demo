@@ -33,7 +33,8 @@ export function boardCard({ id, titleKey, help, hintKey, open = true, grow = 1, 
   const bodyId = `card-${id}-body`;
   const title = el('button', {
     class: 'card-title', i18n: titleKey, help,
-    attrs: { type: 'button', 'aria-controls': bodyId, 'aria-expanded': 'true' },
+    // Los atajos de la pestaña (la barra espaciadora pausa) siguen funcionando con el foco acá.
+    attrs: { type: 'button', 'aria-controls': bodyId, 'aria-expanded': 'true', 'data-shortcuts': 'pass' },
   });
   const hint = hintKey ? el('p', { class: 'guide card-hint', i18n: hintKey }) : null;
   const body = el('div', { class: 'card-body', attrs: { id: bodyId } }, hint);

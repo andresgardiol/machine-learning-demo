@@ -121,3 +121,50 @@ test('misiones con un entrenamiento real: la generación en curso se observa pas
   s.observe(t);
   assert.equal(missionOf(s, 'generations').progress, 3);
 });
+
+// --- Línea de la última generación (design.md D8) ------------------------------------------------
+import { lastGeneration } from '../src/tabs/train/session.js';
+import { END_REASONS } from '../src/core/training.js';
+
+const withHistory = (...history) => ({ history });
+const record = (generation, best, fitness, reason) => ({ generation, best, average: best / 4, fitness, reason });
+
+test('última generación: antes de la primera devuelve null', () => {
+  assert.equal(lastGeneration(createTraining({ seed: 1 })), null);
+  assert.equal(lastGeneration(withHistory()), null);
+});
+
+test('última generación: generación 12 con 350 m porque todos quedaron fuera de carrera', () => {
+  const r = lastGeneration(withHistory(record(11, 200, 'distance', 'timeLimit'), record(12, 350.8, 'distance', 'allCrashed')));
+  assert.deepEqual(r, {
+    best: { key: 'train.last.best.meters', params: { generation: 12, value: 350 } },
+    reason: 'train.last.reason.allCrashed',
+  });
+});
+
+test('última generación: la clave de cada unidad', () => {
+  assert.deepEqual(lastGeneration(withHistory(record(3, 412.87, 'distance', 'timeLimit'))).best,
+    { key: 'train.last.best.meters', params: { generation: 3, value: 412 } });
+  assert.deepEqual(lastGeneration(withHistory(record(4, 28.34, 'survival', 'timeLimit'))).best,
+    { key: 'train.last.best.seconds', params: { generation: 4, value: 28.3 } });
+  assert.deepEqual(lastGeneration(withHistory(record(5, 11.06, 'speed', 'timeLimit'))).best,
+    { key: 'train.last.best.metersPerSecond', params: { generation: 5, value: 11.1 } });
+});
+
+test('última generación: la clave de cada uno de los cuatro motivos', () => {
+  assert.deepEqual([...END_REASONS], ['allCrashed', 'timeLimit', 'stalled', 'requested']);
+  assert.equal(lastGeneration(withHistory(record(1, 10, 'distance', 'allCrashed'))).reason, 'train.last.reason.allCrashed');
+  assert.equal(lastGeneration(withHistory(record(1, 10, 'distance', 'timeLimit'))).reason, 'train.last.reason.timeLimit');
+  assert.equal(lastGeneration(withHistory(record(1, 10, 'distance', 'stalled'))).reason, 'train.last.reason.stalled');
+  assert.equal(lastGeneration(withHistory(record(1, 10, 'distance', 'requested'))).reason, 'train.last.reason.requested');
+});
+
+test('última generación: con un entrenamiento real, la generación terminada a pedido', () => {
+  const t = createTraining({ seed: 1, config: { population: 10 } });
+  t.finishGeneration();
+  const r = lastGeneration(t);
+  assert.equal(r.best.params.generation, 1);
+  assert.equal(r.best.key, 'train.last.best.meters');
+  assert.equal(r.best.params.value, Math.floor(t.history[0].best));
+  assert.equal(r.reason, 'train.last.reason.requested');
+});

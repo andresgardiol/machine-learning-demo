@@ -1,8 +1,9 @@
 // Pestaña 3, "Entrenar": una población de autos manejados por redes neuronales aprende a esquivar
 // el tráfico generación tras generación, a la vista de la persona.
 //
-// Composición (design.md D14): entrenamiento del núcleo + vista + bucle, y el panel con guía,
-// controles, indicadores, misiones, configuración, curva de fitness y red del líder. El
+// Composición: entrenamiento del núcleo + vista + bucle; el tablero con los indicadores, la línea
+// de la última generación, la curva de fitness y la red del líder; y el panel con guía, controles,
+// configuración, guardar el campeón, misiones, biblioteca y configuración avanzada. El
 // entrenamiento, los ajustes y las misiones cumplidas viven en variables del módulo: al salir de la
 // pestaña se detienen el bucle y la vista, y al volver se retoma el mismo entrenamiento. La lógica
 // que se puede probar sin DOM vive en settings.js, session.js y shortcuts.js.
@@ -21,13 +22,14 @@ import { createFitnessChart } from '../../ui/chart.js';
 import { createLoop, SPEEDS } from '../../ui/loop.js';
 import { createLibraryView } from '../../ui/library-view.js';
 import { el } from '../../ui/dom.js';
+import { statStrip, boardCard } from '../../ui/board.js';
 import {
   button, switchButton, sliderRow, optionGroup, createTextSetter, inlineConfirm,
 } from '../../ui/controls.js';
 import {
   DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges, adoptBrain,
 } from './settings.js';
-import { createTrainSession, indicators } from './session.js';
+import { createTrainSession, indicators, lastGeneration } from './session.js';
 import { shortcutFor, toggleTurbo } from './shortcuts.js';
 
 export const DEFAULT_SEED = 1;
@@ -73,7 +75,7 @@ function nextGenerationConfig(settings) {
   return config;
 }
 
-export function mount({ stage, panel, i18n, store, library, reportError }) {
+export function mount({ stage, board, panel, i18n, store, library, reportError }) {
   if (!state) {
     const settings = normalizeSettings({ ...DEFAULT_SETTINGS, maxSpeed: store?.get().carSpeed ?? DEFAULT_SETTINGS.maxSpeed });
     state = {
@@ -245,20 +247,6 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
   });
   const factor = el('p', { class: 'train-factor muted', attrs: { 'aria-live': 'off' } });
 
-  // Indicadores
-  const stat = (labelKey) => {
-    const value = el('dd', { class: 'stat-value' });
-    return { node: el('div', { class: 'stat' }, el('dt', { i18n: labelKey }), value), value };
-  };
-  const stats = {
-    generation: stat('train.stats.generation'),
-    alive: stat('train.stats.alive'),
-    leader: stat('train.stats.leader'),
-    lastBest: stat('train.stats.lastBest'),
-    reason: stat('train.stats.reason'),
-  };
-  const statsList = el('dl', { class: 'drive-stats train-stats', attrs: { 'aria-live': 'off' } }, Object.values(stats).map((s) => s.node));
-
   // Misiones
   const missionRows = state.missions.missions.map((m) => {
     const status = el('span', { class: 'mission-status' });
@@ -358,24 +346,6 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
       networkConfirm.node,
       resetButton, resetConfirm.node));
 
-  // --- Panel: curva y red --------------------------------------------------------------------------
-  const chartZone = el('div', { class: 'chart-zone' });
-  const chartSection = el('details', { class: 'section train-chart', attrs: { open: state.settings.showChart } },
-    el('summary', { i18n: 'train.chart.title', help: 'train.chart' }), chartZone);
-
-  const networkZone = el('div', { class: 'network-zone' });
-  const legend = el('ul', { class: 'network-legend' },
-    el('li', {}, el('span', { class: 'legend-line', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.positive' })),
-    el('li', {}, el('span', { class: 'legend-line negative', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.negative' })),
-    el('li', {}, el('span', { class: 'legend-node', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.active' })));
-  const networkSection = el('details', { class: 'section train-network', attrs: { open: state.settings.showNetwork } },
-    el('summary', { i18n: 'train.network.title', help: 'train.network' }),
-    networkZone, legend,
-    el('p', { class: 'network-note muted', i18n: 'train.network.legend.note' }));
-  // Plegar o desplegar una sección se recuerda al volver a la pestaña.
-  chartSection.addEventListener('toggle', () => { state.settings = { ...state.settings, showChart: chartSection.open }; });
-  networkSection.addEventListener('toggle', () => { state.settings = { ...state.settings, showNetwork: networkSection.open }; });
-
   // Biblioteca de cerebros (plegada al abrir): guardar el campeón y la lista.
   const nameInput = el('input', {
     class: 'library-name-input', help: 'train.save.name',
@@ -402,12 +372,46 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
 
   panel.append(
     el('h1', { class: 'panel-title', i18n: 'train.title' }),
-    intro, toolbar, toolbarConfirm.node, speeds.row, factor, statsList, missions,
+    intro, toolbar, toolbarConfirm.node, speeds.row, factor, missions,
     basic, el('div', { class: 'switch-row' }, sensorsSwitch),
-    chartSection, networkSection, librarySection, advanced);
+    librarySection, advanced);
   const libraryView = library
     ? createLibraryView({ container: libraryZone, library, i18n, onContinue: continueFrom })
     : { showMessage() {}, dispose() {} };
+
+  // --- Tablero: indicadores, última generación, curva y red (design.md D8) ---------------------------
+  const strip = statStrip([
+    { id: 'generation', labelKey: 'train.stats.generation' },
+    { id: 'alive', labelKey: 'train.stats.alive' },
+    { id: 'leader', labelKey: 'train.stats.leader' },
+  ]);
+  const lastBest = el('span', { class: 'board-last-best' });
+  const lastReason = el('span', { class: 'board-last-reason' });
+  const lastLine = el('p', { class: 'board-last', attrs: { role: 'status' } }, lastBest, lastReason);
+
+  // Plegar o desplegar una tarjeta se recuerda al volver a la pestaña (y no cambia el entrenamiento).
+  const chartCard = boardCard({
+    id: 'train-chart', titleKey: 'train.chart.title', help: 'train.chart', hintKey: 'train.chart.hint.new',
+    open: state.settings.showChart, grow: 1,
+    onToggle: (open) => { state.settings = { ...state.settings, showChart: open }; if (open) chart.refresh(); },
+  });
+  const chartZone = el('div', { class: 'chart-zone' });
+  chartCard.append(chartZone);
+
+  const networkCard = boardCard({
+    id: 'train-network', titleKey: 'train.network.title', help: 'train.network', hintKey: 'train.network.hint',
+    open: state.settings.showNetwork, grow: 1.3,
+    onToggle: (open) => { state.settings = { ...state.settings, showNetwork: open }; },
+  });
+  const networkZone = el('div', { class: 'network-zone' });
+  const legend = el('ul', { class: 'network-legend' },
+    el('li', {}, el('span', { class: 'legend-line', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.positive' })),
+    el('li', {}, el('span', { class: 'legend-line negative', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.negative' })),
+    el('li', {}, el('span', { class: 'legend-node', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.active' })),
+    el('li', { class: 'network-note', i18n: 'train.network.legend.note' }));
+  networkCard.append(networkZone, legend);
+
+  board.append(strip.node, lastLine, chartCard.node, networkCard.node);
 
   const chart = createFitnessChart({ container: chartZone, i18n });
   const networkView = createNetworkView({ container: networkZone, i18n });
@@ -422,13 +426,21 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
     const t = state.training;
     const s = state.settings;
     const ind = indicators(t);
-    setText(stats.generation.value, 'train.value.count', { value: ind.generation });
-    setText(stats.alive.value, 'train.value.alive', { value: ind.alive, total: ind.total });
-    setText(stats.leader.value, ind.leader.key, ind.leader.params);
-    if (ind.lastBest) setText(stats.lastBest.value, ind.lastBest.key, ind.lastBest.params);
-    else setText(stats.lastBest.value, 'train.value.none');
-    setText(stats.reason.value, ind.lastReason ? `train.reason.${ind.lastReason}` : 'train.value.none');
+    setText(strip.values.generation, 'train.value.count', { value: ind.generation });
+    setText(strip.values.alive, 'train.value.alive', { value: ind.alive, total: ind.total });
+    setText(strip.values.leader, ind.leader.key, ind.leader.params);
     setText(generationBadge, 'train.badge.generation', { value: ind.generation });
+    // Línea de la última generación: dos tramos con su clave, así el cambio de idioma los reescribe.
+    const last = lastGeneration(t);
+    if (last) {
+      setText(lastBest, last.best.key, last.best.params);
+      setText(lastReason, last.reason);
+    } else {
+      setText(lastBest, 'train.last.none');
+    }
+    lastReason.hidden = !last;
+    // Ayuda de la curva según el modo de tráfico de la generación en curso (no el que espera).
+    setText(chartCard.hint, `train.chart.hint.${t.config.trafficMode}`);
 
     // Pausa y velocidad
     pauseButton.setAttribute('aria-pressed', String(state.paused));
@@ -489,7 +501,7 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
 
   /** Diagrama de la red del líder con lo que percibe ahora; no se dibuja con la sección plegada. */
   function drawNetwork() {
-    if (!networkSection.open) return;
+    if (!networkCard.open) return;
     const t = state.training;
     const leader = t.world.agents[t.leaderIndex];
     networkView.render(t.networks[t.leaderIndex], [...leader.perception.sensors, leader.perception.speed]);
@@ -553,6 +565,7 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
   panel.addEventListener('click', onClick);
+  board.addEventListener('click', onClick);
   stage.addEventListener('click', onClick);
   const offLanguage = i18n.onChange(() => { sync(); chart.refresh(); });
 
@@ -580,6 +593,7 @@ export function mount({ stage, panel, i18n, store, library, reportError }) {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       panel.removeEventListener('click', onClick);
+      board.removeEventListener('click', onClick);
       libraryView.dispose();
       stage.removeEventListener('click', onClick);
       toolbarConfirm.dispose();

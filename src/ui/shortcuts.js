@@ -8,10 +8,15 @@ import { isTypingTarget } from '../input/keyboard.js';
 
 const CONTROL_SELECTOR = 'button, a[href], input, select, textarea, summary, [role="button"], [role="switch"], [role="tab"], [role="separator"]';
 
-/** ¿El objetivo es un control enfocado con el teclado? */
+/**
+ * ¿El objetivo es un control enfocado con el teclado? Los controles marcados con
+ * data-shortcuts="pass" (los títulos de las tarjetas del tablero) dejan pasar los atajos: con el
+ * foco en ellos, la barra espaciadora pausa en lugar de plegar la tarjeta.
+ */
 export function isKeyboardFocusedControl(target) {
   if (!target || typeof target.matches !== 'function') return false;
   try {
+    if (typeof target.getAttribute === 'function' && target.getAttribute('data-shortcuts') === 'pass') return false;
     return target.matches(CONTROL_SELECTOR) && target.matches(':focus-visible');
   } catch {
     return false;
