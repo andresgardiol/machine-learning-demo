@@ -507,3 +507,53 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   .action-keys { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sensor-value { font-size: 10px; }
 }
+
+/* ---- Editor de programas (src/ui/editor.js, design.md D4) ------------------------------------
+   Un <textarea> transparente sobre un <pre> coloreado: una sola regla de tipografía para los dos
+   (y para los números de línea), sin ajuste de línea, así el color nunca se corre del texto. */
+.editor-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 13px; line-height: 20px; letter-spacing: 0; font-variant-ligatures: none;
+  tab-size: 4; -moz-tab-size: 4; white-space: pre; word-wrap: normal; overflow-wrap: normal;
+}
+.code-editor {
+  display: flex; flex: 1 1 auto; min-height: 0;
+  background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius);
+  overflow: hidden;
+}
+.code-editor:focus-within { border-color: var(--color-accent); }
+.editor-gutter {
+  position: relative; flex: 0 0 auto; width: 48px; overflow: hidden;
+  padding: var(--space-1) 0; border-right: 1px solid var(--color-border);
+  color: var(--color-text-muted); text-align: right; user-select: none;
+}
+.editor-gutter-inner { will-change: transform; }
+.editor-line-no { position: relative; height: 20px; padding-right: 6px; font-variant-numeric: tabular-nums; }
+/* Marca junto al número: ▸ la línea se cumple, ✕ la línea tiene un error (no dependen solo del color). */
+.editor-line-no[data-mark="active"]::before,
+.editor-line-no[data-mark="error"]::before { position: absolute; left: 4px; }
+.editor-line-no[data-mark="active"]::before { content: "▸"; color: var(--color-accent); }
+.editor-line-no[data-mark="active"] { color: var(--color-text); font-weight: 700; }
+.editor-line-no[data-mark="error"]::before { content: "✕"; color: var(--color-car-crashed); }
+.editor-line-no[data-mark="error"] { color: var(--color-car-crashed); font-weight: 700; }
+.editor-main { position: relative; flex: 1 1 auto; min-width: 0; overflow: hidden; }
+.editor-backdrop, .editor-input { margin: 0; padding: var(--space-1) var(--space-2); border: 0; }
+.editor-backdrop { position: absolute; inset: 0; overflow: hidden; pointer-events: none; color: var(--color-text); }
+.editor-code { display: block; min-width: max-content; padding: 0; background: none; border-radius: 0; font: inherit; will-change: transform; }
+.editor-line { display: block; min-height: 20px; }
+.editor-line[data-mark="active"] { background: color-mix(in srgb, var(--color-accent) 16%, transparent); }
+.editor-line[data-mark="error"] { text-decoration: underline wavy var(--color-car-crashed); text-decoration-skip-ink: none; text-underline-offset: 4px; }
+.editor-input {
+  position: absolute; inset: 0; width: 100%; height: 100%; resize: none; overflow: auto;
+  background: transparent; color: transparent; -webkit-text-fill-color: transparent; caret-color: var(--color-text);
+  outline: none;
+}
+.editor-input::selection { background: color-mix(in srgb, var(--color-accent) 40%, transparent); }
+/* Tipos de palabra: forma además de color. */
+.tok-keyword { font-weight: 700; color: var(--color-text); }
+.tok-action { font-weight: 700; color: var(--color-accent); }
+.tok-data { color: var(--color-sensor); text-decoration: underline dotted; text-underline-offset: 3px; }
+.tok-name { font-style: italic; color: var(--color-weight-positive); }
+.tok-number { color: var(--color-text); }
+.tok-operator { color: var(--color-text-muted); }
+.tok-comment { font-style: italic; color: var(--color-text-muted); }

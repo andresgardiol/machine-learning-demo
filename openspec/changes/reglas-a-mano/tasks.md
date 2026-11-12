@@ -31,8 +31,8 @@ claves nuevas y se informa en el reporte.
 
 ## 4. Editor de texto
 
-- [ ] 4.1 Crear `src/ui/editor-text.js` con las operaciones puras de D4 (Enter con sangría, Tab, Mayús+Tab e insertar en el cursor). Verificar en `tests/editor-text.test.js`: Enter después de una línea que termina en `entonces` o `then` agrega un nivel; Enter en una línea con sangría la conserva; Tab y Mayús+Tab sobre el cursor y sobre varias líneas seleccionadas; insertar reemplaza la selección y deja el cursor al final de lo insertado.
-- [ ] 4.2 Crear `src/ui/editor.js` con `createCodeEditor` (D4): `<textarea>` sobre un `<pre>` coloreado, columna de números de línea, `setMarks`, teclado y Escape. Agregar sus estilos a `styles/app.css` con una sola regla de tipografía para los dos elementos, usando los tokens existentes.
+- [x] 4.1 Crear `src/ui/editor-text.js` con las operaciones puras de D4 (Enter con sangría, Tab, Mayús+Tab e insertar en el cursor). Verificar en `tests/editor-text.test.js`: Enter después de una línea que termina en `entonces` o `then` agrega un nivel; Enter en una línea con sangría la conserva; Tab y Mayús+Tab sobre el cursor y sobre varias líneas seleccionadas; insertar reemplaza la selección y deja el cursor al final de lo insertado.
+- [x] 4.2 Crear `src/ui/editor.js` con `createCodeEditor` (D4): `<textarea>` sobre un `<pre>` coloreado, columna de números de línea, `setMarks`, teclado y Escape. Agregar sus estilos a `styles/app.css` con una sola regla de tipografía para los dos elementos, usando los tokens existentes.
 
 ## 5. Lógica de la pestaña sin DOM
 
