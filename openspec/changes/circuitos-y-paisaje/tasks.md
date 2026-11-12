@@ -24,7 +24,7 @@
 - [x] 4.1 Sumar `tracks` a la configuración del entrenamiento y hacer que cada generación corra en la pista que le toca; exponer `training.trackId` (design.md D4). Verificar con pruebas los seis escenarios de "Pistas del entrenamiento".
 - [x] 4.2 Exponer `training.lapsOf`. Verificar con pruebas los escenarios de "Ventaja en un circuito" y de "Vueltas de un individuo", y que la regla de los lentos saca de carrera a un auto que va a menos de 10 m/s en un circuito.
 - [x] 4.3 Registrar las pistas en los escenarios del cerebro y aceptarlas en `assertBrain` (design.md D5). Verificar con pruebas los escenarios de "Pistas en los datos de entrenamiento", incluido que un cerebro anterior sigue siendo válido.
-- [ ] 4.4 Sumar a `tools/measure-learning.mjs` el modo por pista de design.md D8 y correrlo para el óvalo. Pegar la tabla en el informe, con el dato informativo del riñón, el gran premio y la alternancia. Si menos de 5 de 8 semillas completan una vuelta al óvalo, **detenerse y consultar** sin cambiar circuitos, sensores ni valores por defecto.
+- [x] 4.4 Sumar a `tools/measure-learning.mjs` el modo por pista de design.md D8 y correrlo para el óvalo. Pegar la tabla en el informe, con el dato informativo del riñón, el gran premio y la alternancia. Si menos de 5 de 8 semillas completan una vuelta al óvalo, **detenerse y consultar** sin cambiar circuitos, sensores ni valores por defecto.
 
 ## 5. Vista de un circuito
 
