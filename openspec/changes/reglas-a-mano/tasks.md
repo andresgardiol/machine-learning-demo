@@ -53,11 +53,11 @@ claves nuevas y se informa en el reporte.
 
 ## 7. Pestaña Reglas a mano: panel
 
-- [ ] 7.1 Armar la guía, los controles del intento, los interruptores de sensores y de reintento automático, y los mensajes de choque (insignia con el reintento encendido, cuadro con botón con el reintento apagado). Verificar en el navegador los escenarios de "Guía de inicio", "Controles del intento" y "Reintento automático".
-- [ ] 7.2 Agregar los tres ejemplos, restablecer, exportar e importar, todos por `replaceProgram` con su confirmación (D8); los ejemplos y restablecer cambian además los sensores del auto. Verificar en el navegador los escenarios de "Programas de ejemplo" (cada ejemplo deja en la sección avanzada sus sensores y sus barras con nombre en el tablero; el de tres sensores frena sin chocar; el de siete supera al menos 10 vehículos; el de veinte recorre menos que el de siete), "Restablecer el programa" y "Exportar e importar el programa", incluido un archivo de más de 200 líneas y uno que no es de texto.
-- [ ] 7.3 Agregar las misiones. Verificar los cinco escenarios de "Misiones".
-- [ ] 7.4 Agregar la sección avanzada compartida y volver a analizar el programa al cambiar los sensores. Verificar los cuatro escenarios de "Configuración avanzada".
-- [ ] 7.5 Recordar el programa con `preferences.rulesProgram` y conservar el estado al cambiar de pestaña. Verificar los tres escenarios de "Programa recordado" (para el de navegador sin almacenamiento, alcanza con la prueba de 5.3 y con abrir la pestaña en una ventana privada).
+- [x] 7.1 Armar la guía, los controles del intento, los interruptores de sensores y de reintento automático, y los mensajes de choque (insignia con el reintento encendido, cuadro con botón con el reintento apagado). Verificar en el navegador los escenarios de "Guía de inicio", "Controles del intento" y "Reintento automático".
+- [x] 7.2 Agregar los tres ejemplos, restablecer, exportar e importar, todos por `replaceProgram` con su confirmación (D8); los ejemplos y restablecer cambian además los sensores del auto. Verificar en el navegador los escenarios de "Programas de ejemplo" (cada ejemplo deja en la sección avanzada sus sensores y sus barras con nombre en el tablero; el de tres sensores frena sin chocar; el de siete supera al menos 10 vehículos; el de veinte recorre menos que el de siete), "Restablecer el programa" y "Exportar e importar el programa", incluido un archivo de más de 200 líneas y uno que no es de texto.
+- [x] 7.3 Agregar las misiones. Verificar los cinco escenarios de "Misiones".
+- [x] 7.4 Agregar la sección avanzada compartida y volver a analizar el programa al cambiar los sensores. Verificar los cuatro escenarios de "Configuración avanzada".
+- [x] 7.5 Recordar el programa con `preferences.rulesProgram` y conservar el estado al cambiar de pestaña. Verificar los tres escenarios de "Programa recordado" (para el de navegador sin almacenamiento, alcanza con la prueba de 5.3 y con abrir la pestaña en una ventana privada).
 
 ## 8. Textos y tooltips
 

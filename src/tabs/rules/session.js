@@ -26,6 +26,9 @@ export const TRAFFIC_PASSED = 10;
 export function createRulesSession({ completed = new Set(), traffics = new Set() } = {}) {
   const attempt = createAttempt();
   let sinceCrash = 0;
+  // El programa cambió durante este intento: lo superado hasta acá fue con otro programa, así que
+  // el intento ya no cuenta para la misión de tráficos (el próximo sí).
+  let mixedProgram = false;
 
   function progressOf(m) {
     if (m.id === 'traffics') return traffics.size;
@@ -45,7 +48,7 @@ export function createRulesSession({ completed = new Set(), traffics = new Set()
   function step(world, { seed, autoRetry = true }) {
     if (world.paused) return null;
     attempt.observe(world);
-    if (attempt.passed >= TRAFFIC_PASSED) traffics.add(seed);
+    if (!mixedProgram && attempt.passed >= TRAFFIC_PASSED) traffics.add(seed);
     checkMissions();
     if (!world.crashed || !autoRetry) {
       sinceCrash = 0;
@@ -59,11 +62,13 @@ export function createRulesSession({ completed = new Set(), traffics = new Set()
   function restart({ countAttempt = true } = {}) {
     attempt.restart({ countAttempt });
     sinceCrash = 0;
+    mixedProgram = false;
   }
 
   /** El programa que maneja cambió: los tráficos recorridos ya no valen para la misión de tráficos. */
   function programChanged() {
     traffics.clear();
+    mixedProgram = true;
   }
 
   return {

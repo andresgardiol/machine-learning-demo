@@ -295,19 +295,19 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
 
   /**
    * Reemplaza el programa (un ejemplo, restablecer o importar), con confirmación si el texto es
-   * propio. Con `sensors` (un ejemplo o restablecer) cambia primero los sensores del auto, lo que
-   * reinicia el intento, y después pone el texto, para que se analice ya con su auto.
+   * propio. Con `sensors` (un ejemplo o restablecer) cambia primero los sensores del auto y después
+   * pone el texto, para que se analice ya con su auto; al final reinicia el intento con ese auto y
+   * ese programa (así el intento nuevo cuenta entero con el programa nuevo).
    */
   function replaceProgram(text, sensors, request, after) {
     const doReplace = () => {
       if (sensors) {
-        const next = normalizeSettings({ ...state.settings, ...sensorSettings({ sensors }) });
-        state.settings = next;
-        program.setSensors(next.sensorCount);
-        restartAttempt({ rebuild: true });
+        state.settings = normalizeSettings({ ...state.settings, ...sensorSettings({ sensors }) });
+        program.setSensors(state.settings.sensorCount);
       }
       editor.setValue(text);
       commit();
+      if (sensors) restartAttempt({ rebuild: true });
       sync();
       after?.();
     };

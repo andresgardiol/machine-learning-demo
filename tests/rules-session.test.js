@@ -91,6 +91,14 @@ test('Cambiar el programa: con la tercera misión en 2 de 3, vuelve a 0 de 3', (
   assert.equal(missions(session).traffics, '2/3');
   session.programChanged();
   assert.equal(missions(session).traffics, '0/3');
+  // el intento en curso (con 10 superados con el programa anterior) no vuelve a contar
+  passVehicles(world, 11, session, { seed: 3 });
+  assert.equal(missions(session).traffics, '0/3');
+  // el intento siguiente, ya con el programa nuevo, sí
+  session.restart();
+  world.progress = 0;
+  passVehicles(world, 10, session, { seed: 3 });
+  assert.equal(missions(session).traffics, '1/3');
 });
 
 test('Misión cumplida: sigue marcada después de cambiar el programa, también en otra sesión', () => {
