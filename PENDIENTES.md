@@ -123,6 +123,7 @@ propuesta de OpenSpec antes de implementarse.
   los costados del escenario con un entorno que se genere solo y nunca
   termine, igual que el tráfico:
   - árboles y vegetación;
+  - veredas a los costados de la calle;
   - sendas peatonales;
   - cruces de calles que pasan por debajo, con tramos donde la calle propia va
     como autopista elevada sobre puentes.
@@ -137,3 +138,10 @@ propuesta de OpenSpec antes de implementarse.
   - mantener los colores de auto, tráfico y sensores bien distinguibles
     (artículo 9) y no distraer del problema (artículo 1);
   - quizás un interruptor para que el mentor lo apague (artículo 6).
+
+- **Circuitos cerrados.** Además de la calle recta, pistas con curvas que
+  cierran sobre sí mismas, para dar vueltas. Hoy todas las pestañas usan la
+  calle recta con tráfico. Queda por definir al proponerlo: en qué pestañas
+  se usan, si llevan tráfico, cómo se mide el avance (vueltas, distancia
+  sobre el eje de la pista) y si los cerebros y los programas escritos para
+  la calle recta sirven en un circuito.
