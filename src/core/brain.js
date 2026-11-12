@@ -12,11 +12,15 @@
 //                              selectionMode?, mutationCooling? },   // opcionales; sin el dato, selección automática y sin enfriamiento
 //                 scenarios: [{ track, lanes, density, irregularity, trafficMode, generations }] } }
 //
+// `track` es un id del catálogo de pistas (circuits.js) o varios unidos con '+' cuando las
+// generaciones alternaron pistas (circuitos-y-paisaje D5). Los cerebros de antes dicen 'straight'.
+//
 // El núcleo no usa reloj ni identificadores al azar: `id` y las fechas llegan como parámetros.
 // La validación devuelve códigos (notABrain, unsupportedVersion, shapeMismatch, notFinite,
 // sensorMismatch) que la interfaz traduce.
 import { computeNetwork, copyNetwork, validateNetwork, shapeOf } from './network.js';
 import { sensorConfig, SENSOR_LIMITS } from './sensors.js';
+import { isTrackId } from './circuits.js';
 
 export const BRAIN_FORMAT = 'ml-lab-brain';
 export const BRAIN_VERSION = 1;
@@ -86,12 +90,22 @@ function validSensors(s) {
     && inRange(s.range, SENSOR_LIMITS.range) && inRange(s.spread, SENSOR_LIMITS.spread);
 }
 
+/** Pistas de un escenario: un id del catálogo o varios, distintos, unidos con '+'. */
+export function scenarioTracks(track) {
+  return typeof track === 'string' ? track.split('+') : [];
+}
+
+function validScenarioTrack(track) {
+  const ids = scenarioTracks(track);
+  return ids.length > 0 && ids.every(isTrackId) && new Set(ids).size === ids.length;
+}
+
 function validTraining(t) {
   if (!isObject(t) || !Number.isInteger(t.generations) || t.generations < 0) return false;
   if (!isFiniteNumber(t.seed) || !isFiniteNumber(t.maxSpeed)) return false;
   if (!isObject(t.fitness) || typeof t.fitness.kind !== 'string' || !(t.fitness.best === null || isFiniteNumber(t.fitness.best))) return false;
   if (!isObject(t.evolution) || !Array.isArray(t.scenarios)) return false;
-  return t.scenarios.every((s) => isObject(s) && Number.isInteger(s.generations) && Number.isInteger(s.lanes)
+  return t.scenarios.every((s) => isObject(s) && validScenarioTrack(s.track) && Number.isInteger(s.generations) && Number.isInteger(s.lanes)
     && isFiniteNumber(s.density) && isFiniteNumber(s.irregularity) && TRAFFIC_MODES.includes(s.trafficMode));
 }
 

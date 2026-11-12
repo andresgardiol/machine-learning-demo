@@ -19,11 +19,13 @@
 //   training.brain({ id, name, now })   cerebro del entrenamiento: el campeón o, con selección manual, el padre elegido
 //   training.chooseLeader() | undoChoice() | parent | choiceCount | selection   selección manual (design.md D2)
 //   training.passedOf(i)         vehículos que superó el individuo i (por defecto, el líder)
+//   training.trackId | lapsOf(i) pista de la generación en curso y vueltas del individuo i (circuitos-y-paisaje D4)
 //   training.nextMutationStrength  fuerza con que se armaría la generación siguiente (enfriamiento, D9)
 //   training.onGeneration(fn)    avisa al cerrar cada generación
 //
 // Todo el azar sale de la semilla del entrenamiento (design.md D5).
 import { createWorld } from './world.js';
+import { TRACK_IDS, DEFAULT_TRACK } from './circuits.js';
 import { createNetwork, copyNetwork, ACTIVATIONS, DEFAULT_ACTIVATION, NETWORK_LIMITS } from './network.js';
 import {
   normalizeEvolution, DEFAULT_EVOLUTION, createStats, recordStep, fitnessOf, rankPopulation, nextGeneration, mutate, childrenOf,
@@ -87,6 +89,7 @@ export const DEFAULT_TRAINING_CONFIG = Object.freeze({
   hidden: Object.freeze([6]),
   activation: DEFAULT_ACTIVATION,
   sensors: Object.freeze({ ...DEFAULT_SENSORS }),
+  tracks: Object.freeze([DEFAULT_TRACK]),
 });
 
 /** Error del entrenamiento con un código y datos para que la interfaz lo explique en su idioma. */
@@ -113,6 +116,19 @@ function normalizeHidden(value) {
   });
 }
 
+/**
+ * Pistas del entrenamiento válidas (circuitos-y-paisaje D4): ids del catálogo, sin repetir y en el
+ * orden del catálogo. Lo desconocido se descarta; si no queda nada, la calle recta sola.
+ */
+export function normalizeTracks(value) {
+  const asked = Array.isArray(value) ? value : [];
+  const out = TRACK_IDS.filter((id) => asked.includes(id));
+  return out.length > 0 ? out : [...DEFAULT_TRAINING_CONFIG.tracks];
+}
+
+/** Pista en que corre la generación número `generation` (contando desde 1): las de la lista, por turno. */
+export const trackFor = (config, generation) => config.tracks[(((generation - 1) % config.tracks.length) + config.tracks.length) % config.tracks.length];
+
 /** Configuración válida del entrenamiento: lo que falta usa el valor por defecto y lo que se sale de rango se ajusta. */
 export function normalizeTrainingConfig(partial = {}) {
   const p = { ...DEFAULT_TRAINING_CONFIG, ...(partial ?? {}) };
@@ -129,6 +145,7 @@ export function normalizeTrainingConfig(partial = {}) {
     hidden: normalizeHidden(p.hidden),
     activation: ACTIVATIONS.includes(p.activation) ? p.activation : DEFAULT_ACTIVATION,
     sensors: sensorConfig(p.sensors),
+    tracks: normalizeTracks(p.tracks),
   };
 }
 
@@ -158,9 +175,12 @@ export function changedKeys(before, after) {
   return Object.keys(after).filter((k) => !sameValue(before[k], after[k]));
 }
 
-/** Escenario de una configuración, tal como lo registra un cerebro (sin las generaciones). */
+/**
+ * Escenario de una configuración, tal como lo registra un cerebro (sin las generaciones). La pista
+ * es la lista de pistas unida con '+': con una sola, su id, como en los cerebros de antes.
+ */
 export const scenarioOf = (config) => ({
-  track: 'straight', lanes: config.lanes, density: config.density, irregularity: config.irregularity, trafficMode: config.trafficMode,
+  track: config.tracks.join('+'), lanes: config.lanes, density: config.density, irregularity: config.irregularity, trafficMode: config.trafficMode,
 });
 
 /** Semilla del tráfico de la generación `generation`. */
@@ -244,6 +264,7 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     const sensors = { ...config.sensors };
     world = createWorld({
       seed: trafficSeedFor(seed, config, generation),
+      track: trackFor(config, generation),
       lanes: config.lanes, density: config.density, irregularity: config.irregularity,
       cars: networks.map((net) => ({ controller: createNetworkController(net, sensors.count), sensors, maxSpeed: config.maxSpeed })),
     });
@@ -465,6 +486,13 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     fitnessOf: (i = leaderIndex) => fitnessOf(config.fitness, stats[i]),
     /** Vehículos que superó el individuo `i` (por defecto, el líder) en la generación en curso; nunca baja. */
     passedOf: (i = leaderIndex) => stats[i].passed,
+    /**
+     * Vueltas del individuo `i` (por defecto, el líder) en la generación en curso: su mayor progreso
+     * sobre el largo de una vuelta, nunca menos que 0. En la calle recta, 0.
+     */
+    lapsOf: (i = leaderIndex) => (world.track.closed ? Math.max(0, stats[i].best) / world.track.length : 0),
+    /** Pista de la generación en curso. */
+    get trackId() { return world.trackId; },
     /** Fuerza de mutación (%) con que se armaría la generación siguiente si la actual terminara ahora, con los cambios pendientes. */
     get nextMutationStrength() {
       const next = pending ? normalizeTrainingConfig({ ...config, ...pending }) : config;

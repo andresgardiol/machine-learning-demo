@@ -2,7 +2,9 @@
 // La medida completa corre aparte: npm run test:learning.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { measureLearning, LEARNING_PROTOCOL, LEARNING_THRESHOLDS } from '../tools/measure-learning.mjs';
+import {
+  measureLearning, LEARNING_PROTOCOL, LEARNING_THRESHOLDS, measureTrackLearning, TRACK_PROTOCOL, TRACK_THRESHOLD, TRACK_CASES,
+} from '../tools/measure-learning.mjs';
 
 test('comprobación de aprendizaje: con una semilla y 5 generaciones, dos corridas dan exactamente lo mismo', () => {
   const short = { seeds: [1], generations: 5, measured: 5, config: { population: 100 } };
@@ -23,4 +25,23 @@ test('comprobación de aprendizaje: el protocolo y los umbrales son los de desig
   assert.equal(LEARNING_PROTOCOL.seconds, 60);
   assert.equal(LEARNING_PROTOCOL.maxSpeed, 20);
   assert.deepEqual({ ...LEARNING_THRESHOLDS }, { minAverage: 8, minPerSeed: 5, maxDistance: 2 });
+});
+
+test('comprobación por pista: con una semilla, 2 generaciones y población chica, dos corridas dan lo mismo', () => {
+  const short = { tracks: ['oval'], drive: 'oval', seeds: [1], generations: 2, seconds: 10, config: { population: 12 } };
+  const a = measureTrackLearning(short);
+  const b = measureTrackLearning(short);
+  assert.deepEqual(a, b);
+  assert.equal(a.perSeed.length, 1);
+  assert.ok(a.perSeed[0].laps >= 0);
+});
+
+test('comprobación por pista: el protocolo y el umbral son los de circuitos-y-paisaje D8', () => {
+  assert.deepEqual([...TRACK_PROTOCOL.seeds], [1, 2, 3, 4, 5, 6, 7, 8]);
+  assert.equal(TRACK_PROTOCOL.generations, 60);
+  assert.equal(TRACK_PROTOCOL.seconds, 60);
+  assert.deepEqual({ ...TRACK_THRESHOLD }, { track: 'oval', minSeeds: 5 });
+  assert.deepEqual(TRACK_CASES.map((c) => [c.tracks.join('+'), c.drive]), [
+    ['oval', 'oval'], ['kidney', 'kidney'], ['grandPrix', 'grandPrix'], ['straight+oval', 'oval'],
+  ]);
 });

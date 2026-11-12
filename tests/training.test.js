@@ -58,7 +58,7 @@ test('configuración por defecto del entrenamiento', () => {
   assert.deepEqual(normalizeTrainingConfig({}), {
     population: 400, elite: 10, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false,
     fitness: 'lead', maxDuration: 60, selectionMode: 'auto', slowRule: true, mutationCooling: true, trafficMode: 'new', lanes: 3, density: 50, irregularity: 0,
-    maxSpeed: 20, hidden: [6], activation: 'step', sensors: { count: 5, range: 3, spread: 90 },
+    maxSpeed: 20, hidden: [6], activation: 'step', sensors: { count: 5, range: 3, spread: 90 }, tracks: ['straight'],
   });
   assert.deepEqual(normalizeTrainingConfig({ hidden: [20, 0, 4, 4, 4], population: 1 }).hidden, [16, 1, 4]);
   assert.equal(DEFAULT_TRAINING_CONFIG.population, 400);
