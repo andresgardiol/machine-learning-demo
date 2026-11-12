@@ -7,38 +7,40 @@
 // La cámara puede además girar el encuadre (`rotation`, en radianes, antihorario): por ejemplo,
 // la vista gira la calle recta para mostrarla vertical, con el sentido de avance hacia arriba.
 
-import { TRACK_IDS, createTrackById, isCircuit } from '../core/circuits.js';
-
-/** Escenario en que tiene que entrar entero cualquier circuito al alejar el zoom al mínimo (px, a 1440×900). */
-export const FIT_STAGE = Object.freeze({ width: 1074, height: 851 });
-/** Margen alrededor del trazado al calcular el zoom mínimo (m, de cada lado). */
+/** Margen alrededor del trazado al calcular el zoom mínimo de un circuito (m, de cada lado). */
 export const FIT_MARGIN = 15;
 
-/** Recuadro (m) que ocupa una pista, bordes incluidos. */
-export function trackBounds(track) {
-  const pts = [...track.leftBorder, ...track.rightBorder];
-  return {
-    minX: Math.min(...pts.map((p) => p.x)), maxX: Math.max(...pts.map((p) => p.x)),
-    minY: Math.min(...pts.map((p) => p.y)), maxY: Math.max(...pts.map((p) => p.y)),
-  };
-}
-
-/** Zoom (px por metro) con que un recuadro, más el margen, entra entero en un escenario. */
-export function fitZoom(bounds, stage = FIT_STAGE, margin = FIT_MARGIN) {
-  return Math.min(stage.width / (bounds.maxX - bounds.minX + 2 * margin), stage.height / (bounds.maxY - bounds.minY + 2 * margin));
-}
-
 /**
- * Zoom mínimo (circuitos-y-paisaje D7): 2 px por metro, o menos si hace falta para que el circuito
- * más grande del catálogo entre entero en FIT_STAGE. Se redondea hacia abajo a centésimas.
+ * Encuadre de un circuito entero (circuitos-y-paisaje D7): el zoom con que el trazado, ya orientado
+ * con el giro `rotation` y con un margen, entra en el escenario `vp`, y el punto del mundo que queda
+ * en el centro. El zoom nunca supera `maxMin` (el mínimo de siempre, 2 px por metro).
+ * @param {{leftBorder:{x:number,y:number}[], rightBorder:{x:number,y:number}[]}} track
+ * @returns {{zoom:number, center:{x:number,y:number}}}
  */
-export const MIN_ZOOM = Math.min(2, Math.floor(100 * Math.min(
-  ...TRACK_IDS.filter(isCircuit).map((id) => fitZoom(trackBounds(createTrackById(id)))),
-)) / 100);
+export function fitTrack(track, vp, rotation = 0, { margin = FIT_MARGIN, maxMin = 2 } = {}) {
+  const c = Math.cos(rotation);
+  const s = Math.sin(rotation);
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const p of [...track.leftBorder, ...track.rightBorder]) {
+    const x = c * p.x - s * p.y;
+    const y = s * p.x + c * p.y;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const zoom = Math.min(maxMin, vp.width / (maxX - minX + 2 * margin), vp.height / (maxY - minY + 2 * margin));
+  const mx = (minX + maxX) / 2;
+  const my = (minY + maxY) / 2;
+  return { zoom, center: { x: c * mx + s * my, y: -s * mx + c * my } };
+}
 
 export const CAMERA_DEFAULTS = Object.freeze({
   zoom: 10, // px por metro
-  minZoom: MIN_ZOOM,
+  minZoom: 2, // en un circuito baja lo necesario para verlo entero (setFit)
   maxZoom: 40,
   anchor: Object.freeze({ x: 0.3, y: 0.5 }),
   step: 1.25, // factor de los botones de acercar y alejar
@@ -55,12 +57,13 @@ export const VERTICAL_ANCHOR = Object.freeze({ x: 0.5, y: 0.7 });
 
 /**
  * Orientación del encuadre para una pista. La calle recta (un solo tramo) se muestra vertical,
- * con el sentido de avance hacia arriba, para aprovechar el alto del escenario; las pistas con
- * curvas (circuitos, más cuadrados) se muestran sin girar.
- * @param {{segments: {dir:{x:number,y:number}}[]}} track
+ * con el sentido de avance hacia arriba, para aprovechar el alto del escenario. Un circuito cerrado
+ * usa un giro fijo que deja su recta de salida vertical, con el sentido de avance hacia arriba
+ * (circuitos-y-paisaje D7): la pista no gira con el auto. Las demás pistas con curvas, sin girar.
+ * @param {{segments: {dir:{x:number,y:number}}[], closed?: boolean}} track
  */
 export function orientationFor(track) {
-  if (track?.segments?.length === 1) {
+  if (track?.segments?.length === 1 || (track?.closed && track.segments?.length > 0)) {
     const { dir } = track.segments[0];
     return { rotation: Math.PI / 2 - Math.atan2(dir.y, dir.x), anchor: VERTICAL_ANCHOR };
   }
@@ -79,6 +82,8 @@ export function createCamera(options = {}) {
   let sin = 0;
 
   const clampZoom = (z) => Math.min(Math.max(z, cfg.minZoom), cfg.maxZoom);
+  const baseMinZoom = cfg.minZoom;
+  let frameCenter = null; // centro del circuito entero: con el zoom al mínimo, la cámara lo encuadra
 
   /** Gira un vector del mundo al encuadre (antihorario `rotation`). */
   const turn = (v) => ({ x: cos * v.x - sin * v.y, y: sin * v.x + cos * v.y });
@@ -106,7 +111,22 @@ export function createCamera(options = {}) {
 
   /** Si sigue al auto, lo ubica en su punto fijo de la pantalla. */
   function update(target, vp) {
+    if (following && frameCenter && zoom <= cfg.minZoom * (1 + 1e-9)) {
+      center = { ...frameCenter }; // al mínimo, el circuito entero a la vista
+      return;
+    }
     if (following && target) place(target, { x: anchor.x * vp.width, y: anchor.y * vp.height }, vp);
+  }
+
+  /**
+   * Encuadre del circuito entero (fitTrack): el zoom mínimo baja hasta el que lo deja ver completo y,
+   * al llegar a ese mínimo siguiendo al auto, la cámara centra el circuito. Sin encuadre (la calle),
+   * vuelve el mínimo de siempre.
+   */
+  function setFit(fit) {
+    cfg.minZoom = fit ? Math.min(baseMinZoom, fit.zoom) : baseMinZoom;
+    frameCenter = fit ? { ...fit.center } : null;
+    if (zoom < cfg.minZoom) zoom = cfg.minZoom;
   }
 
   /**
@@ -178,7 +198,7 @@ export function createCamera(options = {}) {
   }
 
   return {
-    worldToScreen, screenToWorld, update, zoomAt, zoomBy, pan, reset, follow, setOrientation, visibleBounds,
+    worldToScreen, screenToWorld, update, zoomAt, zoomBy, pan, reset, follow, setOrientation, setFit, visibleBounds,
     get zoom() { return zoom; },
     get rotation() { return rotation; },
     get center() { return { ...center }; },

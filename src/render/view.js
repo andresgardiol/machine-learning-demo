@@ -12,7 +12,7 @@
 import { carContour } from '../core/car.js';
 import { CAR_LENGTH, CAR_WIDTH } from '../core/constants.js';
 import {
-  createCamera, orientationFor, panStarts, retarget, advanceBlend, blendTarget, NO_BLEND,
+  createCamera, orientationFor, panStarts, retarget, advanceBlend, blendTarget, NO_BLEND, fitTrack,
 } from './camera.js';
 import { createSceneryPainter } from './scenery.js';
 
@@ -111,6 +111,8 @@ export function createStageView({ container, camera = createCamera(), doc = docu
   let focusIndex = null;
   let blend = NO_BLEND;
   let lastFrame = null;
+  let fitTrackRef = null; // pista y tamaño del escenario con que se calculó el zoom mínimo
+  let fitViewport = '';
 
   function resize() {
     const w = Math.max(1, container.clientWidth);
@@ -479,7 +481,16 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     const car = population ? world.agents[focus].car : world.car;
     const target = population ? focusTarget(world, focus) : car.position;
     lastTarget = target;
-    camera.setOrientation(orientationFor(world.track));
+    const orientation = orientationFor(world.track);
+    camera.setOrientation(orientation);
+    // Zoom mínimo de un circuito: lo necesario para verlo entero en este escenario (D7). Se recalcula
+    // solo si cambia la pista o el tamaño del escenario.
+    const fitKey = `${viewport.width}x${viewport.height}`;
+    if (world.track !== fitTrackRef || fitKey !== fitViewport) {
+      fitTrackRef = world.track;
+      fitViewport = fitKey;
+      camera.setFit(world.track.closed ? fitTrack(world.track, viewport, orientation.rotation) : null);
+    }
     syncFollowIndicator();
     camera.update(target, viewport);
     const z = camera.zoom;

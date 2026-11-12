@@ -15,7 +15,8 @@ Ver proposal.md para el motivo y el alcance. Lo que condiciona el diseño:
   los lentos compara el avance con esa misma velocidad. Ninguna de las dos
   necesita que haya vehículos.
 - `src/render/camera.js` (`orientationFor`) ya deja sin girar a toda pista de
-  más de un tramo. El zoom mínimo es de 2 px por metro.
+  más de un tramo (D7 lo cambia para los circuitos). El zoom mínimo es de 2 px
+  por metro.
 - Las pestañas 1 y 2 comparten ajustes en `src/tabs/shared/street-settings.js`
   y `street-advanced.js`.
 - Los escenarios de un cerebro guardan `track` como texto, hoy siempre
@@ -164,9 +165,13 @@ versión del formato.
 - `drawTrack` dibuja una pista cerrada con el relleno entre los dos bordes y
   los bordes encima, solo en los tramos que caen en el encuadre. Sin líneas de
   carril, porque tiene un solo carril.
-- El zoom mínimo baja lo necesario para que el gran premio entre entero en un
-  escenario de 1074×851 px (hoy es 2 px por metro; se calcula con el recuadro
-  del trazado y un margen).
+- El zoom mínimo baja lo necesario para que el circuito de la pista actual
+  entre entero en el escenario a la vista. Se calcula con el recuadro del
+  trazado ya orientado, un margen de 15 m y el tamaño real del escenario, y
+  nunca supera 2 px por metro; en la calle recta sigue en 2.
+- En un circuito la cámara usa un giro fijo que deja la recta de salida
+  vertical y el sentido de avance hacia arriba, como en la calle recta, porque
+  el escenario es más alto que ancho. La pista no gira con el auto.
 
 ### D8. Comprobación de aprendizaje en el óvalo
 

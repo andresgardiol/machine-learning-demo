@@ -5,8 +5,9 @@
 ### Requirement: Dibujo de un circuito
 La vista SHALL dibujar un circuito con sus dos bordes cerrados, sin líneas de
 carril, y con la línea de salida marcada de borde a borde. El circuito MUST
-mostrarse sin girar: la cámara sigue al auto, pero el norte de la pista queda
-siempre hacia arriba, para que el trazado se reconozca.
+mostrarse con una orientación fija: la recta de salida vertical y el sentido
+de avance hacia arriba, como la calle recta. La cámara sigue al auto, pero la
+pista no gira con él, para que el trazado se reconozca.
 
 #### Scenario: Óvalo a la vista
 - **WHEN** se muestra el óvalo con el zoom por defecto
@@ -15,6 +16,10 @@ siempre hacia arriba, para que el trazado se reconozca.
 #### Scenario: La pista no gira
 - **WHEN** el auto toma una curva de un circuito
 - **THEN** el auto gira en pantalla y la pista conserva su orientación
+
+#### Scenario: Salida hacia arriba
+- **WHEN** se muestra la línea de salida de cualquier circuito
+- **THEN** la recta de salida se ve vertical y el auto mira hacia arriba
 
 #### Scenario: Calle recta sin cambios
 - **WHEN** se muestra la calle recta
@@ -26,7 +31,7 @@ catálogo en una ventana de 1440×900, y restablecer la vista SHALL volver al
 zoom por defecto siguiendo al auto.
 
 #### Scenario: Alejar hasta ver todo
-- **WHEN** la persona aleja el zoom al mínimo sobre el gran premio
+- **WHEN** la persona aleja el zoom al mínimo sobre el gran premio, con el tablero a la vista
 - **THEN** todo el trazado entra en el escenario
 
 #### Scenario: Restablecer

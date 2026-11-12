@@ -29,7 +29,7 @@
 ## 5. Vista de un circuito
 
 - [x] 5.1 Dibujar las pistas cerradas en `src/render/view.js`: calzada entre los dos bordes, sin líneas de carril y con la línea de salida, solo en lo que cae en el encuadre (design.md D7). Verificar en el navegador los tres escenarios de "Dibujo de un circuito".
-- [ ] 5.2 Ajustar el zoom mínimo para que el gran premio entre entero. Verificar con una prueba de `camera.js` el límite nuevo y, en el navegador a 1440×900, los escenarios de "Circuito entero a la vista".
+- [x] 5.2 Ajustar el zoom mínimo para que el gran premio entre entero. Verificar con una prueba de `camera.js` el límite nuevo y, en el navegador a 1440×900, los escenarios de "Circuito entero a la vista".
 
 ## 6. Paisaje
 
