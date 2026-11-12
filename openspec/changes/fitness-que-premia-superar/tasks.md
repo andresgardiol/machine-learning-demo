@@ -53,6 +53,11 @@
 - [x] 8.6 Repasar el filtro de entrada de proposal.md contra lo que se ve en el navegador e informar cualquier respuesta que ya no valga.
 - [x] 8.7 Actualizar `PENDIENTES.md`: reemplazar la nota "Los autos aprenden a seguir al tráfico, no a pasarlo" por lo que queda pendiente (manejar sin chocar con tráfico irregular, con las mediciones de proposal.md) y quitar la idea "Fitness por vehículos superados", que este cambio midió y descartó.
 
+## 9. Población por defecto de 400
+
+- [x] 9.1 Descartar la regla de recalentar que quedó sin comitear en `src/core/training.js` y `tests/training.test.js`, y cambiar `EVOLUTION_LIMITS.population.default` a 400 (design.md D10). Las pruebas que dependían de la población por defecto piden `population: 100` explícito; solo cambian de valor esperado las que afirman la población por defecto. Verificar con una prueba el escenario "Población por defecto" y que `npm test` pasa sin tardar sensiblemente más que antes.
+- [x] 9.2 Anotar en `PENDIENTES.md`, en la nota del tráfico irregular, que recalentar la mutación al estancarse quedó sin adoptar, con la regla y la medición preliminar de design.md D10.
+
 ## Workflow follow-up
 
 - Archivar el cambio cuando el dueño lo haya revisado.

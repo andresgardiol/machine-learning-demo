@@ -14,7 +14,7 @@ export const FITNESS_UNITS = Object.freeze({
 
 /** Rangos y valores por defecto de la configuración de evolución. */
 export const EVOLUTION_LIMITS = Object.freeze({
-  population: Object.freeze({ min: 2, max: 500, default: 100 }),
+  population: Object.freeze({ min: 2, max: 500, default: 400 }),
   elite: Object.freeze({ min: 0, max: 20, default: 10 }), // nunca más que la mitad de la población
   selection: Object.freeze({ min: 1, max: 50, default: 10 }), // % de la población
   mutationStrength: Object.freeze({ min: 0, max: 100, default: 10 }), // %

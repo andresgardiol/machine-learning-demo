@@ -9,9 +9,10 @@ propuesta de OpenSpec antes de implementarse.
 - **Manejar sin chocar con tráfico irregular.** El cambio
   `fitness-que-premia-superar` hizo que, con los valores por defecto (ventaja
   sobre el tráfico, élite 10, mutación que se enfría e irregularidad 0 %), la
-  población aprenda a pasar al tráfico: los campeones de las generaciones 51 a
-  60 superan 13,3 vehículos en promedio en tráficos que no vieron (entre 10,8 y
-  17,0 según la semilla; `npm run test:learning`). Queda pendiente el caso
+  población aprenda a pasar al tráfico: con 100 autos, los campeones de las
+  generaciones 51 a 60 superan 13,3 vehículos en promedio en tráficos que no
+  vieron (entre 10,8 y 17,0 según la semilla; `npm run test:learning`, que
+  mide con población 100). Con la población por defecto de 400 no se midió. Queda pendiente el caso
   difícil:
   - Con irregularidad 50 %, ninguna combinación medida pasa de 6,3 vehículos ni
     baja del 80 % de manejos que chocan. Los campeones entrenados con filas
@@ -25,6 +26,16 @@ propuesta de OpenSpec antes de implementarse.
     población 200, 7 rayos, capa oculta de 8, más alcance de sensores, evaluar
     en 3 o 5 calles por generación y penalizar el choque.
   - Sin probar: enfriar la mutación con selección manual.
+  - Sin adoptar: recalentar la mutación al estancarse (design.md D10 del
+    cambio). Regla: el enfriamiento lleva un reloj que suma 1 por generación;
+    si pasan 15 generaciones seguidas sin ninguna buena (algún auto le saca al
+    tráfico 5/6 de la ventaja máxima posible, 500 m con los valores por
+    defecto) y el reloj va por 30 o más, el reloj vuelve a 0 y la fuerza a
+    30 %. En una medición preliminar con una copia del núcleo (población 100,
+    semillas 1 a 40, 100 generaciones) deja 1 de 40 semillas sin aprender en
+    las generaciones 91 a 100, contra 8 de 40 sin la regla, pero tarda más en
+    despegar (primera generación buena: mediana 21, contra 10 con población
+    200). Se eligió subir la población por defecto a 400.
 
 - **Los ejemplos de Reglas a mano solo valen con la velocidad por defecto.**
   La velocidad máxima del auto es una sola para toda la app y se recuerda;
@@ -126,6 +137,22 @@ propuesta de OpenSpec antes de implementarse.
   - mantener los colores de auto, tráfico y sensores bien distinguibles
     (artículo 9) y no distraer del problema (artículo 1);
   - quizás un interruptor para que el mentor lo apague (artículo 6).
+
+- **Introducción guiada para quien llega sin la teoría.** La guía explica
+  cada control, pero la pantalla tiene mucha información a la vez y da por
+  sabido lo que el mentor contaría antes: qué es una red, qué es una
+  generación, por qué se muta. La idea es un recorrido corto por pestaña, de
+  tres o cuatro pasos, con una animación muy visual del concepto clave de esa
+  pestaña, antes de dejar a la persona sola con los controles.
+  - Idea del dueño (12 de noviembre de 2026): generar las animaciones con
+    Claude Motion. Queda por ver qué produce esa herramienta y si sirve acá.
+  - A decidir al proponerlo: animaciones hechas con el propio dibujo de la app
+    (livianas, en los dos idiomas, y muestran el cálculo real) o videos ya
+    renderizados (más vistosos, pero pesan, hay que hacer uno por idioma y
+    quedan viejos cuando cambia la interfaz).
+  - A tener en cuenta: un concepto por paso (artículo 4), que se pueda saltear
+    y volver a abrir (artículo 6), textos en español e inglés (artículo 11) y
+    ninguna dependencia nueva.
 
 - **Circuitos cerrados.** Además de la calle recta, pistas con curvas que
   cierran sobre sí mismas, para dar vueltas. Hoy todas las pestañas usan la

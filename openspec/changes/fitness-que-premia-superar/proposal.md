@@ -67,6 +67,24 @@ La primera fila usa 6 semillas; las demás, 8.
 - El dato anotado en PENDIENTES ("supera 14 vehículos") era de una sola
   semilla y hasta dos minutos; con esta vara es más bajo.
 
+### Robustez
+
+La tabla de arriba usa las semillas 1 a 8, que resultaron ser todas de las que
+aprenden. Con 40 semillas y 100 generaciones (una generación es "buena" si su
+mejor auto le saca 500 m al tráfico, de 600 posibles):
+
+| Población | Aprenden (8 o más buenas entre las generaciones 91 y 100) | No aprenden (2 o menos) | Primera generación buena (mediana) |
+|---|---|---|---|
+| 100, con el núcleo real | 29 de 40 | 8 de 40 | 16 |
+| 200, con la copia del núcleo | 38 de 40 | 1 de 40 | 10 |
+
+Con población 100, cuando la fuerza de mutación ya bajó a 3 %, una población
+que quedó mal casi no cambia: en el navegador se vio un entrenamiento de 163
+generaciones sin aprender. Con población 400 no hay medición de 40 semillas
+al momento de decidir; el dueño entrenó una vez con 500 autos y la curva llegó
+a unos 590 m desde la generación 15. Con población 400 no se midió: el dueño
+decidió no medirlo.
+
 También se midió, y **no mejora**:
 
 - Otras reglas para ajustar la mutación sola: subirla a 30 % cuando nadie
@@ -76,8 +94,9 @@ También se midió, y **no mejora**:
 - Subir la dificultad sola a medida que la población aprende, de cinco
   formas: en tráfico irregular da entre 5,8 y 6,3, y pierde lo logrado con
   filas parejas (de 13,3 a entre 6 y 7,5).
-- Sobre la propuesta: cruce, población 200 (12,6), 7 rayos, capa oculta de
-  8, selección de 20 % y élite de 20.
+- Sobre la propuesta, con las semillas 1 a 8: cruce, 7 rayos, capa oculta de
+  8, selección de 20 % y élite de 20. Población 200 da 12,6 contra 13,3 en
+  esas ocho semillas; su ventaja aparece con 40 (ver "Robustez").
 - Antes de enfriar la mutación: evaluar a cada auto en 3 o 5 calles por
   generación, más alcance de sensores (empeora), más apertura, velocidad
   máxima 15 m/s, dos capas ocultas, mutación fija de 5 %, 15 % o 20 %,
@@ -93,6 +112,9 @@ También se midió, y **no mejora**:
 - **Élite por defecto de 10** (hoy 1). El rango pasa de 0–10 a 0–20 y la
   élite nunca supera la mitad de la población, para que con poblaciones
   chicas siga habiendo hijos nuevos.
+- **Población por defecto de 400** (hoy 100). Es una decisión del dueño,
+  tomada después de implementar el resto: con 100 autos el entrenamiento no
+  despega en una de cada cinco semillas (ver "Robustez", abajo).
 - **La mutación se enfría sola**, encendido por defecto: empieza fuerte (30
   %) para explorar y baja un 5 % en cada generación hasta 3 %, para afinar lo
   que ya funciona. Un interruptor junto a la fuerza de mutación lo apaga y
@@ -120,7 +142,7 @@ También se midió, y **no mejora**:
 | Élite de 10 por defecto | Conservar a los mejores evita perder lo aprendido cuando el tráfico cambia | Los autos de élite ya se marcan con su contorno; el tooltip explica por qué son varios | Ajuste avanzado | Cualquier valor de 0 a 20; restablecer vuelve a 10 |
 | Mutación que se enfría | Al principio conviene explorar mucho; después, afinar lo que funciona | El deslizador de la fuerza baja solo, generación a generación, a la vista | Un interruptor lo apaga y la fuerza queda fija donde estaba | Apagarlo o encenderlo rige desde la generación siguiente; restablecer lo enciende |
 | Filas parejas por defecto | Primero se aprende lo fácil: la dificultad del problema decide si hay algo que aprender | Se ve: los vehículos van en filas parejas | Ajuste avanzado; el mentor sube la irregularidad cuando quiere mostrar el caso difícil | Subirla rige desde la generación siguiente; restablecer vuelve a 0 % |
-| Indicador de vehículos superados | El objetivo se mide en algo concreto: a cuántos pasó | Un número junto a los otros indicadores, con el mismo nombre que en las pestañas 1 y 2 | Es un indicador, no un control | No tiene estado propio |
+| Indicador de vehículos superados | El objetivo se mide en algo concreto: a cuántos pasó | Un número junto a los otros indicadores, con un nombre que dice qué cuenta: "superados por el líder" | Es un indicador, no un control | No tiene estado propio |
 | Misión "superar 5 vehículos" | Aprender a manejar es pasar al tráfico, no acompañarlo | Una meta con progreso | Se oculta con la guía | No bloquea nada |
 
 ### A quién sirve
@@ -144,7 +166,10 @@ También se midió, y **no mejora**:
   midieron y no mejoran.
 - Enfriar la mutación con selección manual: no se midió. Ahí la fuerza sigue
   siendo la del deslizador.
-- Población por defecto mayor: no mejora y cuesta fluidez.
+- Recalentar la mutación cuando la población se estanca: una medición
+  preliminar con 40 semillas también baja los entrenamientos que no aprenden
+  (1 de 40), pero el dueño eligió subir la población. Queda anotado en
+  PENDIENTES.
 - Cambios a los cerebros guardados y a las pestañas 1 y 2 (incluidos los dos
   arreglos de Reglas a mano anotados en PENDIENTES).
 
@@ -156,8 +181,9 @@ Ninguna.
 
 ### Modified Capabilities
 
-- `neuroevolucion`: se agrega la función de fitness "ventaja sobre el
-  tráfico", que pasa a ser la función por defecto; la élite pasa a 10 por
+- `neuroevolucion`: la población por defecto pasa a 400; se agrega la función
+  de fitness "ventaja sobre el tráfico", que pasa a ser la función por
+  defecto; la élite pasa a 10 por
   defecto con rango de 0 a 20; se agregan el enfriamiento de la mutación, la
   cuenta de vehículos superados de un auto, el escenario por defecto del
   entrenamiento y el aprendizaje que se espera con los valores por defecto.
@@ -189,6 +215,8 @@ Ninguna.
   enfriamiento.
 - **Entrenamientos en curso:** los valores por defecto nuevos rigen para un
   entrenamiento nuevo o al restablecer la configuración.
-- **Rendimiento:** una resta y una comparación más por auto y por paso. La
+- **Rendimiento:** la población por defecto se cuadruplica; la fluidez con 400
+  autos no se midió. Además, una resta y una comparación más por auto y por
+  paso. La
   cuenta de vehículos superados se hace solo para el líder, una vez por cuadro.
 - **Dependencias y build:** ninguna nueva.

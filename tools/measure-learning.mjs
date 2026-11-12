@@ -5,7 +5,8 @@
 //   npm run test:learning
 //
 // Protocolo:
-//   1. Para cada semilla de entrenamiento (1 a 8): un entrenamiento con los valores por defecto,
+//   1. Para cada semilla de entrenamiento (1 a 8): un entrenamiento con los valores por defecto y
+//      población 100 (la medida de design.md; con la población por defecto de 400 no se midió),
 //      hasta completar 60 generaciones.
 //   2. Al terminar cada generación de la 51 a la 60, su campeón maneja solo 60 s en cada uno de los
 //      tráficos de semillas 5000 a 5009, con los carriles, la densidad y la irregularidad del
@@ -24,6 +25,7 @@ import { CAR_LENGTH, STEP, TRAFFIC_SPEED } from '../src/core/constants.js';
 
 export const LEARNING_PROTOCOL = Object.freeze({
   seeds: Object.freeze([1, 2, 3, 4, 5, 6, 7, 8]),
+  population: 100, // fija: la medida de design.md D6 se hizo con 100 autos
   generations: 60, // generaciones de entrenamiento
   measured: 10, // se miden los campeones de las últimas `measured` generaciones
   testSeeds: Object.freeze([5000, 5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009]),
@@ -70,7 +72,7 @@ export function measureLearning({ config = {}, onProgress = () => {}, ...overrid
   let crashes = 0;
   let drives = 0;
   for (const seed of p.seeds) {
-    const t = createTraining({ seed, config });
+    const t = createTraining({ seed, config: { population: p.population, ...config } });
     let seedTotal = 0;
     let seedCrashes = 0;
     let seedDrives = 0;

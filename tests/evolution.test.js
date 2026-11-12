@@ -278,7 +278,7 @@ test('élite con población chica: de 10 individuos pasan cinco sin cambios y lo
 
 test('tamaño constante: una generación de 100 da una siguiente de 100', () => {
   const networks = Array.from({ length: 100 }, (_, i) => net(i, []));
-  const { networks: next } = nextGeneration({ networks, fitnesses: networks.map((_, i) => i % 7), config: DEFAULT_EVOLUTION, random: createRandom(1) });
+  const { networks: next } = nextGeneration({ networks, fitnesses: networks.map((_, i) => i % 7), config: { ...DEFAULT_EVOLUTION, population: 100 }, random: createRandom(1) });
   assert.equal(next.length, 100);
 });
 
@@ -291,10 +291,10 @@ test('tamaño fuera de rango: una población de 1 queda en 2, y una de 900 en 50
 
 test('valores fuera de rango ajustados al límite más cercano y valores por defecto', () => {
   assert.deepEqual(normalizeEvolution({}), {
-    population: 100, elite: 10, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, fitness: 'lead', maxDuration: 60,
+    population: 400, elite: 10, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, fitness: 'lead', maxDuration: 60,
   });
   assert.deepEqual(normalizeEvolution({ selection: 0, mutationStrength: 140, mutationRate: 0, maxDuration: 5, fitness: 'x' }), {
-    population: 100, elite: 10, selection: 1, mutationStrength: 100, mutationRate: 1, crossover: false, fitness: 'lead', maxDuration: 10,
+    population: 400, elite: 10, selection: 1, mutationStrength: 100, mutationRate: 1, crossover: false, fitness: 'lead', maxDuration: 10,
   });
   assert.equal(normalizeEvolution({ selection: 80, maxDuration: 1000 }).selection, 50);
   assert.equal(normalizeEvolution({ maxDuration: 1000 }).maxDuration, 300);

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { measureLearning, LEARNING_PROTOCOL, LEARNING_THRESHOLDS } from '../tools/measure-learning.mjs';
 
 test('comprobación de aprendizaje: con una semilla y 5 generaciones, dos corridas dan exactamente lo mismo', () => {
-  const short = { seeds: [1], generations: 5, measured: 5 };
+  const short = { seeds: [1], generations: 5, measured: 5, config: { population: 100 } };
   const a = measureLearning(short);
   const b = measureLearning(short);
   assert.deepEqual(a, b);
@@ -16,6 +16,7 @@ test('comprobación de aprendizaje: con una semilla y 5 generaciones, dos corrid
 
 test('comprobación de aprendizaje: el protocolo y los umbrales son los de design.md D6', () => {
   assert.deepEqual([...LEARNING_PROTOCOL.seeds], [1, 2, 3, 4, 5, 6, 7, 8]);
+  assert.equal(LEARNING_PROTOCOL.population, 100);
   assert.equal(LEARNING_PROTOCOL.generations, 60);
   assert.equal(LEARNING_PROTOCOL.measured, 10);
   assert.deepEqual([...LEARNING_PROTOCOL.testSeeds], [5000, 5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009]);

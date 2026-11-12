@@ -76,3 +76,10 @@ test('otras pestañas: El problema y Reglas a mano siguen con la irregularidad d
   assert.equal(isAligned(world).aligned, false);
   assert.equal(createWorld({ seed: 1 }).vehiclesIn(0, 1000).some((v) => v.offset !== 0), true);
 });
+
+test('población por defecto: un entrenamiento sin configurar nada empieza con 400 individuos', () => {
+  assert.equal(DEFAULT_TRAINING_CONFIG.population, 400);
+  const t = createTraining({ seed: 1 });
+  assert.equal(t.population, 400);
+  assert.equal(t.world.agents.length, 400);
+});

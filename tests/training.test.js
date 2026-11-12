@@ -37,7 +37,7 @@ function runUntilGeneration(training, target, limit = 200000) {
 // --- 7.1 Población, mundo, paso y líder ------------------------------------------------------
 
 test('inicio de una generación: 100 autos detenidos en la misma posición, cada uno con una red distinta', () => {
-  const t = createTraining({ seed: 1 });
+  const t = createTraining({ seed: 1, config: { population: 100 } });
   assert.equal(t.generation, 1);
   assert.equal(t.world.agents.length, 100);
   assert.equal(t.population, 100);
@@ -56,12 +56,12 @@ test('inicio de una generación: 100 autos detenidos en la misma posición, cada
 
 test('configuración por defecto del entrenamiento', () => {
   assert.deepEqual(normalizeTrainingConfig({}), {
-    population: 100, elite: 10, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false,
+    population: 400, elite: 10, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false,
     fitness: 'lead', maxDuration: 60, selectionMode: 'auto', slowRule: true, mutationCooling: true, trafficMode: 'new', lanes: 3, density: 50, irregularity: 0,
     maxSpeed: 20, hidden: [6], activation: 'step', sensors: { count: 5, range: 3, spread: 90 },
   });
   assert.deepEqual(normalizeTrainingConfig({ hidden: [20, 0, 4, 4, 4], population: 1 }).hidden, [16, 1, 4]);
-  assert.equal(DEFAULT_TRAINING_CONFIG.population, 100);
+  assert.equal(DEFAULT_TRAINING_CONFIG.population, 400);
 });
 
 test('cambio de líder: un auto en carrera que supera en distancia al líder pasa a ser el líder', () => {
@@ -222,7 +222,7 @@ test('cambio de mutación: la generación 5 es la que arma la fuerza nueva con e
 });
 
 test('cambio de población de 100 a 200: la siguiente tiene 200 y se conservan generación e historial', () => {
-  const t = createTraining({ seed: 1, config: { maxDuration: 10 } });
+  const t = createTraining({ seed: 1, config: { population: 100, maxDuration: 10 } });
   for (let i = 0; i < 30; i++) t.step();
   t.configure({ population: 200 });
   assert.equal(t.world.agents.length, 100);

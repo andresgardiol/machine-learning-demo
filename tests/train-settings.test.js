@@ -8,10 +8,10 @@ import { createBrain } from '../src/core/brain.js';
 import { createNetwork } from '../src/core/network.js';
 import { createRandom } from '../src/core/random.js';
 
-test('valores por defecto: 100 autos, mutación 10 %, red 6-6-4 con escalón, 5 sensores, velocidad normal', () => {
+test('valores por defecto: 400 autos, mutación 10 %, red 6-6-4 con escalón, 5 sensores, velocidad normal', () => {
   assert.deepEqual(DEFAULT_SETTINGS, {
     speed: 1, showSensors: true, showNetwork: true, showChart: true,
-    population: 100, mutationStrength: 10, mutationCooling: true, selectionMode: 'auto', elite: 10, selection: 10, mutationRate: 100, crossover: false,
+    population: 400, mutationStrength: 10, mutationCooling: true, selectionMode: 'auto', elite: 10, selection: 10, mutationRate: 100, crossover: false,
     fitness: 'lead', maxDuration: 60, slowRule: true, trafficMode: 'new',
     lanes: 3, density: 50, irregularity: 0, maxSpeed: 20,
     hiddenLayers: 1, neurons1: 6, neurons2: 6, neurons3: 6, activation: 'step',

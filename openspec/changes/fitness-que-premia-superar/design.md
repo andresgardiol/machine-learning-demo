@@ -129,6 +129,29 @@ pasar, y a velocidad máxima la misión podría no enterarse de un pico.
 - La pestaña no necesita cambios para los valores por defecto ni para el
   rango de la élite: los lee de estas constantes.
 
+### D10. Población por defecto de 400
+
+`EVOLUTION_LIMITS.population.default` pasa a 400; el rango (2 a 500) no
+cambia. La pestaña lo toma de ahí.
+
+Es una decisión del dueño, posterior a la implementación de los grupos 1 a 8.
+La motiva la tabla de robustez de proposal.md: con población 100, 8 de 40
+semillas no aprenden en 100 generaciones. Los números de Context y de D6
+(13,3 y 0,6) son de población 100. La comprobación de aprendizaje
+(`test:learning`) sigue midiendo con población 100, fija en el protocolo; con
+400 no se midió, por decisión del dueño. Los umbrales de la spec no cambian.
+
+Las pruebas que usaban la población por defecto para probar otra cosa pasan a
+pedir `population: 100` explícito (regla de D8), para que afirmen lo mismo y
+`npm test` no tarde cuatro veces más. Solo cambian de valor esperado las que
+afirman la población por defecto.
+
+Alternativa no adoptada: recalentar la mutación cuando la población se
+estanca (si pasan 15 generaciones sin ninguna que llegue a 5/6 de la ventaja
+máxima, la fuerza vuelve a 30 %). En una medición preliminar con la copia del
+núcleo deja 1 de 40 semillas sin aprender, pero tarda más en despegar
+(mediana 21 contra 10 con población 200). Queda en PENDIENTES.
+
 ### D4. Unidad propia para la ventaja
 
 `FITNESS_UNITS.lead = 'metersAhead'`. Los dos lugares que redondean un fitness
@@ -313,6 +336,11 @@ maneja.
 - [Quien ya usaba la pestaña encuentra el tráfico en filas parejas] → Es un
   valor por defecto, no un límite: la irregularidad sigue en la sección
   avanzada y su tooltip lo explica.
+- [Con 400 autos la simulación cuesta cuatro veces más por paso] → La fluidez
+  con 400 autos no se midió. A velocidad máxima cada generación tarda más en
+  tiempo real; con población 200 hicieron falta menos generaciones para
+  aprender (mediana 10 contra 16), y con 400 no se midió. El dueño eligió el
+  valor.
 - [La implementación da números distintos a los medidos] → D6 fija umbrales
   con margen (8 contra 13,3, 5 por semilla contra un mínimo de 10,8, y 2
   contra 0,6) y manda consultar si no se cumplen.

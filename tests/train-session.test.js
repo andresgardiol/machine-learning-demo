@@ -8,7 +8,7 @@ import { createBrain } from '../src/core/brain.js';
 // --- 16.1 Indicadores --------------------------------------------------------------------------
 
 test('indicadores al empezar: generación 1, 100 de 100 en carrera y el mejor anterior no disponible (no cero)', () => {
-  const t = createTraining({ seed: 1, config: { fitness: 'distance' } });
+  const t = createTraining({ seed: 1, config: { fitness: 'distance', population: 100 } });
   const ind = indicators(t);
   assert.equal(ind.generation, 1);
   assert.equal(ind.alive, 100);
@@ -19,7 +19,7 @@ test('indicadores al empezar: generación 1, 100 de 100 en carrera y el mejor an
 });
 
 test('autos que chocan: con veinte autos fuera de carrera, el indicador muestra 80 de 100', () => {
-  const t = createTraining({ seed: 1 });
+  const t = createTraining({ seed: 1, config: { population: 100 } });
   for (let i = 0; i < 20; i++) t.world.retire(i, 'test');
   const ind = indicators(t);
   assert.equal(ind.alive, 80);

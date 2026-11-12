@@ -2,6 +2,23 @@
 
 ## MODIFIED Requirements
 
+### Requirement: Tamaño de la población
+La población SHALL tener entre 2 y 500 individuos, 400 por defecto, y mantener
+su tamaño de una generación a la siguiente. Un valor fuera de rango MUST
+ajustarse al límite válido más cercano.
+
+#### Scenario: Tamaño constante
+- **WHEN** termina una generación de 100 individuos
+- **THEN** la generación siguiente tiene 100 individuos
+
+#### Scenario: Valor fuera de rango
+- **WHEN** se pide una población de 1
+- **THEN** la población queda en 2
+
+#### Scenario: Población por defecto
+- **WHEN** empieza un entrenamiento sin configurar nada
+- **THEN** la primera generación tiene 400 individuos
+
 ### Requirement: Funciones de fitness
 El fitness de cada individuo SHALL calcularse con una función elegible entre
 cuatro: ventaja sobre el tráfico (los metros que el auto le sacó al tráfico:
@@ -63,7 +80,7 @@ abajo, para que siempre haya al menos tantos hijos nuevos como individuos de
 - **THEN** la generación siguiente contiene una sola copia sin cambios, la del padre elegido
 
 #### Scenario: Élite por defecto
-- **WHEN** termina una generación de 100 individuos sin configurar nada
+- **WHEN** termina una generación sin configurar nada
 - **THEN** los diez primeros individuos de la generación siguiente tienen redes idénticas a las de los diez mejores de la anterior, en orden
 
 #### Scenario: Valor fuera de rango
@@ -164,11 +181,12 @@ armará la generación siguiente.
 
 ### Requirement: Aprendizaje con los valores por defecto
 Con los valores por defecto, la población SHALL aprender a superar al tráfico.
-La medida es fija: con las semillas de entrenamiento 1 a 8, los campeones de
-las generaciones 51 a 60 manejan 60 segundos cada uno en 10 tráficos que no
-vieron, y se promedia cuántos vehículos superan. Ese promedio MUST ser de al
-menos 8, y el de cada semilla, de al menos 5. La misma medida con la función
-distancia MUST dar 2 o menos, para que el contraste se pueda mostrar.
+La medida, fija, usa población 100 y el resto de los valores por defecto: con
+las semillas 1 a 8, los campeones de las generaciones 51 a 60 manejan 60 s
+cada uno en 10 tráficos que no vieron y se promedia cuántos vehículos superan.
+Ese promedio MUST ser de al menos 8, y el de cada semilla, de al menos 5. La
+misma medida con la función distancia MUST dar 2 o menos, para que el
+contraste se pueda mostrar.
 
 #### Scenario: Valores por defecto
 - **WHEN** se hace la medida con los valores por defecto
