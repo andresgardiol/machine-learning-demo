@@ -8,9 +8,10 @@ propuesta de OpenSpec antes de implementarse.
 
 Decidido por el dueño el 12 de noviembre de 2026:
 
-1. **Circuitos cerrados y paisaje**, en un mismo cambio. Van primero para que
-   estén listos cuando llegue Competir, y para poder entrenar cerebros en la
-   calle y en circuitos.
+1. ~~**Circuitos cerrados y paisaje**, en un mismo cambio.~~ Hecho en el
+   cambio `circuitos-y-paisaje`: tres circuitos fijos sin tráfico, entrenar en
+   una o varias pistas, paisaje con interruptor y "ver como la máquina" en las
+   tres pestañas.
 2. **Pestaña 4, Competir.** Es clave: es donde se habla de generalización y
    sobreajuste y se demuestra lo aprendido.
 3. **Pestañas 5 y 6,** Inspeccionar y Laboratorio.
@@ -89,10 +90,6 @@ El resto de las notas de este archivo no tiene orden fijo.
     en pantallas anchas (lo anticipaba el design.md, riesgos).
 
 
-- **"Ver como la máquina" en la pestaña Entrenar.** Como en la pestaña 1:
-  ocultar calle y tráfico y mostrar solo lo que perciben los sensores del
-  líder, para ver con qué decide la red. Quizás junto al diagrama de la red,
-  que ya muestra esas mismas entradas.
 - **Eliminar autoguardados.** Los cerebros guardados ya se pueden eliminar
   con confirmación, pero los autoguardados ("entrenamiento en curso" y
   "entrenamiento anterior") no se pueden eliminar ni renombrar, porque la
@@ -134,26 +131,6 @@ El resto de las notas de este archivo no tiene orden fijo.
   que el tráfico siga sin chocarse y que siempre quede un camino libre para el
   auto principal. Va de la mano de la idea anterior.
 
-- **Paisaje procedural alrededor de la calle.** Aprovechar el espacio negro a
-  los costados del escenario con un entorno que se genere solo y nunca
-  termine, igual que el tráfico:
-  - árboles y vegetación;
-  - veredas a los costados de la calle;
-  - sendas peatonales;
-  - cruces de calles que pasan por debajo, con tramos donde la calle propia va
-    como autopista elevada sobre puentes.
-
-  Es solo estético: no choca, los sensores no lo ven y no cambia la
-  simulación. A tener en cuenta al proponerlo:
-  - generarlo con la semilla, como el tráfico, para que se vea igual al
-    reiniciar;
-  - dibujarlo solo dentro del encuadre, para no degradar la fluidez
-    (artículo 10);
-  - ocultarlo en el modo "ver como la máquina", como la calle y el tráfico;
-  - mantener los colores de auto, tráfico y sensores bien distinguibles
-    (artículo 9) y no distraer del problema (artículo 1);
-  - quizás un interruptor para que el mentor lo apague (artículo 6).
-
 - **Los ajustes más interesantes de Entrenar están demasiado escondidos.**
   Observación del dueño (12 de noviembre de 2026, con captura): la función de
   fitness, la élite, las pistas, el tráfico, la red y los sensores están
@@ -185,9 +162,13 @@ El resto de las notas de este archivo no tiene orden fijo.
     y volver a abrir (artículo 6), textos en español e inglés (artículo 11) y
     ninguna dependencia nueva.
 
-- **Circuitos cerrados.** Además de la calle recta, pistas con curvas que
-  cierran sobre sí mismas, para dar vueltas. Hoy todas las pestañas usan la
-  calle recta con tráfico. Queda por definir al proponerlo: en qué pestañas
-  se usan, si llevan tráfico, cómo se mide el avance (vueltas, distancia
-  sobre el eje de la pista) y si los cerebros y los programas escritos para
-  la calle recta sirven en un circuito.
+- **Lo que quedó fuera de `circuitos-y-paisaje`.** Anotado para más adelante,
+  cada cosa con su propia propuesta:
+  - cruces de calles que pasan por debajo y tramos de autopista elevada sobre
+    puentes, en el paisaje de la calle recta;
+  - tiempos de vuelta, mejor vuelta y cronómetro en los circuitos (encaja con
+    Competir);
+  - circuitos generados por semilla o dibujados por la persona (hoy son tres,
+    fijos);
+  - programas de ejemplo de Reglas a mano escritos para los circuitos (hoy los
+    ejemplos son de la calle recta y cargarlos vuelve a ella).

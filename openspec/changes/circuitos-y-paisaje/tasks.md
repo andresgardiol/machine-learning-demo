@@ -28,15 +28,15 @@
 
 ## 5. Vista de un circuito
 
-- [ ] 5.1 Dibujar las pistas cerradas en `src/render/view.js`: calzada entre los dos bordes, sin líneas de carril y con la línea de salida, solo en lo que cae en el encuadre (design.md D7). Verificar en el navegador los tres escenarios de "Dibujo de un circuito".
+- [x] 5.1 Dibujar las pistas cerradas en `src/render/view.js`: calzada entre los dos bordes, sin líneas de carril y con la línea de salida, solo en lo que cae en el encuadre (design.md D7). Verificar en el navegador los tres escenarios de "Dibujo de un circuito".
 - [ ] 5.2 Ajustar el zoom mínimo para que el gran premio entre entero. Verificar con una prueba de `camera.js` el límite nuevo y, en el navegador a 1440×900, los escenarios de "Circuito entero a la vista".
 
 ## 6. Paisaje
 
 - [x] 6.1 Crear `src/render/scenery-layout.js` con la distribución de la calle recta por celdas (design.md D9). Verificar con pruebas que es reproducible, que cambia con la semilla, que ningún árbol ni vereda cae sobre la calzada y que dos celdas vecinas no repiten la misma distribución.
 - [x] 6.2 Sumar la distribución de los circuitos: pianitos, tribunas, línea de largada y árboles. Verificar con pruebas que nada queda sobre la calzada, que los pianitos están solo donde el radio es menor que 80 m y que cada circuito da siempre la misma distribución.
-- [ ] 6.3 Crear `src/render/scenery.js`, agregar los colores a `styles/tokens.css` y dibujar el paisaje en el orden de D9. Verificar en el navegador los escenarios de "Paisaje de la calle", "Paisaje de los circuitos" y "Colores del paisaje", con una captura de la calle y otra de un circuito.
-- [ ] 6.4 Agregar la preferencia `scenery` y el interruptor junto a los controles de cámara, con su tooltip en español y en inglés, y ocultar el paisaje en "ver como la máquina". Verificar con pruebas de `preferences` el valor por defecto y que se recuerda, y en el navegador los escenarios de "Mostrar u ocultar el paisaje".
+- [x] 6.3 Crear `src/render/scenery.js`, agregar los colores a `styles/tokens.css` y dibujar el paisaje en el orden de D9. Verificar en el navegador los escenarios de "Paisaje de la calle", "Paisaje de los circuitos" y "Colores del paisaje", con una captura de la calle y otra de un circuito.
+- [x] 6.4 Agregar la preferencia `scenery` y el interruptor junto a los controles de cámara, con su tooltip en español y en inglés, y ocultar el paisaje en "ver como la máquina". Verificar con pruebas de `preferences` el valor por defecto y que se recuerda, y en el navegador los escenarios de "Mostrar u ocultar el paisaje".
 - [x] 6.5 Verificar con una prueba el escenario "Misma simulación": el estado del mundo es idéntico paso a paso con el paisaje encendido y apagado.
 
 ## 7. Pestañas El problema y Reglas a mano
@@ -64,10 +64,10 @@
 ## 10. Verificación integral
 
 - [ ] 10.1 Medir la fluidez con el panel del navegador visible, diez segundos cada una: un auto en la calle recta y en el gran premio con paisaje, y una población de 100 en la calle recta y en el gran premio con paisaje. Si alguna no llega al mínimo de su spec, **detenerse y consultar**.
-- [ ] 10.2 A 360 px de panel, en español y en inglés: el selector de pista, las pistas del entrenamiento y los indicadores se leen enteros. Medirlo en el DOM e informar los anchos.
-- [ ] 10.3 Recorrer las tres pestañas en cada una de las cuatro pistas: se puede manejar, programar y entrenar, y al restablecer todo vuelve a la calle recta. Informar cualquier cosa que se vea rara, con captura.
-- [ ] 10.4 Repasar el filtro de entrada de proposal.md contra lo que se ve en el navegador e informar cualquier respuesta que ya no valga.
-- [ ] 10.5 Actualizar `PENDIENTES.md`: quitar las notas "Paisaje procedural alrededor de la calle", "Circuitos cerrados" y '"Ver como la máquina" en la pestaña Entrenar', dejar anotado lo que quedó fuera (cruces de calles y puentes, tiempos de vuelta, circuitos generados, ejemplos de Reglas a mano para circuitos) y marcar como hecho el primer punto del orden de trabajo.
+- [x] 10.2 A 360 px de panel, en español y en inglés: el selector de pista, las pistas del entrenamiento y los indicadores se leen enteros. Medirlo en el DOM e informar los anchos.
+- [x] 10.3 Recorrer las tres pestañas en cada una de las cuatro pistas: se puede manejar, programar y entrenar, y al restablecer todo vuelve a la calle recta. Informar cualquier cosa que se vea rara, con captura.
+- [x] 10.4 Repasar el filtro de entrada de proposal.md contra lo que se ve en el navegador e informar cualquier respuesta que ya no valga.
+- [x] 10.5 Actualizar `PENDIENTES.md`: quitar las notas "Paisaje procedural alrededor de la calle", "Circuitos cerrados" y '"Ver como la máquina" en la pestaña Entrenar', dejar anotado lo que quedó fuera (cruces de calles y puentes, tiempos de vuelta, circuitos generados, ejemplos de Reglas a mano para circuitos) y marcar como hecho el primer punto del orden de trabajo.
 
 ## Workflow follow-up
 

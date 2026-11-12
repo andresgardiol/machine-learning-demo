@@ -196,7 +196,7 @@ export default {
   'help.drive.pause.why': 'Freezing a moment lets you calmly look at what the sensors measure in a tricky situation.',
   'help.drive.sensors.what': 'Shows or hides the sensor rays on the stage. The bars on the board keep showing their readings. A sensor is what the car uses to perceive: here, rays that measure the distance to the nearest obstacle.',
   'help.drive.sensors.why': 'Seeing the rays helps you understand where the numbers in the bars come from; hiding them clears the stage and does not change the driving.',
-  'help.drive.machine.what': 'Hides the street and the traffic, leaving only the car, its rays and the bars. Everything shows again when you crash or turn it off.',
+  'help.drive.machine.what': 'Hides the track, the traffic and the scenery, leaving only the car, its rays and the bars. Everything shows again when you crash or turn it off.',
   'help.drive.machine.why': 'This way you drive with the same information a machine would have: a few numbers. Try it and you will see how hard it is.',
   'help.drive.perception.what': 'Shows, in real time, each sensor reading as a bar and a number between 0 and 1, and, apart, the car’s speed.',
   'help.drive.perception.why': 'It is the input of the problem: this short list of numbers is all a machine would get to decide how to drive.',

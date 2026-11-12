@@ -196,7 +196,7 @@ export default {
   'help.drive.pause.why': 'Congelar un instante sirve para mirar con calma qué miden los sensores en una situación difícil.',
   'help.drive.sensors.what': 'Muestra u oculta los rayos de los sensores sobre el escenario. Las barras del tablero siguen mostrando sus lecturas. Un sensor es lo que el auto usa para percibir: acá, rayos que miden la distancia al obstáculo más cercano.',
   'help.drive.sensors.why': 'Ver los rayos ayuda a entender de dónde salen los números de las barras; ocultarlos despeja el escenario y no cambia el manejo.',
-  'help.drive.machine.what': 'Oculta la calle y el tráfico y deja solo el auto, sus rayos y las barras. Al chocar o al apagarlo se vuelve a ver todo.',
+  'help.drive.machine.what': 'Oculta la pista, el tráfico y el paisaje y deja solo el auto, sus rayos y las barras. Al chocar o al apagarlo se vuelve a ver todo.',
   'help.drive.machine.why': 'Así manejás con la misma información que tendría una máquina: unos pocos números. Probalo y vas a ver qué difícil es.',
   'help.drive.perception.what': 'Muestra, en tiempo real, la lectura de cada sensor como una barra y un número entre 0 y 1, y aparte la velocidad del auto.',
   'help.drive.perception.why': 'Es la entrada del problema: esta lista corta de números es todo lo que recibiría una máquina para decidir cómo manejar.',
