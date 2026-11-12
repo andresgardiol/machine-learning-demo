@@ -11,9 +11,9 @@ import { createRandom } from '../src/core/random.js';
 test('valores por defecto: 100 autos, mutación 10 %, red 6-6-4 con escalón, 5 sensores, velocidad normal', () => {
   assert.deepEqual(DEFAULT_SETTINGS, {
     speed: 1, showSensors: true, showNetwork: true, showChart: true,
-    population: 100, mutationStrength: 10, selectionMode: 'auto', elite: 1, selection: 10, mutationRate: 100, crossover: false,
-    fitness: 'distance', maxDuration: 60, slowRule: true, trafficMode: 'new',
-    lanes: 3, density: 50, irregularity: 50, maxSpeed: 20,
+    population: 100, mutationStrength: 10, selectionMode: 'auto', elite: 10, selection: 10, mutationRate: 100, crossover: false,
+    fitness: 'lead', maxDuration: 60, slowRule: true, trafficMode: 'new',
+    lanes: 3, density: 50, irregularity: 0, maxSpeed: 20,
     hiddenLayers: 1, neurons1: 6, neurons2: 6, neurons3: 6, activation: 'step',
     sensorCount: 5, sensorRange: 3, sensorSpread: 90,
   });
@@ -24,21 +24,21 @@ function defaultConfig() { return { ...DEFAULT_TRAINING_CONFIG, hidden: [...DEFA
 
 test('normalización: los valores fuera de rango se ajustan al límite más cercano', () => {
   const s = normalizeSettings({
-    population: 1, mutationStrength: 150, elite: 20, selection: 0, mutationRate: 0, maxDuration: 1000,
+    population: 1, mutationStrength: 150, elite: 25, selection: 0, mutationRate: 0, maxDuration: 1000,
     density: -5, irregularity: 120, maxSpeed: 99, hiddenLayers: 7, neurons1: 0, neurons2: 40,
     sensorCount: 150, sensorRange: 0, sensorSpread: 500,
   });
   assert.deepEqual(
     [s.population, s.mutationStrength, s.elite, s.selection, s.mutationRate, s.maxDuration, s.density, s.irregularity, s.maxSpeed,
       s.hiddenLayers, s.neurons1, s.neurons2, s.sensorCount, s.sensorRange, s.sensorSpread],
-    [2, 100, 10, 1, 1, 300, 0, 100, 40, 3, 1, 16, 100, 1, 360],
+    [2, 100, 20, 1, 1, 300, 0, 100, 40, 3, 1, 16, 100, 1, 360],
   );
 });
 
 test('normalización: opciones inválidas vuelven al valor por defecto y los enteros se redondean', () => {
   const s = normalizeSettings({ speed: 3, fitness: 'overtakes', trafficMode: 'x', lanes: 5, activation: 'softmax', population: 150.6, crossover: 1, density: 'mucho' });
   assert.equal(s.speed, 1);
-  assert.equal(s.fitness, 'distance');
+  assert.equal(s.fitness, 'lead');
   assert.equal(s.trafficMode, 'new');
   assert.equal(s.lanes, 3);
   assert.equal(s.activation, 'step');

@@ -7,7 +7,7 @@ import { createTraining } from '../src/core/training.js';
 // --- 16.1 Indicadores --------------------------------------------------------------------------
 
 test('indicadores al empezar: generación 1, 100 de 100 en carrera y el mejor anterior no disponible (no cero)', () => {
-  const t = createTraining({ seed: 1 });
+  const t = createTraining({ seed: 1, config: { fitness: 'distance' } });
   const ind = indicators(t);
   assert.equal(ind.generation, 1);
   assert.equal(ind.alive, 100);
@@ -26,7 +26,7 @@ test('autos que chocan: con veinte autos fuera de carrera, el indicador muestra 
 });
 
 test('fin de una generación: el número aumenta y se muestran el mejor con su unidad y el motivo', () => {
-  const t = createTraining({ seed: 1, config: { population: 10 } });
+  const t = createTraining({ seed: 1, config: { population: 10, fitness: 'distance' } });
   let record = null;
   while (!record) record = t.step();
   const ind = indicators(t);
@@ -43,7 +43,7 @@ test('valores de fitness con su unidad: metros sin decimales, segundos y m/s con
 });
 
 test('con la función "tiempo sin chocar", los indicadores pasan a mostrar segundos desde la generación siguiente', () => {
-  const t = createTraining({ seed: 1, config: { population: 6 } });
+  const t = createTraining({ seed: 1, config: { population: 6, fitness: 'distance' } });
   t.configure({ fitness: 'survival' });
   for (let i = 0; i < 60; i++) t.step();
   assert.equal(indicators(t).leader.key, 'train.value.meters');
@@ -160,7 +160,7 @@ test('última generación: la clave de cada uno de los cuatro motivos', () => {
 });
 
 test('última generación: con un entrenamiento real, la generación terminada a pedido', () => {
-  const t = createTraining({ seed: 1, config: { population: 10 } });
+  const t = createTraining({ seed: 1, config: { population: 10, fitness: 'distance' } });
   t.finishGeneration();
   const r = lastGeneration(t);
   assert.equal(r.best.params.generation, 1);
@@ -205,7 +205,7 @@ test('estado del padre: sin padre con el cambio a manual todavía sin regir, y s
 });
 
 test('estado del padre con un entrenamiento real: pendiente, campeón, líder elegido y, tras deshacer todo, ninguno', () => {
-  const t = createTraining({ seed: 3, config: { population: 6, maxDuration: 10 } });
+  const t = createTraining({ seed: 3, config: { population: 6, maxDuration: 10, fitness: 'distance' } });
   t.configure({ selectionMode: 'manual' });
   assert.equal(parentStatus(t).key, 'train.parent.pending');
   for (let i = 0; i < 30; i++) t.step();

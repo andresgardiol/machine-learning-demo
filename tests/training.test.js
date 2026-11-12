@@ -56,8 +56,8 @@ test('inicio de una generación: 100 autos detenidos en la misma posición, cada
 
 test('configuración por defecto del entrenamiento', () => {
   assert.deepEqual(normalizeTrainingConfig({}), {
-    population: 100, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false,
-    fitness: 'distance', maxDuration: 60, selectionMode: 'auto', slowRule: true, trafficMode: 'new', lanes: 3, density: 50, irregularity: 50,
+    population: 100, elite: 10, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false,
+    fitness: 'lead', maxDuration: 60, selectionMode: 'auto', slowRule: true, trafficMode: 'new', lanes: 3, density: 50, irregularity: 0,
     maxSpeed: 20, hidden: [6], activation: 'step', sensors: { count: 5, range: 3, spread: 90 },
   });
   assert.deepEqual(normalizeTrainingConfig({ hidden: [20, 0, 4, 4, 4], population: 1 }).hidden, [16, 1, 4]);
@@ -145,7 +145,7 @@ test('a pedido: con autos en carrera, la generación termina con el motivo "a pe
 });
 
 test('historial: al terminar la tercera generación hay tres registros y el último es el 3 con sus datos', () => {
-  const t = createTraining({ seed: 2, config: { population: 10, maxDuration: 10 } });
+  const t = createTraining({ seed: 2, config: { population: 10, maxDuration: 10, fitness: 'distance' } });
   const seen = [];
   t.onGeneration((r) => seen.push(r.generation));
   runUntilGeneration(t, 4);
@@ -167,7 +167,7 @@ test('campeón: no hay antes de la primera generación', () => {
 });
 
 test('campeón: tras una generación es el individuo de mayor fitness de esa generación', () => {
-  const t = createTraining({ seed: 4, config: { population: 12, maxDuration: 10 } });
+  const t = createTraining({ seed: 4, config: { population: 12, maxDuration: 10, elite: 1 } });
   for (let i = 0; i < 400; i++) t.step();
   const networks = t.networks.slice();
   const fitnesses = t.fitnesses();
@@ -249,7 +249,7 @@ test('cambios de red o de sensores durante el entrenamiento se rechazan: piden u
 });
 
 test('cambio de escenario: la generación en curso termina en tres carriles y la siguiente corre en cuatro', () => {
-  const t = createTraining({ seed: 1, config: { population: 4, maxDuration: 10 } });
+  const t = createTraining({ seed: 1, config: { population: 4, maxDuration: 10, fitness: 'distance' } });
   t.configure({ lanes: 4, maxSpeed: 20, fitness: 'survival', trafficMode: 'new' });
   assert.equal(t.world.track.lanes, 3);
   const record = t.finishGeneration();
@@ -322,7 +322,7 @@ test('forma heredada: desde un cerebro de 9 sensores y dos capas ocultas, todos 
 
 test('cerebro del campeón: pasa la validación y acumula generaciones y escenarios', () => {
   const brain = brainOf(createNetwork({ inputs: 6, hidden: [6], outputs: 4, random: createRandom(5) }), { generations: 10 });
-  const t = createTraining({ seed: 2, config: { population: 6, maxDuration: 10, trafficMode: 'same' }, brain });
+  const t = createTraining({ seed: 2, config: { population: 6, maxDuration: 10, trafficMode: 'same', elite: 1, fitness: 'distance', irregularity: 50 }, brain });
   for (let g = 0; g < 5; g++) { for (let i = 0; i < 30; i++) t.step(); t.finishGeneration(); }
   const b = t.brain({ id: 'id-1', name: 'Campeón', now: '2026-11-12T11:00:00.000Z' });
   assert.equal(validateBrain(b), null);
@@ -423,7 +423,7 @@ test('lentos: ninguno sale antes de los 5 s; si salen todos, la generación term
 });
 
 test('lentos: el fitness es el logrado hasta salir (unos 40 m en 5 s, y 5 s sin chocar)', () => {
-  const distance = runToEnd(capped(0.4));
+  const distance = runToEnd(capped(0.4, { fitness: 'distance' }));
   assert.equal(distance.steps, 300);
   assert.equal(distance.record.reason, 'allCrashed');
   assert.ok(Math.abs(distance.record.best - 40) < 0.5, String(distance.record.best));
@@ -560,8 +560,8 @@ test('modo de selección: sin indicarlo es automática, y un valor inválido vue
 });
 
 test('cambio de modo de selección durante la generación 6: la 6 sigue igual y la 7 se forma con selección manual', () => {
-  const t = createTraining({ seed: 6, config: { population: 10, maxDuration: 10 } });
-  const u = createTraining({ seed: 6, config: { population: 10, maxDuration: 10 } });
+  const t = createTraining({ seed: 6, config: { population: 10, maxDuration: 10, fitness: 'distance' } });
+  const u = createTraining({ seed: 6, config: { population: 10, maxDuration: 10, fitness: 'distance' } });
   runUntilGeneration(t, 6);
   runUntilGeneration(u, 6);
   for (let i = 0; i < 50; i++) { t.step(); u.step(); }
@@ -589,7 +589,7 @@ test('cambio de modo de selección durante la generación 6: la 6 sigue igual y 
 // 2.2 Elegir al líder y deshacer
 
 test('elegir durante la generación 4: el padre tiene la red del líder y registra la generación 4 y el fitness que llevaba', () => {
-  const t = clones([1, 0, 0, 0], { density: 0, selectionMode: 'manual' });
+  const t = clones([1, 0, 0, 0], { density: 0, selectionMode: 'manual', fitness: 'distance' });
   runUntilGeneration(t, 4);
   t.undoChoice(); // el cerebro inicial deja de ser el padre
   while (t.fitnessOf() < 310) t.step();
@@ -738,7 +738,7 @@ test('generación desde el padre con mutación en cero: todos idénticos al padr
 });
 
 test('dos generaciones sin elección: las dos siguientes salen del mismo padre', () => {
-  const t = manual(11);
+  const t = manual(11, { fitness: 'distance' });
   for (let i = 0; i < 60; i++) t.step();
   const parent = t.chooseLeader();
   t.finishGeneration(); // generación 2
@@ -788,7 +788,7 @@ test('fin de generación con selección manual: todos fuera de carrera termina l
 // 2.4 Padre al cambiar de modo y al continuar desde un cerebro
 
 test('de automática a manual en la generación 12 sin elegir: la 13 sale del campeón de la 12', () => {
-  const t = createTraining({ seed: 3, config: { population: 6, maxDuration: 10 } });
+  const t = createTraining({ seed: 3, config: { population: 6, maxDuration: 10, fitness: 'distance' } });
   runUntilGeneration(t, 12);
   for (let i = 0; i < 20; i++) t.step();
   t.configure({ selectionMode: 'manual' });
@@ -815,7 +815,7 @@ test('elegir antes de que rija el cambio: la 13 sale del líder elegido y no del
 });
 
 test('de manual a automática: la generación siguiente se forma por fitness de la población en curso y no queda padre', () => {
-  const t = manual(7);
+  const t = manual(7, { elite: 1 });
   for (let i = 0; i < 60; i++) t.step();
   t.chooseLeader();
   t.finishGeneration();
@@ -833,7 +833,7 @@ test('de manual a automática: la generación siguiente se forma por fitness de 
 });
 
 test('volver a manual más tarde: el padre es el campeón de la generación que termina, no el elegido antes', () => {
-  const t = createTraining({ seed: 8, config: { population: 6, maxDuration: 10 } });
+  const t = createTraining({ seed: 8, config: { population: 6, maxDuration: 10, fitness: 'distance' } });
   t.configure({ selectionMode: 'manual' });
   runUntilGeneration(t, 2);
   for (let i = 0; i < 40; i++) t.step();
@@ -926,13 +926,13 @@ test('selección automática sin cambios: diez generaciones dan el mismo histori
   // Valores tomados con el código anterior a este cambio (commit 6666eea).
   const reference = {
     7: {
-      config: { population: 20 },
+      config: { population: 20, fitness: 'distance', elite: 1, irregularity: 50 },
       history: [[173.09611111111008, 12.323868334683358, 'allCrashed'], [177.02611111111764, 56.59658782841579, 'allCrashed'], [215.45611111111066, 45.57227185857482, 'allCrashed'], [230.4333333333343, 97.66567684199762, 'allCrashed'], [654.7100000000501, 187.71093141383827, 'timeLimit'], [623.1050000000541, 189.2358953869945, 'timeLimit'], [622.7300000000541, 189.33111692576713, 'timeLimit'], [576.488333333371, 196.5945833333404, 'allCrashed'], [623.1500000000524, 213.01127777778456, 'timeLimit'], [603.9411111111549, 177.04788888889453, 'allCrashed']],
       champion: [0.7200939933564513, -0.20062512566754592, -0.39658241034718233, -0.311009442126844, -0.6131282534566708, -0.2090255785142071, 0.3704336073459126, -0.17201321303797884],
       network5: [0.7295786444472148, -0.22580245024249887, -0.3229296427567024, -0.22090159799293607, -0.6430286154069472, -0.15366096351561132, 0.3554913577160332, -0.17638623934010975],
     },
     3: {
-      config: { population: 30, crossover: true, elite: 2, fitness: 'speed', maxDuration: 20 },
+      config: { population: 30, crossover: true, elite: 2, fitness: 'speed', maxDuration: 20, irregularity: 50 },
       history: [[8.616268620560946, 0.48746722943157494, 'allCrashed'], [18.619047619049006, 4.2924902346862615, 'allCrashed'], [18.62559241706161, 7.870541346565223, 'allCrashed'], [19.320843091334897, 10.1866169026929, 'allCrashed'], [18.599033816426527, 13.744880632604765, 'timeLimit'], [19.599999999999596, 11.503707517202429, 'timeLimit'], [18.84633799206913, 18.601855370207463, 'allCrashed'], [19.359823399559144, 18.87872351578132, 'allCrashed'], [18.84633799206913, 18.597254088575543, 'allCrashed'], [19.51260504201681, 17.247306881782233, 'allCrashed']],
       champion: [0.547849652684154, 0.5372338201839011, 0.08799074937007391, 0.5655069567912258, -0.6659191250396846, -0.5379186205567932, -0.4824922658099234, 0.3178409683696227],
       network5: [0.49328364287248777, 0.43262509838573165, 0.017533420586376455, 0.39066568043404903, -0.6954464549300592, -0.5794628636168255, -0.4206782795032262, 0.2548412419457105],
@@ -953,7 +953,7 @@ test('selección automática sin cambios: diez generaciones dan el mismo histori
 const NOW = '2026-11-12T11:00:00.000Z';
 
 test('cerebro del entrenamiento con selección automática tras la generación 8: la red del campeón de la 8 y modo automático', () => {
-  const t = createTraining({ seed: 5, config: { population: 8, maxDuration: 10 } });
+  const t = createTraining({ seed: 5, config: { population: 8, maxDuration: 10, fitness: 'distance' } });
   runUntilGeneration(t, 9);
   const b = t.brain({ id: 'x', name: 'Auto', now: NOW });
   assert.equal(validateBrain(b), null);
@@ -965,7 +965,7 @@ test('cerebro del entrenamiento con selección automática tras la generación 8
 });
 
 test('cerebro del entrenamiento con selección manual: la red del padre elegido en la 5, su fitness como mejor y modo manual', () => {
-  const t = clones([1, 0, 0, 0], { density: 0, maxDuration: 30, selectionMode: 'manual' });
+  const t = clones([1, 0, 0, 0], { density: 0, maxDuration: 30, selectionMode: 'manual', fitness: 'distance' });
   runUntilGeneration(t, 5);
   while (t.fitnessOf() < 310) t.step();
   t.undoChoice(); // el cerebro inicial deja de ser el padre: el líder es su copia

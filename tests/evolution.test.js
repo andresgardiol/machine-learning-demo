@@ -50,7 +50,7 @@ test('fitness por velocidad media: recorrer 60 m y chocar a los 4 s da 15', () =
 
 test('fitness: una función desconocida se rechaza', () => {
   assert.throws(() => fitnessOf('overtakes', createStats()), (e) => e instanceof EvolutionError && e.code === 'unknownFitness');
-  assert.equal(DEFAULT_EVOLUTION.fitness, 'distance');
+  assert.equal(DEFAULT_EVOLUTION.fitness, 'lead');
 });
 
 // --- Ventaja sobre el tráfico (fitness-que-premia-superar, grupo 1) -----------------------------
@@ -155,11 +155,11 @@ test('sin élite: con mutación mayor que cero, ningún individuo repite una red
   for (const child of next) for (const old of networks) assert.notDeepEqual(child, old);
 });
 
-test('élite: de 0 a 10 y nunca más que la población menos uno', () => {
+test('élite: de 0 a 20 y nunca más que la mitad de la población', () => {
   assert.equal(eliteCount(100, 1), 1);
-  assert.equal(eliteCount(3, 10), 2);
+  assert.equal(eliteCount(3, 10), 1);
   assert.equal(eliteCount(2, 1), 1);
-  assert.equal(normalizeEvolution({ elite: 25 }).elite, 10);
+  assert.equal(normalizeEvolution({ elite: 25 }).elite, 20);
   assert.equal(normalizeEvolution({ elite: -3 }).elite, 0);
   assert.equal(normalizeEvolution({ population: 2, elite: 5 }).elite, 1);
 });
@@ -245,6 +245,35 @@ test('cruce con un solo padre: cada hijo se forma a partir de ese padre', () => 
   for (const child of next) assert.deepEqual(child, networks[1]);
 });
 
+test('élite por defecto: de una generación de 100 pasan sin cambios los diez mejores, en orden', () => {
+  assert.equal(DEFAULT_EVOLUTION.elite, 10);
+  const networks = Array.from({ length: 100 }, (_, i) => net(i, []));
+  const fitnesses = networks.map((_, i) => (i * 37) % 100);
+  const { networks: next, elite } = nextGeneration({ networks, fitnesses, config: { population: 100 }, random: createRandom(3) });
+  const ranked = rankPopulation(fitnesses);
+  assert.deepEqual(elite, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  for (let e = 0; e < 10; e++) assert.deepEqual(next[e], networks[ranked[e]], `élite ${e}`);
+  assert.notDeepEqual(next[10], networks[ranked[10]]);
+});
+
+test('élite fuera de rango: pedir 35 la deja en 20', () => {
+  assert.equal(normalizeEvolution({ elite: 35 }).elite, 20);
+  assert.equal(eliteCount(100, 35), 35); // eliteCount solo acota por la población
+  assert.equal(eliteCount(100, normalizeEvolution({ elite: 35 }).elite), 20);
+});
+
+test('élite con población chica: de 10 individuos pasan cinco sin cambios y los otros cinco son hijos nuevos', () => {
+  assert.equal(normalizeEvolution({ population: 10 }).elite, 5);
+  assert.equal(eliteCount(10, 10), 5);
+  const networks = Array.from({ length: 10 }, (_, i) => net(i, []));
+  const fitnesses = networks.map((_, i) => i);
+  const { networks: next, elite } = nextGeneration({ networks, fitnesses, config: { population: 10, mutationStrength: 10 }, random: createRandom(4) });
+  assert.equal(elite.length, 5);
+  const ranked = rankPopulation(fitnesses);
+  for (let e = 0; e < 5; e++) assert.deepEqual(next[e], networks[ranked[e]]);
+  for (let c = 5; c < 10; c++) assert.ok(networks.every((n) => JSON.stringify(n) !== JSON.stringify(next[c])), `hijo ${c}`);
+});
+
 // --- 5.5 Generación siguiente ------------------------------------------------------------------
 
 test('tamaño constante: una generación de 100 da una siguiente de 100', () => {
@@ -262,10 +291,10 @@ test('tamaño fuera de rango: una población de 1 queda en 2, y una de 900 en 50
 
 test('valores fuera de rango ajustados al límite más cercano y valores por defecto', () => {
   assert.deepEqual(normalizeEvolution({}), {
-    population: 100, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, fitness: 'distance', maxDuration: 60,
+    population: 100, elite: 10, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, fitness: 'lead', maxDuration: 60,
   });
   assert.deepEqual(normalizeEvolution({ selection: 0, mutationStrength: 140, mutationRate: 0, maxDuration: 5, fitness: 'x' }), {
-    population: 100, elite: 1, selection: 1, mutationStrength: 100, mutationRate: 1, crossover: false, fitness: 'distance', maxDuration: 10,
+    population: 100, elite: 10, selection: 1, mutationStrength: 100, mutationRate: 1, crossover: false, fitness: 'lead', maxDuration: 10,
   });
   assert.equal(normalizeEvolution({ selection: 80, maxDuration: 1000 }).selection, 50);
   assert.equal(normalizeEvolution({ maxDuration: 1000 }).maxDuration, 300);

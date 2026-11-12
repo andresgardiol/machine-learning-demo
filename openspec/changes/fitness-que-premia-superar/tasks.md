@@ -14,9 +14,9 @@
 
 ## 3. Valores por defecto y límites
 
-- [ ] 3.1 Cambiar `EVOLUTION_LIMITS.elite` a 0–20 con 10 por defecto y acotar la élite a la mitad de la población en `eliteCount` y `normalizeEvolution` (design.md D3). Verificar con pruebas los escenarios "Élite por defecto", "Valor fuera de rango" y "Población chica".
-- [ ] 3.2 Cambiar `DEFAULT_EVOLUTION.fitness` a `lead` y `DEFAULT_TRAINING_CONFIG.irregularity` a 0 con su constante propia, sin tocar `DEFAULT_TRAFFIC`. Verificar con pruebas los escenarios de "Escenario por defecto del entrenamiento", incluido que un mundo de las pestañas 1 y 2 sigue con irregularidad 50 %.
-- [ ] 3.3 Adaptar las pruebas existentes según la regla de design.md D8: las que dependían de un valor por defecto para probar otra cosa lo piden explícito; solo cambian de valor esperado las de D8. Verificar que `npm test` pasa y listar en el informe cada prueba existente que cambió y por qué.
+- [x] 3.1 Cambiar `EVOLUTION_LIMITS.elite` a 0–20 con 10 por defecto y acotar la élite a la mitad de la población en `eliteCount` y `normalizeEvolution` (design.md D3). Verificar con pruebas los escenarios "Élite por defecto", "Valor fuera de rango" y "Población chica".
+- [x] 3.2 Cambiar `DEFAULT_EVOLUTION.fitness` a `lead` y `DEFAULT_TRAINING_CONFIG.irregularity` a 0 con su constante propia, sin tocar `DEFAULT_TRAFFIC`. Verificar con pruebas los escenarios de "Escenario por defecto del entrenamiento", incluido que un mundo de las pestañas 1 y 2 sigue con irregularidad 50 %.
+- [x] 3.3 Adaptar las pruebas existentes según la regla de design.md D8: las que dependían de un valor por defecto para probar otra cosa lo piden explícito; solo cambian de valor esperado las de D8. Verificar que `npm test` pasa y listar en el informe cada prueba existente que cambió y por qué.
 
 ## 4. Enfriamiento de la mutación en el núcleo
 

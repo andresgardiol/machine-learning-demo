@@ -66,6 +66,12 @@ export const MAX_CHOICES = 20;
 /** Ajustes que solo pueden cambiar con un entrenamiento nuevo: la forma de la red y los sensores. */
 export const NEW_TRAINING_KEYS = Object.freeze(['hidden', 'activation', 'sensors']);
 
+/**
+ * Irregularidad del tráfico del entrenamiento por defecto (fitness-que-premia-superar D3): filas
+ * parejas, el caso más fácil de aprender. Las pestañas 1 y 2 siguen con la de DEFAULT_TRAFFIC.
+ */
+export const TRAINING_IRREGULARITY = 0;
+
 export const DEFAULT_TRAINING_CONFIG = Object.freeze({
   ...DEFAULT_EVOLUTION,
   selectionMode: 'auto',
@@ -73,7 +79,7 @@ export const DEFAULT_TRAINING_CONFIG = Object.freeze({
   trafficMode: 'new',
   lanes: DEFAULT_LANES,
   density: DEFAULT_TRAFFIC.density,
-  irregularity: DEFAULT_TRAFFIC.irregularity,
+  irregularity: TRAINING_IRREGULARITY,
   maxSpeed: MAX_SPEED,
   hidden: Object.freeze([6]),
   activation: DEFAULT_ACTIVATION,
@@ -114,7 +120,7 @@ export function normalizeTrainingConfig(partial = {}) {
     trafficMode: TRAFFIC_MODES.includes(p.trafficMode) ? p.trafficMode : DEFAULT_TRAINING_CONFIG.trafficMode,
     lanes: ALLOWED_LANES.includes(Number(p.lanes)) ? Number(p.lanes) : DEFAULT_LANES,
     density: percent(p.density, DEFAULT_TRAFFIC.density),
-    irregularity: percent(p.irregularity, DEFAULT_TRAFFIC.irregularity),
+    irregularity: percent(p.irregularity, TRAINING_IRREGULARITY),
     maxSpeed: maxSpeedOf(p.maxSpeed),
     hidden: normalizeHidden(p.hidden),
     activation: ACTIVATIONS.includes(p.activation) ? p.activation : DEFAULT_ACTIVATION,

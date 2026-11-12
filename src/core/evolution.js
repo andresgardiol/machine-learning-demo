@@ -15,7 +15,7 @@ export const FITNESS_UNITS = Object.freeze({
 /** Rangos y valores por defecto de la configuración de evolución. */
 export const EVOLUTION_LIMITS = Object.freeze({
   population: Object.freeze({ min: 2, max: 500, default: 100 }),
-  elite: Object.freeze({ min: 0, max: 10, default: 1 }),
+  elite: Object.freeze({ min: 0, max: 20, default: 10 }), // nunca más que la mitad de la población
   selection: Object.freeze({ min: 1, max: 50, default: 10 }), // % de la población
   mutationStrength: Object.freeze({ min: 0, max: 100, default: 10 }), // %
   mutationRate: Object.freeze({ min: 1, max: 100, default: 100 }), // %
@@ -29,7 +29,7 @@ export const DEFAULT_EVOLUTION = Object.freeze({
   mutationStrength: EVOLUTION_LIMITS.mutationStrength.default,
   mutationRate: EVOLUTION_LIMITS.mutationRate.default,
   crossover: false,
-  fitness: 'distance',
+  fitness: 'lead',
   maxDuration: EVOLUTION_LIMITS.maxDuration.default,
 });
 
@@ -47,7 +47,8 @@ const INTEGER_KEYS = new Set(['population', 'elite']);
 
 /**
  * Configuración de evolución válida: lo que falta usa el valor por defecto y lo que se sale de
- * rango se ajusta al límite válido más cercano. La élite nunca supera la población menos uno.
+ * rango se ajusta al límite válido más cercano. La élite nunca supera la mitad de la población,
+ * redondeada hacia abajo.
  */
 export function normalizeEvolution(partial = {}) {
   const p = partial ?? {};
@@ -58,7 +59,7 @@ export function normalizeEvolution(partial = {}) {
     if (INTEGER_KEYS.has(key)) n = Math.round(n);
     out[key] = Math.min(Math.max(n, min), max);
   }
-  out.elite = Math.min(out.elite, out.population - 1);
+  out.elite = Math.min(out.elite, Math.floor(out.population / 2));
   out.crossover = p.crossover === undefined ? DEFAULT_EVOLUTION.crossover : Boolean(p.crossover);
   out.fitness = FITNESS_KINDS.includes(p.fitness) ? p.fitness : DEFAULT_EVOLUTION.fitness;
   return {
@@ -127,8 +128,11 @@ export function rankPopulation(fitnesses) {
 /** Cantidad de padres: el porcentaje de la población (redondeado hacia abajo), nunca menos de uno. */
 export const parentCount = (population, selection) => Math.max(1, Math.floor((population * selection) / 100));
 
-/** Cantidad de individuos de élite: la pedida, nunca más que la población menos uno. */
-export const eliteCount = (population, elite) => Math.max(0, Math.min(elite, population - 1));
+/**
+ * Cantidad de individuos de élite: la pedida, nunca más que la mitad de la población (redondeada
+ * hacia abajo), para que siempre haya al menos tantos hijos nuevos como individuos de élite.
+ */
+export const eliteCount = (population, elite) => Math.max(0, Math.min(elite, Math.floor(population / 2)));
 
 // --- Mutación y cruce ----------------------------------------------------------------------
 
