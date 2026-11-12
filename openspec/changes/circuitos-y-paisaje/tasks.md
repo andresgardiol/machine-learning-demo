@@ -53,7 +53,7 @@
 - [x] 8.2 Mostrar la pista junto al número de generación, cambiar el cuarto indicador según la pista y deshabilitar los ajustes de tráfico cuando no hay calle recta marcada. Verificar con pruebas de `session.js` y en el navegador los escenarios de "Generación en un circuito".
 - [x] 8.3 Mostrar las pistas en los datos de un cerebro de la biblioteca. Verificar con una prueba de `library-view` y en el navegador, con un cerebro entrenado en dos pistas y con uno anterior.
 
-- [ ] 8.4 Agregar "ver como la máquina" a Entrenar, en el renglón de "Sensores del líder", con `machineView` ocultando al resto de la población y sus marcas de élite (design.md D13). Verificar en el navegador los escenarios de "Ver como la máquina" de la spec `pestana-entrenar`, incluido que el panel no se desplaza a 1440×900; si se desplaza o el renglón no entra a 360 px, **detenerse y consultar**.
+- [x] 8.4 Agregar "ver como la máquina" a Entrenar, en el renglón de "Sensores del líder", con `machineView` ocultando al resto de la población y sus marcas de élite (design.md D13). Verificar en el navegador los escenarios de "Ver como la máquina" de la spec `pestana-entrenar`, incluido que el panel no se desplaza a 1440×900; si se desplaza o el renglón no entra a 360 px, **detenerse y consultar**.
 
 ## 9. Textos y tooltips
 

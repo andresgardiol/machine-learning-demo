@@ -269,7 +269,11 @@ la usa El problema. Se extiende así:
   el mismo cartel sobre el escenario.
 - **Entrenar:** un interruptor en el mismo renglón que "Sensores del líder".
   Fuerza los rayos del líder a la vista. No hay "mostrar todo al chocar":
-  el foco pasa al líder siguiente y la generación sigue.
+  el foco pasa al líder siguiente y la generación sigue. Para que los dos
+  entren a 360 px, el primer interruptor del renglón se llama "Sensores",
+  como en El problema y en Reglas a mano, y su tooltip aclara que son los del
+  líder; el renglón usa un hueco de 6 px y un relleno horizontal de 5 px en
+  sus interruptores (medido: 117 + 6 + 201 = 324 px de 328 en español).
 - El nombre del interruptor reutiliza el texto de El problema; la ayuda es
   propia de cada pestaña, porque el motivo cambia (escribir reglas, ver con
   qué decide la red).

@@ -323,7 +323,7 @@ export default {
   'train.basic.title': 'Settings',
   'train.pending': 'There are changes waiting: they apply when the next generation starts.',
   'train.mode.pending': 'Takes effect from the next generation.',
-  'train.sensors': 'Leader’s sensors',
+  'train.sensors': 'Sensors',
   'train.advanced': 'Advanced',
   'train.advanced.evolution': 'Evolution',
   'train.advanced.scenario': 'Scenario',

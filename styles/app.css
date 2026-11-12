@@ -303,6 +303,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .mission[data-done="true"] .mission-fill { background: var(--color-car); }
 
 .switch-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+/* Entrenar: "Sensores" y "Ver como la máquina" en un solo renglón a 360 px (circuitos-y-paisaje D13). */
+.train-view { gap: 6px; }
+.train-view .switch { padding-left: 5px; padding-right: 5px; }
 /* Percepción (design.md D10): las barras ocupan el alto libre de su tarjeta (de 64 a 240 px), con su
    lectura debajo; la velocidad va aparte, rotulada y siempre con su número. */
 .perception { display: flex; gap: var(--space-3); flex: 1 1 auto; min-height: 0; }
