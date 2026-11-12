@@ -115,7 +115,7 @@ estar en español y en inglés.
 
 #### Scenario: Tooltip de la irregularidad
 - **WHEN** la persona posa el cursor sobre la irregularidad del tráfico
-- **THEN** el tooltip explica que en 0 % los vehículos van en filas parejas, que es el caso más fácil de aprender, que subirla hace el problema más difícil y que en los dos casos el tráfico es distinto en cada generación
+- **THEN** el tooltip explica que en 0 % los vehículos van en filas parejas, que es el caso más fácil de aprender, que subirla hace el problema más difícil y que, con tráfico nuevo, en los dos casos cambia en cada generación
 
 ### Requirement: Configuración básica
 La pestaña SHALL mostrar siempre a la vista tres ajustes: el tamaño de la

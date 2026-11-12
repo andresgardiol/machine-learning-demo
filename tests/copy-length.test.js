@@ -44,6 +44,31 @@ test('Entrenar: nombres de misiones de hasta 34 caracteres, con su meta real', (
   for (const m of TRAIN_MISSIONS) assertMax(`train.mission.${m.id}`, MISSION_MAX, { goal: m.goal });
 });
 
+// --- fitness-que-premia-superar: misión, indicador e interruptor nuevos ---------------------------
+// El tablero reparte su ancho entre cuatro indicadores: a 360 px, cada nombre tiene que entrar en un
+// renglón de unos 80 px de letra chica (ver la verificación en el navegador de la tarea 8.1).
+const STAT_NAME_MAX = 22;
+const SWITCH_MAX = 34;
+
+test('Entrenar: la misión de superar vehículos entra en un renglón, con su meta real', () => {
+  const m = TRAIN_MISSIONS.find((x) => x.id === 'passed');
+  assert.ok(m, 'existe la misión de superar vehículos');
+  assertMax('train.mission.passed', MISSION_MAX, { goal: m.goal });
+});
+
+test('Entrenar: el nombre del indicador de superados es de hasta 22 caracteres', () => {
+  assertMax('train.stats.passed', STAT_NAME_MAX);
+});
+
+test('Entrenar: el interruptor del enfriamiento entra en un renglón (hasta 34 caracteres)', () => {
+  assertMax('train.setting.mutationCooling', SWITCH_MAX);
+});
+
+test('Entrenar: líneas de la ventaja (última generación y padre) de hasta 110 caracteres', () => {
+  const params = { generation: 1000, value: 1194 };
+  for (const key of ['train.last.best.metersAhead', 'train.parent.leader.metersAhead', 'train.parent.champion.metersAhead']) assertMax(key, 110, params);
+});
+
 // --- El problema --------------------------------------------------------------------------------
 import { MISSIONS as DRIVE_MISSIONS } from '../src/tabs/drive/session.js';
 

@@ -192,7 +192,7 @@ Claves nuevas o que cambian, en español e inglés:
 | `help.train.fitness.distance.why` | Cuidado: ir detrás de un vehículo sin chocar recorre mucha distancia, y la población puede aprender a seguir al tráfico en lugar de pasarlo. |
 | `help.train.setting.elite.why` | Lo mejor que se encontró no se pierde. Con tráfico nuevo, la élite vuelve a evaluarse cada generación en una calle distinta. |
 | `help.train.setting.irregularity.what` | Cuánto varían las distancias y posiciones de los vehículos. En 0 % van en filas parejas. Rige desde la próxima generación. |
-| `help.train.setting.irregularity.why` | Las filas parejas son el caso más fácil de aprender. Subila para plantearle a la población un problema más difícil. |
+| `help.train.setting.irregularity.why` | Las filas parejas son el caso más fácil de aprender; subila para plantearle a la población un problema más difícil. Con tráfico nuevo, en los dos casos cambia en cada generación. |
 | `train.setting.mutationCooling` | Enfriar la mutación |
 | `help.train.setting.mutationCooling.what` | La fuerza de mutación empieza en 30 % y baja un 5 % en cada generación, hasta 3 %. Apagado, queda fija en el valor del deslizador. |
 | `help.train.setting.mutationCooling.why` | Al principio conviene probar redes muy distintas; cuando alguna ya maneja, conviene afinarla sin romperla. |

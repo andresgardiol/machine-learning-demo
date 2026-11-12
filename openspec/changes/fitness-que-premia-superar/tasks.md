@@ -39,9 +39,9 @@
 
 ## 7. Textos y tooltips
 
-- [ ] 7.1 Agregar en `src/i18n/es.js` y `en.js` las claves de design.md D7 y quitar `train.mission.distance`. Verificar que la prueba de paridad de diccionarios pasa y que `mlLab.auditTooltips()` no informa controles sin ayuda.
-- [ ] 7.2 Sumar a `tests/copy-length.test.js` los largos de la misión nueva, del nombre del indicador y del interruptor del enfriamiento, para que entren en un renglón. Verificar que pasa.
-- [ ] 7.3 Verificar en el navegador, en español y en inglés, los tooltips de la ventaja, la distancia, la élite, el enfriamiento y la irregularidad contra los escenarios de "Controles de la pestaña explicados".
+- [x] 7.1 Agregar en `src/i18n/es.js` y `en.js` las claves de design.md D7 y quitar `train.mission.distance`. Verificar que la prueba de paridad de diccionarios pasa y que `mlLab.auditTooltips()` no informa controles sin ayuda.
+- [x] 7.2 Sumar a `tests/copy-length.test.js` los largos de la misión nueva, del nombre del indicador y del interruptor del enfriamiento, para que entren en un renglón. Verificar que pasa.
+- [x] 7.3 Verificar en el navegador, en español y en inglés, los tooltips de la ventaja, la distancia, la élite, el enfriamiento y la irregularidad contra los escenarios de "Controles de la pestaña explicados".
 
 ## 8. Verificación integral
 
