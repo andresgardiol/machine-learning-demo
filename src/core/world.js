@@ -9,7 +9,11 @@
 // El tráfico se consulta una vez por paso para el tramo que cubre a todos los agentes en carrera y
 // a cada uno se le entregan los vehículos de su propio tramo, con el mismo criterio y el mismo
 // orden que si estuviera solo (design.md D2): un auto se comporta igual solo o acompañado.
-import { createStraightStreet } from './track.js';
+//
+// La pista se elige del catálogo (circuitos-y-paisaje D3), la calle recta por defecto. Sobre un
+// circuito no hay tráfico, se pidan los ajustes que se pidan, y cada agente lleva sus vueltas: el
+// progreso es vueltas × largo + la distancia dentro de la vuelta, así no salta al cruzar la salida.
+import { createTrackById, DEFAULT_TRACK } from './circuits.js';
 import { changeTraffic, createTraffic } from './traffic.js';
 import {
   createCar, stepCar, carContour, normalizedSpeed, configureSensors, resetSensors, maxSpeedOf,
@@ -22,7 +26,8 @@ import { STEP, CAR_LENGTH, REVERSE_FRACTION, TRAFFIC_CHANGE_AHEAD, TRAFFIC_SPEED
 /**
  * @param {object} spec
  * @param {number} spec.seed semilla del tráfico
- * @param {number} [spec.lanes] 2, 3 o 4 (3 por defecto)
+ * @param {string} [spec.track] pista del catálogo (ver circuits.js); la calle recta por defecto
+ * @param {number} [spec.lanes] 2, 3 o 4 (3 por defecto; solo la calle recta)
  * @param {number} [spec.density] % de tráfico
  * @param {number} [spec.irregularity] % de irregularidad
  * @param {object} [spec.sensors] { count, range, spread } (mundo de un auto)
@@ -32,9 +37,12 @@ import { STEP, CAR_LENGTH, REVERSE_FRACTION, TRAFFIC_CHANGE_AHEAD, TRAFFIC_SPEED
  */
 export function createWorld(spec = {}) {
   const { seed = 1, lanes, density, irregularity } = spec;
-  const track = createStraightStreet({ lanes });
+  const trackId = spec.track ?? DEFAULT_TRACK;
+  const track = createTrackById(trackId, { lanes });
   let trafficConfig = { density, irregularity };
-  let traffic = createTraffic({ seed, track, ...trafficConfig });
+  // En un circuito no hay tráfico: la densidad efectiva es 0, sea cual sea la pedida.
+  const trafficOf = (config) => createTraffic({ seed, track, ...config, ...(track.closed ? { density: 0 } : {}) });
+  let traffic = trafficOf(trafficConfig);
   const startLane = Math.floor(track.lanes / 2);
 
   const carSpecs = Array.isArray(spec.cars) && spec.cars.length > 0
@@ -46,6 +54,8 @@ export function createWorld(spec = {}) {
     car: null,
     segmentIndex: 0,
     progress: 0,
+    laps: 0, // vueltas completas (en una pista cerrada; en una abierta, siempre 0)
+    lapDistance: 0, // última distancia dentro de la vuelta
     crashCause: null,
     nearby: [],
     rays: [],
@@ -62,11 +72,24 @@ export function createWorld(spec = {}) {
 
   const windowRadius = (agent) => rangeMeters(agent.car.sensors) + 2 * CAR_LENGTH;
 
-  /** Actualiza el progreso (y el tramo de pista) del agente a partir de su posición. */
+  /**
+   * Actualiza el progreso (y el tramo de pista) del agente a partir de su posición. En una pista
+   * cerrada, si la distancia dentro de la vuelta saltó más de media vuelta hacia atrás, el auto
+   * cruzó la salida hacia adelante (una vuelta más); si saltó más de media vuelta hacia adelante, la
+   * cruzó hacia atrás (una menos).
+   */
   function locate(agent) {
     const p = track.progressOf(agent.car.position, agent.segmentIndex);
     agent.segmentIndex = p.segmentIndex;
-    agent.progress = p.progress;
+    if (track.closed) {
+      const jump = p.progress - agent.lapDistance;
+      if (jump < -track.length / 2) agent.laps += 1;
+      else if (jump > track.length / 2) agent.laps -= 1;
+      agent.lapDistance = p.progress;
+      agent.progress = agent.laps * track.length + p.progress;
+    } else {
+      agent.progress = p.progress;
+    }
   }
 
   /**
@@ -131,15 +154,18 @@ export function createWorld(spec = {}) {
 
   /** Vuelve al estado inicial con la misma semilla y la configuración actual (también la del tráfico). */
   function reset() {
-    traffic = createTraffic({ seed, track, ...trafficConfig });
+    traffic = trafficOf(trafficConfig);
+    const start = track.laneCenter(startLane, 0);
     for (const a of agents) {
       a.car = createCar({
-        position: track.laneCenter(startLane, 0).position, angle: 0,
+        position: start.position, angle: start.angle,
         sensors: a.car ? a.car.sensors : a.initialSensors,
         maxSpeed: a.car ? a.car.maxSpeed : a.initialMaxSpeed,
       });
       a.segmentIndex = 0;
       a.progress = 0;
+      a.laps = 0;
+      a.lapDistance = 0;
       a.crashCause = null;
     }
     time = 0;
@@ -179,7 +205,7 @@ export function createWorld(spec = {}) {
   });
 
   const world = {
-    track, seed, step, reset,
+    track, trackId, seed, step, reset,
     pause() { paused = true; },
     resume() { paused = false; },
     setController(next) { if (isController(next)) first.controller = next; },
@@ -196,7 +222,7 @@ export function createWorld(spec = {}) {
      */
     setTraffic(partial) {
       trafficConfig = { ...trafficConfig, ...partial };
-      const next = createTraffic({ seed, track, ...trafficConfig });
+      const next = trafficOf(trafficConfig);
       traffic = changeTraffic(traffic, next, first.progress + TRAFFIC_CHANGE_AHEAD - TRAFFIC_SPEED * time);
       look(agents);
     },

@@ -15,9 +15,9 @@
 
 ## 3. Mundo sobre un circuito
 
-- [ ] 3.1 Aceptar `track` en `createWorld` y armar la pista con `createTrackById`; sobre un circuito, tráfico con densidad 0 y salida en el centro de la pista (design.md D3). Verificar con pruebas los escenarios "Estado por defecto", "Circuito sin tráfico" y "Volver a la calle" de la spec `simulacion`.
-- [ ] 3.2 Llevar `laps` por agente y armar el progreso acumulado. Verificar con pruebas los tres escenarios de "Progreso por vueltas", incluido que el progreso no salta al cruzar la salida en ninguno de los dos sentidos.
-- [ ] 3.3 Verificar con pruebas "Choque con el borde", "Varios autos en un circuito" y "Circuito reproducible", y que las pruebas de reproducibilidad existentes pasan sin cambios.
+- [x] 3.1 Aceptar `track` en `createWorld` y armar la pista con `createTrackById`; sobre un circuito, tráfico con densidad 0 y salida en el centro de la pista (design.md D3). Verificar con pruebas los escenarios "Estado por defecto", "Circuito sin tráfico" y "Volver a la calle" de la spec `simulacion`.
+- [x] 3.2 Llevar `laps` por agente y armar el progreso acumulado. Verificar con pruebas los tres escenarios de "Progreso por vueltas", incluido que el progreso no salta al cruzar la salida en ninguno de los dos sentidos.
+- [x] 3.3 Verificar con pruebas "Choque con el borde", "Varios autos en un circuito" y "Circuito reproducible", y que las pruebas de reproducibilidad existentes pasan sin cambios.
 
 ## 4. Entrenamiento en circuitos
 
