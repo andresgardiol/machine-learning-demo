@@ -121,3 +121,30 @@ test('Reglas a mano: nombres de misiones de hasta 34 caracteres, con su meta rea
   assert.equal(RULES_MISSIONS.length, 3);
   for (const m of RULES_MISSIONS) assertMax(`rules.mission.${m.id}`, MISSION_MAX, { goal: m.goal });
 });
+
+// --- circuitos-y-paisaje: nombres de pista, indicador de vueltas e interruptor del paisaje ----------
+// Las pistas van en dos columnas en el panel de 360 px: cada nombre tiene unos 150 px.
+const TRACK_NAME_MAX = 16;
+// El interruptor del paisaje comparte el renglón de la cámara con +, − y "Seguir al auto (V)".
+const SCENERY_MAX = 10;
+
+test('circuitos: nombres de pista de hasta 16 caracteres', () => {
+  for (const id of ['straight', 'oval', 'kidney', 'grandPrix']) assertMax(`track.${id}`, TRACK_NAME_MAX);
+  assertMax('track.label', TRACK_NAME_MAX);
+  assertMax('train.tracks', TRACK_NAME_MAX);
+});
+
+test('circuitos: el nombre del indicador de vueltas es de hasta 22 caracteres, en las tres pestañas', () => {
+  assertMax('drive.stats.laps', STAT_NAME_MAX);
+  assertMax('train.stats.laps', STAT_NAME_MAX);
+});
+
+test('circuitos: el interruptor del paisaje es de hasta 10 caracteres', () => {
+  assertMax('camera.scenery', SCENERY_MAX);
+});
+
+test('circuitos: guía en un circuito, línea de las misiones y ayuda de la curva dentro de sus topes', () => {
+  assertMax('drive.guide.what.circuit', GUIDE_MAX, { track: 'Gran premio' });
+  assertMax('drive.missions.circuit', HINT_MAX);
+  assertMax('train.chart.hint.tracks', HINT_MAX);
+});

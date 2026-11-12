@@ -57,9 +57,9 @@
 
 ## 9. Textos y tooltips
 
-- [ ] 9.1 Agregar en `src/i18n/es.js` y `en.js` las claves de design.md D11. Verificar que la prueba de paridad pasa y que `mlLab.auditTooltips()` no informa controles sin ayuda en ninguna de las tres pestañas, en la calle y en un circuito.
-- [ ] 9.2 Sumar a `tests/copy-length.test.js` los largos de los nombres de pista, del indicador de vueltas y del interruptor del paisaje. Verificar que pasa.
-- [ ] 9.3 Verificar en el navegador, en español y en inglés, los tooltips del selector de pista, de las pistas del entrenamiento, de los ajustes deshabilitados en un circuito, del interruptor del paisaje y de "ver como la máquina" en las pestañas 2 y 3.
+- [x] 9.1 Agregar en `src/i18n/es.js` y `en.js` las claves de design.md D11. Verificar que la prueba de paridad pasa y que `mlLab.auditTooltips()` no informa controles sin ayuda en ninguna de las tres pestañas, en la calle y en un circuito.
+- [x] 9.2 Sumar a `tests/copy-length.test.js` los largos de los nombres de pista, del indicador de vueltas y del interruptor del paisaje. Verificar que pasa.
+- [x] 9.3 Verificar en el navegador, en español y en inglés, los tooltips del selector de pista, de las pistas del entrenamiento, de los ajustes deshabilitados en un circuito, del interruptor del paisaje y de "ver como la máquina" en las pestañas 2 y 3.
 
 ## 10. Verificación integral
 
