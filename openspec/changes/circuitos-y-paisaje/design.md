@@ -83,7 +83,9 @@ separaciones que pide la spec.
 - **Gran premio:** inspirado en un trazado de gran premio conocido, sin su
   cruce. Es alargado y angosto, no una caja: la ida y la vuelta corren casi
   paralelas. Desde la salida: recta, primera curva de casi media vuelta, una
-  serie de eses (curva y contracurva, al menos cuatro seguidas), una curva
+  serie de eses cerradas y seguidas (curva y contracurva, al menos seis, de 45°
+  o más cada una y casi sin rectas entre ellas, ocupando buena parte del lado
+  de la ida), una curva
   larga, la horquilla en el extremo lejano, la recta de atrás de al menos 150
   m, una curva rápida y la chicana final antes de la recta de salida. Tiene
   que ser divertido de manejar: la dificultad sube respecto del riñón, pero
@@ -91,7 +93,8 @@ separaciones que pide la spec.
 
 El dueño vio un primer dibujo (riñón de 952 m, gran premio de 1744 m en forma
 de caja) y lo rechazó por largo y por la forma; estos rangos y esta
-descripción salen de esa revisión.
+descripción salen de esa revisión. En una segunda vuelta aprobó el riñón y la
+forma del gran premio, y pidió las eses más cerradas y más seguidas.
 
 Los números del riñón y del gran premio los define la implementación,
 respetando la spec. Como el dibujo es una cuestión de gusto, la tarea 2.4 se

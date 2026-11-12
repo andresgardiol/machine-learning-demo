@@ -50,19 +50,20 @@ export const CIRCUITS = Object.freeze({
     { straight: 40 },
   ]),
   // Alargado y angosto, con la ida y la vuelta casi paralelas: recta de salida, primera curva de casi
-  // media vuelta, eses (cuatro curvas que alternan el sentido), curva larga, horquilla en el extremo
-  // lejano, recta de atrás, curva rápida y chicana final antes de la recta de salida. La vuelta va
-  // por el lado de afuera de la ida, así no se cruza.
+  // media vuelta, eses cerradas y seguidas (seis curvas que alternan el sentido) a lo largo de la
+  // ida, curva larga, horquilla en el extremo lejano, recta de atrás, curva rápida y chicana final
+  // antes de la recta de salida. La vuelta va por el lado de afuera de la ida, así no se cruza.
   grandPrix: Object.freeze([
     { straight: 70 },
     { radius: 35, turn: 160 }, // primera curva
     { straight: 20 },
-    { radius: 35, turn: -50 }, { radius: 35, turn: 100 }, { radius: 35, turn: -90 }, { radius: 35, turn: 60 }, // eses
-    { straight: 115.257 },
-    { radius: 150, turn: 30 }, // curva larga
-    { straight: 117.212 },
+    { radius: 30, turn: 55 }, { radius: 30, turn: -90 }, { radius: 30, turn: 90 }, // eses
+    { radius: 30, turn: -90 }, { radius: 30, turn: 90 }, { radius: 30, turn: -50 },
+    { straight: 78.340 },
+    { radius: 150, turn: 45 }, // curva larga
+    { straight: 71.746 },
     { radius: 30, turn: 150 }, // horquilla
-    { straight: 150 }, // recta de atrás
+    { straight: 180 }, // recta de atrás
     { radius: 120, turn: -20 }, { straight: 20 }, { radius: 120, turn: 20 }, // curva rápida
     { straight: 30 },
     { radius: 25, turn: 40 }, { radius: 25, turn: -40 }, // chicana final

@@ -56,7 +56,7 @@ al menos 150 metros y una chicana final). Ninguno se cruza consigo mismo.
 
 #### Scenario: Eses del gran premio
 - **WHEN** se recorre el gran premio desde la salida
-- **THEN** después de la primera curva hay al menos cuatro curvas seguidas que alternan el sentido de giro
+- **THEN** después de la primera curva hay al menos seis curvas seguidas que alternan el sentido de giro, cada una de 45 grados o más, sin rectas de más de 20 metros entre ellas
 
 #### Scenario: Circuito repetible
 - **WHEN** se arma dos veces el mismo circuito

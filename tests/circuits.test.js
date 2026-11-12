@@ -137,19 +137,19 @@ test('Gran premio alargado: el lado largo de su recuadro mide al menos el doble 
   assert.ok(Math.max(w, h) >= 2 * Math.min(w, h), `${w.toFixed(0)} × ${h.toFixed(0)} m`);
 });
 
-test('Eses del gran premio: después de la primera curva, al menos cuatro curvas seguidas que alternan el sentido', () => {
+test('Eses del gran premio: después de la primera curva, seis curvas seguidas que alternan el sentido, de 45° o más, sin rectas de más de 20 m', () => {
   const pieces = CIRCUITS.grandPrix;
   const first = pieces.findIndex((p) => p.radius !== undefined);
   assert.ok(Math.abs(pieces[first].turn) >= 150, 'la primera curva es de casi media vuelta');
-  // Curvas seguidas: entre una y otra hay, como mucho, una recta corta (menos de 30 m).
-  const after = pieces.slice(first + 1).filter((p) => !(p.straight !== undefined && p.straight < 30));
+  // Curvas seguidas: entre una y otra hay, como mucho, una recta de 20 m.
+  const after = pieces.slice(first + 1).filter((p) => !(p.straight !== undefined && p.straight <= 20));
   let run = 0;
   for (const p of after) {
-    if (p.radius === undefined) break;
+    if (p.radius === undefined || Math.abs(p.turn) < 45) break;
     if (run > 0 && Math.sign(p.turn) === Math.sign(after[run - 1].turn)) break;
     run += 1;
   }
-  assert.ok(run >= 4, `${run} curvas alternadas`);
+  assert.ok(run >= 6, `${run} curvas alternadas`);
 });
 
 test('gran premio: horquilla, curva larga, recta de atrás de 150 m y chicana final', () => {
