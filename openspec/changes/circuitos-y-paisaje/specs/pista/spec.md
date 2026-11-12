@@ -40,15 +40,23 @@ auto son su progreso dividido por el largo de una vuelta.
 
 ### Requirement: Catálogo de circuitos
 Además de la calle recta, el sistema SHALL ofrecer tres circuitos cerrados,
-siempre los mismos: el óvalo (dos rectas y dos curvas amplias, de 500 a 700
-metros), el riñón (curvas hacia los dos lados y una chicana, de 800 a 1000
-metros) y el gran premio (el más largo, de 1400 a 1800 metros, con al menos
-ocho curvas hacia los dos lados, una horquilla, una sección de eses y una
-recta de al menos 250 metros). Ninguno se cruza consigo mismo.
+siempre los mismos y de dificultad creciente: el óvalo (dos rectas y dos
+curvas amplias, de 500 a 700 metros), el riñón (un óvalo con una entrante y
+una chicana, de 650 a 800 metros) y el gran premio (alargado, de 1000 a 1300
+metros, con una serie de eses, una horquilla, una curva larga, una recta de
+al menos 150 metros y una chicana final). Ninguno se cruza consigo mismo.
 
 #### Scenario: Cuatro pistas
 - **WHEN** se piden las pistas disponibles
 - **THEN** son la calle recta, el óvalo, el riñón y el gran premio, en ese orden
+
+#### Scenario: Gran premio alargado
+- **WHEN** se mide el recuadro que contiene al gran premio
+- **THEN** su lado largo mide al menos el doble que su lado corto
+
+#### Scenario: Eses del gran premio
+- **WHEN** se recorre el gran premio desde la salida
+- **THEN** después de la primera curva hay al menos cuatro curvas seguidas que alternan el sentido de giro
 
 #### Scenario: Circuito repetible
 - **WHEN** se arma dos veces el mismo circuito

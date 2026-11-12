@@ -77,11 +77,21 @@ los arcos con cuerdas de 3 m como máximo. Las pruebas comprueban que cierra
 separaciones que pide la spec.
 
 - **Óvalo:** dos rectas de 150 m y dos medias vueltas de radio 50 m (614 m).
-- **Riñón:** el dibujo de un riñón, con una curva larga hacia un lado, la
-  entrante hacia el otro y una chicana en la recta opuesta a la salida.
-- **Gran premio:** recta de salida larga, primera curva amplia, eses,
-  horquilla, recta de atrás de al menos 250 m, una curva rápida y una chicana
-  antes de volver a la recta de salida.
+- **Riñón:** un óvalo apenas más largo, con una entrante suave en uno de los
+  lados largos y una chicana bien marcada en el otro. Es el óvalo con un poco
+  más de complejidad, no un circuito largo.
+- **Gran premio:** inspirado en un trazado de gran premio conocido, sin su
+  cruce. Es alargado y angosto, no una caja: la ida y la vuelta corren casi
+  paralelas. Desde la salida: recta, primera curva de casi media vuelta, una
+  serie de eses (curva y contracurva, al menos cuatro seguidas), una curva
+  larga, la horquilla en el extremo lejano, la recta de atrás de al menos 150
+  m, una curva rápida y la chicana final antes de la recta de salida. Tiene
+  que ser divertido de manejar: la dificultad sube respecto del riñón, pero
+  sin encadenar curvas cerradas una tras otra en todo el recorrido.
+
+El dueño vio un primer dibujo (riñón de 952 m, gran premio de 1744 m en forma
+de caja) y lo rechazó por largo y por la forma; estos rangos y esta
+descripción salen de esa revisión.
 
 Los números del riñón y del gran premio los define la implementación,
 respetando la spec. Como el dibujo es una cuestión de gusto, la tarea 2.4 se

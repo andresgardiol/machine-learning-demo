@@ -9,7 +9,7 @@
 ## 2. Catálogo de circuitos
 
 - [x] 2.1 Crear `src/core/circuits.js` con `TRACK_IDS`, el armador de trazados por tramos y `createTrackById` (design.md D2), con la calle recta delegada en `createStraightStreet`. Verificar con pruebas los escenarios "Cuatro pistas", "Circuito repetible" y "Pista desconocida".
-- [x] 2.2 Definir el óvalo con los números de D2 y diseñar el riñón y el gran premio. Verificar con pruebas, para los tres: que el trazado cierra, su largo dentro del rango de la spec, radio mínimo de 25 m, 30 m entre tramos no vecinos, 12 m de ancho y la salida en una recta de al menos 80 m; y para el gran premio, las ocho curvas, la horquilla, las eses y la recta de 250 m.
+- [x] 2.2 Definir el óvalo con los números de D2 y diseñar el riñón y el gran premio. Verificar con pruebas, para los tres: que el trazado cierra, su largo dentro del rango de la spec, radio mínimo de 25 m, 30 m entre tramos no vecinos, 12 m de ancho y la salida en una recta de al menos 80 m; y para el gran premio, que es alargado (el lado largo de su recuadro mide al menos el doble que el corto), las eses (al menos cuatro curvas seguidas que alternan el sentido), la horquilla, la curva larga, la recta de 150 m y la chicana final.
 - [x] 2.3 Verificar con una prueba el escenario "Vuelta por el centro": un auto que sigue la línea central completa una vuelta de cada circuito a la velocidad máxima por defecto sin tocar los bordes.
 - [ ] 2.4 Generar una imagen con los tres trazados a la misma escala, con su largo y su línea de salida, y **detenerse a mostrarla**: el dibujo de los circuitos se aprueba antes de seguir.
 

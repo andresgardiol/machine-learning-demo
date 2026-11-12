@@ -154,6 +154,21 @@ El resto de las notas de este archivo no tiene orden fijo.
     (artículo 9) y no distraer del problema (artículo 1);
   - quizás un interruptor para que el mentor lo apague (artículo 6).
 
+- **Los ajustes más interesantes de Entrenar están demasiado escondidos.**
+  Observación del dueño (12 de noviembre de 2026, con captura): la función de
+  fitness, la élite, las pistas, el tráfico, la red y los sensores están
+  dentro de "Avanzado", y ahí adentro otra vez dentro de Evolución,
+  Escenario, Red y Sensores. Son dos niveles de plegado para llegar a lo que
+  más conviene tocar al experimentar.
+  - Cómo encararlo: el mismo ejercicio que se hizo con el tablero de
+    aprendizaje. Una crítica de diseño del panel con la skill de UX que mejor
+    encaje (la de crítica de diseño), tres alternativas de organización para
+    comparar, y recién después la propuesta de OpenSpec con la elegida.
+  - A tener en cuenta: el panel de Entrenar hoy entra justo a 1440×900 sin
+    desplazarse; el principiante no tiene que ver más controles que hoy
+    (artículos 4 y 6); y cada cambio que se hizo sumó ajustes a "Avanzado"
+    (pistas del entrenamiento, enfriamiento, función de fitness nueva).
+
 - **Introducción guiada para quien llega sin la teoría.** La guía explica
   cada control, pero la pantalla tiene mucha información a la vez y da por
   sabido lo que el mentor contaría antes: qué es una red, qué es una

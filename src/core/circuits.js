@@ -34,41 +34,39 @@ export const CIRCUITS = Object.freeze({
     { radius: 50, turn: 180 },
     { straight: 75 },
   ]),
-  // Una curva larga a la izquierda, la entrante a la derecha (el hueco del riñón), otra curva y una
-  // chicana en la recta de arriba, opuesta a la salida.
+  // Un óvalo apenas más largo, con una entrante suave en el lado de la salida y una chicana marcada
+  // (un cambio de dirección claro, que corre la recta) en el lado opuesto.
   kidney: Object.freeze([
-    { straight: 80 },
-    { radius: 45, turn: 140 },
-    { straight: 17.121 },
-    { radius: 35, turn: -100 }, // entrante
-    { straight: 10 },
-    { radius: 45, turn: 140 },
-    { straight: 43.835 },
-    { radius: 25, turn: -45 }, { radius: 25, turn: 90 }, { radius: 25, turn: -45 }, // chicana
-    { straight: 20 },
-    { radius: 115, turn: 180 }, // curva larga
-    { straight: 60 },
+    { straight: 45 },
+    { radius: 50, turn: 30 }, { radius: 50, turn: -60 }, { radius: 50, turn: 30 }, // entrante suave
+    { straight: 15 },
+    { radius: 50, turn: 180 },
+    { straight: 105.699 },
+    { radius: 25, turn: -60 }, { straight: 12 }, { radius: 25, turn: 60 }, // chicana
+    { straight: 45 },
+    { radius: 50, turn: 90 },
+    { straight: 35.392 },
+    { radius: 50, turn: 90 },
+    { straight: 40 },
   ]),
-  // Recta de salida, primera curva amplia, eses, una derecha, horquilla, doble curva, recta de atrás
-  // de más de 250 m, curva rápida y chicana antes de volver a la recta de salida.
+  // Alargado y angosto, con la ida y la vuelta casi paralelas: recta de salida, primera curva de casi
+  // media vuelta, eses (cuatro curvas que alternan el sentido), curva larga, horquilla en el extremo
+  // lejano, recta de atrás, curva rápida y chicana final antes de la recta de salida. La vuelta va
+  // por el lado de afuera de la ida, así no se cruza.
   grandPrix: Object.freeze([
-    { straight: 110 },
-    { radius: 80, turn: 75 }, // primera curva, amplia
-    { straight: 185 },
-    { radius: 45, turn: 75 },
-    { straight: 20 },
-    { radius: 30, turn: -70 }, { radius: 30, turn: 120 }, { radius: 30, turn: -110 }, { radius: 30, turn: 90 }, // eses
-    { straight: 132.679 },
-    { radius: 40, turn: -90 },
-    { straight: 50 },
-    { radius: 25, turn: 180 }, // horquilla
-    { straight: 30 },
-    { radius: 45, turn: -70 }, { straight: 20 }, { radius: 60, turn: 70 }, // doble curva
-    { straight: 258.021 }, // recta de atrás
-    { radius: 100, turn: 90 }, // curva rápida
-    { straight: 30 },
-    { radius: 25, turn: -50 }, { radius: 25, turn: 50 }, // chicana
     { straight: 70 },
+    { radius: 35, turn: 160 }, // primera curva
+    { straight: 20 },
+    { radius: 35, turn: -50 }, { radius: 35, turn: 100 }, { radius: 35, turn: -90 }, { radius: 35, turn: 60 }, // eses
+    { straight: 115.257 },
+    { radius: 150, turn: 30 }, // curva larga
+    { straight: 117.212 },
+    { radius: 30, turn: 150 }, // horquilla
+    { straight: 150 }, // recta de atrás
+    { radius: 120, turn: -20 }, { straight: 20 }, { radius: 120, turn: 20 }, // curva rápida
+    { straight: 30 },
+    { radius: 25, turn: 40 }, { radius: 25, turn: -40 }, // chicana final
+    { straight: 50 },
   ]),
 });
 

@@ -11,7 +11,7 @@ import { outline, segmentIntersection, distance } from '../src/core/geometry.js'
 import { STEP, MAX_SPEED } from '../src/core/constants.js';
 
 const CIRCUIT_IDS = ['oval', 'kidney', 'grandPrix'];
-const LENGTHS = { oval: [500, 700], kidney: [800, 1000], grandPrix: [1400, 1800] };
+const LENGTHS = { oval: [500, 700], kidney: [650, 800], grandPrix: [1000, 1300] };
 
 test('Cuatro pistas: la calle recta, el óvalo, el riñón y el gran premio, en ese orden', () => {
   assert.deepEqual(TRACK_IDS, ['straight', 'oval', 'kidney', 'grandPrix']);
@@ -112,26 +112,59 @@ test('la salida está en una recta de al menos 80 m', () => {
   }
 });
 
-test('gran premio: ocho curvas o más a los dos lados, horquilla, eses y recta de 250 m', () => {
+const arcsOf = (pieces) => pieces.filter((p) => p.radius !== undefined);
+
+test('dificultad creciente: cada circuito es más largo y tiene más curvas que el anterior', () => {
+  const lengths = CIRCUIT_IDS.map((id) => createTrackById(id).length);
+  const curves = CIRCUIT_IDS.map((id) => arcsOf(CIRCUITS[id]).length);
+  for (let i = 1; i < CIRCUIT_IDS.length; i++) {
+    assert.ok(lengths[i] > lengths[i - 1]);
+    assert.ok(curves[i] > curves[i - 1]);
+  }
+});
+
+test('riñón: un óvalo con una entrante y una chicana (curvas hacia los dos lados)', () => {
+  const arcs = arcsOf(CIRCUITS.kidney);
+  assert.ok(arcs.some((a) => a.turn > 0) && arcs.some((a) => a.turn < 0));
+  // Dos medias vueltas, como el óvalo (una de ellas partida en dos cuartos).
+  assert.equal(arcs.filter((a) => a.turn > 0).reduce((n, a) => n + a.turn, 0) - arcs.filter((a) => a.turn < 0).reduce((n, a) => n - a.turn, 0), 360);
+});
+
+test('Gran premio alargado: el lado largo de su recuadro mide al menos el doble que el corto', () => {
+  const pts = createTrackById('grandPrix').centerline;
+  const w = Math.max(...pts.map((p) => p.x)) - Math.min(...pts.map((p) => p.x));
+  const h = Math.max(...pts.map((p) => p.y)) - Math.min(...pts.map((p) => p.y));
+  assert.ok(Math.max(w, h) >= 2 * Math.min(w, h), `${w.toFixed(0)} × ${h.toFixed(0)} m`);
+});
+
+test('Eses del gran premio: después de la primera curva, al menos cuatro curvas seguidas que alternan el sentido', () => {
   const pieces = CIRCUITS.grandPrix;
-  const arcs = pieces.filter((p) => p.radius !== undefined);
-  assert.ok(arcs.length >= 8);
+  const first = pieces.findIndex((p) => p.radius !== undefined);
+  assert.ok(Math.abs(pieces[first].turn) >= 150, 'la primera curva es de casi media vuelta');
+  // Curvas seguidas: entre una y otra hay, como mucho, una recta corta (menos de 30 m).
+  const after = pieces.slice(first + 1).filter((p) => !(p.straight !== undefined && p.straight < 30));
+  let run = 0;
+  for (const p of after) {
+    if (p.radius === undefined) break;
+    if (run > 0 && Math.sign(p.turn) === Math.sign(after[run - 1].turn)) break;
+    run += 1;
+  }
+  assert.ok(run >= 4, `${run} curvas alternadas`);
+});
+
+test('gran premio: horquilla, curva larga, recta de atrás de 150 m y chicana final', () => {
+  const pieces = CIRCUITS.grandPrix;
+  const arcs = arcsOf(pieces);
   assert.ok(arcs.some((a) => a.turn > 0) && arcs.some((a) => a.turn < 0));
   assert.ok(arcs.some((a) => Math.abs(a.turn) >= 150 && a.radius <= 30), 'horquilla');
-  // Eses: al menos tres curvas seguidas que alternan el lado.
-  let run = 1;
-  let best = 1;
-  for (let i = 1; i < pieces.length; i++) {
-    const a = pieces[i - 1];
-    const b = pieces[i];
-    run = a.radius !== undefined && b.radius !== undefined && Math.sign(a.turn) !== Math.sign(b.turn) ? run + 1 : 1;
-    best = Math.max(best, run);
-  }
-  assert.ok(best >= 3, 'eses');
-  // Recta de atrás: una recta de 250 m o más que no es la de salida.
-  assert.ok(pieces.slice(1, -1).some((p) => p.straight >= 250));
-  const others = CIRCUIT_IDS.filter((id) => id !== 'grandPrix').map((id) => createTrackById(id).length);
-  assert.ok(createTrackById('grandPrix').length > Math.max(...others));
+  assert.ok(arcs.some((a) => a.radius >= 100 && (a.radius * Math.abs(a.turn) * Math.PI) / 180 >= 60), 'curva larga');
+  // Recta de atrás: una recta de 150 m o más que no es la de salida.
+  assert.ok(pieces.slice(1, -1).some((p) => p.straight >= 150), 'recta de atrás');
+  // Chicana final: las dos últimas curvas, cerradas y hacia lados opuestos, justo antes de la recta de salida.
+  const last = pieces.length - 1;
+  assert.ok(pieces[last].straight !== undefined);
+  const [a, b] = [pieces[last - 2], pieces[last - 1]];
+  assert.ok(a.radius <= 30 && b.radius <= 30 && Math.sign(a.turn) !== Math.sign(b.turn), 'chicana final');
 });
 
 test('ningún circuito se cruza consigo mismo', () => {
