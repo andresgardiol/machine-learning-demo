@@ -113,6 +113,8 @@ pide una regla más. Las reglas a mano no escalan.**
   un programa.
 - `tablero`: se agrega que una tarjeta puede contener un editor cuando lo que
   se escribe es lo que se ve ejecutarse.
+- `ayuda-contextual`: el tooltip de un área de escritura aparece solo al
+  llegar con el teclado, para no tapar lo que la rodea mientras se escribe.
 
 ## Impact
 

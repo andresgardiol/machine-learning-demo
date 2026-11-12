@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { placeTooltip, helpKeys } from '../src/ui/tooltips.js';
+import { placeTooltip, helpKeys, opensTooltip, WRITING_AREA_SELECTOR } from '../src/ui/tooltips.js';
 
 const viewport = { width: 1280, height: 800 };
 const size = { width: 260, height: 120 };
@@ -46,4 +46,18 @@ test('control alto que no deja lugar arriba ni abajo: el tooltip va al costado',
 
 test('claves de ayuda en dos partes', () => {
   assert.deepEqual(helpKeys('guide'), { what: 'help.guide.what', why: 'help.guide.why' });
+});
+
+test('área de escritura: su tooltip no aparece con el cursor ni con un clic, solo al llegar con Tab', () => {
+  assert.equal(WRITING_AREA_SELECTOR, 'textarea');
+  assert.equal(opensTooltip({ cause: 'hover', writingArea: true, keyboard: false }), false);
+  // Tras un clic, un área de escritura muestra el anillo de foco igual: no alcanza para abrirlo.
+  assert.equal(opensTooltip({ cause: 'focus', writingArea: true, keyboard: false, focusVisible: true }), false);
+  assert.equal(opensTooltip({ cause: 'focus', writingArea: true, keyboard: true, focusVisible: true }), true);
+});
+
+test('los demás controles: el tooltip aparece con el cursor y con el foco de teclado, no tras un clic', () => {
+  assert.equal(opensTooltip({ cause: 'hover', writingArea: false, keyboard: false }), true);
+  assert.equal(opensTooltip({ cause: 'focus', writingArea: false, keyboard: true, focusVisible: true }), true);
+  assert.equal(opensTooltip({ cause: 'focus', writingArea: false, keyboard: false, focusVisible: false }), false);
 });

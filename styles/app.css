@@ -527,7 +527,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   padding: var(--space-1) 0; border-right: 1px solid var(--color-border);
   color: var(--color-text-muted); text-align: right; user-select: none;
 }
-.editor-gutter-inner { will-change: transform; }
+/* Los números van fuera del flujo: el alto del editor lo da la tarjeta, no el largo del programa. Un
+   programa más largo que el editor se desplaza adentro, sin estirar la tarjeta ni desplazar el tablero. */
+.editor-gutter-inner { position: absolute; top: var(--space-1); left: 0; right: 0; will-change: transform; }
 .editor-line-no { position: relative; height: 20px; padding-right: 5px; font-variant-numeric: tabular-nums; }
 /* Marca junto al número: ▸ la línea se cumple, ✕ la línea tiene un error (no dependen solo del color). */
 .editor-line-no[data-mark="active"]::before,

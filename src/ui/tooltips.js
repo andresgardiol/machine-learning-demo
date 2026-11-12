@@ -7,10 +7,28 @@
 // Un único elemento flotante y escuchas delegadas en el documento (no una por control).
 // Los controles no disponibles usan aria-disabled (no disabled), para seguir recibiendo
 // eventos y poder explicar por qué no se pueden usar.
+//
+// Un área de escritura (textarea) es la excepción: el cursor descansa encima mientras se escribe, así
+// que su tooltip no aparece al posar el cursor ni al hacer clic; solo al llegar con Tab, y se cierra
+// apenas se escribe o se hace clic en ella.
 
 export const SHOW_DELAY_MS = 400;
 const GAP = 8;
 const MARGIN = 8;
+
+/** Controles donde se escribe texto largo: explican solo al llegar con el teclado. */
+export const WRITING_AREA_SELECTOR = 'textarea';
+
+/**
+ * ¿Corresponde abrir el tooltip de un control?
+ * @param {{cause: 'hover'|'focus', writingArea: boolean, keyboard: boolean, focusVisible?: boolean}} spec
+ *   keyboard: el foco llegó con Tab; focusVisible: el navegador muestra el anillo de foco
+ */
+export function opensTooltip({ cause, writingArea, keyboard, focusVisible = keyboard }) {
+  if (cause === 'hover') return !writingArea;
+  // Con el foco, un área de escritura siempre muestra el anillo (también tras un clic): cuenta solo Tab.
+  return writingArea ? keyboard : focusVisible;
+}
 
 export const helpKeys = (id) => ({ what: `help.${id}.what`, why: `help.${id}.why` });
 
@@ -65,7 +83,9 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS })
 
   let current = null; // control con el tooltip visible o pendiente
   let timer = null;
+  let tabbing = false; // la última interacción fue la tecla Tab (y no un clic)
 
+  const isWritingArea = (control) => control.matches(WRITING_AREA_SELECTOR);
   const controlOf = (node) => (node && node.closest ? node.closest('[data-help]') : null);
 
   /** Parámetros del texto de ayuda (data-help-params, JSON), por ejemplo el número de un sensor. */
@@ -115,6 +135,7 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS })
     if (e.pointerType && e.pointerType !== 'mouse') return;
     const control = controlOf(e.target);
     if (!control || control === current) return;
+    if (!opensTooltip({ cause: 'hover', writingArea: isWritingArea(control), keyboard: false })) return;
     hide();
     current = control;
     timer = setTimeout(() => show(control), delay);
@@ -133,7 +154,8 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS })
     const control = controlOf(e.target);
     if (!control) return;
     // Solo con foco de teclado (Tab); un clic con el mouse no lo muestra.
-    if (control.matches(':focus-visible')) show(control);
+    const focusVisible = control.matches(':focus-visible');
+    if (opensTooltip({ cause: 'focus', writingArea: isWritingArea(control), keyboard: tabbing, focusVisible })) show(control);
   }
 
   function onFocusOut(e) {
@@ -141,12 +163,24 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS })
   }
 
   function onKeyDown(e) {
+    tabbing = e.key === 'Tab';
     if (e.key === 'Escape' && current) hide();
+  }
+
+  function onPointerDown(e) {
+    tabbing = false;
+    if (current && isWritingArea(current) && controlOf(e.target) === current) hide();
+  }
+
+  /** Al empezar a escribir, el tooltip del área de escritura deja de tapar lo que la rodea. */
+  function onInput(e) {
+    if (current && isWritingArea(current) && controlOf(e.target) === current) hide();
   }
 
   const listeners = [
     ['pointerover', onPointerOver], ['pointerout', onPointerOut],
     ['focusin', onFocusIn], ['focusout', onFocusOut], ['keydown', onKeyDown],
+    ['pointerdown', onPointerDown], ['input', onInput],
   ];
   for (const [type, fn] of listeners) doc.addEventListener(type, fn);
   win.addEventListener('blur', hide);
