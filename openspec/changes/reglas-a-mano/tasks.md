@@ -24,10 +24,10 @@ claves nuevas y se informa en el reporte.
 
 ## 3. Piezas compartidas con la pestaña 1
 
-- [ ] 3.1 Mover a `src/tabs/shared/street-settings.js` los ajustes de calle y sensores de `src/tabs/drive/settings.js`, que pasa a reexportarlos (D5). Verificar que `tests/drive-settings.test.js` pasa sin modificarse.
-- [ ] 3.2 Extraer a `src/tabs/shared/attempt.js` el seguimiento de un intento (distancia, vehículos superados, intentos, mejor distancia) de `src/tabs/drive/session.js`, que pasa a usarlo. Verificar que `tests/drive-session.test.js` pasa sin modificarse.
-- [ ] 3.3 Extraer a `src/tabs/shared/driving-cards.js` el bloque de barras de percepción (con la opción de mostrar el nombre de cada dato) y el bloque de los cuatro controles, y a `src/tabs/shared/street-advanced.js` la sección avanzada; la pestaña 1 pasa a usarlos.
-- [ ] 3.4 Verificar en el navegador que la pestaña 1 se ve y se comporta igual que antes: barras con sus números, velocidad, controles que se resaltan al manejar, interruptores, misiones, sección avanzada con sus siete ajustes y restablecer, y el panel sin barra de desplazamiento en 1440×900. Correr `npm test`.
+- [x] 3.1 Mover a `src/tabs/shared/street-settings.js` los ajustes de calle y sensores de `src/tabs/drive/settings.js`, que pasa a reexportarlos (D5). Verificar que `tests/drive-settings.test.js` pasa sin modificarse.
+- [x] 3.2 Extraer a `src/tabs/shared/attempt.js` el seguimiento de un intento (distancia, vehículos superados, intentos, mejor distancia) de `src/tabs/drive/session.js`, que pasa a usarlo. Verificar que `tests/drive-session.test.js` pasa sin modificarse.
+- [x] 3.3 Extraer a `src/tabs/shared/driving-cards.js` el bloque de barras de percepción (con la opción de mostrar el nombre de cada dato) y el bloque de los cuatro controles, y a `src/tabs/shared/street-advanced.js` la sección avanzada; la pestaña 1 pasa a usarlos.
+- [x] 3.4 Verificar en el navegador que la pestaña 1 se ve y se comporta igual que antes: barras con sus números, velocidad, controles que se resaltan al manejar, interruptores, misiones, sección avanzada con sus siete ajustes y restablecer, y el panel sin barra de desplazamiento en 1440×900. Correr `npm test`.
 
 ## 4. Editor de texto
 

@@ -4,22 +4,23 @@
 // Composición: mundo del núcleo + controlador de teclado + vista + bucle; el tablero con los
 // indicadores del intento, lo que perciben los sensores y lo que se acciona (design.md D10); y el
 // panel con guía, marcha, vista, misiones y configuración avanzada. La lógica que se puede probar
-// sin DOM vive en session.js (indicadores, misiones y lecturas), settings.js y shortcuts.js.
+// sin DOM vive en session.js (indicadores, misiones y lecturas), settings.js y shortcuts.js. Las
+// barras de percepción, los cuatro controles y la sección avanzada son piezas compartidas con la
+// pestaña Reglas a mano (tabs/shared/, design.md D5).
 import { createWorld } from '../../core/world.js';
 import { createKeyboardController } from '../../input/keyboard.js';
 import { createStageView } from '../../render/view.js';
 import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
-import { button, switchButton, sliderRow, optionGroup, createTextSetter } from '../../ui/controls.js';
+import { button, switchButton, createTextSetter } from '../../ui/controls.js';
 import { statStrip, boardCard } from '../../ui/board.js';
-import { formatFixed } from '../../ui/i18n.js';
-import { createDriveSession, readings } from './session.js';
-import { DEFAULT_SETTINGS, LANE_OPTIONS, SLIDERS, needsRestart, normalizeSettings, worldSpec } from './settings.js';
+import { perceptionBlock, actionBlock } from '../shared/driving-cards.js';
+import { streetAdvanced } from '../shared/street-advanced.js';
+import { createDriveSession } from './session.js';
+import { DEFAULT_SETTINGS, needsRestart, normalizeSettings, worldSpec } from './settings.js';
 import { shortcutFor } from './shortcuts.js';
 
 export const DEFAULT_SEED = 1;
-
-const ACTIONS = ['forward', 'reverse', 'left', 'right'];
 
 // Misiones cumplidas: siguen marcadas hasta cerrar la aplicación, aunque la pestaña se vuelva a montar.
 const completedMissions = new Set();
@@ -118,49 +119,24 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
 
   // Percepción: una barra por rayo, de izquierda a derecha, con su lectura debajo (hasta 12
   // sensores), y la velocidad aparte, rotulada y siempre con su número.
-  const bars = el('div', { class: 'sensor-bars', attrs: { role: 'img' }, i18nAttr: 'aria-label:drive.perception.bars' });
-  const barValues = el('div', { class: 'sensor-values', attrs: { 'aria-hidden': 'true' } });
-  let barFills = [];
-  let valueNodes = [];
-  function buildBars(count) {
-    barFills = Array.from({ length: count }, () => el('span', { class: 'sensor-fill' }));
-    bars.replaceChildren(...barFills.map((f) => el('span', { class: 'sensor-bar' }, f)));
-    valueNodes = Array.from({ length: count }, () => el('span', { class: 'sensor-value' }));
-    barValues.replaceChildren(...valueNodes);
-    for (const n of [bars, barValues]) {
-      n.style.setProperty('--bars', String(count));
-      // Con muchos rayos la separación se angosta para que cada barra conserve ancho visible.
-      n.style.setProperty('--bar-gap', count > 60 ? '0px' : count > 30 ? '1px' : '2px');
-    }
-  }
-  buildBars(world.perception.sensors.length);
-  const speedFill = el('span', { class: 'sensor-fill speed-fill' });
-  const speedValue = el('span', { class: 'sensor-value speed-value' });
+  const perception = perceptionBlock({ i18n, count: world.perception.sensors.length });
   const perceptionCard = boardCard({
     id: 'drive-perception', titleKey: 'drive.perception.title', help: 'drive.perception', hintKey: 'drive.perception.hint',
     open: cards.perception, grow: 1.4, onToggle: (open) => { cards.perception = open; },
   });
-  perceptionCard.append(el('div', { class: 'perception' },
-    el('div', { class: 'perception-sensors' }, bars, barValues),
-    el('div', { class: 'perception-speed' },
-      el('span', { class: 'sensor-bar speed-bar', attrs: { role: 'img' }, i18nAttr: 'aria-label:network.input.speed' }, speedFill),
-      speedValue,
-      el('span', { class: 'speed-label', i18n: 'network.input.speed' }))));
+  perceptionCard.append(perception.node);
 
   // Acción: los cuatro controles accionados
-  const actionKeys = Object.fromEntries(ACTIONS.map((a) => [a, el('span', { class: `action-key action-${a}`, dataset: { on: 'false' } },
-    el('span', { class: 'action-glyph', i18n: `drive.action.${a}.key`, attrs: { 'aria-hidden': 'true' } }),
-    el('span', { class: 'action-name', i18n: `drive.action.${a}` }))]));
+  const action = actionBlock();
   const actionCard = boardCard({
     id: 'drive-action', titleKey: 'drive.action.title', help: 'drive.action', hintKey: 'drive.action.hint',
     open: cards.action, grow: 1, onToggle: (open) => { cards.action = open; },
   });
-  actionCard.append(el('div', { class: 'action-keys' }, ACTIONS.map((a) => actionKeys[a])));
+  actionCard.append(action.node);
 
   board.append(strip.node, perceptionCard.node, actionCard.node);
 
   // Configuración avanzada (colapsada)
-  let dragging = false; // un arrastre de deslizador cuenta como un solo reinicio
   // Velocidad, densidad e irregularidad se aplican en marcha; carriles y sensores reinician el intento.
   function applySettings(next, { countAttempt = true } = {}) {
     const before = settings;
@@ -176,48 +152,11 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     }
     sync();
   }
-
-  const lanes = optionGroup({
-    labelKey: 'drive.lanes',
-    selected: settings.lanes,
-    options: LANE_OPTIONS.map((n) => ({
-      value: n, i18n: 'drive.lanes.option', params: { n }, help: 'drive.lanes',
-      labelKey: 'drive.lanes.optionLabel', dataset: { lanes: String(n) },
-    })),
-    onSelect: (n) => { if (n !== settings.lanes) applySettings({ ...settings, lanes: n }); },
-  });
-  const lanesRow = lanes.row;
-
-  const sliders = SLIDERS.map((s) => {
-    const { row, input, value } = sliderRow({
-      id: `drive-${s.key}`, labelKey: `drive.${s.key}`, help: `drive.${s.key}`,
-      min: s.min, max: s.max, step: s.step, value: settings[s.key],
-      onInput: (v) => {
-        applySettings({ ...settings, [s.key]: v }, { countAttempt: !dragging });
-        dragging = true;
-      },
-      onChange: () => { dragging = false; },
-    });
-    return { ...s, input, value, row };
-  });
-
-  const resetSettingsButton = button('drive.resetSettings', 'drive.resetSettings', () => applySettings({ ...DEFAULT_SETTINGS }));
-
-  const row = (key) => sliders.find((s) => s.key === key).row;
-  const advanced = el('details', { class: 'section' },
-    el('summary', { i18n: 'drive.advanced', help: 'drive.advanced' }),
-    el('div', { class: 'section-body advanced-body' },
-      el('h3', { class: 'panel-subheading', i18n: 'drive.advanced.car' }),
-      row('maxSpeed'),
-      el('h3', { class: 'panel-subheading', i18n: 'drive.advanced.street' }),
-      lanesRow, row('density'), row('irregularity'),
-      el('h3', { class: 'panel-subheading', i18n: 'drive.advanced.sensors' }),
-      row('sensorCount'), row('sensorRange'), row('sensorSpread'),
-      resetSettingsButton));
+  const advanced = streetAdvanced({ i18n, settings, apply: applySettings });
 
   panel.append(
     el('h1', { class: 'sr-only', i18n: 'drive.title' }),
-    intro, run, viewSwitches, missions, advanced);
+    intro, run, viewSwitches, missions, advanced.node);
 
   // --- Mensajes sobre el escenario ---------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
@@ -235,8 +174,6 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
 
   // --- Sincronizar el panel y el tablero con el estado ---------------------------------
   const meters = (v) => ({ value: Math.floor(v) });
-  /** Escribe un texto ya formado solo si cambió (se reescribe en cada cuadro y sigue al idioma). */
-  const writeText = (node, text) => { if (node.textContent !== text) node.textContent = text; };
 
   function sync() {
     const crashed = world.crashed;
@@ -257,23 +194,8 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     }
 
     // Percepción: barras y, con hasta 12 sensores, su lectura con dos decimales en el idioma activo.
-    const perception = world.perception;
-    if (perception.sensors.length !== barFills.length) buildBars(perception.sensors.length);
-    perception.sensors.forEach((v, i) => {
-      const h = `${Math.round(v * 100)}%`;
-      if (barFills[i].style.height !== h) barFills[i].style.height = h;
-    });
-    const read = readings(perception);
-    barValues.hidden = read.sensors === null;
-    if (read.sensors) read.sensors.forEach((v, i) => writeText(valueNodes[i], formatFixed(v, 2, i18n.language)));
-    const speedHeight = `${Math.round(Math.max(0, Math.min(1, read.speed)) * 100)}%`;
-    if (speedFill.style.height !== speedHeight) speedFill.style.height = speedHeight;
-    writeText(speedValue, formatFixed(read.speed, 2, i18n.language));
-    const controls = keyboard.control();
-    for (const a of ACTIONS) {
-      const on = String(Boolean(controls[a]));
-      if (actionKeys[a].dataset.on !== on) actionKeys[a].dataset.on = on;
-    }
+    perception.update(world.perception);
+    action.update(keyboard.control());
     sensorsSwitch.setAttribute('aria-checked', String(options.showSensors));
     machineSwitch.setAttribute('aria-checked', String(options.machineView));
 
@@ -293,11 +215,7 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     setText(introWhat, 'drive.guide.what', { lanes: settings.lanes });
 
     // Configuración avanzada
-    lanes.select(settings.lanes);
-    for (const s of sliders) {
-      if (Number(s.input.value) !== settings[s.key]) s.input.value = String(settings[s.key]);
-      setText(s.value, s.format, { value: settings[s.key], kmh: Math.round(settings[s.key] * 3.6) });
-    }
+    advanced.sync(settings);
   }
 
   // --- Bucle ----------------------------------------------------------------------
