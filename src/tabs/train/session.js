@@ -3,29 +3,31 @@
 // Los indicadores se calculan a partir del entrenamiento del núcleo; los textos (con su clave y sus
 // parámetros) los escribe la pestaña en el idioma activo.
 import { FITNESS_UNITS } from '../../core/evolution.js';
+import { DEFAULT_TRAINING_CONFIG } from '../../core/training.js';
 
 /** Misiones de la pestaña, en orden. */
 export const MISSIONS = Object.freeze([
   Object.freeze({ id: 'generations', goal: 5, unit: 'count' }),
-  Object.freeze({ id: 'distance', goal: 300, unit: 'meters' }),
+  Object.freeze({ id: 'passed', goal: 5, unit: 'count' }),
   Object.freeze({ id: 'save', goal: 1, unit: 'none' }),
   Object.freeze({ id: 'fitness', goal: 1, unit: 'none' }),
 ]);
 
 /**
  * Valor de fitness listo para mostrar: clave del texto con su unidad y valor redondeado
- * (metros sin decimales; segundos y metros por segundo con uno).
+ * (metros y metros de ventaja sin decimales; segundos y metros por segundo con uno).
  */
 export function fitnessText(value, kind) {
   const unit = FITNESS_UNITS[kind] ?? 'meters';
-  const rounded = unit === 'meters' ? Math.floor(Math.max(0, value)) : Math.round(Math.max(0, value) * 10) / 10;
+  const whole = unit === 'meters' || unit === 'metersAhead';
+  const rounded = whole ? Math.floor(Math.max(0, value)) : Math.round(Math.max(0, value) * 10) / 10;
   return { key: `train.value.${unit}`, params: { value: rounded } };
 }
 
 /**
  * Indicadores del entrenamiento: generación en curso, autos en carrera sobre el total, fitness del
- * líder ahora, mejor fitness de la última generación terminada (null si todavía no terminó
- * ninguna) y el motivo por el que terminó.
+ * líder ahora, vehículos que lleva superados el líder, mejor fitness de la última generación
+ * terminada (null si todavía no terminó ninguna) y el motivo por el que terminó.
  */
 export function indicators(training) {
   const last = training.history[training.history.length - 1] ?? null;
@@ -34,6 +36,7 @@ export function indicators(training) {
     alive: training.aliveCount,
     total: training.world.agents.length,
     leader: fitnessText(training.fitnessOf(training.leaderIndex), training.config.fitness),
+    passed: training.passedOf(training.leaderIndex),
     lastBest: last ? fitnessText(last.best, last.fitness) : null,
     lastReason: last ? last.reason : null,
   };
@@ -84,7 +87,7 @@ export function parentStatus(training) {
  */
 export function createTrainSession({ completed = new Set() } = {}) {
   let generation = 1;
-  let distance = 0;
+  let passed = 0; // mayor cantidad de vehículos superados por un líder
   let saved = 0;
   let otherFitness = 0;
 
@@ -95,29 +98,29 @@ export function createTrainSession({ completed = new Set() } = {}) {
   function progressOf(m) {
     switch (m.id) {
       case 'generations': return generation;
-      case 'distance': return distance;
+      case 'passed': return passed;
       case 'save': return saved;
       default: return otherFitness;
     }
   }
 
   return {
-    /** Observa el entrenamiento después de cada paso: generación en curso y distancia del líder. */
+    /** Observa el entrenamiento después de cada paso: generación en curso y vehículos superados por el líder. */
     observe(training) {
       generation = training.generation;
-      const leader = training.world.agents[training.leaderIndex];
-      if (leader && leader.progress > distance) distance = leader.progress;
+      const now = training.passedOf(training.leaderIndex);
+      if (now > passed) passed = now;
       check();
     },
-    /** Una generación terminó: cuenta para la misión de la función de fitness si no fue la distancia. */
+    /** Una generación terminó: cuenta para la misión de la función de fitness si no fue la de por defecto. */
     generationEnded(record) {
-      if (record.fitness !== 'distance') otherFitness += 1;
+      if (record.fitness !== DEFAULT_TRAINING_CONFIG.fitness) otherFitness += 1;
       check();
     },
     /** La persona guardó un cerebro. */
     brainSaved() { saved += 1; check(); },
     /** Empieza un entrenamiento nuevo: el progreso vuelve a cero; las misiones cumplidas siguen cumplidas. */
-    restart() { generation = 1; distance = 0; otherFitness = 0; },
+    restart() { generation = 1; passed = 0; otherFitness = 0; },
     /** Misiones con su progreso (acotado a la meta) y si están cumplidas. */
     get missions() {
       return MISSIONS.map((m) => ({ ...m, progress: Math.min(progressOf(m), m.goal), done: completed.has(m.id) }));

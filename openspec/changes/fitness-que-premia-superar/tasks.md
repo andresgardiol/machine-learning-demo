@@ -32,10 +32,10 @@
 
 ## 6. Pestaña Entrenar
 
-- [ ] 6.1 En `src/tabs/train/session.js`, sumar `passed` a `indicators`, reemplazar la misión de distancia por la de superar 5 vehículos y comparar la misión de "otra función" con la función por defecto (design.md D5). Verificar con pruebas en `tests/train-session.test.js` los escenarios "Misión de superar vehículos", "Seguir al tráfico no la cumple" y "Misión de la función de fitness".
-- [ ] 6.2 Tratar la unidad `metersAhead` como metros al redondear, en `fitnessText` y en `src/ui/library-view.js` (design.md D4). Verificar con pruebas que 120,7 m de ventaja se muestran como 120 y que un cerebro con `fitness.kind: 'distance'` se sigue mostrando en metros.
-- [ ] 6.3 En `src/tabs/train/index.js`, agregar el cuarto indicador al tablero y actualizarlo junto a los otros tres. Verificar en el navegador los escenarios "Vehículos superados del líder" y "Líder que cambia".
-- [ ] 6.4 Agregar el ajuste `mutationCooling` a `src/tabs/train/settings.js` y su interruptor a la configuración básica, debajo de la fuerza de mutación, con el deslizador sin editar mientras el enfriamiento está en uso (design.md D9). Verificar con pruebas en `tests/train-settings.test.js` el valor por defecto y que restablecer lo enciende, y en el navegador los escenarios "La fuerza baja sola", "Fuerza que no se edita", "Apagar el enfriamiento", "Volver a encender el enfriamiento" y "Con selección manual".
+- [x] 6.1 En `src/tabs/train/session.js`, sumar `passed` a `indicators`, reemplazar la misión de distancia por la de superar 5 vehículos y comparar la misión de "otra función" con la función por defecto (design.md D5). Verificar con pruebas en `tests/train-session.test.js` los escenarios "Misión de superar vehículos", "Seguir al tráfico no la cumple" y "Misión de la función de fitness".
+- [x] 6.2 Tratar la unidad `metersAhead` como metros al redondear, en `fitnessText` y en `src/ui/library-view.js` (design.md D4). Verificar con pruebas que 120,7 m de ventaja se muestran como 120 y que un cerebro con `fitness.kind: 'distance'` se sigue mostrando en metros.
+- [x] 6.3 En `src/tabs/train/index.js`, agregar el cuarto indicador al tablero y actualizarlo junto a los otros tres. Verificar en el navegador los escenarios "Vehículos superados del líder" y "Líder que cambia".
+- [x] 6.4 Agregar el ajuste `mutationCooling` a `src/tabs/train/settings.js` y su interruptor a la configuración básica, debajo de la fuerza de mutación, con el deslizador sin editar mientras el enfriamiento está en uso (design.md D9). Verificar con pruebas en `tests/train-settings.test.js` el valor por defecto y que restablecer lo enciende, y en el navegador los escenarios "La fuerza baja sola", "Fuerza que no se edita", "Apagar el enfriamiento", "Volver a encender el enfriamiento" y "Con selección manual".
 
 ## 7. Textos y tooltips
 

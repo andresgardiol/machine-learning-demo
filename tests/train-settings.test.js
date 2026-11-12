@@ -11,7 +11,7 @@ import { createRandom } from '../src/core/random.js';
 test('valores por defecto: 100 autos, mutación 10 %, red 6-6-4 con escalón, 5 sensores, velocidad normal', () => {
   assert.deepEqual(DEFAULT_SETTINGS, {
     speed: 1, showSensors: true, showNetwork: true, showChart: true,
-    population: 100, mutationStrength: 10, selectionMode: 'auto', elite: 10, selection: 10, mutationRate: 100, crossover: false,
+    population: 100, mutationStrength: 10, mutationCooling: true, selectionMode: 'auto', elite: 10, selection: 10, mutationRate: 100, crossover: false,
     fitness: 'lead', maxDuration: 60, slowRule: true, trafficMode: 'new',
     lanes: 3, density: 50, irregularity: 0, maxSpeed: 20,
     hiddenLayers: 1, neurons1: 6, neurons2: 6, neurons3: 6, activation: 'step',
@@ -52,7 +52,7 @@ test('normalización: opciones inválidas vuelven al valor por defecto y los ent
 test('clasificación: cada ajuste pertenece a su grupo', () => {
   const expected = {
     instant: ['speed', 'showSensors', 'showNetwork', 'showChart'],
-    nextGeneration: ['population', 'mutationStrength', 'selectionMode', 'elite', 'selection', 'mutationRate', 'crossover', 'fitness', 'maxDuration',
+    nextGeneration: ['population', 'mutationStrength', 'mutationCooling', 'selectionMode', 'elite', 'selection', 'mutationRate', 'crossover', 'fitness', 'maxDuration',
       'slowRule', 'trafficMode', 'lanes', 'density', 'irregularity', 'maxSpeed'],
     newTraining: ['hiddenLayers', 'neurons1', 'neurons2', 'neurons3', 'activation', 'sensorCount', 'sensorRange', 'sensorSpread'],
   };
@@ -110,4 +110,17 @@ test('quién elige al padre: por defecto la fitness, lo inválido vuelve a ella 
   assert.equal(trainingConfig({ ...DEFAULT_SETTINGS, selectionMode: 'manual' }).selectionMode, 'manual');
   assert.equal(trainingConfig({ ...DEFAULT_SETTINGS, selectionMode: 'x' }).selectionMode, 'auto');
   assert.equal(trainingConfig(DEFAULT_SETTINGS).selectionMode, 'auto');
+});
+
+test('enfriar la mutación: encendido por defecto, rige desde la próxima generación y restablecer lo enciende', () => {
+  assert.equal(DEFAULT_SETTINGS.mutationCooling, true);
+  assert.equal(groupOf('mutationCooling'), 'nextGeneration');
+  assert.equal(SETTINGS.find((x) => x.key === 'mutationCooling').kind, 'toggle');
+  assert.equal(trainingConfig(DEFAULT_SETTINGS).mutationCooling, true);
+  const off = normalizeSettings({ ...DEFAULT_SETTINGS, mutationCooling: false });
+  assert.equal(trainingConfig(off).mutationCooling, false);
+  assert.deepEqual(classifyChanges(DEFAULT_SETTINGS, off), { instant: [], nextGeneration: ['mutationCooling'], newTraining: [] });
+  // Restablecer: los valores por defecto vuelven a encenderlo.
+  assert.equal(normalizeSettings({ ...off, ...DEFAULT_SETTINGS }).mutationCooling, true);
+  assert.equal(normalizeSettings({}).mutationCooling, true);
 });

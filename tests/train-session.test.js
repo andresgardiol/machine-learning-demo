@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { indicators, fitnessText, createTrainSession, MISSIONS } from '../src/tabs/train/session.js';
 import { SHORTCUTS, shortcutFor, toggleTurbo } from '../src/tabs/train/shortcuts.js';
 import { createTraining } from '../src/core/training.js';
+import { createBrain } from '../src/core/brain.js';
 
 // --- 16.1 Indicadores --------------------------------------------------------------------------
 
@@ -75,21 +76,21 @@ test('T: de la velocidad máxima vuelve a la normal; de cualquier otra pasa a la
 const missionOf = (s, id) => s.missions.find((m) => m.id === id);
 
 test('misiones: cuatro, en orden', () => {
-  assert.deepEqual(MISSIONS.map((m) => [m.id, m.goal]), [['generations', 5], ['distance', 300], ['save', 1], ['fitness', 1]]);
+  assert.deepEqual(MISSIONS.map((m) => [m.id, m.goal]), [['generations', 5], ['passed', 5], ['save', 1], ['fitness', 1]]);
 });
 
 test('progreso: en la generación 3 la primera misión muestra 3 de 5, y se cumple al llegar a la 5', () => {
   const s = createTrainSession();
-  const fake = (generation, progress = 0) => ({ generation, leaderIndex: 0, world: { agents: [{ progress }] } });
+  const fake = (generation, passed = 0) => ({ generation, leaderIndex: 0, passedOf: () => passed });
   s.observe(fake(3));
   assert.deepEqual([missionOf(s, 'generations').progress, missionOf(s, 'generations').done], [3, false]);
   s.observe(fake(5));
   assert.equal(missionOf(s, 'generations').done, true);
-  s.observe(fake(1, 250));
-  assert.equal(missionOf(s, 'distance').progress, 250);
-  s.observe(fake(1, 301));
-  assert.equal(missionOf(s, 'distance').done, true);
-  assert.equal(missionOf(s, 'distance').progress, 300);
+  s.observe(fake(1, 3));
+  assert.equal(missionOf(s, 'passed').progress, 3);
+  s.observe(fake(1, 6));
+  assert.equal(missionOf(s, 'passed').done, true);
+  assert.equal(missionOf(s, 'passed').progress, 5);
 });
 
 test('misión cumplida: guardar el primer cerebro la cumple y sigue cumplida tras reiniciar el entrenamiento', () => {
@@ -106,10 +107,65 @@ test('misión cumplida: guardar el primer cerebro la cumple y sigue cumplida tra
 
 test('misión de la función de fitness: terminar una generación con otra función la cumple', () => {
   const s = createTrainSession();
-  s.generationEnded({ fitness: 'distance' });
+  s.generationEnded({ fitness: 'lead' });
   assert.equal(missionOf(s, 'fitness').done, false);
   s.generationEnded({ fitness: 'survival' });
   assert.equal(missionOf(s, 'fitness').done, true);
+});
+
+test('misión de superar vehículos: con el líder en 3 y nadie antes con más, muestra 3 de 5; no baja si el líder cambia', () => {
+  const s = createTrainSession();
+  const fake = (passed) => ({ generation: 1, leaderIndex: 0, passedOf: () => passed });
+  s.observe(fake(3));
+  assert.deepEqual([missionOf(s, 'passed').progress, missionOf(s, 'passed').goal, missionOf(s, 'passed').done], [3, 5, false]);
+  s.observe(fake(1));
+  assert.equal(missionOf(s, 'passed').progress, 3);
+  s.restart();
+  assert.equal(missionOf(s, 'passed').progress, 0);
+});
+
+test('seguir al tráfico no la cumple: un auto que recorre 600 m detrás del primer vehículo deja la misión en 0 de 5', () => {
+  // Acelera mientras no ve un vehículo cerca adelante: alcanza al primero y va detrás a su velocidad.
+  const follower = {
+    sizes: [6, 4], activation: 'step',
+    layers: [{ weights: [[0, 0, -10, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], biases: [1, -1, -1, -1] }],
+  };
+  const brain = createBrain({
+    id: 'b', name: 'B', now: '2026-11-12T10:00:00.000Z', network: follower, sensors: { count: 5, range: 3, spread: 90 },
+    training: { generations: 0, seed: 1, maxSpeed: 20, fitness: { kind: 'distance', best: 1 }, evolution: {}, scenarios: [] },
+  });
+  const t = createTraining({ seed: 2, config: { population: 2, mutationStrength: 0, mutationCooling: false, slowRule: false }, brain });
+  const s = createTrainSession();
+  while (t.leader.progress < 600) { assert.equal(t.step(), null); s.observe(t); }
+  assert.equal(t.leader.crashed, false);
+  assert.equal(missionOf(s, 'passed').progress, 0);
+  assert.equal(missionOf(s, 'passed').done, false);
+});
+
+test('misión de la función de fitness: elegir una función distinta de la ventaja y terminar una generación la cumple', () => {
+  const s = createTrainSession();
+  const t = createTraining({ seed: 1, config: { population: 4 } });
+  t.onGeneration((r) => s.generationEnded(r));
+  t.finishGeneration();
+  assert.equal(missionOf(s, 'fitness').done, false);
+  t.configure({ fitness: 'distance' });
+  t.finishGeneration();
+  assert.equal(missionOf(s, 'fitness').done, false, 'la generación que terminó todavía era con ventaja');
+  t.finishGeneration();
+  assert.equal(missionOf(s, 'fitness').done, true);
+});
+
+test('indicadores: vehículos superados por el líder', () => {
+  const t = createTraining({ seed: 1, config: { population: 4 } });
+  assert.equal(indicators(t).passed, 0);
+  for (let i = 0; i < 300; i++) t.step();
+  assert.equal(indicators(t).passed, t.passedOf(t.leaderIndex));
+});
+
+test('valores de ventaja: 120,7 m de ventaja se muestran como 120 m de ventaja', () => {
+  assert.deepEqual(fitnessText(120.7, 'lead'), { key: 'train.value.metersAhead', params: { value: 120 } });
+  assert.deepEqual(fitnessText(-2, 'lead'), { key: 'train.value.metersAhead', params: { value: 0 } });
+  assert.deepEqual(fitnessText(120.7, 'distance'), { key: 'train.value.meters', params: { value: 120 } });
 });
 
 test('misiones con un entrenamiento real: la generación en curso se observa paso a paso', () => {

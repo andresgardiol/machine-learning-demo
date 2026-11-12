@@ -336,9 +336,21 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     key,
     sw: switchButton(`train.setting.${key}`, `train.setting.${key}`, state.settings[key], (e) => {
       if (e.currentTarget.getAttribute('aria-disabled') === 'true') return;
+      if (key === 'mutationCooling') { toggleCooling(); return; }
       setSetting(key, !state.settings[key]);
     }),
   });
+  /**
+   * Enfriar la mutación (fitness-que-premia-superar D9): al apagarlo, la fuerza queda fija en la que
+   * mostraba el deslizador (la de la generación siguiente, redondeada), para que no salte.
+   */
+  function toggleCooling() {
+    if (state.settings.mutationCooling) {
+      applySettings({ ...state.settings, mutationCooling: false, mutationStrength: Math.round(state.training.nextMutationStrength) });
+    } else {
+      setSetting('mutationCooling', true);
+    }
+  }
   const choice = (key, values, optionKey, confirm) => optionGroup({
     labelKey: `train.setting.${key}`,
     labelHelp: `train.setting.${key}`,
@@ -355,7 +367,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     slider('sensorCount', sensorsConfirm), slider('sensorRange', sensorsConfirm), slider('sensorSpread', sensorsConfirm),
   ];
   const row = (key) => sliders.find((s) => s.key === key).row;
-  const switches = [toggle('crossover'), toggle('slowRule')];
+  const switches = [toggle('mutationCooling'), toggle('crossover'), toggle('slowRule')];
   const sw = (key) => switches.find((s) => s.key === key).sw;
   const choices = {
     fitness: choice('fitness', FITNESS_KINDS, 'train.fitness'),
@@ -378,7 +390,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
 
   const basic = el('section', { class: 'train-basic' },
     el('h2', { class: 'panel-heading', i18n: 'train.basic.title' }),
-    row('population'), row('mutationStrength'), basicPending);
+    row('population'), row('mutationStrength'), el('div', { class: 'switch-row' }, sw('mutationCooling')), basicPending);
 
   const sensorsSwitch = switchButton('train.sensors', 'train.sensors', state.settings.showSensors, () => setSetting('showSensors', !state.settings.showSensors));
   const viewSwitches = el('div', { class: 'switch-row train-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.view.title' }, sensorsSwitch);
@@ -465,6 +477,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     { id: 'generation', labelKey: 'train.stats.generation' },
     { id: 'alive', labelKey: 'train.stats.alive' },
     { id: 'leader', labelKey: 'train.stats.leader' },
+    { id: 'passed', labelKey: 'train.stats.passed' },
   ]);
   const lastBest = el('span', { class: 'board-last-best' });
   const lastReason = el('span', { class: 'board-last-reason' });
@@ -510,6 +523,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     setText(strip.values.generation, 'train.value.count', { value: ind.generation });
     setText(strip.values.alive, 'train.value.alive', { value: ind.alive, total: ind.total });
     setText(strip.values.leader, ind.leader.key, ind.leader.params);
+    setText(strip.values.passed, 'train.value.count', { value: ind.passed });
     setText(generationBadge, 'train.badge.generation', { value: ind.generation });
     // Línea de la última generación: dos tramos con su clave, así el cambio de idioma los reescribe.
     const last = lastGeneration(t);
@@ -590,8 +604,11 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     basicPending.hidden = !othersWaiting;
     advancedPending.hidden = !othersWaiting;
     const dragging = document.activeElement;
+    // Con el enfriamiento en uso, la fuerza baja sola: el deslizador muestra la de la generación
+    // siguiente y no se edita (D9). Con selección manual, la fuerza es la del deslizador.
+    const cooling = s.mutationCooling && !manual;
     for (const sl of sliders) {
-      const v = s[sl.key];
+      const v = sl.key === 'mutationStrength' && cooling ? Math.round(t.nextMutationStrength) : s[sl.key];
       if (dragging === sl.input && sl.deferred) continue; // mientras se arrastra, muestra el valor del deslizador
       if (Number(sl.input.value) !== v) sl.input.value = String(v);
       setText(sl.value, FORMATS[sl.key], { value: v, kmh: Math.round(v * 3.6) });
@@ -609,6 +626,18 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
         control.dataset.help = manual ? 'train.setting.notInManual' : `train.setting.${key}`;
         host.classList.toggle('not-applicable', manual);
       }
+    }
+    const strength = sliders.find((x) => x.key === 'mutationStrength').input;
+    if (strength.getAttribute('aria-disabled') !== String(cooling)) {
+      strength.setAttribute('aria-disabled', String(cooling));
+      strength.dataset.help = cooling ? 'train.setting.strengthCooling' : 'train.setting.mutationStrength';
+      row('mutationStrength').classList.toggle('auto-value', cooling);
+    }
+    const coolingSwitch = sw('mutationCooling');
+    if (coolingSwitch.getAttribute('aria-disabled') !== String(manual)) {
+      coolingSwitch.setAttribute('aria-disabled', String(manual));
+      coolingSwitch.dataset.help = manual ? 'train.setting.coolingInManual' : 'train.setting.mutationCooling';
+      coolingSwitch.classList.toggle('not-applicable', manual);
     }
     selectionMode.select(s.selectionMode);
     sensorsSwitch.setAttribute('aria-checked', String(s.showSensors));

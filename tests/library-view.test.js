@@ -88,3 +88,13 @@ test('autoguardado del entrenamiento en curso: "Entrenamiento en curso", sin rep
 test('un cerebro guardado no trae nameKey: se muestra con su nombre', () => {
   assert.equal('nameKey' in brainSummary({ origin: 'saved', brain: brain() }), false);
 });
+
+test('cerebro entrenado con la ventaja: su fitness se lee en metros de ventaja, sin decimales', () => {
+  assert.deepEqual(brainSummary({ origin: 'saved', brain: brain({ kind: 'lead', best: 120.7 }) }).best, { key: 'train.value.metersAhead', params: { value: 120 } });
+});
+
+test('cerebro anterior entrenado con la distancia: se sigue leyendo en metros', () => {
+  assert.deepEqual(brainSummary({ origin: 'saved', brain: brain({ kind: 'distance', best: 120.7 }) }).best, { key: 'train.value.meters', params: { value: 120 } });
+  // Una función que esta versión no conoce también se muestra en metros.
+  assert.equal(brainSummary({ origin: 'saved', brain: brain({ kind: 'futura', best: 5 }) }).best.key, 'train.value.meters');
+});

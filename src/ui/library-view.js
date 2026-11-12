@@ -15,7 +15,7 @@ import { FITNESS_UNITS } from '../core/evolution.js';
 function bestText(fitness) {
   if (!fitness || fitness.best === null || fitness.best === undefined) return { key: 'library.value.none' };
   const unit = FITNESS_UNITS[fitness.kind] ?? 'meters';
-  const value = unit === 'meters' ? Math.floor(fitness.best) : Math.round(fitness.best * 10) / 10;
+  const value = unit === 'meters' || unit === 'metersAhead' ? Math.floor(fitness.best) : Math.round(fitness.best * 10) / 10;
   return { key: `train.value.${unit}`, params: { value } };
 }
 

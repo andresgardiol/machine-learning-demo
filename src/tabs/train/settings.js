@@ -30,6 +30,7 @@ export const SETTINGS = Object.freeze([
   // Próxima generación: evolución
   { key: 'population', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.population), step: 1 },
   { key: 'mutationStrength', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.mutationStrength), step: 1 },
+  { key: 'mutationCooling', group: 'nextGeneration', kind: 'toggle', default: DEFAULT_TRAINING_CONFIG.mutationCooling },
   { key: 'selectionMode', group: 'nextGeneration', kind: 'choice', options: SELECTION_MODES, default: DEFAULT_TRAINING_CONFIG.selectionMode },
   { key: 'elite', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.elite), step: 1 },
   { key: 'selection', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.selection), step: 1 },
@@ -111,7 +112,7 @@ export function trainingConfig(settings) {
   const s = normalizeSettings(settings);
   return normalizeTrainingConfig({
     population: s.population, elite: s.elite, selection: s.selection,
-    mutationStrength: s.mutationStrength, mutationRate: s.mutationRate, crossover: s.crossover,
+    mutationStrength: s.mutationStrength, mutationCooling: s.mutationCooling, mutationRate: s.mutationRate, crossover: s.crossover,
     fitness: s.fitness, maxDuration: s.maxDuration, selectionMode: s.selectionMode, slowRule: s.slowRule, trafficMode: s.trafficMode,
     lanes: s.lanes, density: s.density, irregularity: s.irregularity, maxSpeed: s.maxSpeed,
     hidden: hiddenOf(s), activation: s.activation,

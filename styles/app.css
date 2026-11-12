@@ -623,3 +623,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 @container board (max-width: 326.98px) {
   .rules-io .action-keys { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Fuerza de mutación con el enfriamiento en uso: el valor se mueve solo y no se edita. */
+.setting.auto-value input[type="range"] { cursor: not-allowed; opacity: 0.6; }
