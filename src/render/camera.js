@@ -7,9 +7,38 @@
 // La cámara puede además girar el encuadre (`rotation`, en radianes, antihorario): por ejemplo,
 // la vista gira la calle recta para mostrarla vertical, con el sentido de avance hacia arriba.
 
+import { TRACK_IDS, createTrackById, isCircuit } from '../core/circuits.js';
+
+/** Escenario en que tiene que entrar entero cualquier circuito al alejar el zoom al mínimo (px, a 1440×900). */
+export const FIT_STAGE = Object.freeze({ width: 1074, height: 851 });
+/** Margen alrededor del trazado al calcular el zoom mínimo (m, de cada lado). */
+export const FIT_MARGIN = 15;
+
+/** Recuadro (m) que ocupa una pista, bordes incluidos. */
+export function trackBounds(track) {
+  const pts = [...track.leftBorder, ...track.rightBorder];
+  return {
+    minX: Math.min(...pts.map((p) => p.x)), maxX: Math.max(...pts.map((p) => p.x)),
+    minY: Math.min(...pts.map((p) => p.y)), maxY: Math.max(...pts.map((p) => p.y)),
+  };
+}
+
+/** Zoom (px por metro) con que un recuadro, más el margen, entra entero en un escenario. */
+export function fitZoom(bounds, stage = FIT_STAGE, margin = FIT_MARGIN) {
+  return Math.min(stage.width / (bounds.maxX - bounds.minX + 2 * margin), stage.height / (bounds.maxY - bounds.minY + 2 * margin));
+}
+
+/**
+ * Zoom mínimo (circuitos-y-paisaje D7): 2 px por metro, o menos si hace falta para que el circuito
+ * más grande del catálogo entre entero en FIT_STAGE. Se redondea hacia abajo a centésimas.
+ */
+export const MIN_ZOOM = Math.min(2, Math.floor(100 * Math.min(
+  ...TRACK_IDS.filter(isCircuit).map((id) => fitZoom(trackBounds(createTrackById(id)))),
+)) / 100);
+
 export const CAMERA_DEFAULTS = Object.freeze({
   zoom: 10, // px por metro
-  minZoom: 2,
+  minZoom: MIN_ZOOM,
   maxZoom: 40,
   anchor: Object.freeze({ x: 0.3, y: 0.5 }),
   step: 1.25, // factor de los botones de acercar y alejar

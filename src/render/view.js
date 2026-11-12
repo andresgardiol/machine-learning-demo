@@ -200,6 +200,41 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     ctx.setLineDash([]);
   }
 
+  /**
+   * Pista cerrada (circuitos-y-paisaje D7): la calzada entre los dos bordes y los bordes encima,
+   * solo en los tramos cuyo recuadro cae en el encuadre `b`, y la línea de salida de borde a borde.
+   * Sin líneas de carril: un circuito tiene un solo carril.
+   */
+  function drawClosedTrack(track, b, px) {
+    const L = track.leftBorder;
+    const R = track.rightBorder;
+    const visible = [];
+    for (let i = 0; i < L.length - 1; i++) {
+      const xs = [L[i].x, L[i + 1].x, R[i].x, R[i + 1].x];
+      const ys = [L[i].y, L[i + 1].y, R[i].y, R[i + 1].y];
+      if (Math.max(...xs) < b.minX || Math.min(...xs) > b.maxX || Math.max(...ys) < b.minY || Math.min(...ys) > b.maxY) continue;
+      visible.push(i);
+    }
+    if (visible.length === 0) return;
+    // Calzada en un solo trazado: sin costuras entre tramos vecinos.
+    ctx.fillStyle = colors.road;
+    ctx.beginPath();
+    for (const i of visible) {
+      ctx.moveTo(L[i].x, L[i].y); ctx.lineTo(L[i + 1].x, L[i + 1].y);
+      ctx.lineTo(R[i + 1].x, R[i + 1].y); ctx.lineTo(R[i].x, R[i].y);
+      ctx.closePath();
+    }
+    ctx.fill();
+    // Línea de salida, de borde a borde.
+    strokePieces([[L[0], R[0]]], colors.laneLine, 3 * px);
+    // Bordes
+    const edges = [];
+    for (const i of visible) edges.push([L[i], L[i + 1]], [R[i], R[i + 1]]);
+    ctx.lineCap = 'round';
+    strokePieces(edges, colors.roadEdge, 3 * px);
+    ctx.lineCap = 'butt';
+  }
+
   function drawTrack(track, from, to, px) {
     const half = track.width / 2;
     // Calzada
@@ -436,7 +471,9 @@ export function createStageView({ container, camera = createCamera(), doc = docu
       dpr * (viewport.height / 2 + z * (sin * c.x + cos * c.y)),
     );
 
-    if (!machineView) {
+    if (!machineView && world.track.closed) {
+      drawClosedTrack(world.track, camera.visibleBounds(viewport), px);
+    } else if (!machineView) {
       const b = camera.visibleBounds(viewport);
       const middle = { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 };
       const radius = Math.hypot(b.maxX - b.minX, b.maxY - b.minY) / 2;
