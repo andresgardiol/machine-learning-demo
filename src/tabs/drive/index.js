@@ -15,9 +15,13 @@ import { el } from '../../ui/dom.js';
 import { button, switchButton, createTextSetter } from '../../ui/controls.js';
 import { statStrip, boardCard } from '../../ui/board.js';
 import { perceptionBlock, actionBlock } from '../shared/driving-cards.js';
-import { streetAdvanced } from '../shared/street-advanced.js';
+import { streetAdvanced, setUnavailable } from '../shared/street-advanced.js';
+import { trackPicker } from '../shared/track-picker.js';
+import { formatFixed } from '../../ui/i18n.js';
 import { createDriveSession } from './session.js';
-import { DEFAULT_SETTINGS, needsRestart, normalizeSettings, worldSpec } from './settings.js';
+import {
+  DEFAULT_SETTINGS, needsRestart, normalizeSettings, worldSpec, onCircuit, lapsShown,
+} from './settings.js';
 import { shortcutFor } from './shortcuts.js';
 
 export const DEFAULT_SEED = 1;
@@ -58,6 +62,7 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
 
   const restart = () => restartAttempt();
   function newTraffic() {
+    if (onCircuit(settings)) return; // en un circuito no hay tráfico
     seed += 1;
     restartAttempt({ rebuild: true });
   }
@@ -83,6 +88,9 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     el('div', { class: 'run-main' }, pauseButton, restartButton),
     el('div', { class: 'run-secondary' }, newTrafficButton));
 
+  // Pista (circuitos-y-paisaje D6): cambiarla reinicia el intento con los mismos sensores.
+  const picker = trackPicker({ selected: settings.track, onSelect: (track) => applySettings({ ...settings, track }) });
+
   // Vista: el interruptor de sensores solo decide si se dibujan los rayos; las barras siguen.
   const sensorsSwitch = switchButton('drive.sensors', 'drive.sensors', options.showSensors, () => {
     options.showSensors = !options.showSensors;
@@ -105,9 +113,12 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
       el('span', { class: 'mission-bar', attrs: { 'aria-hidden': 'true' } }, fill));
     return { id: m.id, row, status, fill };
   });
+  const missionList = el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row));
+  // En un circuito las misiones (de la calle recta) se ocultan y queda una línea que lo dice.
+  const missionsCircuit = el('p', { class: 'caption', i18n: 'drive.missions.circuit' });
   const missions = el('section', { class: 'guide drive-missions' },
     el('h2', { class: 'panel-heading', i18n: 'drive.missions.title' }),
-    el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row)));
+    missionList, missionsCircuit);
 
   // --- Tablero: indicadores, percepción y acción (design.md D10) ---------------------------
   const strip = statStrip([
@@ -156,17 +167,18 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
 
   panel.append(
     el('h1', { class: 'sr-only', i18n: 'drive.title' }),
-    intro, run, viewSwitches, missions, advanced.node);
+    intro, run, picker.node, viewSwitches, missions, advanced.node);
 
   // --- Mensajes sobre el escenario ---------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
   const machineBadge = el('div', { class: 'stage-badge machine-badge', i18n: 'drive.machine.badge' });
   const crashBody = el('p', {});
   const crashRestart = button('drive.restart', 'drive.restart', restart, 'tool primary');
+  const crashHowto = el('p', { i18n: 'drive.crash.howto' });
   const crashBox = el('div', { class: 'crash-box', attrs: { role: 'alert' } },
     el('h2', { i18n: 'drive.crash.title' }),
     crashBody,
-    el('p', { i18n: 'drive.crash.howto' }),
+    crashHowto,
     crashRestart);
   const badges = el('div', { class: 'stage-badges' }, pauseBadge, machineBadge);
   const crashLayer = el('div', { class: 'crash-layer' }, crashBox);
@@ -179,7 +191,15 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     const crashed = world.crashed;
 
     setText(strip.values.distance, 'drive.value.meters', meters(session.distance));
-    setText(strip.values.passed, 'drive.value.count', { value: session.passed });
+    // En un circuito el segundo indicador muestra las vueltas, con un decimal.
+    const circuit = world.track.closed;
+    setText(strip.labels.passed, circuit ? 'drive.stats.laps' : 'drive.stats.passed');
+    if (circuit) setText(strip.values.passed, 'drive.value.laps', { value: formatFixed(lapsShown(session.distance, world.track.length), 1, i18n.language) });
+    else setText(strip.values.passed, 'drive.value.count', { value: session.passed });
+    missionList.hidden = circuit;
+    missionsCircuit.hidden = !circuit;
+    setUnavailable(newTrafficButton, circuit, 'drive.newTraffic');
+    picker.select(settings.track);
     setText(strip.values.attempts, 'drive.value.count', { value: session.attempts });
     setText(strip.values.best, 'drive.value.meters', meters(session.best));
 
@@ -208,11 +228,14 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     // Fin del intento
     crashLayer.hidden = !crashed;
     if (crashed) {
-      setText(crashBody, world.crashCause === 'vehicle' ? 'drive.crash.vehicle' : 'drive.crash.edge', meters(session.distance));
+      const edgeKey = circuit ? 'drive.crash.edge.circuit' : 'drive.crash.edge';
+      setText(crashBody, world.crashCause === 'vehicle' ? 'drive.crash.vehicle' : edgeKey, meters(session.distance));
+      setText(crashHowto, circuit ? 'drive.crash.howto.circuit' : 'drive.crash.howto');
     }
 
-    // Guía: nombra la cantidad de carriles elegida
-    setText(introWhat, 'drive.guide.what', { lanes: settings.lanes });
+    // Guía: nombra la cantidad de carriles elegida o, en un circuito, la pista
+    if (circuit) setText(introWhat, 'drive.guide.what.circuit', { track: i18n.t(`track.${settings.track}`) });
+    else setText(introWhat, 'drive.guide.what', { lanes: settings.lanes });
 
     // Configuración avanzada
     advanced.sync(settings);
@@ -222,7 +245,7 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
   const loop = createLoop({
     step: () => {
       world.step();
-      session.observe(world, { machineView: options.machineView && !world.crashed });
+      session.observe(world, { machineView: options.machineView && !world.crashed, missions: !world.track.closed });
     },
     render: () => {
       view.render(world, {

@@ -38,15 +38,16 @@ export function createDriveSession({ completed = new Set() } = {}) {
   /**
    * Actualiza los indicadores con el estado actual del mundo.
    * @param {{progress:number, crashed:boolean, vehiclesIn:(from:number,to:number)=>{id:string,distance:number}[]}} world
-   * @param {{machineView?: boolean}} [options] machineView: el modo ver como la máquina está activo
+   * @param {{machineView?: boolean, missions?: boolean}} [options] machineView: el modo ver como la
+   *   máquina está activo; missions: las misiones cuentan (son de la calle recta: en un circuito, no).
    */
-  function observe(world, { machineView = false } = {}) {
+  function observe(world, { machineView = false, missions = true } = {}) {
     if (attempt.ended) return;
     const progress = world.progress;
-    if (machineView) machineDistance = Math.max(0, machineDistance + (progress - lastProgress));
+    if (machineView && missions) machineDistance = Math.max(0, machineDistance + (progress - lastProgress));
     lastProgress = progress;
     attempt.observe(world);
-    checkMissions();
+    if (missions) checkMissions();
   }
 
   /**

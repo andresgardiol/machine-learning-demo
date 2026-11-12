@@ -41,11 +41,11 @@
 
 ## 7. Pestañas El problema y Reglas a mano
 
-- [ ] 7.1 Sumar `track` a `src/tabs/shared/street-settings.js` y crear el selector de pista compartido (design.md D6). Verificar con pruebas que cambiar la pista obliga a reiniciar el intento y que restablecer vuelve a la calle recta.
-- [ ] 7.2 En El problema: selector en el panel, indicador de vueltas, controles de tráfico deshabilitados con su ayuda y línea en lugar de las misiones. Verificar en el navegador los escenarios de "Elegir la pista" y "Pestaña en un circuito", incluido que el panel no se desplaza a 1440×900; si se desplaza, **detenerse y consultar**.
-- [ ] 7.3 En Reglas a mano: lo mismo, más la vuelta a la calle recta al cargar un ejemplo o restablecer, con su aviso. Verificar con pruebas de la lógica sin DOM y en el navegador los escenarios de la spec `pestana-reglas`.
+- [x] 7.1 Sumar `track` a `src/tabs/shared/street-settings.js` y crear el selector de pista compartido (design.md D6). Verificar con pruebas que cambiar la pista obliga a reiniciar el intento y que restablecer vuelve a la calle recta.
+- [x] 7.2 En El problema: selector en el panel, indicador de vueltas, controles de tráfico deshabilitados con su ayuda y línea en lugar de las misiones. Verificar en el navegador los escenarios de "Elegir la pista" y "Pestaña en un circuito", incluido que el panel no se desplaza a 1440×900; si se desplaza, **detenerse y consultar**.
+- [x] 7.3 En Reglas a mano: lo mismo, más la vuelta a la calle recta al cargar un ejemplo o restablecer, con su aviso. Verificar con pruebas de la lógica sin DOM y en el navegador los escenarios de la spec `pestana-reglas`.
 
-- [ ] 7.4 Agregar "ver como la máquina" a Reglas a mano, junto al interruptor de los sensores, con `machineView` ocultando también el paisaje (design.md D13). Verificar en el navegador los escenarios de "Ver como la máquina" de la spec `pestana-reglas`, y con una prueba de la lógica sin DOM que el intento es el mismo con el modo activo y apagado.
+- [x] 7.4 Agregar "ver como la máquina" a Reglas a mano, junto al interruptor de los sensores, con `machineView` ocultando también el paisaje (design.md D13). Verificar en el navegador los escenarios de "Ver como la máquina" de la spec `pestana-reglas`, y con una prueba de la lógica sin DOM que el intento es el mismo con el modo activo y apagado.
 
 ## 8. Pestaña Entrenar
 

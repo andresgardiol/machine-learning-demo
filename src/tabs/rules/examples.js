@@ -32,3 +32,10 @@ export function knownTexts(dictionaries) {
 
 /** Ajustes de sensores de un programa, con las claves de los ajustes de la calle. */
 export const sensorSettings = (p) => ({ sensorCount: p.sensors.count, sensorRange: p.sensors.range, sensorSpread: p.sensors.spread });
+
+/**
+ * Ajustes con que se carga un programa conocido (un ejemplo o el inicial): los sensores para los que
+ * está escrito y la calle recta, porque los ejemplos son para la calle (circuitos-y-paisaje D6).
+ * Lo demás (velocidad y tráfico) no cambia.
+ */
+export const settingsForProgram = (settings, p) => ({ ...settings, ...sensorSettings(p), track: 'straight' });

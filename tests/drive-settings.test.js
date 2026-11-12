@@ -6,7 +6,7 @@ import { createWorld } from '../src/core/world.js';
 
 test('valores por defecto de la configuración avanzada: 3 carriles, 50 % y 50 %, 5 rayos, 3 largos, 90 grados', () => {
   assert.deepEqual(DEFAULT_SETTINGS, {
-    maxSpeed: 20, lanes: 3, density: 50, irregularity: 50, sensorCount: 5, sensorRange: 3, sensorSpread: 90,
+    track: 'straight', maxSpeed: 20, lanes: 3, density: 50, irregularity: 50, sensorCount: 5, sensorRange: 3, sensorSpread: 90,
   });
 });
 
@@ -43,7 +43,7 @@ test('cambiar la cantidad de sensores a nueve da nueve lecturas', () => {
 
 test('ajustes fuera de rango se ajustan al límite y los carriles no admitidos vuelven a 3', () => {
   assert.deepEqual(normalizeSettings({ maxSpeed: 99, lanes: 7, density: 140, irregularity: -5, sensorCount: 150, sensorRange: 0, sensorSpread: 400 }), {
-    lanes: 3, maxSpeed: 40, density: 100, irregularity: 0, sensorCount: 100, sensorRange: 1, sensorSpread: 360,
+    track: 'straight', lanes: 3, maxSpeed: 40, density: 100, irregularity: 0, sensorCount: 100, sensorRange: 1, sensorSpread: 360,
   });
   assert.equal(normalizeSettings({ maxSpeed: 3 }).maxSpeed, 12);
 });

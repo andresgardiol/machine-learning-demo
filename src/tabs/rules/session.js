@@ -89,3 +89,15 @@ export function createRulesSession({ completed = new Set(), traffics = new Set()
     },
   };
 }
+
+/**
+ * Opciones de dibujo del escenario (circuitos-y-paisaje D13). Ver como la máquina fuerza los rayos a
+ * la vista y oculta pista, tráfico y paisaje; al chocar se vuelve a ver todo hasta el intento
+ * siguiente. Es solo dibujo: el núcleo no recibe el modo.
+ * @param {{showSensors:boolean, machineView:boolean}} state
+ * @param {{crashed:boolean}} world
+ */
+export const viewOptions = (state, world) => ({
+  showSensors: state.showSensors || state.machineView,
+  machineView: state.machineView && !world.crashed,
+});

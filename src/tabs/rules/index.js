@@ -22,11 +22,17 @@ import { createCodeEditor } from '../../ui/editor.js';
 import { downloadText, readText } from '../../ui/files.js';
 import { RULES_PROGRAM_MAX } from '../../ui/preferences.js';
 import { perceptionBlock, actionBlock, READINGS_MAX } from '../shared/driving-cards.js';
-import { streetAdvanced } from '../shared/street-advanced.js';
-import { DEFAULT_SETTINGS, needsRestart, normalizeSettings, worldSpec } from '../shared/street-settings.js';
+import { streetAdvanced, setUnavailable } from '../shared/street-advanced.js';
+import { trackPicker } from '../shared/track-picker.js';
+import { formatFixed } from '../../ui/i18n.js';
+import {
+  DEFAULT_SETTINGS, needsRestart, normalizeSettings, worldSpec, onCircuit, lapsShown,
+} from '../shared/street-settings.js';
 import { createProgramState } from './program.js';
-import { createRulesSession, MISSIONS } from './session.js';
-import { DEFAULT_SEED, INITIAL_PROGRAM, EXAMPLES, knownTexts, sensorSettings } from './examples.js';
+import { createRulesSession, MISSIONS, viewOptions } from './session.js';
+import {
+  DEFAULT_SEED, INITIAL_PROGRAM, EXAMPLES, knownTexts, sensorSettings, settingsForProgram,
+} from './examples.js';
 import { shortcutFor } from './shortcuts.js';
 
 export { DEFAULT_SEED };
@@ -69,6 +75,7 @@ function createState({ i18n, store, preferences }) {
     session: createRulesSession({ completed: completedMissions, traffics: trafficSeeds }),
     autoRetry: true,
     showSensors: true,
+    machineView: false, // ver como la máquina (circuitos-y-paisaje D13): solo cambia lo que se dibuja
     cards: { program: true, io: true },
     advancedOpen: false,
   };
@@ -104,6 +111,7 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
   }
   const restart = () => restartAttempt();
   function newTraffic() {
+    if (onCircuit(state.settings)) return; // en un circuito no hay tráfico
     state.seed += 1;
     restartAttempt({ rebuild: true });
   }
@@ -263,9 +271,13 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
 
   const pauseButton = button('rules.pause', 'rules.pause', togglePause);
   pauseButton.setAttribute('aria-pressed', 'false');
+  const newTrafficButton = button('rules.newTraffic', 'rules.newTraffic', newTraffic, 'tool small');
   const run = el('section', { class: 'drive-run' },
     el('div', { class: 'run-main' }, pauseButton, button('rules.restart', 'rules.restart', restart)),
-    el('div', { class: 'run-secondary' }, button('rules.newTraffic', 'rules.newTraffic', newTraffic, 'tool small')));
+    el('div', { class: 'run-secondary' }, newTrafficButton));
+
+  // Pista (circuitos-y-paisaje D6): cambiarla reinicia el intento con el mismo programa.
+  const picker = trackPicker({ selected: state.settings.track, onSelect: (track) => applySettings({ ...state.settings, track }) });
 
   const sensorsSwitch = switchButton('rules.sensors', 'rules.sensors', state.showSensors, () => {
     state.showSensors = !state.showSensors;
@@ -275,8 +287,13 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
     state.autoRetry = !state.autoRetry;
     sync();
   });
+  // Ver como la máquina (D13): el mismo nombre que en El problema, con una ayuda propia.
+  const machineSwitch = switchButton('drive.machine', 'rules.machine', state.machineView, () => {
+    state.machineView = !state.machineView;
+    sync();
+  });
   const viewSwitches = el('div', { class: 'switch-row', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.view.title' },
-    sensorsSwitch, retrySwitch);
+    sensorsSwitch, machineSwitch, retrySwitch);
 
   // --- Panel: programa (ejemplos, restablecer, exportar e importar; D8) ------------------
   const confirm = inlineConfirm({ i18n });
@@ -300,9 +317,12 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
    * ese programa (así el intento nuevo cuenta entero con el programa nuevo).
    */
   function replaceProgram(text, sensors, request, after) {
+    // Los ejemplos y el programa inicial son para la calle recta: desde un circuito se vuelve a ella
+    // y la confirmación lo avisa siempre, aunque el texto no sea propio.
+    const leavesCircuit = Boolean(sensors) && onCircuit(state.settings);
     const doReplace = () => {
       if (sensors) {
-        state.settings = normalizeSettings({ ...state.settings, ...sensorSettings({ sensors }) });
+        state.settings = normalizeSettings(settingsForProgram(state.settings, { sensors }));
         program.setSensors(state.settings.sensorCount);
       }
       editor.setValue(text);
@@ -311,7 +331,8 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
       sync();
       after?.();
     };
-    if (isOwn()) confirm.open({ ...request, confirmKey: 'rules.confirm.replace', onConfirm: doReplace });
+    if (leavesCircuit) confirm.open({ ...request, message: `${request.message}.circuit`, confirmKey: 'rules.confirm.replace', onConfirm: doReplace });
+    else if (isOwn()) confirm.open({ ...request, confirmKey: 'rules.confirm.replace', onConfirm: doReplace });
     else doReplace();
   }
 
@@ -372,9 +393,12 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
       el('span', { class: 'mission-bar', attrs: { 'aria-hidden': 'true' } }, fill));
     return { id: m.id, row, status: rowStatus, fill };
   });
+  const missionList = el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row));
+  // En un circuito las misiones (de la calle recta) se ocultan y queda una línea que lo dice.
+  const missionsCircuit = el('p', { class: 'caption', i18n: 'drive.missions.circuit' });
   const missions = el('section', { class: 'guide drive-missions' },
     el('h2', { class: 'panel-heading', i18n: 'rules.missions.title' }),
-    el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row)));
+    missionList, missionsCircuit);
 
   // --- Panel: configuración avanzada (la misma de la pestaña 1) --------------------------
   function applySettings(next, { countAttempt = true } = {}) {
@@ -402,21 +426,23 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
 
   panel.append(
     el('h1', { class: 'sr-only', i18n: 'rules.title' }),
-    intro, run, viewSwitches, programSection, missions, advanced.node);
+    intro, run, picker.node, viewSwitches, programSection, missions, advanced.node);
 
   // --- Mensajes sobre el escenario ----------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
+  const machineBadge = el('div', { class: 'stage-badge machine-badge', i18n: 'drive.machine.badge' });
   const crashBadgeText = el('span', {});
   const crashBadge = el('div', { class: 'stage-badge crash-badge', attrs: { role: 'status' } },
     crashBadgeText, el('span', { class: 'crash-badge-retry', i18n: 'rules.crash.retrying' }));
   const crashBody = el('p', {});
+  const crashHowto = el('p', { i18n: 'rules.crash.howto' });
   const crashBox = el('div', { class: 'crash-box', attrs: { role: 'alert' } },
     el('h2', { i18n: 'rules.crash.title' }),
     crashBody,
-    el('p', { i18n: 'rules.crash.howto' }),
+    crashHowto,
     button('rules.restart', 'rules.restart', restart, 'tool primary'));
   const crashLayer = el('div', { class: 'crash-layer' }, crashBox);
-  stage.append(el('div', { class: 'stage-badges' }, pauseBadge, crashBadge), crashLayer);
+  stage.append(el('div', { class: 'stage-badges' }, pauseBadge, machineBadge, crashBadge), crashLayer);
 
   // --- Sincronizar con el estado ------------------------------------------------------
   const meters = (v) => ({ value: Math.floor(v) });
@@ -424,7 +450,15 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
   function sync() {
     const { world } = state;
     setText(strip.values.distance, 'drive.value.meters', meters(session.distance));
-    setText(strip.values.passed, 'drive.value.count', { value: session.passed });
+    // En un circuito el segundo indicador muestra las vueltas, con un decimal.
+    const circuit = world.track.closed;
+    setText(strip.labels.passed, circuit ? 'drive.stats.laps' : 'drive.stats.passed');
+    if (circuit) setText(strip.values.passed, 'drive.value.laps', { value: formatFixed(lapsShown(session.distance, world.track.length), 1, i18n.language) });
+    else setText(strip.values.passed, 'drive.value.count', { value: session.passed });
+    missionList.hidden = circuit;
+    missionsCircuit.hidden = !circuit;
+    setUnavailable(newTrafficButton, circuit, 'rules.newTraffic');
+    picker.select(state.settings.track);
     setText(strip.values.best, 'drive.value.meters', meters(session.best));
     setText(strip.values.rules, 'drive.value.count', { value: program.rules });
 
@@ -447,13 +481,16 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
     });
 
     sensorsSwitch.setAttribute('aria-checked', String(state.showSensors));
+    machineSwitch.setAttribute('aria-checked', String(state.machineView));
     retrySwitch.setAttribute('aria-checked', String(state.autoRetry));
     pauseButton.setAttribute('aria-pressed', String(world.paused));
     setText(pauseButton, world.paused ? 'rules.resume' : 'rules.pause');
     pauseBadge.hidden = !world.paused;
 
     const crashed = world.crashed;
-    const crashKey = world.crashCause === 'vehicle' ? 'rules.crash.vehicle' : 'rules.crash.edge';
+    machineBadge.hidden = !(state.machineView && !crashed);
+    const crashKey = world.crashCause === 'vehicle' ? 'rules.crash.vehicle' : circuit ? 'rules.crash.edge.circuit' : 'rules.crash.edge';
+    setText(crashHowto, circuit ? 'rules.crash.howto.circuit' : 'rules.crash.howto');
     crashBadge.hidden = !(crashed && state.autoRetry);
     crashLayer.hidden = !(crashed && !state.autoRetry);
     if (crashed) {
@@ -470,7 +507,7 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
       if (session.step(world, { seed: state.seed, autoRetry: state.autoRetry }) === 'retry') restartAttempt();
     },
     render: () => {
-      view.render(state.world, { showSensors: state.showSensors });
+      view.render(state.world, viewOptions(state, state.world));
       sync();
     },
     onError: reportError,
