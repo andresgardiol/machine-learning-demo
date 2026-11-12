@@ -49,7 +49,7 @@
 - [ ] 8.2 Abrir la pestaña sin tocar nada y dejar correr 20 generaciones: el tráfico va en filas parejas y cambia en cada generación, hay diez autos con la marca de élite, la fuerza de mutación baja sola y el indicador de superados del líder pasa de 0. Informar el mayor valor visto y una captura.
 - [x] 8.3 Cambiar la función a distancia, dejar correr 15 generaciones y volver con restablecer: informar qué se ve en cada caso y que restablecer devuelve ventaja, élite 10, irregularidad 0 % y el enfriamiento encendido sin reiniciar el entrenamiento.
 - [x] 8.4 Guardar un cerebro entrenado con ventaja y abrir la biblioteca: su fitness se lee como metros de ventaja, y un cerebro anterior se sigue leyendo en metros.
-- [ ] 8.5 Medir la fluidez con la población por defecto durante diez segundos, con la página visible. Si el promedio baja de 50 cuadros por segundo, **detenerse y consultar**.
+- [x] 8.5 Medir la fluidez con la población por defecto durante diez segundos, con la página visible. Si el promedio baja de 50 cuadros por segundo, **detenerse y consultar**.
 - [x] 8.6 Repasar el filtro de entrada de proposal.md contra lo que se ve en el navegador e informar cualquier respuesta que ya no valga.
 - [x] 8.7 Actualizar `PENDIENTES.md`: reemplazar la nota "Los autos aprenden a seguir al tráfico, no a pasarlo" por lo que queda pendiente (manejar sin chocar con tráfico irregular, con las mediciones de proposal.md) y quitar la idea "Fitness por vehículos superados", que este cambio midió y descartó.
 
