@@ -18,6 +18,7 @@
 //   training.config | pending | world | eliteCount
 //   training.brain({ id, name, now })   cerebro del entrenamiento: el campeón o, con selección manual, el padre elegido
 //   training.chooseLeader() | undoChoice() | parent | choiceCount | selection   selección manual (design.md D2)
+//   training.passedOf(i)         vehículos que superó el individuo i (por defecto, el líder)
 //   training.onGeneration(fn)    avisa al cerrar cada generación
 //
 // Todo el azar sale de la semilla del entrenamiento (design.md D5).
@@ -33,7 +34,7 @@ import { sensorConfig, DEFAULT_SENSORS } from './sensors.js';
 import { maxSpeedOf } from './car.js';
 import { DEFAULT_TRAFFIC } from './traffic.js';
 import { deriveSeed, randomFor } from './random.js';
-import { ALLOWED_LANES, DEFAULT_LANES, MAX_SPEED, STEP, TRAFFIC_SPEED } from './constants.js';
+import { ALLOWED_LANES, CAR_LENGTH, DEFAULT_LANES, MAX_SPEED, STEP, TRAFFIC_SPEED } from './constants.js';
 
 /** Semilla del tráfico del escenario, la que se usa en el modo "mismo tráfico". */
 export const SCENARIO_TRAFFIC_SEED = 1;
@@ -216,6 +217,7 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
   let leaderIndex;
   let maxSteps;
   let recent; // progreso de cada agente en los últimos SLOW_STEPS pasos (anillo por agente)
+  let trafficStarts; // distancias, en el instante 0, de los vehículos que un auto puede llegar a superar (ordenadas)
   const SLOW_STEPS = Math.round(SLOW_SECONDS / STEP);
   const SLOW_LIMIT = TRAFFIC_SPEED * SLOW_SECONDS;
 
@@ -226,7 +228,11 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
       lanes: config.lanes, density: config.density, irregularity: config.irregularity,
       cars: networks.map((net) => ({ controller: createNetworkController(net, sensors.count), sensors, maxSpeed: config.maxSpeed })),
     });
-    stats = networks.map(() => createStats());
+    // Vehículos superados (fitness-que-premia-superar D2): un vehículo que empezó en d0 queda entero
+    // detrás del auto cuando d0 < ventaja − CAR_LENGTH. La lista se arma una vez por generación.
+    const reach = (config.maxSpeed - TRAFFIC_SPEED) * config.maxDuration + 2 * CAR_LENGTH;
+    trafficStarts = Float64Array.from(world.vehiclesIn(0, reach).map((v) => v.distance)).sort();
+    stats = networks.map(() => ({ ...createStats(), passed: 0 }));
     running = networks.map(() => true);
     lastImprovement = 0;
     leaderIndex = 0;
@@ -318,7 +324,13 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
       if (!running[i]) continue;
       const a = agents[i];
       if (a.progress > stats[i].best) lastImprovement = now;
-      recordStep(stats[i], a, trafficAdvance);
+      const st = stats[i];
+      const leadBefore = st.lead;
+      recordStep(st, a, trafficAdvance);
+      if (st.lead > leadBefore) {
+        const line = st.lead - CAR_LENGTH;
+        while (st.passed < trafficStarts.length && trafficStarts[st.passed] < line) st.passed += 1;
+      }
       if (a.crashed) { running[i] = false; continue; }
       // Eliminar a los lentos: compara con el progreso de hace SLOW_STEPS pasos.
       const slot = i * SLOW_STEPS + (now % SLOW_STEPS);
@@ -431,6 +443,8 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     fitnesses,
     /** Fitness actual del individuo `i` (por defecto, el líder). */
     fitnessOf: (i = leaderIndex) => fitnessOf(config.fitness, stats[i]),
+    /** Vehículos que superó el individuo `i` (por defecto, el líder) en la generación en curso; nunca baja. */
+    passedOf: (i = leaderIndex) => stats[i].passed,
     get seed() { return seed; },
     get generation() { return generation; },
     /** Generaciones terminadas en total, contando las del cerebro desde el que se continuó. */

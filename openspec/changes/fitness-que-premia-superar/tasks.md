@@ -8,9 +8,9 @@
 
 ## 2. Vehículos superados en el núcleo
 
-- [ ] 2.1 Armar al empezar cada generación la lista ordenada de distancias iniciales de los vehículos y llevar `passed` en las estadísticas de cada auto (design.md D2). Verificar con una prueba que `passed` no baja durante la generación, ni cuando el auto choca y el tráfico lo vuelve a pasar.
-- [ ] 2.2 Exponer `training.passedOf(i = leaderIndex)`. Verificar con pruebas los cuatro escenarios de "Vehículos superados", comparando la cuenta contra un recorrido directo de `world.vehiclesIn` en el momento de mayor ventaja.
-- [ ] 2.3 Verificar con una prueba de reproducibilidad que dos entrenamientos con la misma semilla dan las mismas cuentas de vehículos superados paso a paso.
+- [x] 2.1 Armar al empezar cada generación la lista ordenada de distancias iniciales de los vehículos y llevar `passed` en las estadísticas de cada auto (design.md D2). Verificar con una prueba que `passed` no baja durante la generación, ni cuando el auto choca y el tráfico lo vuelve a pasar.
+- [x] 2.2 Exponer `training.passedOf(i = leaderIndex)`. Verificar con pruebas los cuatro escenarios de "Vehículos superados", comparando la cuenta contra un recorrido directo de `world.vehiclesIn` en el momento de mayor ventaja.
+- [x] 2.3 Verificar con una prueba de reproducibilidad que dos entrenamientos con la misma semilla dan las mismas cuentas de vehículos superados paso a paso.
 
 ## 3. Valores por defecto y límites
 
