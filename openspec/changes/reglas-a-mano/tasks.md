@@ -67,13 +67,13 @@ claves nuevas y se informa en el reporte.
 
 ## 9. Verificación integral
 
-- [ ] 9.1 Correr `npm test` y confirmar que pasa todo; listar en el reporte las pruebas nuevas y cualquier aserción existente a la que se le hayan sumado claves.
-- [ ] 9.2 Recorrer la pestaña en español y en inglés con anchos de ventana de 600, 800, 960, 1366, 1440 y 1920 píxeles: el editor se puede usar en todos, el color coincide con el texto, y no hay texto cortado ni pisado. Comprobar que el panel entra sin desplazarse en 1440×900 y en 1366×768.
-- [ ] 9.3 Recorrer la pestaña solo con el teclado: se entra al editor con Tab, se sale con Escape, y con el foco fuera del editor funcionan la barra espaciadora y R.
-- [ ] 9.4 Medir la tasa de cuadros durante diez segundos con un programa de 50 reglas en marcha: al menos 50 cuadros por segundo de promedio. Si no se alcanza, detenerse y consultar con las medidas.
-- [ ] 9.5 Comprobar que las pestañas El problema y Entrenar siguen funcionando igual, y que ninguna pestaña muestra una clave en lugar de su texto.
-- [ ] 9.6 Repasar las cuatro preguntas del filtro de entrada sobre el resultado en pantalla, con la tabla de proposal.md, con la guía activa y apagada; anotar en el reporte cualquier respuesta que ya no se sostenga.
-- [ ] 9.7 Anotar en `PENDIENTES.md`, junto a la nota sobre la fitness, el resultado medido en 2.3: cuántos vehículos supera el ejemplo de siete sensores, como referencia de lo que el auto puede hacer, y que el de tres sensores reproduce a mano la conducta de seguir al tráfico.
+- [x] 9.1 Correr `npm test` y confirmar que pasa todo; listar en el reporte las pruebas nuevas y cualquier aserción existente a la que se le hayan sumado claves.
+- [x] 9.2 Recorrer la pestaña en español y en inglés con anchos de ventana de 600, 800, 960, 1366, 1440 y 1920 píxeles: el editor se puede usar en todos, el color coincide con el texto, y no hay texto cortado ni pisado. Comprobar que el panel entra sin desplazarse en 1440×900 y en 1366×768.
+- [x] 9.3 Recorrer la pestaña solo con el teclado: se entra al editor con Tab, se sale con Escape, y con el foco fuera del editor funcionan la barra espaciadora y R.
+- [x] 9.4 Medir la tasa de cuadros durante diez segundos con un programa de 50 reglas en marcha: al menos 50 cuadros por segundo de promedio. Si no se alcanza, detenerse y consultar con las medidas.
+- [x] 9.5 Comprobar que las pestañas El problema y Entrenar siguen funcionando igual, y que ninguna pestaña muestra una clave en lugar de su texto.
+- [x] 9.6 Repasar las cuatro preguntas del filtro de entrada sobre el resultado en pantalla, con la tabla de proposal.md, con la guía activa y apagada; anotar en el reporte cualquier respuesta que ya no se sostenga.
+- [x] 9.7 Anotar en `PENDIENTES.md`, junto a la nota sobre la fitness, el resultado medido en 2.3: cuántos vehículos supera el ejemplo de siete sensores, como referencia de lo que el auto puede hacer, y que el de tres sensores reproduce a mano la conducta de seguir al tráfico.
 
 ## Workflow follow-up
 

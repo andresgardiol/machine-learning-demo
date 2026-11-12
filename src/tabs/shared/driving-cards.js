@@ -47,8 +47,13 @@ export function perceptionBlock({ i18n, count, names = null }) {
     valueNodes = Array.from({ length: n }, () => el('span', { class: 'sensor-value' }));
     barValues.replaceChildren(...valueNodes);
     if (barNames) {
-      barNames.replaceChildren(...Array.from({ length: n }, (_, i) => el('span', { class: 'sensor-value sensor-name', i18n: names.sensorKey, params: { n: i + 1 } })));
+      barNames.replaceChildren(...Array.from({ length: n }, (_, i) => {
+        const name = el('span', { class: 'sensor-value sensor-name', i18n: names.sensorKey, params: { n: i + 1 } });
+        name.style.gridColumn = String(i + 1); // columna fija: en dos renglones alternados, cada nombre sigue bajo su barra
+        return name;
+      }));
       i18n.translateTree(barNames);
+      fitNames();
     }
     for (const node of [bars, barValues, barNames]) {
       if (!node) continue;
@@ -57,6 +62,25 @@ export function perceptionBlock({ i18n, count, names = null }) {
       node.style.setProperty('--bar-gap', n > 60 ? '0px' : n > 30 ? '1px' : '2px');
     }
   }
+  /** Si los nombres no entran en el ancho de su barra, se escriben en dos renglones alternados. */
+  function fitNames() {
+    if (!barNames || barFills.length === 0) return;
+    const doc = barNames.ownerDocument;
+    const textWidth = (node) => { const r = doc.createRange(); r.selectNodeContents(node); return r.getBoundingClientRect().width; };
+    const widest = Math.max(...[...barNames.children].map(textWidth));
+    const stagger = barNames.clientWidth > 0 && barNames.clientWidth / barFills.length < widest + 4;
+    if (barNames.dataset.stagger !== String(stagger)) barNames.dataset.stagger = String(stagger);
+  }
+  // Se aplica en el cuadro siguiente: pasar a dos renglones cambia el alto del elemento observado y,
+  // hecho dentro del aviso, el navegador lo informaría como un bucle de ResizeObserver.
+  let fitPending = false;
+  const scheduleFit = () => {
+    if (fitPending) return;
+    fitPending = true;
+    globalThis.requestAnimationFrame(() => { fitPending = false; fitNames(); });
+  };
+  const resizeObserver = barNames && typeof globalThis.ResizeObserver === 'function' ? new globalThis.ResizeObserver(scheduleFit) : null;
+  resizeObserver?.observe(barNames);
   buildBars(count);
   const speedFill = el('span', { class: 'sensor-fill speed-fill' });
   const speedValue = el('span', { class: 'sensor-value speed-value' });

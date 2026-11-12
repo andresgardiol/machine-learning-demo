@@ -562,8 +562,11 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 
 /* ---- Pestaña 2: Reglas a mano (design.md D11) ------------------------------------------------ */
 /* Tarjeta del programa: la más alta (crece 3 a 1) y con un mínimo de 280 px; la otra, 180 px. */
-.card[data-card="rules-program"][data-open="true"] { flex-basis: 280px; min-height: 280px; }
-.card[data-card="rules-io"][data-open="true"] { flex-basis: 180px; min-height: 180px; }
+/* Sin min-height en la tarjeta (no bajaría de su contenido); el mínimo lo asegura el cuerpo, como en .card. */
+.card[data-card="rules-program"][data-open="true"] { flex-basis: 280px; }
+.card[data-card="rules-program"][data-open="true"] > .card-body { min-height: calc(280px - 2px - (15px * 1.4 + var(--space-2) * 2)); }
+.card[data-card="rules-io"][data-open="true"] { flex-basis: 180px; }
+.card[data-card="rules-io"][data-open="true"] > .card-body { min-height: calc(180px - 2px - (15px * 1.4 + var(--space-2) * 2)); }
 .card[data-card="rules-program"] > .card-body { gap: var(--space-1); }
 .rules-status { margin: 0; font-size: 13px; color: var(--color-text-muted); flex: 0 0 auto; }
 .rules-status[data-state="ok"]::before { content: "✓ "; color: var(--color-car); font-weight: 700; }
@@ -571,7 +574,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .rules-status[data-state="errors"]::before { content: "✕ "; color: var(--color-car-crashed); font-weight: 700; }
 .rules-errors {
   margin: 0; padding: var(--space-1) var(--space-2); list-style: none; flex: 0 0 auto;
-  max-height: 84px; overflow-y: auto; font-size: 13px;
+  max-height: 120px; overflow-y: auto; font-size: 13px;
   border-left: 3px solid var(--color-car-crashed); background: var(--color-surface-2); border-radius: 0 var(--radius) var(--radius) 0;
 }
 .rules-errors[hidden] { display: none; }
@@ -586,7 +589,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .palette-note { font-size: 12px; color: var(--color-text-muted); }
 /* Percepción y acción en una sola tarjeta: las barras a la izquierda, los cuatro controles a la derecha. */
 .rules-io { display: flex; gap: var(--space-3); flex: 1 1 auto; min-height: 0; }
-.rules-io .perception { flex: 1 1 auto; min-width: 0; }
+.rules-io .perception { flex: 1 1 auto; min-width: 0; min-height: auto; } /* no se encoge por debajo de barras, lecturas y nombres */
 .rules-io .action-keys { flex: 0 0 auto; width: 184px; align-self: center; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .sensor-name, .speed-name { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 11px; color: var(--color-sensor); }
 /* Panel */
@@ -603,3 +606,18 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .crash-badge::before { content: "✕ "; color: var(--color-car-crashed); }
 .crash-badge-retry { font-weight: 400; }
 .crash-badge-retry::before { content: " "; }
+
+/* Editor usable en cualquier ancho: al menos 8 líneas; si el tablero no alcanza, se desplaza el tablero. */
+.card[data-card="rules-program"] .code-editor { min-height: calc(8 * 20px + 2 * var(--space-1) + 2px); }
+/* Nombres bajo las barras: si no entran en su columna, en dos renglones alternados (sin cortarse ni pisarse). */
+.sensor-names .sensor-name { overflow: visible; }
+.sensor-names[data-stagger="true"] .sensor-name:nth-child(odd) { grid-row: 1; }
+.sensor-names[data-stagger="true"] .sensor-name:nth-child(even) { grid-row: 2; }
+/* Tablero angosto: percepción arriba y los cuatro controles debajo, a todo el ancho. */
+@container board (max-width: 559.98px) {
+  .rules-io { flex-direction: column; gap: var(--space-2); }
+  .rules-io .action-keys { width: auto; align-self: stretch; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@container board (max-width: 326.98px) {
+  .rules-io .action-keys { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

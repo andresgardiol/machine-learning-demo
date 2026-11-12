@@ -25,6 +25,15 @@ propuesta de OpenSpec antes de implementarse.
     vehículos superados (ver más abajo) y un tráfico menos denso al empezar.
   - Importa porque es la promesa de la pestaña: que se vea al auto aprender
     a manejar, no solo a no chocar. Conviene explorarlo en un cambio propio.
+  - Referencia de lo que el auto puede hacer, medida con el intérprete de la
+    pestaña Reglas a mano (cambio `reglas-a-mano`, tarea 2.3; sin navegador,
+    configuración por defecto, semilla 2, dos minutos como máximo): el
+    ejemplo de 7 sensores (5 reglas) supera 14 vehículos y recorre 1041 m
+    antes de chocar, y en las semillas 1 a 5 supera entre 8 y 26. El auto, con
+    estos sensores y estas velocidades, puede pasar al tráfico: la meseta no
+    es un límite del auto. El ejemplo de 3 sensores cortos (frenar si hay algo
+    adelante) recorre 1224 m sin chocar y sin superar a nadie: reproduce a
+    mano la misma conducta de seguir al tráfico que aprenden hoy las redes.
 
 ## Ideas
 
