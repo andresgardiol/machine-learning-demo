@@ -1,6 +1,7 @@
 // Tooltips "qué hace / por qué importa".
 //
-// Cada control declara su ayuda con data-help="id". El contenido sale de los diccionarios:
+// Cada control declara su ayuda con data-help="id" (y, si el texto los usa, sus parámetros con
+// data-help-params, en JSON). El contenido sale de los diccionarios:
 //   help.<id>.what  -> qué hace
 //   help.<id>.why   -> por qué importa
 // Un único elemento flotante y escuchas delegadas en el documento (no una por control).
@@ -67,12 +68,20 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS })
 
   const controlOf = (node) => (node && node.closest ? node.closest('[data-help]') : null);
 
+  /** Parámetros del texto de ayuda (data-help-params, JSON), por ejemplo el número de un sensor. */
+  function paramsOf(control) {
+    const raw = control.getAttribute('data-help-params');
+    if (!raw) return undefined;
+    try { return JSON.parse(raw); } catch { return undefined; }
+  }
+
   function fill(control) {
     const keys = helpKeys(control.getAttribute('data-help'));
+    const params = paramsOf(control);
     whatLabel.textContent = i18n.t('tooltip.what');
-    what.textContent = i18n.t(keys.what);
+    what.textContent = i18n.t(keys.what, params);
     whyLabel.textContent = i18n.t('tooltip.why');
-    why.textContent = i18n.t(keys.why);
+    why.textContent = i18n.t(keys.why, params);
   }
 
   function position(control) {
