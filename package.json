@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"tests/**/*.test.js\"",
-    "start": "node tools/serve.mjs"
+    "start": "node tools/serve.mjs",
+    "test:learning": "node tools/measure-learning.mjs"
   }
 }

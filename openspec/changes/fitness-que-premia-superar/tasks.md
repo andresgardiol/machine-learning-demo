@@ -27,8 +27,8 @@
 
 ## 5. Comprobación de aprendizaje
 
-- [ ] 5.1 Escribir `tools/measure-learning.mjs` con el protocolo de design.md D6, exportando la función de medida, y agregar el script `test:learning` a `package.json`. Verificar con una prueba en `npm test` que la medida con una semilla y 5 generaciones da exactamente lo mismo en dos corridas.
-- [ ] 5.2 Correr `npm run test:learning` y pegar la tabla en el informe. Si el promedio con los valores por defecto es menor que 8, si el de alguna semilla es menor que 5 o si el de la función distancia es mayor que 2, **detenerse y consultar**: no ajustar umbrales ni valores por defecto por cuenta propia. Si cumple pero difiere de 13,3 y 0,6, informarlo.
+- [x] 5.1 Escribir `tools/measure-learning.mjs` con el protocolo de design.md D6, exportando la función de medida, y agregar el script `test:learning` a `package.json`. Verificar con una prueba en `npm test` que la medida con una semilla y 5 generaciones da exactamente lo mismo en dos corridas.
+- [x] 5.2 Correr `npm run test:learning` y pegar la tabla en el informe. Si el promedio con los valores por defecto es menor que 8, si el de alguna semilla es menor que 5 o si el de la función distancia es mayor que 2, **detenerse y consultar**: no ajustar umbrales ni valores por defecto por cuenta propia. Si cumple pero difiere de 13,3 y 0,6, informarlo.
 
 ## 6. Pestaña Entrenar
 
