@@ -7,14 +7,14 @@ claves nuevas y se informa en el reporte.
 
 ## 1. El lenguaje de reglas en el núcleo
 
-- [ ] 1.1 Crear `src/core/rules.js` con el vocabulario de design.md D2 (`VOCABULARY`), el analizador léxico y `classifyLine(text)`. Verificar en `tests/rules.test.js`: cada palabra de la tabla se reconoce en español y en inglés, sin distinguir mayúsculas; `sensor3` y `sensor 3` son el mismo dato; `0,5` y `0.5` son el mismo número; y `classifyLine` devuelve los tipos correctos para `si sensor3 > cerca entonces girar izquierda # esquiva` y para `cerca = 0,5`.
-- [ ] 1.2 Implementar `parseProgram` para líneas, comentarios, órdenes y reglas con acciones en la misma línea o con sangría (D1 y D2). Verificar con un caso por escenario de "Programa por líneas", "Órdenes" y "Reglas" de la spec `reglas`.
-- [ ] 1.3 Implementar las condiciones: comparaciones entre dos valores, `y`, `o`, `no`, paréntesis y su precedencia. Verificar con un caso por escenario de "Condiciones" y "Datos disponibles".
-- [ ] 1.4 Implementar las constantes (D2): definición `<nombre> = <número>` sin sangría, uso en las condiciones de las líneas siguientes y resolución al analizar. Verificar con un caso por escenario de "Constantes" y con el de "Constantes contadas aparte".
-- [ ] 1.5 Implementar los dieciséis errores de D3, uno por línea como máximo y en orden, con la sugerencia de palabra parecida, que también busca entre las constantes definidas. Verificar con un caso por escenario de "Errores explicados" y de "Errores de constantes", más un caso por cada código de la tabla de D3 que no tenga escenario propio (`unexpectedWord`, `missingCondition`, `badNumber`).
-- [ ] 1.6 Implementar el tope de 200 líneas y la cuenta de reglas. Verificar con los escenarios de "Tamaño de un programa" y "Cantidad de reglas".
-- [ ] 1.7 Implementar `runProgram(program, perception)` con los controles y las líneas que se cumplen. Verificar con un caso por escenario de "Ejecución en cada instante", "Vocabulario en español y en inglés" y "Líneas que se cumplen", incluido que la línea de una constante nunca figura.
-- [ ] 1.8 Correr `npm test` y confirmar que pasa todo, incluida `tests/architecture.test.js`.
+- [x] 1.1 Crear `src/core/rules.js` con el vocabulario de design.md D2 (`VOCABULARY`), el analizador léxico y `classifyLine(text)`. Verificar en `tests/rules.test.js`: cada palabra de la tabla se reconoce en español y en inglés, sin distinguir mayúsculas; `sensor3` y `sensor 3` son el mismo dato; `0,5` y `0.5` son el mismo número; y `classifyLine` devuelve los tipos correctos para `si sensor3 > cerca entonces girar izquierda # esquiva` y para `cerca = 0,5`.
+- [x] 1.2 Implementar `parseProgram` para líneas, comentarios, órdenes y reglas con acciones en la misma línea o con sangría (D1 y D2). Verificar con un caso por escenario de "Programa por líneas", "Órdenes" y "Reglas" de la spec `reglas`.
+- [x] 1.3 Implementar las condiciones: comparaciones entre dos valores, `y`, `o`, `no`, paréntesis y su precedencia. Verificar con un caso por escenario de "Condiciones" y "Datos disponibles".
+- [x] 1.4 Implementar las constantes (D2): definición `<nombre> = <número>` sin sangría, uso en las condiciones de las líneas siguientes y resolución al analizar. Verificar con un caso por escenario de "Constantes" y con el de "Constantes contadas aparte".
+- [x] 1.5 Implementar los dieciséis errores de D3, uno por línea como máximo y en orden, con la sugerencia de palabra parecida, que también busca entre las constantes definidas. Verificar con un caso por escenario de "Errores explicados" y de "Errores de constantes", más un caso por cada código de la tabla de D3 que no tenga escenario propio (`unexpectedWord`, `missingCondition`, `badNumber`).
+- [x] 1.6 Implementar el tope de 200 líneas y la cuenta de reglas. Verificar con los escenarios de "Tamaño de un programa" y "Cantidad de reglas".
+- [x] 1.7 Implementar `runProgram(program, perception)` con los controles y las líneas que se cumplen. Verificar con un caso por escenario de "Ejecución en cada instante", "Vocabulario en español y en inglés" y "Líneas que se cumplen", incluido que la línea de una constante nunca figura.
+- [x] 1.8 Correr `npm test` y confirmar que pasa todo, incluida `tests/architecture.test.js`.
 
 ## 2. Controlador de reglas y programas de ejemplo
 
