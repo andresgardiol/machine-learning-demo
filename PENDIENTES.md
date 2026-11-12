@@ -35,6 +35,26 @@ propuesta de OpenSpec antes de implementarse.
     adelante) recorre 1224 m sin chocar y sin superar a nadie: reproduce a
     mano la misma conducta de seguir al tráfico que aprenden hoy las redes.
 
+- **Los ejemplos de Reglas a mano solo valen con la velocidad por defecto.**
+  La velocidad máxima del auto es una sola para toda la app y se recuerda;
+  los programas de ejemplo están escritos para 20 m/s.
+  - Medido sin navegador el 12 de noviembre de 2026, con el intérprete del
+    producto y el tráfico inicial de la pestaña (semilla 2): a 23 m/s el
+    programa inicial choca contra el primer vehículo a los 59 m en vez de
+    esquivarlo, y el ejemplo de 3 sensores, cuyo comentario dice "No choca",
+    choca a los 61 m (y en las semillas 1 a 5). A 30 m/s el ejemplo de 20
+    sensores (1296 m, 27 superados) le gana al de 7 (108 m, 1 superado), al
+    revés de lo que el ejemplo quiere mostrar.
+  - Las pruebas automáticas usan la velocidad por defecto y no lo detectan.
+  - Propuesta, sin implementar: que la pestaña tenga su propia velocidad,
+    que arranque en 20 m/s y que cargar un ejemplo o restablecer la vuelvan a
+    20, como ya hacen con los sensores. Cambia, solo para esta pestaña, el
+    requisito de que la velocidad sea una sola para todas.
+- **El programa recordado no recuerda los sensores.** Se guarda solo el
+  texto: si se carga el ejemplo de 20 sensores y se recarga la página, la
+  pestaña abre con 5 sensores y el error de sensores que no existen.
+  Propuesta, sin implementar: recordar los sensores junto al programa.
+
 ## Ideas
 
 - **Detalles que dejó el tablero de aprendizaje** (cambio
