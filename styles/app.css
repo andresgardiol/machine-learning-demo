@@ -275,6 +275,8 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   cursor: pointer; font-size: 14px;
 }
 .camera-button:hover { border-color: var(--color-accent); }
+/* Paisaje apagado: el interruptor queda tenue y tachado. */
+.camera-button.camera-scenery[aria-pressed="false"] { color: var(--color-text-muted); text-decoration: line-through; }
 /* La cámara no sigue al auto: el botón para volver se destaca. */
 .camera-button[data-active="true"] { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-bg); font-weight: 600; }
 

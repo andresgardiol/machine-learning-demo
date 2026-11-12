@@ -35,7 +35,7 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
   const makeWorld = () => createWorld({ ...worldSpec(settings, seed), controller: keyboard });
   let world = makeWorld();
   const session = createDriveSession({ completed: completedMissions });
-  const view = createStageView({ container: stage });
+  const view = createStageView({ container: stage, store });
   const options = { showSensors: true, machineView: false };
 
   const setText = createTextSetter(i18n);

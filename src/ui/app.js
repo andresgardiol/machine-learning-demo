@@ -44,8 +44,10 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     guide: preferences.guide,
     activeTab: tabs.find((t) => t.module)?.id ?? null,
     carSpeed: preferences.carSpeed ?? MAX_SPEED,
+    scenery: preferences.scenery ?? true, // paisaje alrededor de la pista, igual en todas las pestañas
   });
   store.subscribe((state, prev) => { if (state.carSpeed !== prev.carSpeed) preferences.carSpeed = state.carSpeed; });
+  store.subscribe((state, prev) => { if (state.scenery !== prev.scenery) preferences.scenery = state.scenery; });
 
   // --- Barra de pestañas -------------------------------------------------
   const tabButtons = tabs.map((tab, index) => {

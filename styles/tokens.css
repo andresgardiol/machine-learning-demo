@@ -31,6 +31,15 @@
   --color-car-glass: #1d2b3a;
   --color-headlight: #fff3c4;
   --color-taillight: #8f1d22;
+  /* Paisaje (solo dibujo): apagados y distintos de autos, tráfico, sensores, bordes y carriles */
+  --color-grass: #17241b;
+  --color-sidewalk: #444b54;
+  --color-tree: #2f5a3a;
+  --color-tree-dark: #284a31;
+  --color-kerb-a: #6e3434;
+  --color-kerb-b: #8c939c;
+  --color-stand: #3b4350;
+  --color-crosswalk: #6c7480;
 
   --space-1: 4px;
   --space-2: 8px;

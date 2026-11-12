@@ -82,6 +82,10 @@ export default {
   'help.tab.lab.soon.why': 'Va a enseñar backpropagation (la forma de corregir una red a partir de sus errores) en un espacio libre para experimentar.',
 
   // Cámara del escenario
+  'camera.scenery': 'Paisaje',
+  'camera.scenery.label': 'Mostrar u ocultar el paisaje',
+  'help.camera.scenery.what': 'Muestra u oculta el entorno de la pista: pasto, árboles, veredas, tribunas y pianitos. Vale para todas las pestañas.',
+  'help.camera.scenery.why': 'Ayuda a leer la escala y la velocidad, pero es solo dibujo: el auto no lo percibe ni puede chocarlo. Si distrae, se apaga.',
   'camera.zoomIn': '+',
   'camera.zoomOut': '−',
   'camera.reset': 'Seguir al auto (V)',

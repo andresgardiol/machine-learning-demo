@@ -1,13 +1,13 @@
-// Preferencias recordadas en el navegador (idioma, guía, ancho del panel y del escenario, velocidad del auto y programa
-// de la pestaña Reglas a mano). Toda lectura y escritura
+// Preferencias recordadas en el navegador (idioma, guía, ancho del panel y del escenario, velocidad del auto, programa
+// de la pestaña Reglas a mano y paisaje). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', scenery: 'mlLab.scenery' });
 
 /** Largo máximo del programa recordado de la pestaña Reglas a mano (design.md D8). */
 export const RULES_PROGRAM_MAX = 20000;
 
-export const DEFAULT_PREFERENCES = Object.freeze({ language: null, guide: true, panelWidth: null, carSpeed: null });
+export const DEFAULT_PREFERENCES = Object.freeze({ language: null, guide: true, panelWidth: null, carSpeed: null, scenery: true });
 
 const defaultStorage = () => globalThis.localStorage;
 
@@ -45,6 +45,12 @@ export function createPreferences(getStorage = defaultStorage) {
       return v === 'off' ? false : v === 'on' ? true : DEFAULT_PREFERENCES.guide;
     },
     set guide(value) { write(KEYS.guide, value ? 'on' : 'off'); },
+    /** Interruptor del paisaje alrededor de la pista (circuitos-y-paisaje D9); encendido por defecto. */
+    get scenery() {
+      const v = read(KEYS.scenery);
+      return v === 'off' ? false : v === 'on' ? true : DEFAULT_PREFERENCES.scenery;
+    },
+    set scenery(value) { write(KEYS.scenery, value ? 'on' : 'off'); },
     /** Ancho del panel derecho en píxeles, o null si no se guardó uno válido. */
     get panelWidth() {
       const v = Number.parseInt(read(KEYS.panelWidth) ?? '', 10);

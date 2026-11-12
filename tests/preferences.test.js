@@ -17,7 +17,7 @@ test('navegador sin almacenamiento: acceder al almacenamiento lanza y se obtiene
   assert.doesNotThrow(() => { prefs.language = 'en'; prefs.guide = false; prefs.panelWidth = 480; prefs.carSpeed = 30; });
   assert.equal(prefs.language, null);
   assert.equal(prefs.guide, true);
-  assert.deepEqual({ language: prefs.language, guide: prefs.guide, panelWidth: prefs.panelWidth, carSpeed: prefs.carSpeed }, DEFAULT_PREFERENCES);
+  assert.deepEqual({ language: prefs.language, guide: prefs.guide, panelWidth: prefs.panelWidth, carSpeed: prefs.carSpeed, scenery: prefs.scenery }, DEFAULT_PREFERENCES);
 });
 
 test('almacenamiento que falla al leer y escribir: valores por defecto sin error', () => {
@@ -130,4 +130,20 @@ test('programa de Reglas a mano con un almacenamiento que falla o no existe: nul
   const throwing = createPreferences(() => { throw new Error('SecurityError'); });
   assert.doesNotThrow(() => { throwing.rulesProgram = 'avanzar'; });
   assert.equal(throwing.rulesProgram, null);
+});
+
+test('paisaje: encendido por defecto, se recuerda apagado y vuelve a encenderse', () => {
+  const storage = memoryStorage();
+  const first = createPreferences(() => storage);
+  assert.equal(first.scenery, true);
+  first.scenery = false;
+  assert.equal(storage.getItem('mlLab.scenery'), 'off');
+  const second = createPreferences(() => storage);
+  assert.equal(second.scenery, false);
+  second.scenery = true;
+  assert.equal(createPreferences(() => storage).scenery, true);
+  // Un valor guardado que no se entiende vale como encendido; sin almacenamiento, también.
+  storage.setItem('mlLab.scenery', 'quizás');
+  assert.equal(createPreferences(() => storage).scenery, true);
+  assert.equal(createPreferences(failingStorage).scenery, true);
 });

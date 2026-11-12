@@ -82,6 +82,10 @@ export default {
   'help.tab.lab.soon.why': 'It will teach backpropagation (the way to correct a network from its mistakes) in an open space for experimenting.',
 
   // Stage camera
+  'camera.scenery': 'Scenery',
+  'camera.scenery.label': 'Show or hide the scenery',
+  'help.camera.scenery.what': 'Shows or hides what surrounds the track: grass, trees, sidewalks, grandstands and kerbs. It applies to every tab.',
+  'help.camera.scenery.why': 'It helps read scale and speed, but it is only a drawing: the car does not perceive it and cannot crash into it. Turn it off if it distracts.',
   'camera.zoomIn': '+',
   'camera.zoomOut': '−',
   'camera.reset': 'Follow the car (V)',

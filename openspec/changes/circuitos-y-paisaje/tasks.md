@@ -33,11 +33,11 @@
 
 ## 6. Paisaje
 
-- [ ] 6.1 Crear `src/render/scenery-layout.js` con la distribución de la calle recta por celdas (design.md D9). Verificar con pruebas que es reproducible, que cambia con la semilla, que ningún árbol ni vereda cae sobre la calzada y que dos celdas vecinas no repiten la misma distribución.
-- [ ] 6.2 Sumar la distribución de los circuitos: pianitos, tribunas, línea de largada y árboles. Verificar con pruebas que nada queda sobre la calzada, que los pianitos están solo donde el radio es menor que 80 m y que cada circuito da siempre la misma distribución.
+- [x] 6.1 Crear `src/render/scenery-layout.js` con la distribución de la calle recta por celdas (design.md D9). Verificar con pruebas que es reproducible, que cambia con la semilla, que ningún árbol ni vereda cae sobre la calzada y que dos celdas vecinas no repiten la misma distribución.
+- [x] 6.2 Sumar la distribución de los circuitos: pianitos, tribunas, línea de largada y árboles. Verificar con pruebas que nada queda sobre la calzada, que los pianitos están solo donde el radio es menor que 80 m y que cada circuito da siempre la misma distribución.
 - [ ] 6.3 Crear `src/render/scenery.js`, agregar los colores a `styles/tokens.css` y dibujar el paisaje en el orden de D9. Verificar en el navegador los escenarios de "Paisaje de la calle", "Paisaje de los circuitos" y "Colores del paisaje", con una captura de la calle y otra de un circuito.
 - [ ] 6.4 Agregar la preferencia `scenery` y el interruptor junto a los controles de cámara, con su tooltip en español y en inglés, y ocultar el paisaje en "ver como la máquina". Verificar con pruebas de `preferences` el valor por defecto y que se recuerda, y en el navegador los escenarios de "Mostrar u ocultar el paisaje".
-- [ ] 6.5 Verificar con una prueba el escenario "Misma simulación": el estado del mundo es idéntico paso a paso con el paisaje encendido y apagado.
+- [x] 6.5 Verificar con una prueba el escenario "Misma simulación": el estado del mundo es idéntico paso a paso con el paisaje encendido y apagado.
 
 ## 7. Pestañas El problema y Reglas a mano
 

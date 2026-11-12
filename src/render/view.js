@@ -14,6 +14,7 @@ import { CAR_LENGTH, CAR_WIDTH } from '../core/constants.js';
 import {
   createCamera, orientationFor, panStarts, retarget, advanceBlend, blendTarget, NO_BLEND,
 } from './camera.js';
+import { createSceneryPainter } from './scenery.js';
 
 const COLOR_VARS = {
   background: '--color-bg',
@@ -30,6 +31,17 @@ const COLOR_VARS = {
   taillight: '--color-taillight',
   elite: '--color-elite',
   outline: '--color-bg',
+  // Paisaje (circuitos-y-paisaje D9): colores apagados, distintos de los de autos, tráfico y sensores.
+  grass: '--color-grass',
+  sidewalk: '--color-sidewalk',
+  tree: '--color-tree',
+  treeDark: '--color-tree-dark',
+  kerbA: '--color-kerb-a',
+  kerbB: '--color-kerb-b',
+  stand: '--color-stand',
+  crosswalk: '--color-crosswalk',
+  checkerA: '--color-crosswalk',
+  checkerB: '--color-bg',
 };
 
 // Opacidad de los autos de la población que no están en foco.
@@ -50,9 +62,11 @@ const isTypingTarget = (t) => Boolean(t) && (t.isContentEditable
   || (t.tagName === 'INPUT' && !['button', 'checkbox', 'radio', 'range', 'reset', 'submit'].includes(t.type)));
 
 /**
- * @param {{container: HTMLElement, camera?: object, doc?: Document}} spec
+ * @param {{container: HTMLElement, camera?: object, doc?: Document, store?: object}} spec
+ *   store: almacén de la app; si está, la vista ofrece junto a los controles de cámara el interruptor
+ *   del paisaje, que lee y cambia `scenery` (el mismo para todas las pestañas).
  */
-export function createStageView({ container, camera = createCamera(), doc = document }) {
+export function createStageView({ container, camera = createCamera(), doc = document, store = null }) {
   const win = doc.defaultView;
   const canvas = doc.createElement('canvas');
   canvas.className = 'stage-canvas';
@@ -74,11 +88,21 @@ export function createStageView({ container, camera = createCamera(), doc = docu
   const resetButton = button('camera.reset', 'camera.reset', 'camera.reset.label', () => resetView());
   const controls = doc.createElement('div');
   controls.className = 'camera-controls';
-  controls.append(zoomInButton, zoomOutButton, resetButton);
+  // Interruptor del paisaje (circuitos-y-paisaje D9): un botón con estado, igual en todas las pestañas.
+  const sceneryOn = () => (store ? store.get().scenery !== false : true);
+  const sceneryButton = store ? button('camera.scenery', 'camera.scenery', 'camera.scenery.label', () => {
+    store.set({ scenery: !sceneryOn() });
+  }) : null;
+  const syncScenery = () => { if (sceneryButton) sceneryButton.setAttribute('aria-pressed', String(sceneryOn())); };
+  if (sceneryButton) sceneryButton.classList.add('camera-scenery');
+  syncScenery();
+  const unsubscribeScenery = store ? store.subscribe((state, prev) => { if (state.scenery !== prev.scenery) syncScenery(); }) : () => {};
+  controls.append(...(sceneryButton ? [sceneryButton] : []), zoomInButton, zoomOutButton, resetButton);
 
   container.append(canvas, controls);
 
   let colors = readColors(doc);
+  const scenery = createSceneryPainter();
   let viewport = { width: 0, height: 0 };
   let dpr = 1;
   let lastTarget = null;
@@ -205,7 +229,7 @@ export function createStageView({ container, camera = createCamera(), doc = docu
    * solo en los tramos cuyo recuadro cae en el encuadre `b`, y la línea de salida de borde a borde.
    * Sin líneas de carril: un circuito tiene un solo carril.
    */
-  function drawClosedTrack(track, b, px) {
+  function drawClosedTrack(track, b, px, afterRoad = () => {}) {
     const L = track.leftBorder;
     const R = track.rightBorder;
     const visible = [];
@@ -225,6 +249,7 @@ export function createStageView({ container, camera = createCamera(), doc = docu
       ctx.closePath();
     }
     ctx.fill();
+    afterRoad();
     // Línea de salida, de borde a borde.
     strokePieces([[L[0], R[0]]], colors.laneLine, 3 * px);
     // Bordes
@@ -235,7 +260,7 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     ctx.lineCap = 'butt';
   }
 
-  function drawTrack(track, from, to, px) {
+  function drawTrack(track, from, to, px, afterRoad = () => {}) {
     const half = track.width / 2;
     // Calzada
     ctx.fillStyle = colors.road;
@@ -248,6 +273,7 @@ export function createStageView({ container, camera = createCamera(), doc = docu
       ctx.closePath();
       ctx.fill();
     });
+    afterRoad();
     // Separación entre carriles: trazos fijos sobre la calle (el inicio se alinea al patrón).
     const dashFrom = Math.max(track.start, Math.floor(from / (2 * DASH)) * 2 * DASH);
     for (let i = 1; i < track.lanes; i++) {
@@ -440,12 +466,14 @@ export function createStageView({ container, camera = createCamera(), doc = docu
   /**
    * Dibuja un cuadro.
    * @param {object} world mundo del núcleo
-   * @param {{showSensors?: boolean, machineView?: boolean, focus?: number, elite?: number[]}} [options]
-   *   machineView omite las capas de pista y tráfico ("ver como la máquina").
+   * @param {{showSensors?: boolean, machineView?: boolean, scenery?: boolean, focus?: number, elite?: number[]}} [options]
+   *   machineView omite las capas de pista, tráfico y paisaje ("ver como la máquina") y, con una
+   *   población, a todos los autos menos el del foco (circuitos-y-paisaje D13).
+   *   scenery: dibuja el paisaje alrededor de la pista (encendido por defecto; machineView lo anula).
    *   focus: índice del agente a destacar y seguir (sin focus, dibuja el primer auto como siempre).
    *   elite: índices de los agentes de élite, que llevan una marca propia.
    */
-  function render(world, { showSensors = true, machineView = false, focus, elite = [] } = {}) {
+  function render(world, { showSensors = true, machineView = false, scenery: showScenery = sceneryOn(), focus, elite = [] } = {}) {
     resize();
     const population = Number.isInteger(focus) && world.agents?.[focus] !== undefined;
     const car = population ? world.agents[focus].car : world.car;
@@ -460,8 +488,10 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     const sin = Math.sin(camera.rotation);
     const px = 1 / z; // un píxel CSS en metros
 
+    const withScenery = showScenery && !machineView;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = colors.background;
+    // Con el paisaje, el fondo es el pasto.
+    ctx.fillStyle = withScenery ? colors.grass : colors.background;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     // Mundo -> pantalla: giro de la cámara, escala z, y invertida, centrado en la cámara.
     ctx.setTransform(
@@ -471,19 +501,33 @@ export function createStageView({ container, camera = createCamera(), doc = docu
       dpr * (viewport.height / 2 + z * (sin * c.x + cos * c.y)),
     );
 
-    if (!machineView && world.track.closed) {
-      drawClosedTrack(world.track, camera.visibleBounds(viewport), px);
-    } else if (!machineView) {
+    // Orden de dibujo (D9): pasto, veredas, pianitos y tribunas, calzada, sendas y línea de largada,
+    // líneas de carril y bordes, árboles, tráfico, autos y rayos.
+    if (!machineView) {
       const b = camera.visibleBounds(viewport);
-      const middle = { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 };
-      const radius = Math.hypot(b.maxX - b.minX, b.maxY - b.minY) / 2;
-      const at = world.track.progressOf(middle).progress;
-      const from = Math.max(world.track.start, at - radius);
-      const to = Math.min(world.track.end, at + radius);
-      drawTrack(world.track, from, to, px);
-      const inView = (v) => v.position.x >= b.minX - CAR_LENGTH && v.position.x <= b.maxX + CAR_LENGTH
-        && v.position.y >= b.minY - CAR_LENGTH && v.position.y <= b.maxY + CAR_LENGTH;
-      drawTraffic(world.vehiclesIn(from - CAR_LENGTH, to + CAR_LENGTH).filter(inView), px);
+      if (withScenery) scenery.under(ctx, world, b, colors);
+      const paint = withScenery ? () => scenery.paint(ctx, world, b, colors) : undefined;
+      if (world.track.closed) {
+        drawClosedTrack(world.track, b, px, paint);
+        if (withScenery) scenery.over(ctx, world, b, colors);
+      } else {
+        const middle = { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 };
+        const radius = Math.hypot(b.maxX - b.minX, b.maxY - b.minY) / 2;
+        const at = world.track.progressOf(middle).progress;
+        const from = Math.max(world.track.start, at - radius);
+        const to = Math.min(world.track.end, at + radius);
+        drawTrack(world.track, from, to, px, paint);
+        if (withScenery) scenery.over(ctx, world, b, colors);
+        const inView = (v) => v.position.x >= b.minX - CAR_LENGTH && v.position.x <= b.maxX + CAR_LENGTH
+          && v.position.y >= b.minY - CAR_LENGTH && v.position.y <= b.maxY + CAR_LENGTH;
+        drawTraffic(world.vehiclesIn(from - CAR_LENGTH, to + CAR_LENGTH).filter(inView), px);
+      }
+    }
+    if (population && machineView) {
+      // Ver como la máquina con una población: solo el auto del foco y sus rayos.
+      if (showSensors) drawRays(world.agents[focus].rays, px);
+      drawCar(car, px);
+      return;
     }
     if (population) {
       const b = camera.visibleBounds(viewport);
@@ -522,6 +566,7 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     get viewport() { return { ...viewport }; },
     dispose() {
       observer.disconnect();
+      unsubscribeScenery();
       canvas.removeEventListener('wheel', onWheel);
       win.removeEventListener('keydown', onKeyDown);
       canvas.remove();

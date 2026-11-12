@@ -77,7 +77,7 @@ function createState({ i18n, store, preferences }) {
 export function mount({ stage, board, panel, i18n, store, preferences, reportError }) {
   state ??= createState({ i18n, store, preferences });
   const { program, controller, session } = state;
-  const view = createStageView({ container: stage });
+  const view = createStageView({ container: stage, store });
   const setText = createTextSetter(i18n);
   const focusStage = () => stage.focus({ preventScroll: true });
   const makeWorld = () => createWorld({ ...worldSpec(state.settings, state.seed), controller });

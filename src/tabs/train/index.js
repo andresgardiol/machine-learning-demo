@@ -103,7 +103,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   }
 
   const setText = createTextSetter(i18n);
-  const view = createStageView({ container: stage });
+  const view = createStageView({ container: stage, store });
   const focusStage = () => stage.focus({ preventScroll: true });
 
   // --- Entrenamiento ------------------------------------------------------------------------
