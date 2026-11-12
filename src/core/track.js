@@ -1,5 +1,5 @@
 // Pista: línea central (polilínea), ancho total y carriles de igual ancho.
-// Sirve igual para la calle recta y para circuitos abiertos con curvas.
+// Sirve igual para la calle recta y para circuitos con curvas, abiertos o cerrados (design.md D1).
 import { add, sub, scale, length as vlen, normalize, leftOf, dot, cross, distance } from './geometry.js';
 import { ALLOWED_LANES, DEFAULT_LANES, LANE_WIDTH, STREET_LENGTH } from './constants.js';
 
@@ -15,59 +15,119 @@ export class TrackError extends Error {
 
 const SEARCH_WINDOW = 3;
 
+// Grilla de los bordes (solo para pistas con muchos tramos): lado de cada celda, en metros.
+const GRID_MIN_SEGMENTS = 16;
+const GRID_CELL = 16;
+
+/** Grilla de celdas cuadradas con los índices de los tramos de borde cuyo recuadro las toca. */
+function buildGrid(borderSegments) {
+  const cells = new Map();
+  const key = (cx, cy) => `${cx},${cy}`;
+  borderSegments.forEach(([a, b], i) => {
+    const x0 = Math.floor(Math.min(a.x, b.x) / GRID_CELL);
+    const x1 = Math.floor(Math.max(a.x, b.x) / GRID_CELL);
+    const y0 = Math.floor(Math.min(a.y, b.y) / GRID_CELL);
+    const y1 = Math.floor(Math.max(a.y, b.y) / GRID_CELL);
+    for (let cx = x0; cx <= x1; cx++) {
+      for (let cy = y0; cy <= y1; cy++) {
+        const k = key(cx, cy);
+        if (!cells.has(k)) cells.set(k, []);
+        cells.get(k).push(i);
+      }
+    }
+  });
+  return {
+    /** Índices, en orden y sin repetir, de los tramos de las celdas que toca el recuadro dado. */
+    candidates(minX, minY, maxX, maxY) {
+      const found = new Set();
+      for (let cx = Math.floor(minX / GRID_CELL); cx <= Math.floor(maxX / GRID_CELL); cx++) {
+        for (let cy = Math.floor(minY / GRID_CELL); cy <= Math.floor(maxY / GRID_CELL); cy++) {
+          const list = cells.get(key(cx, cy));
+          if (list) for (const i of list) found.add(i);
+        }
+      }
+      return [...found].sort((x, y) => x - y);
+    },
+  };
+}
+
 /**
  * Crea una pista. Carril 0 = el más a la izquierda mirando hacia adelante.
  * Las distancias sobre la línea central (progreso, centro de carril) se miden desde la línea de
  * salida. `start` es la distancia del primer punto respecto de ella: 0 si la pista empieza en la
  * salida, negativa si continúa por detrás (como la calle recta, para que no se pueda salir de
  * ella retrocediendo).
- * @param {{centerline: {x:number,y:number}[], width: number, lanes: number, start?: number}} spec
+ *
+ * Con `closed: true` la pista es cerrada: el último punto se une con el primero con un tramo más
+ * (si el último repite el primero, se descarta), la salida está en el primer punto (`start` es 0),
+ * `length` es el largo de una vuelta y las distancias se reducen a una vuelta. Los bordes son
+ * contornos cerrados: su último punto repite el primero.
+ * @param {{centerline: {x:number,y:number}[], width: number, lanes: number, start?: number, closed?: boolean}} spec
  */
-export function createTrack({ centerline, width, lanes, start = 0 }) {
+export function createTrack({ centerline, width, lanes, start = 0, closed = false }) {
   if (!Array.isArray(centerline) || centerline.length < 2) throw new TrackError('CENTERLINE_TOO_SHORT');
   if (!(width > 0)) throw new TrackError('INVALID_WIDTH', { width });
   if (!Number.isInteger(lanes) || lanes < 1) throw new TrackError('INVALID_LANE_COUNT', { lanes });
   if (!Number.isFinite(start)) throw new TrackError('INVALID_START', { start });
+  if (closed && start !== 0) throw new TrackError('INVALID_START', { start });
 
   const points = centerline.map((p) => ({ x: p.x, y: p.y }));
+  if (closed && points.length > 1 && distance(points[0], points[points.length - 1]) < 1e-9) points.pop();
+  if (closed && points.length < 3) throw new TrackError('CENTERLINE_TOO_SHORT');
   const half = width / 2;
+  const n = points.length;
+  // Vértice siguiente del tramo i (en una pista cerrada, el último vuelve al primero).
+  const next = (i) => points[(i + 1) % n];
+  const segmentCount = closed ? n : n - 1;
 
   // Tramos: dirección, normal izquierda y distancia (desde la línea de salida) de su inicio.
   const segments = [];
   let total = 0;
-  for (let i = 0; i < points.length - 1; i++) {
-    const delta = sub(points[i + 1], points[i]);
+  for (let i = 0; i < segmentCount; i++) {
+    const delta = sub(next(i), points[i]);
     const len = vlen(delta);
     if (len === 0) throw new TrackError('ZERO_LENGTH_SEGMENT', { index: i });
     const dir = normalize(delta);
-    segments.push({ a: points[i], b: points[i + 1], dir, normal: leftOf(dir), len, start: start + total });
+    segments.push({ a: points[i], b: next(i), dir, normal: leftOf(dir), len, start: start + total });
     total += len;
   }
 
   // Curvas demasiado cerradas: el borde interior se cruzaría consigo mismo.
   // En cada vértice el borde interior se recorta (half * tan(giro / 2)) sobre ambos tramos;
   // si la suma de recortes de un tramo supera su largo, los bordes se cruzan.
-  const cuts = new Array(points.length).fill(0);
-  for (let i = 1; i < points.length - 1; i++) {
-    const turn = Math.atan2(cross(segments[i - 1].dir, segments[i].dir), dot(segments[i - 1].dir, segments[i].dir));
+  // Tramo que llega al vértice i (null en el primero de una pista abierta) y el que sale de él.
+  const incoming = (i) => (i > 0 ? segments[i - 1] : closed ? segments[segmentCount - 1] : null);
+  const outgoing = (i) => (i < segmentCount ? segments[i] : null);
+  const cuts = new Array(n).fill(0);
+  for (let i = 0; i < n; i++) {
+    const s0 = incoming(i);
+    const s1 = outgoing(i);
+    if (!s0 || !s1) continue;
+    const turn = Math.atan2(cross(s0.dir, s1.dir), dot(s0.dir, s1.dir));
     if (Math.abs(turn) >= Math.PI - 1e-6) throw new TrackError('CURVE_TOO_TIGHT', { vertex: i });
     cuts[i] = half * Math.tan(Math.abs(turn) / 2);
   }
   segments.forEach((s, i) => {
-    if (cuts[i] + cuts[i + 1] > s.len + 1e-9) throw new TrackError('CURVE_TOO_TIGHT', { vertex: cuts[i] >= cuts[i + 1] ? i : i + 1 });
+    const j = (i + 1) % n;
+    if (cuts[i] + cuts[j] > s.len + 1e-9) throw new TrackError('CURVE_TOO_TIGHT', { vertex: cuts[i] >= cuts[j] ? i : j });
   });
 
-  /** Puntos de la polilínea desplazada `offset` metros a la izquierda (negativo = derecha), con unión en inglete. */
+  /**
+   * Puntos de la polilínea desplazada `offset` metros a la izquierda (negativo = derecha), con unión
+   * en inglete en cada vértice. En una pista cerrada, el contorno termina repitiendo su primer punto.
+   */
   function offsetPoints(offset) {
-    return points.map((p, i) => {
-      if (i === 0) return add(p, scale(segments[0].normal, offset));
-      if (i === points.length - 1) return add(p, scale(segments[i - 1].normal, offset));
-      const n0 = segments[i - 1].normal;
-      const n1 = segments[i].normal;
-      const miter = normalize(add(n0, n1));
-      const cosHalf = dot(miter, n0);
+    const out = points.map((p, i) => {
+      const s0 = incoming(i);
+      const s1 = outgoing(i);
+      if (!s0) return add(p, scale(s1.normal, offset));
+      if (!s1) return add(p, scale(s0.normal, offset));
+      const miter = normalize(add(s0.normal, s1.normal));
+      const cosHalf = dot(miter, s0.normal);
       return add(p, scale(miter, offset / cosHalf));
     });
+    if (closed) out.push({ ...out[0] });
+    return out;
   }
 
   const leftBorder = offsetPoints(half);
@@ -78,8 +138,15 @@ export function createTrack({ centerline, width, lanes, start = 0 }) {
   const laneWidth = width / lanes;
   const laneIndexes = Array.from({ length: lanes }, (_, i) => i);
 
+  /** Distancia reducida a la pista: en una cerrada, a una vuelta [0, length); en una abierta, a su tramo. */
+  const reduce = (distanceOnLine) => {
+    if (!closed) return Math.min(Math.max(distanceOnLine, start), start + total);
+    const d = distanceOnLine % total;
+    return d < 0 ? d + total : d;
+  };
+
   const segmentAt = (distanceOnLine) => {
-    const d = Math.min(Math.max(distanceOnLine, start), start + total);
+    const d = reduce(distanceOnLine);
     let lo = 0;
     let hi = segments.length - 1;
     while (lo < hi) {
@@ -129,28 +196,46 @@ export function createTrack({ centerline, width, lanes, start = 0 }) {
       const pr = project(position, segments[i]);
       if (best === null || pr.dist < best.dist) best = { ...pr, index: i };
     };
-    const from = Math.max(0, hint - SEARCH_WINDOW);
-    const to = Math.min(segments.length - 1, hint + SEARCH_WINDOW);
-    for (let i = from; i <= to; i++) consider(i);
+    if (closed) {
+      // En una pista cerrada la ventana de búsqueda pasa por el tramo de cierre.
+      const m = segments.length;
+      for (let k = -SEARCH_WINDOW; k <= SEARCH_WINDOW; k++) consider((((hint + k) % m) + m) % m);
+    } else {
+      const from = Math.max(0, hint - SEARCH_WINDOW);
+      const to = Math.min(segments.length - 1, hint + SEARCH_WINDOW);
+      for (let i = from; i <= to; i++) consider(i);
+    }
     if (best.dist > width) for (let i = 0; i < segments.length; i++) consider(i);
     const seg = segments[best.index];
+    let progress = seg.start + best.t;
+    if (closed && progress >= total) progress -= total;
     return {
-      progress: seg.start + best.t,
+      progress,
       lateral: dot(sub(position, best.foot), seg.normal),
       segmentIndex: best.index,
     };
   }
 
+  const boxNear = ([a, b], p, radius) => (
+    Math.max(a.x, b.x) >= p.x - radius && Math.min(a.x, b.x) <= p.x + radius
+    && Math.max(a.y, b.y) >= p.y - radius && Math.min(a.y, b.y) <= p.y + radius
+  );
+
+  // Con muchos tramos de borde (un circuito), una grilla de celdas evita recorrerlos todos en cada
+  // consulta. Devuelve exactamente los mismos tramos, en el mismo orden, que recorrerlos todos.
+  const grid = borderSegments.length > GRID_MIN_SEGMENTS ? buildGrid(borderSegments) : null;
+
   /** Segmentos de borde cuyo recuadro queda a menos de `radius` de `p` (consulta "obstáculos cerca de"). */
   function bordersNear(p, radius) {
-    return borderSegments.filter(([a, b]) => (
-      Math.max(a.x, b.x) >= p.x - radius && Math.min(a.x, b.x) <= p.x + radius
-      && Math.max(a.y, b.y) >= p.y - radius && Math.min(a.y, b.y) <= p.y + radius
-    ));
+    if (!grid) return borderSegments.filter((s) => boxNear(s, p, radius));
+    const indexes = grid.candidates(p.x - radius, p.y - radius, p.x + radius, p.y + radius);
+    const out = [];
+    for (const i of indexes) if (boxNear(borderSegments[i], p, radius)) out.push(borderSegments[i]);
+    return out;
   }
 
   return Object.freeze({
-    centerline: points, width, lanes, laneWidth, length: total, start, end: start + total,
+    centerline: points, width, lanes, laneWidth, length: total, start, end: start + total, closed,
     leftBorder, rightBorder, borderSegments, segments,
     pointAt, laneCenter, progressOf, bordersNear,
   });

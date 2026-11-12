@@ -2,9 +2,9 @@
 
 ## 1. Pistas cerradas en el núcleo
 
-- [ ] 1.1 Agregar `closed` a `createTrack` en `src/core/track.js`: tramo de cierre, bordes cerrados con unión en inglete en todos los vértices y `length` igual a una vuelta (design.md D1). Verificar con pruebas en un archivo nuevo los escenarios "Bordes sin extremos" y "Pista abierta sin cambios" de la spec `pista`.
-- [ ] 1.2 Hacer que `pointAt` y `laneCenter` reduzcan la distancia al largo de la vuelta en una pista cerrada. Verificar con una prueba el escenario "Posición después de una vuelta".
-- [ ] 1.3 Verificar que `progressOf` y `bordersNear` funcionan en el tramo de cierre: una prueba ubica puntos a ambos lados de la línea de salida y otra pide los bordes cercanos a ella. Verificar que `npm test` pasa sin tocar las pruebas existentes de la pista.
+- [x] 1.1 Agregar `closed` a `createTrack` en `src/core/track.js`: tramo de cierre, bordes cerrados con unión en inglete en todos los vértices y `length` igual a una vuelta (design.md D1). Verificar con pruebas en un archivo nuevo los escenarios "Bordes sin extremos" y "Pista abierta sin cambios" de la spec `pista`.
+- [x] 1.2 Hacer que `pointAt` y `laneCenter` reduzcan la distancia al largo de la vuelta en una pista cerrada. Verificar con una prueba el escenario "Posición después de una vuelta".
+- [x] 1.3 Verificar que `progressOf` y `bordersNear` funcionan en el tramo de cierre: una prueba ubica puntos a ambos lados de la línea de salida y otra pide los bordes cercanos a ella. Verificar que `npm test` pasa sin tocar las pruebas existentes de la pista.
 
 ## 2. Catálogo de circuitos
 
