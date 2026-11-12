@@ -61,9 +61,9 @@ claves nuevas y se informa en el reporte.
 
 ## 8. Textos y tooltips
 
-- [ ] 8.1 Completar en los dos diccionarios los textos de D12: pestaña, guía, indicadores, tarjetas, estado, los dieciséis errores, controles, ejemplos, confirmaciones, mensajes de importar, choque y misiones. Reemplazar `help.tab.rules.soon` por `help.tab.rules`. Verificar con `npm test` (las claves coinciden en los dos idiomas) y con el escenario "Explicación de Reglas a mano".
-- [ ] 8.2 Escribir los tooltips de cada control y de cada palabra de la paleta, con qué hace y por qué importa en lenguaje llano. Verificar con los cuatro escenarios de "Controles de la pestaña explicados" y con `mlLab.auditTooltips()` en la consola, con todo desplegado, en los dos idiomas.
-- [ ] 8.3 Extender `tests/copy-length.test.js` con la guía (240), los renglones de ayuda (120) y las misiones (34) de esta pestaña. Verificar que pasa.
+- [x] 8.1 Completar en los dos diccionarios los textos de D12: pestaña, guía, indicadores, tarjetas, estado, los dieciséis errores, controles, ejemplos, confirmaciones, mensajes de importar, choque y misiones. Reemplazar `help.tab.rules.soon` por `help.tab.rules`. Verificar con `npm test` (las claves coinciden en los dos idiomas) y con el escenario "Explicación de Reglas a mano".
+- [x] 8.2 Escribir los tooltips de cada control y de cada palabra de la paleta, con qué hace y por qué importa en lenguaje llano. Verificar con los cuatro escenarios de "Controles de la pestaña explicados" y con `mlLab.auditTooltips()` en la consola, con todo desplegado, en los dos idiomas.
+- [x] 8.3 Extender `tests/copy-length.test.js` con la guía (240), los renglones de ayuda (120) y las misiones (34) de esta pestaña. Verificar que pasa.
 
 ## 9. Verificación integral
 

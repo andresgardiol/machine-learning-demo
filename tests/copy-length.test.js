@@ -72,3 +72,19 @@ test('Entrenar: líneas de estado del padre de hasta 110 caracteres, con valores
   // La del cerebro depende del largo del nombre: queda fuera del límite, pero tiene que existir en los dos idiomas.
   for (const lang of Object.keys(LANGS)) assert.ok(text(lang, 'train.parent.brain', params).includes(params.name));
 });
+
+// --- Reglas a mano ------------------------------------------------------------------------------
+import { MISSIONS as RULES_MISSIONS } from '../src/tabs/rules/session.js';
+
+test('Reglas a mano: guía de inicio de hasta 240 caracteres', () => {
+  assertMax('rules.guide', GUIDE_MAX);
+});
+
+test('Reglas a mano: renglones de ayuda del tablero de hasta 120 caracteres', () => {
+  for (const key of ['rules.program.hint', 'rules.io.hint']) assertMax(key, HINT_MAX);
+});
+
+test('Reglas a mano: nombres de misiones de hasta 34 caracteres, con su meta real', () => {
+  assert.equal(RULES_MISSIONS.length, 3);
+  for (const m of RULES_MISSIONS) assertMax(`rules.mission.${m.id}`, MISSION_MAX, { goal: m.goal });
+});
