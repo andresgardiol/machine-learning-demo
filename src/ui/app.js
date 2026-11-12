@@ -3,7 +3,7 @@
 // aviso de ventana angosta y manejo de fallas.
 //
 // Cada pestaña es un módulo con mount(ctx) que devuelve { unmount() }.
-//   ctx = { stage, board, panel, i18n, store, library, reportError }
+//   ctx = { stage, board, panel, i18n, store, library, preferences, reportError }
 // Una pestaña que no pone nada en `board` conserva la disposición de dos zonas (design.md D1).
 // La biblioteca de cerebros es una sola para toda la app: se crea al arrancar (design.md D8).
 // La lista de pestañas (incluidas las aún no disponibles) la entrega quien arranca la app.
@@ -301,7 +301,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     if (!credits.open) credits.showModal();
   }
 
-  const ctxFor = () => ({ stage, board, panel, i18n, store, library, reportError });
+  const ctxFor = () => ({ stage, board, panel, i18n, store, library, preferences, reportError });
 
   function mount(id) {
     const tab = tabs.find((t) => t.id === id);

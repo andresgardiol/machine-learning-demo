@@ -101,3 +101,33 @@ test('ancho del escenario con un almacenamiento que falla o no existe: null sin 
   assert.doesNotThrow(() => { throwing.stageWidth = 300; });
   assert.equal(throwing.stageWidth, null);
 });
+
+// --- Programa de la pestaña Reglas a mano (reglas-a-mano, tarea 5.3) ----------------------------
+
+test('programa de Reglas a mano: el texto se recuerda entre visitas; sin valor guardado es null', () => {
+  const storage = memoryStorage();
+  assert.equal(createPreferences(() => storage).rulesProgram, null);
+  const text = 'cerca = 0,3\navanzar\nsi sensor3 > cerca entonces\n    girar izquierda';
+  createPreferences(() => storage).rulesProgram = text;
+  assert.equal(storage.getItem('mlLab.rules.program'), text);
+  assert.equal(createPreferences(() => storage).rulesProgram, text);
+  createPreferences(() => storage).rulesProgram = '';
+  assert.equal(createPreferences(() => storage).rulesProgram, '');
+});
+
+test('programa de Reglas a mano: un texto de más de 20 000 caracteres se trata como ausente', () => {
+  const storage = memoryStorage();
+  storage.setItem('mlLab.rules.program', 'a'.repeat(20000));
+  assert.equal(createPreferences(() => storage).rulesProgram.length, 20000);
+  storage.setItem('mlLab.rules.program', 'a'.repeat(20001));
+  assert.equal(createPreferences(() => storage).rulesProgram, null);
+});
+
+test('programa de Reglas a mano con un almacenamiento que falla o no existe: null sin error', () => {
+  const failing = createPreferences(failingStorage);
+  assert.doesNotThrow(() => { failing.rulesProgram = 'avanzar'; });
+  assert.equal(failing.rulesProgram, null);
+  const throwing = createPreferences(() => { throw new Error('SecurityError'); });
+  assert.doesNotThrow(() => { throwing.rulesProgram = 'avanzar'; });
+  assert.equal(throwing.rulesProgram, null);
+});

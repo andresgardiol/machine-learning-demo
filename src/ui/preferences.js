@@ -1,7 +1,11 @@
-// Preferencias recordadas en el navegador (idioma, guía, ancho del panel y del escenario, y velocidad del auto). Toda lectura y escritura
+// Preferencias recordadas en el navegador (idioma, guía, ancho del panel y del escenario, velocidad del auto y programa
+// de la pestaña Reglas a mano). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', carSpeed: 'mlLab.carSpeed' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program' });
+
+/** Largo máximo del programa recordado de la pestaña Reglas a mano (design.md D8). */
+export const RULES_PROGRAM_MAX = 20000;
 
 export const DEFAULT_PREFERENCES = Object.freeze({ language: null, guide: true, panelWidth: null, carSpeed: null });
 
@@ -59,5 +63,11 @@ export function createPreferences(getStorage = defaultStorage) {
       return Number.isFinite(v) && v > 0 ? v : DEFAULT_PREFERENCES.carSpeed;
     },
     set carSpeed(value) { write(KEYS.carSpeed, String(value)); },
+    /** Texto del programa de la pestaña Reglas a mano, o null si no hay uno (o es más largo que el máximo). */
+    get rulesProgram() {
+      const v = read(KEYS.rulesProgram);
+      return typeof v === 'string' && v.length <= RULES_PROGRAM_MAX ? v : null;
+    },
+    set rulesProgram(value) { write(KEYS.rulesProgram, String(value ?? '')); },
   };
 }

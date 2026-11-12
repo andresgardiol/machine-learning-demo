@@ -36,11 +36,11 @@ claves nuevas y se informa en el reporte.
 
 ## 5. Lógica de la pestaña sin DOM
 
-- [ ] 5.1 Crear `src/tabs/rules/program.js` con `createProgramState` (D6 y D7). Verificar en `tests/rules-program.test.js`: un texto válido pasa a ser el programa válido; uno con error conserva el válido anterior y expone los errores; sin ningún válido anterior, `valid` es `null`; cambiar la cantidad de sensores vuelve a analizar y, si deja de valer, `valid` pasa a `null`; `constants` lista las del programa válido; `isOwn` es falso para el programa inicial y los ejemplos en los dos idiomas y verdadero para cualquier otro texto.
-- [ ] 5.2 Crear `src/tabs/rules/session.js` con los indicadores, el reintento automático a los 90 pasos y las tres misiones (D9). Verificar en `tests/rules-session.test.js` un caso por escenario de "Misiones" y de "Reintento automático" de `pestana-reglas` que no dependa del DOM, incluido que en pausa no se cuenta, que un intento largo sin vehículos superados no avanza ninguna misión y que la misión de tráficos vuelve a cero al cambiar el programa.
-- [ ] 5.3 Agregar `rulesProgram` a `src/ui/preferences.js` y pasar `preferences` en el contexto de `mount` desde `src/ui/app.js` (D8). Verificar en `tests/preferences.test.js`: texto recordado, texto de más de 20 000 caracteres tratado como ausente y almacenamiento que falla.
-- [ ] 5.4 Crear `src/tabs/rules/shortcuts.js` (espacio y R). Verificar con una prueba que devuelven sus acciones y que con Ctrl o Cmd no devuelven nada.
-- [ ] 5.5 Correr `npm test` y confirmar que pasa todo.
+- [x] 5.1 Crear `src/tabs/rules/program.js` con `createProgramState` (D6 y D7). Verificar en `tests/rules-program.test.js`: un texto válido pasa a ser el programa válido; uno con error conserva el válido anterior y expone los errores; sin ningún válido anterior, `valid` es `null`; cambiar la cantidad de sensores vuelve a analizar y, si deja de valer, `valid` pasa a `null`; `constants` lista las del programa válido; `isOwn` es falso para el programa inicial y los ejemplos en los dos idiomas y verdadero para cualquier otro texto.
+- [x] 5.2 Crear `src/tabs/rules/session.js` con los indicadores, el reintento automático a los 90 pasos y las tres misiones (D9). Verificar en `tests/rules-session.test.js` un caso por escenario de "Misiones" y de "Reintento automático" de `pestana-reglas` que no dependa del DOM, incluido que en pausa no se cuenta, que un intento largo sin vehículos superados no avanza ninguna misión y que la misión de tráficos vuelve a cero al cambiar el programa.
+- [x] 5.3 Agregar `rulesProgram` a `src/ui/preferences.js` y pasar `preferences` en el contexto de `mount` desde `src/ui/app.js` (D8). Verificar en `tests/preferences.test.js`: texto recordado, texto de más de 20 000 caracteres tratado como ausente y almacenamiento que falla.
+- [x] 5.4 Crear `src/tabs/rules/shortcuts.js` (espacio y R). Verificar con una prueba que devuelven sus acciones y que con Ctrl o Cmd no devuelven nada.
+- [x] 5.5 Correr `npm test` y confirmar que pasa todo.
 
 ## 6. Pestaña Reglas a mano: escenario y tablero
 
