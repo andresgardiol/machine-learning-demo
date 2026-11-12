@@ -4,7 +4,8 @@
 //   instant         se aplican al instante (velocidad de la simulación, sensores visibles, secciones)
 //   nextGeneration  quedan pendientes hasta la próxima generación (evolución y escenario)
 //   newTraining     piden un entrenamiento nuevo (forma de la red, activación y sensores)
-import { DEFAULT_TRAINING_CONFIG, normalizeTrainingConfig, SELECTION_MODES } from '../../core/training.js';
+import { DEFAULT_TRAINING_CONFIG, normalizeTrainingConfig, normalizeTracks, SELECTION_MODES } from '../../core/training.js';
+import { TRACK_IDS } from '../../core/circuits.js';
 import { EVOLUTION_LIMITS, FITNESS_KINDS } from '../../core/evolution.js';
 import { ACTIVATIONS, NETWORK_LIMITS } from '../../core/network.js';
 import { SENSOR_LIMITS } from '../../core/sensors.js';
@@ -18,8 +19,8 @@ export const GROUPS = Object.freeze(['instant', 'nextGeneration', 'newTraining']
 const DEFAULT_NEURONS = 6;
 
 /**
- * Ajustes con su grupo y su rango. `kind`: range (con min, max y step), choice (con options) o
- * toggle. Las neuronas se configuran por capa: neurons1, neurons2 y neurons3.
+ * Ajustes con su grupo y su rango. `kind`: range (con min, max y step), choice (con options),
+ * toggle o set (varias opciones marcadas a la vez, al menos una: las pistas del entrenamiento). Las neuronas se configuran por capa: neurons1, neurons2 y neurons3.
  */
 export const SETTINGS = Object.freeze([
   // Al instante
@@ -41,6 +42,7 @@ export const SETTINGS = Object.freeze([
   { key: 'slowRule', group: 'nextGeneration', kind: 'toggle', default: DEFAULT_TRAINING_CONFIG.slowRule },
   { key: 'trafficMode', group: 'nextGeneration', kind: 'choice', options: TRAFFIC_MODES, default: DEFAULT_TRAINING_CONFIG.trafficMode },
   // Próxima generación: escenario
+  { key: 'tracks', group: 'nextGeneration', kind: 'set', options: TRACK_IDS, default: DEFAULT_TRAINING_CONFIG.tracks },
   { key: 'lanes', group: 'nextGeneration', kind: 'choice', options: ALLOWED_LANES, default: DEFAULT_TRAINING_CONFIG.lanes },
   { key: 'density', group: 'nextGeneration', kind: 'range', min: 0, max: 100, step: 5, default: DEFAULT_TRAINING_CONFIG.density },
   { key: 'irregularity', group: 'nextGeneration', kind: 'range', min: 0, max: 100, step: 5, default: DEFAULT_TRAINING_CONFIG.irregularity },
@@ -71,6 +73,7 @@ function normalizeValue(spec, value) {
   switch (spec.kind) {
     case 'toggle': return Boolean(value);
     case 'choice': return spec.options.includes(value) ? value : spec.default;
+    case 'set': return Object.freeze(normalizeTracks(value));
     default: {
       const n = Number(value);
       if (!Number.isFinite(n)) return spec.default;
@@ -92,7 +95,7 @@ export function classifyChanges(before, after) {
   const b = normalizeSettings(after);
   const out = { instant: [], nextGeneration: [], newTraining: [] };
   for (const s of SETTINGS) {
-    if (a[s.key] === b[s.key]) continue;
+    if (a[s.key] === b[s.key] || (s.kind === 'set' && a[s.key].join() === b[s.key].join())) continue;
     // Las neuronas de una capa que no se usa no cambian la red.
     const layer = /^neurons(\d)$/.exec(s.key);
     if (layer && Number(layer[1]) > Math.max(a.hiddenLayers, b.hiddenLayers)) continue;
@@ -114,7 +117,7 @@ export function trainingConfig(settings) {
     population: s.population, elite: s.elite, selection: s.selection,
     mutationStrength: s.mutationStrength, mutationCooling: s.mutationCooling, mutationRate: s.mutationRate, crossover: s.crossover,
     fitness: s.fitness, maxDuration: s.maxDuration, selectionMode: s.selectionMode, slowRule: s.slowRule, trafficMode: s.trafficMode,
-    lanes: s.lanes, density: s.density, irregularity: s.irregularity, maxSpeed: s.maxSpeed,
+    lanes: s.lanes, density: s.density, irregularity: s.irregularity, maxSpeed: s.maxSpeed, tracks: s.tracks,
     hidden: hiddenOf(s), activation: s.activation,
     sensors: { count: s.sensorCount, range: s.sensorRange, spread: s.sensorSpread },
   });
@@ -133,3 +136,20 @@ export function adoptBrain(settings, brain) {
   next.sensorSpread = brain.sensors.spread;
   return normalizeSettings(next);
 }
+
+/**
+ * Marca o desmarca una pista del entrenamiento (circuitos-y-paisaje D10). La última marcada no se
+ * puede desmarcar: hace falta al menos una. Devuelve la lista nueva, en el orden del catálogo.
+ */
+export function toggleTrack(tracks, id) {
+  const current = normalizeTracks(tracks);
+  if (!TRACK_IDS.includes(id)) return current;
+  if (current.includes(id)) return current.length === 1 ? current : current.filter((t) => t !== id);
+  return normalizeTracks([...current, id]);
+}
+
+/** ¿Ninguna pista marcada es la calle recta? Entonces los ajustes de tráfico no aplican. */
+export const onlyCircuits = (tracks) => !normalizeTracks(tracks).includes('straight');
+
+/** Ajustes del tráfico, deshabilitados cuando solo hay circuitos marcados. */
+export const TRAFFIC_SETTINGS = Object.freeze(['lanes', 'density', 'irregularity', 'trafficMode']);

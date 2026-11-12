@@ -13,7 +13,7 @@ test('valores por defecto: 400 autos, mutación 10 %, red 6-6-4 con escalón, 5 
     speed: 1, showSensors: true, showNetwork: true, showChart: true,
     population: 400, mutationStrength: 10, mutationCooling: true, selectionMode: 'auto', elite: 10, selection: 10, mutationRate: 100, crossover: false,
     fitness: 'lead', maxDuration: 60, slowRule: true, trafficMode: 'new',
-    lanes: 3, density: 50, irregularity: 0, maxSpeed: 20,
+    tracks: ['straight'], lanes: 3, density: 50, irregularity: 0, maxSpeed: 20,
     hiddenLayers: 1, neurons1: 6, neurons2: 6, neurons3: 6, activation: 'step',
     sensorCount: 5, sensorRange: 3, sensorSpread: 90,
   });
@@ -53,7 +53,7 @@ test('clasificación: cada ajuste pertenece a su grupo', () => {
   const expected = {
     instant: ['speed', 'showSensors', 'showNetwork', 'showChart'],
     nextGeneration: ['population', 'mutationStrength', 'mutationCooling', 'selectionMode', 'elite', 'selection', 'mutationRate', 'crossover', 'fitness', 'maxDuration',
-      'slowRule', 'trafficMode', 'lanes', 'density', 'irregularity', 'maxSpeed'],
+      'slowRule', 'trafficMode', 'tracks', 'lanes', 'density', 'irregularity', 'maxSpeed'],
     newTraining: ['hiddenLayers', 'neurons1', 'neurons2', 'neurons3', 'activation', 'sensorCount', 'sensorRange', 'sensorSpread'],
   };
   for (const [group, keys] of Object.entries(expected)) for (const k of keys) assert.equal(groupOf(k), group, k);

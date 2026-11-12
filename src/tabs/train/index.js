@@ -28,7 +28,11 @@ import {
 } from '../../ui/controls.js';
 import {
   DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges, adoptBrain,
+  toggleTrack, onlyCircuits, TRAFFIC_SETTINGS,
 } from './settings.js';
+import { TRACK_IDS } from '../../core/circuits.js';
+import { formatFixed } from '../../ui/i18n.js';
+import { setUnavailable } from '../shared/street-advanced.js';
 import { createTrainSession, indicators, lastGeneration, parentStatus, leaderLabelKey } from './session.js';
 import { shortcutFor, toggleTurbo } from './shortcuts.js';
 
@@ -90,6 +94,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
       training: createTraining({ seed: DEFAULT_SEED, config: trainingConfig(settings) }),
       session: newSession(),
       missions: createTrainSession({ completed: completedMissions }),
+      machineView: false, // ver como la máquina (circuitos-y-paisaje D13): solo cambia lo que se dibuja
     };
     library?.beginTraining(state.session);
   }
@@ -356,7 +361,10 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     labelHelp: `train.setting.${key}`,
     selected: state.settings[key],
     options: values.map((v) => ({ value: v, i18n: `${optionKey}.${v}`, help: `${optionKey}.${v}` })),
-    onSelect: (v) => { if (v !== state.settings[key]) setSetting(key, v, confirm); },
+    onSelect: (v) => {
+      if (TRAFFIC_SETTINGS.includes(key) && onlyCircuits(state.settings.tracks)) return; // sin calle recta no hay tráfico
+      if (v !== state.settings[key]) setSetting(key, v, confirm);
+    },
   });
 
   const sliders = [
@@ -377,10 +385,25 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
       labelHelp: 'train.setting.lanes',
       selected: state.settings.lanes,
       options: ALLOWED_LANES.map((n) => ({ value: n, i18n: 'drive.lanes.option', params: { n }, help: 'train.setting.lanes', labelKey: 'drive.lanes.optionLabel' })),
-      onSelect: (v) => { if (v !== state.settings.lanes) setSetting('lanes', v); },
+      onSelect: (v) => {
+        if (onlyCircuits(state.settings.tracks)) return; // sin calle recta no hay tráfico
+        if (v !== state.settings.lanes) setSetting('lanes', v);
+      },
     }),
     activation: choice('activation', ACTIVATIONS, 'train.activation', networkConfirm),
   };
+
+  // Pistas del entrenamiento (circuitos-y-paisaje D10): cuatro opciones que se marcan y desmarcan, en
+  // dos renglones de dos; la última marcada no se puede desmarcar.
+  const trackButtons = TRACK_IDS.map((id) => el('button', {
+    class: 'segment', i18n: `track.${id}`, help: 'train.tracks',
+    attrs: { type: 'button', 'aria-pressed': String(state.settings.tracks.includes(id)) },
+    dataset: { track: id },
+    on: { click: () => setSetting('tracks', toggleTrack(state.settings.tracks, id)) },
+  }));
+  const tracksRow = el('div', { class: 'setting setting-stacked track-choice' },
+    el('span', { class: 'setting-label', i18n: 'train.tracks', help: 'train.tracks' }),
+    el('div', { class: 'segments', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.tracks' }, trackButtons));
 
   // Grupos de opciones con rótulos largos: rótulo arriba y opciones a todo el ancho.
   for (const g of Object.values(choices)) g.row.classList.add('setting-stacked');
@@ -395,7 +418,12 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     row('population'), row('mutationStrength'), el('div', { class: 'switch-row' }, sw('mutationCooling')), basicPending);
 
   const sensorsSwitch = switchButton('train.sensors', 'train.sensors', state.settings.showSensors, () => setSetting('showSensors', !state.settings.showSensors));
-  const viewSwitches = el('div', { class: 'switch-row train-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.view.title' }, sensorsSwitch);
+  // Ver como la máquina (D13): el mismo nombre que en El problema, con una ayuda propia.
+  const machineSwitch = switchButton('drive.machine', 'train.machine', state.machineView, () => {
+    state.machineView = !state.machineView;
+    sync();
+  });
+  const viewSwitches = el('div', { class: 'switch-row train-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.view.title' }, sensorsSwitch, machineSwitch);
 
   /** Sección o grupo plegable que recuerda si quedó abierto (variable de módulo `open`). */
   function foldable(key, cls, summaryKey, help, ...children) {
@@ -415,7 +443,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
         group('evolution',
           row('elite'), row('selection'), row('mutationRate'), el('div', { class: 'switch-row' }, sw('crossover')),
           choices.fitness.row, row('maxDuration'), el('div', { class: 'switch-row' }, sw('slowRule')), choices.trafficMode.row),
-        group('scenario', choices.lanes.row, row('density'), row('irregularity'), row('maxSpeed')),
+        group('scenario', tracksRow, choices.lanes.row, row('density'), row('irregularity'), row('maxSpeed')),
         group('network',
           el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
           row('hiddenLayers'), row('neurons1'), row('neurons2'), row('neurons3'), choices.activation.row,
@@ -515,7 +543,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   // --- Mensajes sobre el escenario ------------------------------------------------------------------
   const generationBadge = el('div', { class: 'stage-badge generation-badge', attrs: { role: 'status' } });
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'train.paused', attrs: { role: 'status' } });
-  stage.append(el('div', { class: 'stage-badges' }, generationBadge, pauseBadge));
+  const machineBadge = el('div', { class: 'stage-badge machine-badge', i18n: 'drive.machine.badge' });
+  stage.append(el('div', { class: 'stage-badges' }, generationBadge, pauseBadge, machineBadge));
 
   // --- Sincronizar el panel con el estado ------------------------------------------------------------
   function sync() {
@@ -526,8 +555,13 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     setText(strip.values.alive, 'train.value.alive', { value: ind.alive, total: ind.total });
     setText(strip.labels.leader, ind.leaderLabel);
     setText(strip.values.leader, ind.leader.key, ind.leader.params);
-    setText(strip.values.passed, 'train.value.count', { value: ind.passed });
-    setText(generationBadge, 'train.badge.generation', { value: ind.generation });
+    // En un circuito, el cuarto indicador muestra las vueltas del líder (D10).
+    setText(strip.labels.passed, ind.laps === null ? 'train.stats.passed' : 'train.stats.laps');
+    if (ind.laps === null) setText(strip.values.passed, 'train.value.count', { value: ind.passed });
+    else setText(strip.values.passed, 'drive.value.laps', { value: formatFixed(ind.laps, 1, i18n.language) });
+    if (ind.trackId === 'straight') setText(generationBadge, 'train.badge.generation', { value: ind.generation });
+    else setText(generationBadge, 'train.badge.generation.track', { value: ind.generation, track: i18n.t(`track.${ind.trackId}`) });
+    machineBadge.hidden = !state.machineView;
     // Línea de la última generación: dos tramos con su clave, así el cambio de idioma los reescribe.
     const last = lastGeneration(t);
     if (last) {
@@ -538,7 +572,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     }
     lastReason.hidden = !last;
     // Ayuda de la curva según el modo de tráfico de la generación en curso (no el que espera).
-    setText(chartCard.hint, `train.chart.hint.${t.config.trafficMode}`);
+    // Con varias pistas, la ayuda dice que cada generación corre en una pista distinta.
+    setText(chartCard.hint, t.config.tracks.length > 1 ? 'train.chart.hint.tracks' : `train.chart.hint.${t.config.trafficMode}`);
 
     // Pausa y velocidad
     pauseButton.setAttribute('aria-pressed', String(state.paused));
@@ -644,6 +679,19 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     }
     selectionMode.select(s.selectionMode);
     sensorsSwitch.setAttribute('aria-checked', String(s.showSensors));
+    machineSwitch.setAttribute('aria-checked', String(state.machineView));
+    // Pistas marcadas; la única marcada explica que hace falta al menos una.
+    for (const b of trackButtons) {
+      const on = s.tracks.includes(b.dataset.track);
+      if (b.getAttribute('aria-pressed') !== String(on)) b.setAttribute('aria-pressed', String(on));
+      const help = on && s.tracks.length === 1 ? 'train.tracks.last' : 'train.tracks';
+      if (b.dataset.help !== help) b.dataset.help = help;
+    }
+    // Sin la calle recta marcada no hay tráfico: carriles, densidad, irregularidad y modo, deshabilitados.
+    const noTraffic = onlyCircuits(s.tracks);
+    for (const b of choices.lanes.buttons) setUnavailable(b, noTraffic, 'train.setting.lanes', 'train.noTraffic');
+    for (const b of choices.trafficMode.buttons) setUnavailable(b, noTraffic, `train.trafficMode.${b.optionValue}`, 'train.noTraffic');
+    for (const key of ['density', 'irregularity']) setUnavailable(sliders.find((x) => x.key === key).input, noTraffic, `train.setting.${key}`, 'train.noTraffic');
     choices.fitness.select(s.fitness);
     choices.trafficMode.select(s.trafficMode);
     choices.lanes.select(s.lanes);
@@ -668,7 +716,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     render: () => {
       const t = state.training;
       view.render(t.world, {
-        showSensors: state.settings.showSensors,
+        showSensors: state.settings.showSensors || state.machineView,
+        machineView: state.machineView,
         focus: t.leaderIndex,
         elite: Array.from({ length: t.eliteCount }, (_, i) => i),
       });

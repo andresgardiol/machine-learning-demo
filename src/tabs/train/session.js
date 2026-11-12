@@ -43,7 +43,12 @@ export const leaderLabelKey = (kind) => `train.stats.leader.${FITNESS_UNITS[kind
  */
 export function indicators(training) {
   const last = training.history[training.history.length - 1] ?? null;
+  const circuit = training.world.track.closed;
   return {
+    // Pista de la generación en curso y, en un circuito, vueltas del líder con un decimal hacia abajo
+    // (en lugar de los vehículos superados; circuitos-y-paisaje D10).
+    trackId: training.trackId,
+    laps: circuit ? Math.floor(10 * training.lapsOf(training.leaderIndex) + 1e-9) / 10 : null,
     generation: training.generation,
     alive: training.aliveCount,
     total: training.world.agents.length,

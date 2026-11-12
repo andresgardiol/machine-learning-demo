@@ -49,9 +49,9 @@
 
 ## 8. Pestaña Entrenar
 
-- [ ] 8.1 Agregar `tracks` a `src/tabs/train/settings.js` y las cuatro opciones marcables en el grupo del escenario (design.md D10). Verificar con pruebas el valor por defecto, que no se puede dejar ninguna marcada y que restablecer vuelve a la calle recta.
-- [ ] 8.2 Mostrar la pista junto al número de generación, cambiar el cuarto indicador según la pista y deshabilitar los ajustes de tráfico cuando no hay calle recta marcada. Verificar con pruebas de `session.js` y en el navegador los escenarios de "Generación en un circuito".
-- [ ] 8.3 Mostrar las pistas en los datos de un cerebro de la biblioteca. Verificar con una prueba de `library-view` y en el navegador, con un cerebro entrenado en dos pistas y con uno anterior.
+- [x] 8.1 Agregar `tracks` a `src/tabs/train/settings.js` y las cuatro opciones marcables en el grupo del escenario (design.md D10). Verificar con pruebas el valor por defecto, que no se puede dejar ninguna marcada y que restablecer vuelve a la calle recta.
+- [x] 8.2 Mostrar la pista junto al número de generación, cambiar el cuarto indicador según la pista y deshabilitar los ajustes de tráfico cuando no hay calle recta marcada. Verificar con pruebas de `session.js` y en el navegador los escenarios de "Generación en un circuito".
+- [x] 8.3 Mostrar las pistas en los datos de un cerebro de la biblioteca. Verificar con una prueba de `library-view` y en el navegador, con un cerebro entrenado en dos pistas y con uno anterior.
 
 - [ ] 8.4 Agregar "ver como la máquina" a Entrenar, en el renglón de "Sensores del líder", con `machineView` ocultando al resto de la población y sus marcas de élite (design.md D13). Verificar en el navegador los escenarios de "Ver como la máquina" de la spec `pestana-entrenar`, incluido que el panel no se desplaza a 1440×900; si se desplaza o el renglón no entra a 360 px, **detenerse y consultar**.
 

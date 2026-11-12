@@ -10,6 +10,7 @@ import { button, createTextSetter, inlineConfirm } from './controls.js';
 import { exportFileName } from './library.js';
 import { downloadText, readText } from './files.js';
 import { FITNESS_UNITS } from '../core/evolution.js';
+import { scenarioTracks } from '../core/brain.js';
 
 /** Mejor fitness con su unidad, listo para mostrar. */
 function bestText(fitness) {
@@ -52,7 +53,28 @@ export function brainDetail(brain) {
     seed: t.seed,
     activation: brain.network.activation,
     sensors: { ...brain.sensors },
-    scenarios: t.scenarios.map((s) => ({ lanes: s.lanes, density: s.density, irregularity: s.irregularity, trafficMode: s.trafficMode, generations: s.generations })),
+    scenarios: t.scenarios.map((s) => ({
+      track: s.track, lanes: s.lanes, density: s.density, irregularity: s.irregularity, trafficMode: s.trafficMode, generations: s.generations,
+    })),
+  };
+}
+
+/**
+ * Texto de un escenario de los datos de un cerebro (circuitos-y-paisaje D5): la pista o las pistas en
+ * que se entrenó, nombradas en el idioma activo, y sus generaciones. Con la calle recta entre las
+ * pistas, también el tráfico; con solo circuitos, no (no hay tráfico).
+ * @returns {{key:string, params:object}}
+ */
+export function scenarioText(s, t) {
+  const ids = scenarioTracks(s.track ?? 'straight');
+  const names = ids.map((id) => t(`track.${id}`));
+  const track = names.length === 1
+    ? names[0]
+    : t('library.value.tracks.alternating', { list: names.slice(0, -1).join(', '), last: names[names.length - 1] });
+  if (!ids.includes('straight')) return { key: 'library.value.scenario.circuits', params: { track, value: s.generations } };
+  return {
+    key: `library.value.scenario.track.${s.trafficMode}`,
+    params: { track, lanes: s.lanes, density: s.density, irregularity: s.irregularity, value: s.generations },
   };
 }
 
@@ -127,10 +149,10 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
       item('library.detail.sensors', 'library.value.sensors', { count: d.sensors.count, range: d.sensors.range, spread: d.sensors.spread }),
       el('div', { class: 'library-detail-row library-scenarios' },
         el('dt', { i18n: 'library.detail.scenarios' }),
-        el('dd', {}, el('ul', {}, d.scenarios.map((s) => el('li', {
-          i18n: `library.value.scenario.${s.trafficMode}`,
-          params: { lanes: s.lanes, density: s.density, irregularity: s.irregularity, value: s.generations },
-        }))))));
+        el('dd', {}, el('ul', {}, d.scenarios.map((s) => {
+          const { key, params } = scenarioText(s, i18n.t);
+          return el('li', { i18n: key, params });
+        })))));
   }
 
   function renderItem(entry) {

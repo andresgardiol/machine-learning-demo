@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brainSummary, brainDetail } from '../src/ui/library-view.js';
+import { brainSummary, brainDetail, scenarioText } from '../src/ui/library-view.js';
 import { createBrain } from '../src/core/brain.js';
 import { createNetwork } from '../src/core/network.js';
 import { createRandom } from '../src/core/random.js';
@@ -55,8 +55,8 @@ test('detalle: función de fitness, evolución, velocidad máxima y cada escenar
   assert.deepEqual(d.evolution, { population: 100, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, maxDuration: 60, slowRule: true });
   assert.equal(d.maxSpeed, 20);
   assert.deepEqual(d.scenarios, [
-    { lanes: 3, density: 50, irregularity: 50, trafficMode: 'same', generations: 30 },
-    { lanes: 4, density: 70, irregularity: 20, trafficMode: 'new', generations: 20 },
+    { track: 'straight', lanes: 3, density: 50, irregularity: 50, trafficMode: 'same', generations: 30 },
+    { track: 'straight', lanes: 4, density: 70, irregularity: 20, trafficMode: 'new', generations: 20 },
   ]);
   const i18n = createI18n({ dictionaries: { es, en }, language: 'es' });
   assert.equal(i18n.t('library.value.scenario.new', d.scenarios[1]), '4 carriles, densidad 70 %, irregularidad 20 %, tráfico nuevo: {value} generaciones');
@@ -97,4 +97,20 @@ test('cerebro anterior entrenado con la distancia: se sigue leyendo en metros', 
   assert.deepEqual(brainSummary({ origin: 'saved', brain: brain({ kind: 'distance', best: 120.7 }) }).best, { key: 'train.value.meters', params: { value: 120 } });
   // Una función que esta versión no conoce también se muestra en metros.
   assert.equal(brainSummary({ origin: 'saved', brain: brain({ kind: 'futura', best: 5 }) }).best.key, 'train.value.meters');
+});
+
+test('pistas en los datos: el escenario nombra la pista o las pistas en el idioma activo', () => {
+  const es_ = createI18n({ dictionaries: { es, en }, language: 'es' });
+  const en_ = createI18n({ dictionaries: { es, en }, language: 'en' });
+  const text = (i18n, s) => { const { key, params } = scenarioText(s, i18n.t); return i18n.t(key, params); };
+  const base = { lanes: 3, density: 50, irregularity: 0, trafficMode: 'new' };
+  // Cerebro anterior: dice que se entrenó en la calle recta.
+  assert.equal(text(es_, { ...base, track: 'straight', generations: 30 }), 'Calle recta, 3 carriles, densidad 50 %, irregularidad 0 %, tráfico nuevo: 30 generaciones');
+  assert.equal(text(es_, { ...base, track: undefined, generations: 1 }), 'Calle recta, 3 carriles, densidad 50 %, irregularidad 0 %, tráfico nuevo: 1 generación');
+  // Un circuito: sin tráfico.
+  assert.equal(text(es_, { ...base, track: 'oval', generations: 30 }), 'Óvalo: 30 generaciones');
+  assert.equal(text(en_, { ...base, track: 'grandPrix', generations: 12 }), 'Grand prix: 12 generations');
+  // Varias pistas.
+  assert.equal(text(es_, { ...base, track: 'straight+kidney', generations: 40 }), 'alternando Calle recta y Riñón, 3 carriles, densidad 50 %, irregularidad 0 %, tráfico nuevo: 40 generaciones');
+  assert.equal(text(en_, { ...base, track: 'oval+kidney+grandPrix', generations: 9 }), 'alternating Oval, Kidney and Grand prix: 9 generations');
 });
