@@ -20,10 +20,10 @@
 
 ## 4. Enfriamiento de la mutación en el núcleo
 
-- [ ] 4.1 Agregar `MUTATION_COOLING` y `cooledStrength` a `src/core/evolution.js` (design.md D9). Verificar con pruebas los valores de la spec: 28,5 % tras la generación 1, 17,96 % tras la 10, 10,75 % tras la 20 y 3 % desde la 45.
-- [ ] 4.2 Sumar `mutationCooling` a la configuración del entrenamiento, encendido por defecto, y usar la fuerza enfriada al armar cada generación con selección automática. Verificar con pruebas los escenarios "Estado por defecto", "Enfriamiento apagado", "Volver a encenderlo" y "Con selección manual no se usa", comparando la población resultante con la de `nextGeneration` llamada a mano con la fuerza esperada.
-- [ ] 4.3 Aplicar el enfriamiento a la población inicial al continuar desde un cerebro, exponer `training.nextMutationStrength` y registrar `mutationCooling` en el cerebro. Verificar con pruebas el escenario "Continuar desde un cerebro" y "Enfriamiento reproducible".
-- [ ] 4.4 Adaptar las pruebas existentes según design.md D8 (las que prueban el efecto de la fuerza piden `mutationCooling: false`; las que enumeran claves suman la nueva). Verificar que `npm test` pasa y sumar al informe las pruebas que cambiaron.
+- [x] 4.1 Agregar `MUTATION_COOLING` y `cooledStrength` a `src/core/evolution.js` (design.md D9). Verificar con pruebas los valores de la spec: 28,5 % tras la generación 1, 17,96 % tras la 10, 10,75 % tras la 20 y 3 % desde la 45.
+- [x] 4.2 Sumar `mutationCooling` a la configuración del entrenamiento, encendido por defecto, y usar la fuerza enfriada al armar cada generación con selección automática. Verificar con pruebas los escenarios "Estado por defecto", "Enfriamiento apagado", "Volver a encenderlo" y "Con selección manual no se usa", comparando la población resultante con la de `nextGeneration` llamada a mano con la fuerza esperada.
+- [x] 4.3 Aplicar el enfriamiento a la población inicial al continuar desde un cerebro, exponer `training.nextMutationStrength` y registrar `mutationCooling` en el cerebro. Verificar con pruebas el escenario "Continuar desde un cerebro" y "Enfriamiento reproducible".
+- [x] 4.4 Adaptar las pruebas existentes según design.md D8 (las que prueban el efecto de la fuerza piden `mutationCooling: false`; las que enumeran claves suman la nueva). Verificar que `npm test` pasa y sumar al informe las pruebas que cambiaron.
 
 ## 5. Comprobación de aprendizaje
 

@@ -26,7 +26,7 @@ function brainOf(network, { generations = 0, sensors = { count: 5, range: 3, spr
 }
 
 /** Población de copias idénticas de una red fija (fuerza de mutación 0). */
-const clones = (bits, config = {}) => createTraining({ seed: 1, config: { population: 6, mutationStrength: 0, ...config }, brain: brainOf(fixedNetwork(bits)) });
+const clones = (bits, config = {}) => createTraining({ seed: 1, config: { population: 6, mutationStrength: 0, mutationCooling: false, ...config }, brain: brainOf(fixedNetwork(bits)) });
 
 function runUntilGeneration(training, target, limit = 200000) {
   let n = 0;
@@ -57,7 +57,7 @@ test('inicio de una generación: 100 autos detenidos en la misma posición, cada
 test('configuración por defecto del entrenamiento', () => {
   assert.deepEqual(normalizeTrainingConfig({}), {
     population: 100, elite: 10, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false,
-    fitness: 'lead', maxDuration: 60, selectionMode: 'auto', slowRule: true, trafficMode: 'new', lanes: 3, density: 50, irregularity: 0,
+    fitness: 'lead', maxDuration: 60, selectionMode: 'auto', slowRule: true, mutationCooling: true, trafficMode: 'new', lanes: 3, density: 50, irregularity: 0,
     maxSpeed: 20, hidden: [6], activation: 'step', sensors: { count: 5, range: 3, spread: 90 },
   });
   assert.deepEqual(normalizeTrainingConfig({ hidden: [20, 0, 4, 4, 4], population: 1 }).hidden, [16, 1, 4]);
@@ -66,7 +66,7 @@ test('configuración por defecto del entrenamiento', () => {
 
 test('cambio de líder: un auto en carrera que supera en distancia al líder pasa a ser el líder', () => {
   // Individuo 0 quieto (copia del cerebro), los demás mutados con fuerza total: alguno avanza.
-  const t = createTraining({ seed: 3, config: { population: 8, mutationStrength: 100, density: 0 }, brain: brainOf(fixedNetwork([0, 0, 0, 0])) });
+  const t = createTraining({ seed: 3, config: { population: 8, mutationStrength: 100, mutationCooling: false, density: 0 }, brain: brainOf(fixedNetwork([0, 0, 0, 0])) });
   assert.equal(t.leaderIndex, 0);
   let changed = false;
   for (let i = 0; i < 120; i++) {
@@ -82,7 +82,7 @@ test('cambio de líder: un auto en carrera que supera en distancia al líder pas
 
 test('líder chocado: pasa a ser el auto en carrera que más avanzó', () => {
   // Hijos de un cerebro que avanza y gira, mutados con fuerza total: unos chocan pronto y otros no.
-  const t = createTraining({ seed: 11, config: { population: 30, mutationStrength: 100, density: 0 }, brain: brainOf(fixedNetwork([1, 1, 0, 0])) });
+  const t = createTraining({ seed: 11, config: { population: 30, mutationStrength: 100, mutationCooling: false, density: 0 }, brain: brainOf(fixedNetwork([1, 1, 0, 0])) });
   let checked = 0;
   let previous = t.leaderIndex;
   for (let i = 0; i < 1200 && t.generation === 1; i++) {
@@ -186,8 +186,8 @@ test('campeón: tras una generación es el individuo de mayor fitness de esa gen
 // --- 7.3 Cambios de configuración y modos de tráfico ---------------------------------------------
 
 test('cambio de mutación durante la generación 4: la 4 sigue igual y la 5 se forma con la fuerza nueva', () => {
-  const t = createTraining({ seed: 6, config: { population: 10, maxDuration: 10 } });
-  const u = createTraining({ seed: 6, config: { population: 10, maxDuration: 10 } });
+  const t = createTraining({ seed: 6, config: { population: 10, maxDuration: 10, mutationCooling: false } });
+  const u = createTraining({ seed: 6, config: { population: 10, maxDuration: 10, mutationCooling: false } });
   runUntilGeneration(t, 4);
   runUntilGeneration(u, 4);
   for (let i = 0; i < 50; i++) { t.step(); u.step(); }
@@ -209,7 +209,7 @@ test('cambio de mutación durante la generación 4: la 4 sigue igual y la 5 se f
 });
 
 test('cambio de mutación: la generación 5 es la que arma la fuerza nueva con el generador de la 4', () => {
-  const t = createTraining({ seed: 8, config: { population: 10, maxDuration: 10 } });
+  const t = createTraining({ seed: 8, config: { population: 10, maxDuration: 10, mutationCooling: false } });
   runUntilGeneration(t, 4);
   for (let i = 0; i < 30; i++) t.step();
   t.configure({ mutationStrength: 60 });
@@ -331,7 +331,7 @@ test('cerebro del campeón: pasa la validación y acumula generaciones y escenar
   assert.equal(b.training.seed, 2);
   assert.equal(b.training.maxSpeed, 20);
   assert.deepEqual(b.training.fitness, { kind: 'distance', best: t.champion.fitness });
-  assert.deepEqual(b.training.evolution, { population: 6, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, maxDuration: 10, slowRule: true, selectionMode: 'auto' });
+  assert.deepEqual(b.training.evolution, { population: 6, elite: 1, selection: 10, mutationStrength: 10, mutationRate: 100, crossover: false, maxDuration: 10, slowRule: true, selectionMode: 'auto', mutationCooling: true });
   assert.deepEqual(b.network, t.champion.network);
   assert.deepEqual(b.sensors, { count: 5, range: 3, spread: 90 });
 });
@@ -376,7 +376,7 @@ const speedCap = (cap) => ({
   layers: [{ weights: [[0, 0, 0, 0, 0, -1], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], biases: [cap, -1, -1, -1] }],
 });
 const capped = (cap, config = {}) => createTraining({
-  seed: 1, config: { population: 4, mutationStrength: 0, density: 0, maxSpeed: 20, ...config }, brain: brainOf(speedCap(cap)),
+  seed: 1, config: { population: 4, mutationStrength: 0, mutationCooling: false, density: 0, maxSpeed: 20, ...config }, brain: brainOf(speedCap(cap)),
 });
 const runToEnd = (t) => { for (let i = 0; i < 50000; i++) { const r = t.step(); if (r) return { record: r, steps: i + 1 }; } return null; };
 
@@ -815,7 +815,7 @@ test('elegir antes de que rija el cambio: la 13 sale del líder elegido y no del
 });
 
 test('de manual a automática: la generación siguiente se forma por fitness de la población en curso y no queda padre', () => {
-  const t = manual(7, { elite: 1 });
+  const t = manual(7, { elite: 1, mutationCooling: false });
   for (let i = 0; i < 60; i++) t.step();
   t.chooseLeader();
   t.finishGeneration();
@@ -926,13 +926,13 @@ test('selección automática sin cambios: diez generaciones dan el mismo histori
   // Valores tomados con el código anterior a este cambio (commit 6666eea).
   const reference = {
     7: {
-      config: { population: 20, fitness: 'distance', elite: 1, irregularity: 50 },
+      config: { population: 20, fitness: 'distance', elite: 1, irregularity: 50, mutationCooling: false },
       history: [[173.09611111111008, 12.323868334683358, 'allCrashed'], [177.02611111111764, 56.59658782841579, 'allCrashed'], [215.45611111111066, 45.57227185857482, 'allCrashed'], [230.4333333333343, 97.66567684199762, 'allCrashed'], [654.7100000000501, 187.71093141383827, 'timeLimit'], [623.1050000000541, 189.2358953869945, 'timeLimit'], [622.7300000000541, 189.33111692576713, 'timeLimit'], [576.488333333371, 196.5945833333404, 'allCrashed'], [623.1500000000524, 213.01127777778456, 'timeLimit'], [603.9411111111549, 177.04788888889453, 'allCrashed']],
       champion: [0.7200939933564513, -0.20062512566754592, -0.39658241034718233, -0.311009442126844, -0.6131282534566708, -0.2090255785142071, 0.3704336073459126, -0.17201321303797884],
       network5: [0.7295786444472148, -0.22580245024249887, -0.3229296427567024, -0.22090159799293607, -0.6430286154069472, -0.15366096351561132, 0.3554913577160332, -0.17638623934010975],
     },
     3: {
-      config: { population: 30, crossover: true, elite: 2, fitness: 'speed', maxDuration: 20, irregularity: 50 },
+      config: { population: 30, crossover: true, elite: 2, fitness: 'speed', maxDuration: 20, irregularity: 50, mutationCooling: false },
       history: [[8.616268620560946, 0.48746722943157494, 'allCrashed'], [18.619047619049006, 4.2924902346862615, 'allCrashed'], [18.62559241706161, 7.870541346565223, 'allCrashed'], [19.320843091334897, 10.1866169026929, 'allCrashed'], [18.599033816426527, 13.744880632604765, 'timeLimit'], [19.599999999999596, 11.503707517202429, 'timeLimit'], [18.84633799206913, 18.601855370207463, 'allCrashed'], [19.359823399559144, 18.87872351578132, 'allCrashed'], [18.84633799206913, 18.597254088575543, 'allCrashed'], [19.51260504201681, 17.247306881782233, 'allCrashed']],
       champion: [0.547849652684154, 0.5372338201839011, 0.08799074937007391, 0.5655069567912258, -0.6659191250396846, -0.5379186205567932, -0.4824922658099234, 0.3178409683696227],
       network5: [0.49328364287248777, 0.43262509838573165, 0.017533420586376455, 0.39066568043404903, -0.6954464549300592, -0.5794628636168255, -0.4206782795032262, 0.2548412419457105],

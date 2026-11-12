@@ -165,6 +165,20 @@ export function crossover(a, b, random) {
   return child;
 }
 
+// --- Enfriamiento de la mutación (fitness-que-premia-superar D9) ---------------------------------
+
+/** La fuerza empieza en `start` % y se multiplica por `factor` en cada generación, sin bajar de `floor` %. */
+export const MUTATION_COOLING = Object.freeze({ start: 30, factor: 0.95, floor: 3 });
+
+/**
+ * Fuerza de mutación (%) con que se arma la generación que sigue a la número `generation`, con el
+ * enfriamiento encendido: max(piso, inicio × factor^generación).
+ */
+export function cooledStrength(generation) {
+  const { start, factor, floor } = MUTATION_COOLING;
+  return Math.max(floor, start * factor ** generation);
+}
+
 // --- Generación siguiente -------------------------------------------------------------------
 
 /**

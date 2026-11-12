@@ -19,6 +19,7 @@
 //   training.brain({ id, name, now })   cerebro del entrenamiento: el campeón o, con selección manual, el padre elegido
 //   training.chooseLeader() | undoChoice() | parent | choiceCount | selection   selección manual (design.md D2)
 //   training.passedOf(i)         vehículos que superó el individuo i (por defecto, el líder)
+//   training.nextMutationStrength  fuerza con que se armaría la generación siguiente (enfriamiento, D9)
 //   training.onGeneration(fn)    avisa al cerrar cada generación
 //
 // Todo el azar sale de la semilla del entrenamiento (design.md D5).
@@ -26,6 +27,7 @@ import { createWorld } from './world.js';
 import { createNetwork, copyNetwork, ACTIVATIONS, DEFAULT_ACTIVATION, NETWORK_LIMITS } from './network.js';
 import {
   normalizeEvolution, DEFAULT_EVOLUTION, createStats, recordStep, fitnessOf, rankPopulation, nextGeneration, mutate, childrenOf,
+  cooledStrength,
 } from './evolution.js';
 import {
   createNetworkController, createBrain, assertBrain, addScenarioGenerations, BRAIN_OUTPUTS, TRAFFIC_MODES,
@@ -76,6 +78,7 @@ export const DEFAULT_TRAINING_CONFIG = Object.freeze({
   ...DEFAULT_EVOLUTION,
   selectionMode: 'auto',
   slowRule: true,
+  mutationCooling: true,
   trafficMode: 'new',
   lanes: DEFAULT_LANES,
   density: DEFAULT_TRAFFIC.density,
@@ -117,6 +120,7 @@ export function normalizeTrainingConfig(partial = {}) {
     ...normalizeEvolution(p),
     selectionMode: SELECTION_MODES.includes(p.selectionMode) ? p.selectionMode : DEFAULT_TRAINING_CONFIG.selectionMode,
     slowRule: p.slowRule === undefined ? DEFAULT_TRAINING_CONFIG.slowRule : Boolean(p.slowRule),
+    mutationCooling: p.mutationCooling === undefined ? DEFAULT_TRAINING_CONFIG.mutationCooling : Boolean(p.mutationCooling),
     trafficMode: TRAFFIC_MODES.includes(p.trafficMode) ? p.trafficMode : DEFAULT_TRAINING_CONFIG.trafficMode,
     lanes: ALLOWED_LANES.includes(Number(p.lanes)) ? Number(p.lanes) : DEFAULT_LANES,
     density: percent(p.density, DEFAULT_TRAFFIC.density),
@@ -129,6 +133,14 @@ export function normalizeTrainingConfig(partial = {}) {
 }
 
 const sameValue = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * Fuerza de mutación con que se arma la generación que sigue a la número `generation` (D9): con
+ * selección automática y el enfriamiento encendido, la enfriada; si no, la configurada.
+ */
+export const strengthFor = (config, generation) => (config.selectionMode === 'auto' && config.mutationCooling
+  ? cooledStrength(generation)
+  : config.mutationStrength);
 
 /** ¿Son la misma red? Comparación estructural: forma, activación, pesos y sesgos. */
 function sameNetwork(a, b) {
@@ -203,9 +215,10 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
   let networks;
   let eliteN;
   if (brain) {
+    const strength = strengthFor(config, startGenerations);
     networks = Array.from({ length: config.population }, (_, i) => (i === 0
       ? copyNetwork(brain.network)
-      : mutate(brain.network, { strength: config.mutationStrength, rate: config.mutationRate }, randomFor(initialStream, i))));
+      : mutate(brain.network, { strength, rate: config.mutationRate }, randomFor(initialStream, i))));
     eliteN = 1;
   } else {
     networks = Array.from({ length: config.population }, (_, i) => createNetwork({
@@ -310,7 +323,8 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
       }
     } else {
       choices = [];
-      const next = nextGeneration({ networks, fitnesses: values, config, random: breeding });
+      const strength = strengthFor(config, startGenerations + completed);
+      const next = nextGeneration({ networks, fitnesses: values, config: { ...config, mutationStrength: strength }, random: breeding });
       networks = next.networks;
       eliteN = next.elite.length;
     }
@@ -421,7 +435,7 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
           population: config.population, elite: config.elite, selection: config.selection,
           mutationStrength: config.mutationStrength, mutationRate: config.mutationRate,
           crossover: config.crossover, maxDuration: config.maxDuration, slowRule: config.slowRule,
-          selectionMode: config.selectionMode,
+          selectionMode: config.selectionMode, mutationCooling: config.mutationCooling,
         },
         scenarios,
       },
@@ -451,6 +465,11 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     fitnessOf: (i = leaderIndex) => fitnessOf(config.fitness, stats[i]),
     /** Vehículos que superó el individuo `i` (por defecto, el líder) en la generación en curso; nunca baja. */
     passedOf: (i = leaderIndex) => stats[i].passed,
+    /** Fuerza de mutación (%) con que se armaría la generación siguiente si la actual terminara ahora, con los cambios pendientes. */
+    get nextMutationStrength() {
+      const next = pending ? normalizeTrainingConfig({ ...config, ...pending }) : config;
+      return strengthFor(next, startGenerations + completed + 1);
+    },
     get seed() { return seed; },
     get generation() { return generation; },
     /** Generaciones terminadas en total, contando las del cerebro desde el que se continuó. */

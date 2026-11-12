@@ -9,7 +9,7 @@
 //     training: { generations, seed, maxSpeed,
 //                 fitness: { kind, best },
 //                 evolution: { population, elite, selection, mutationStrength, mutationRate, crossover, maxDuration,
-//                              selectionMode? },   // opcional; sin el dato, selección automática
+//                              selectionMode?, mutationCooling? },   // opcionales; sin el dato, selección automática y sin enfriamiento
 //                 scenarios: [{ track, lanes, density, irregularity, trafficMode, generations }] } }
 //
 // El núcleo no usa reloj ni identificadores al azar: `id` y las fechas llegan como parámetros.

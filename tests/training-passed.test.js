@@ -32,7 +32,7 @@ const brainOf = (network) => createBrain({
  */
 const straightRunner = (config = {}) => createTraining({
   seed: 1,
-  config: { population: 30, mutationStrength: 100, irregularity: 0, slowRule: false, maxSpeed: 20, ...config },
+  config: { population: 30, mutationStrength: 100, mutationCooling: false, irregularity: 0, slowRule: false, maxSpeed: 20, ...config },
   brain: brainOf(fixedNetwork([1, 0, 0, 0])),
 });
 
