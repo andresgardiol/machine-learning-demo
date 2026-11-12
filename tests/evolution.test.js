@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createStats, recordStep, fitnessOf, rankPopulation, parentCount, eliteCount, mutate, crossover,
-  nextGeneration, normalizeEvolution, DEFAULT_EVOLUTION, EvolutionError,
+  nextGeneration, normalizeEvolution, DEFAULT_EVOLUTION, EvolutionError, FITNESS_KINDS, FITNESS_UNITS,
 } from '../src/core/evolution.js';
 import { createNetwork, flatValues, copyNetwork } from '../src/core/network.js';
 import { createRandom } from '../src/core/random.js';
@@ -51,6 +51,68 @@ test('fitness por velocidad media: recorrer 60 m y chocar a los 4 s da 15', () =
 test('fitness: una función desconocida se rechaza', () => {
   assert.throws(() => fitnessOf('overtakes', createStats()), (e) => e instanceof EvolutionError && e.code === 'unknownFitness');
   assert.equal(DEFAULT_EVOLUTION.fitness, 'distance');
+});
+
+// --- Ventaja sobre el tráfico (fitness-que-premia-superar, grupo 1) -----------------------------
+
+/** Recorre pasos de (progreso, avance del tráfico); `crashAt` es el paso (1, 2, …) en el que choca. */
+function leadStatsFor(samples, crashAt = null) {
+  const stats = createStats();
+  samples.forEach(([progress, traffic], i) => recordStep(stats, { progress, crashed: crashAt !== null && i + 1 >= crashAt }, traffic));
+  return stats;
+}
+
+test('ventaja: las estadísticas empiezan en 0 y la llamada sin avance del tráfico mide contra un tráfico quieto', () => {
+  assert.equal(createStats().lead, 0);
+  const stats = createStats();
+  recordStep(stats, { progress: 12, crashed: false });
+  assert.equal(stats.lead, 12);
+});
+
+test('ventaja: es la mayor alcanzada y no baja si el auto frena', () => {
+  // Va a 20 m/s 10 s (ventaja 100) y después se queda quieto 5 s mientras el tráfico sigue a 10 m/s.
+  const samples = [];
+  for (let s = 1; s <= 10; s++) samples.push([20 * s, 10 * s]);
+  for (let s = 11; s <= 15; s++) samples.push([200, 10 * s]);
+  const stats = leadStatsFor(samples);
+  assert.equal(stats.lead, 100);
+  assert.equal(fitnessOf('lead', stats), 100);
+});
+
+test('ventaja: no cambia después de un choque', () => {
+  const stats = leadStatsFor([[30, 10], [60, 20], [90, 30], [200, 40]], 3);
+  assert.equal(stats.crashed, true);
+  assert.equal(stats.lead, 60);
+});
+
+test('ventaja sobre el tráfico: a los 20 s lleva recorridos 300 m con el tráfico a 10 m/s y su fitness es 100', () => {
+  const samples = [];
+  for (let s = 1; s <= 20; s++) samples.push([15 * s, 10 * s]);
+  assert.equal(fitnessOf('lead', leadStatsFor(samples)), 100);
+});
+
+test('ventaja: seguir al tráfico no suma (ventaja 30 y 20 s detrás de un vehículo a su velocidad)', () => {
+  const samples = [[30, 0]];
+  for (let s = 1; s <= 20; s++) samples.push([30 + 10 * s, 10 * s]);
+  assert.equal(fitnessOf('lead', leadStatsFor(samples)), 30);
+});
+
+test('ventaja: la alcanzada se conserva si después choca o frena hasta que el tráfico lo pasa', () => {
+  const crash = leadStatsFor([[40, 0], [80, 0], [80, 10]], 3);
+  assert.equal(fitnessOf('lead', crash), 80);
+  const brake = leadStatsFor([[40, 0], [80, 0], [80, 50], [80, 100], [80, 150]]);
+  assert.equal(fitnessOf('lead', brake), 80);
+});
+
+test('ventaja: un auto que no avanza o retrocede tiene fitness 0', () => {
+  assert.equal(fitnessOf('lead', leadStatsFor([[0, 10], [0, 20], [0, 30]])), 0);
+  assert.equal(fitnessOf('lead', leadStatsFor([[-1, 10], [-2, 20], [-3, 30]])), 0);
+});
+
+test('ventaja: es la primera función del selector y su unidad son los metros de ventaja', () => {
+  assert.deepEqual([...FITNESS_KINDS], ['lead', 'distance', 'survival', 'speed']);
+  assert.equal(FITNESS_UNITS.lead, 'metersAhead');
+  assert.equal(FITNESS_UNITS.distance, 'meters');
 });
 
 // --- 5.2 Orden, selección y élite ----------------------------------------------------------

@@ -2,9 +2,9 @@
 
 ## 1. Ventaja sobre el tráfico en el núcleo
 
-- [ ] 1.1 En `src/core/evolution.js`, sumar `lead` a `createStats()` y el parámetro opcional `trafficAdvance` a `recordStep` (design.md D1). Verificar con pruebas nuevas en `tests/evolution.test.js`: la ventaja es la mayor alcanzada, no baja si el auto frena y no cambia después de un choque.
-- [ ] 1.2 Agregar la función `lead` a `fitnessOf`, con `FITNESS_KINDS` en el orden de D1 y `FITNESS_UNITS.lead = 'metersAhead'`. Verificar con pruebas los escenarios "Ventaja sobre el tráfico", "Seguir al tráfico no suma", "La ventaja alcanzada se conserva" y "Auto que no avanza" de la spec `neuroevolucion`.
-- [ ] 1.3 En `src/core/training.js`, pasar a `recordStep` lo que avanzó el tráfico en la generación. Verificar con una prueba en `tests/training.test.js` que, con la función `lead`, un auto que sale por lento conserva la ventaja que llevaba, y que `npm test` pasa.
+- [x] 1.1 En `src/core/evolution.js`, sumar `lead` a `createStats()` y el parámetro opcional `trafficAdvance` a `recordStep` (design.md D1). Verificar con pruebas nuevas en `tests/evolution.test.js`: la ventaja es la mayor alcanzada, no baja si el auto frena y no cambia después de un choque.
+- [x] 1.2 Agregar la función `lead` a `fitnessOf`, con `FITNESS_KINDS` en el orden de D1 y `FITNESS_UNITS.lead = 'metersAhead'`. Verificar con pruebas los escenarios "Ventaja sobre el tráfico", "Seguir al tráfico no suma", "La ventaja alcanzada se conserva" y "Auto que no avanza" de la spec `neuroevolucion`.
+- [x] 1.3 En `src/core/training.js`, pasar a `recordStep` lo que avanzó el tráfico en la generación. Verificar con una prueba en `tests/training.test.js` que, con la función `lead`, un auto que sale por lento conserva la ventaja que llevaba, y que `npm test` pasa.
 
 ## 2. Vehículos superados en el núcleo
 

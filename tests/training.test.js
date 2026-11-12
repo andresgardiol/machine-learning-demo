@@ -432,6 +432,29 @@ test('lentos: el fitness es el logrado hasta salir (unos 40 m en 5 s, y 5 s sin 
   assert.equal(survival.record.best, 5);
 });
 
+test('ventaja: un auto que sale por lento conserva la ventaja que llevaba', () => {
+  // Acelera mientras no tiene un vehículo cerca adelante: le saca unos metros al tráfico, lo alcanza,
+  // va detrás a su velocidad y la regla de los lentos lo saca de carrera.
+  const follower = {
+    sizes: [6, 4], activation: 'step',
+    layers: [{ weights: [[0, 0, -10, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], biases: [1, -1, -1, -1] }],
+  };
+  const t = createTraining({
+    seed: 2, config: { population: 2, mutationStrength: 0, fitness: 'lead', irregularity: 0, maxSpeed: 20 }, brain: brainOf(follower),
+  });
+  let peak = 0;
+  let record = null;
+  const agent = t.world.agents[0];
+  for (let i = 0; i < 5000 && !record; i++) {
+    peak = Math.max(peak, t.fitnessOf(0));
+    record = t.step();
+  }
+  assert.ok(record, 'la generación terminó');
+  assert.equal(agent.crashCause, 'tooSlow');
+  assert.ok(peak > 10, `llevaba ${peak} m de ventaja`);
+  assert.equal(record.best, peak);
+});
+
 test('lentos: con la regla apagada, el auto que va detrás del tráfico sigue hasta el final de la generación', () => {
   const t = capped(0.5, { slowRule: false, maxDuration: 10 });
   const { record, steps } = runToEnd(t);

@@ -4,10 +4,13 @@
 import { copyNetwork, mapValues } from './network.js';
 import { STEP } from './constants.js';
 
-export const FITNESS_KINDS = Object.freeze(['distance', 'survival', 'speed']);
+/** Funciones de fitness, en el orden del selector (la primera es la de por defecto). */
+export const FITNESS_KINDS = Object.freeze(['lead', 'distance', 'survival', 'speed']);
 
 /** Unidad de cada función de fitness (para mostrarla). */
-export const FITNESS_UNITS = Object.freeze({ distance: 'meters', survival: 'seconds', speed: 'metersPerSecond' });
+export const FITNESS_UNITS = Object.freeze({
+  lead: 'metersAhead', distance: 'meters', survival: 'seconds', speed: 'metersPerSecond',
+});
 
 /** Rangos y valores por defecto de la configuración de evolución. */
 export const EVOLUTION_LIMITS = Object.freeze({
@@ -67,19 +70,25 @@ export function normalizeEvolution(partial = {}) {
 
 // --- Estadísticas y fitness ---------------------------------------------------------------
 
-/** Estadísticas de un agente al empezar: mayor progreso, pasos en carrera y si chocó. */
-export const createStats = () => ({ best: 0, steps: 0, crashed: false });
+/**
+ * Estadísticas de un agente al empezar: mayor progreso, pasos en carrera, si chocó y mayor ventaja
+ * sobre el tráfico (lo que avanzó menos lo que avanzó el tráfico en el mismo tiempo).
+ */
+export const createStats = () => ({ best: 0, steps: 0, crashed: false, lead: 0 });
 
 /**
  * Actualiza las estadísticas de un agente después de un paso del mundo en el que participó (estaba
  * en carrera al empezar el paso). El mayor progreso nunca es menor que 0.
- * @param {{best:number, steps:number, crashed:boolean}} stats
+ * @param {{best:number, steps:number, crashed:boolean, lead:number}} stats
  * @param {{progress:number, crashed:boolean}} agent
+ * @param {number} [trafficAdvance] cuánto avanzó el tráfico desde que empezó la generación (m)
  */
-export function recordStep(stats, agent) {
+export function recordStep(stats, agent, trafficAdvance = 0) {
   if (stats.crashed) return stats;
   stats.steps += 1;
   if (agent.progress > stats.best) stats.best = agent.progress;
+  const lead = agent.progress - trafficAdvance;
+  if (lead > stats.lead) stats.lead = lead;
   if (agent.crashed) stats.crashed = true;
   return stats;
 }
@@ -89,6 +98,7 @@ export const secondsAlive = (stats) => stats.steps * STEP;
 
 /**
  * Fitness de un agente según la función elegida:
+ *   lead      mayor ventaja sobre el tráfico alcanzada (m); nunca menor que 0
  *   distance  mayor distancia alcanzada (m)
  *   survival  segundos en carrera
  *   speed     distancia sobre tiempo en carrera (m/s); 0 si el tiempo es 0
@@ -96,6 +106,7 @@ export const secondsAlive = (stats) => stats.steps * STEP;
 export function fitnessOf(kind, stats) {
   const best = Math.max(0, stats.best);
   switch (kind) {
+    case 'lead': return Math.max(0, stats.lead ?? 0);
     case 'distance': return best;
     case 'survival': return secondsAlive(stats);
     case 'speed': {

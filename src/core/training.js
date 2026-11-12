@@ -313,11 +313,12 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     world.step();
     const agents = world.agents;
     const now = world.steps;
+    const trafficAdvance = TRAFFIC_SPEED * world.time;
     for (let i = 0; i < agents.length; i++) {
       if (!running[i]) continue;
       const a = agents[i];
       if (a.progress > stats[i].best) lastImprovement = now;
-      recordStep(stats[i], a);
+      recordStep(stats[i], a, trafficAdvance);
       if (a.crashed) { running[i] = false; continue; }
       // Eliminar a los lentos: compara con el progreso de hace SLOW_STEPS pasos.
       const slot = i * SLOW_STEPS + (now % SLOW_STEPS);
