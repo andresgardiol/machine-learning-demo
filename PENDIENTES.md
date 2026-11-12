@@ -4,6 +4,22 @@ Ideas y detalles anotados para más adelante. No son parte de ningún cambio en
 curso: cada uno pasa por el filtro de entrada de la constitución y por su
 propuesta de OpenSpec antes de implementarse.
 
+## Orden de trabajo
+
+Decidido por el dueño el 12 de noviembre de 2026:
+
+1. **Circuitos cerrados y paisaje**, en un mismo cambio. Van primero para que
+   estén listos cuando llegue Competir, y para poder entrenar cerebros en la
+   calle y en circuitos.
+2. **Pestaña 4, Competir.** Es clave: es donde se habla de generalización y
+   sobreajuste y se demuestra lo aprendido.
+3. **Pestañas 5 y 6,** Inspeccionar y Laboratorio.
+4. **Al final, los dos arreglos de Reglas a mano** anotados más abajo (los
+   ejemplos solo valen con la velocidad por defecto; el programa recordado no
+   recuerda los sensores). Esa pestaña es corta y es la que menos importa.
+
+El resto de las notas de este archivo no tiene orden fijo.
+
 ## Próximo
 
 - **Manejar sin chocar con tráfico irregular.** El cambio
