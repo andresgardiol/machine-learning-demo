@@ -173,12 +173,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 }
 /* Renglón de indicadores: todos en un renglón, valores sin partirse. */
 .board-strip {
-  display: grid; grid-template-columns: repeat(var(--stats, 3), minmax(0, 1fr)); gap: var(--space-2);
+  display: grid; grid-template-columns: repeat(var(--stats, 3), minmax(min-content, 1fr)); gap: var(--space-2);
   margin: 0; flex: 0 0 auto;
 }
-.board-stat { display: flex; flex-direction: column; justify-content: space-between; min-width: 0; padding: var(--space-1) 6px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); }
+.board-stat { display: flex; flex-direction: column; justify-content: space-between; min-width: 0; padding: var(--space-1) 4px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); }
 .board-stat dt { font-size: 12px; line-height: 1.3; color: var(--color-text-muted); }
-.board-stat-value { margin: 0; font-size: clamp(14px, 4.8cqi, 18px); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.board-stat-value { margin: 0; font-size: clamp(13px, 4.8cqi, 18px); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
 /* Línea de la última generación: texto corriente, no letra de número. */
 .board-last { margin: calc(-1 * var(--space-2)) 0 0; font-size: 14px; flex: 0 0 auto; }
 .board-last span + span::before { content: " "; }
@@ -495,6 +495,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .setting.setting-stacked { grid-template-columns: minmax(0, 1fr); }
 .setting-stacked .segments { display: flex; flex-wrap: wrap; }
 .setting-stacked .segment { flex: 1 1 auto; }
+.fitness-choice .segments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .setting[hidden] { display: none; }
 .chart-legend[hidden] { display: none; }
 

@@ -13,7 +13,7 @@ verse también sobre el escenario.
 
 #### Scenario: Autos que chocan
 - **WHEN** chocan veinte autos de una población de 100
-- **THEN** el indicador de autos en carrera muestra 80 de 100
+- **THEN** el indicador de autos en carrera muestra 80/100
 
 #### Scenario: Fin de una generación
 - **WHEN** termina la generación 12 porque todos los autos quedaron fuera de carrera, con un mejor fitness de 350 metros de ventaja
@@ -179,15 +179,20 @@ panel en su ancho por defecto, en español y en inglés.
 - **THEN** vuelven a ventaja, 10 y 0 %, y el enfriamiento se enciende, desde la generación siguiente y sin reiniciar el entrenamiento
 
 ### Requirement: Valores de ventaja con su unidad
-Todo valor de fitness medido con la ventaja sobre el tráfico SHALL mostrarse
-como metros de ventaja, distinto de los metros recorridos de la función
-distancia: en el indicador del líder, en la curva, en la línea de la última
-generación, en la línea del padre elegido y en los datos de un cerebro
-guardado.
+Todo valor de fitness medido con la ventaja sobre el tráfico SHALL leerse
+como ventaja, distinto de los metros recorridos de la función distancia. En
+el tablero, el indicador del líder SHALL llamarse según lo que mide la
+función vigente y mostrar el valor con su unidad corta. En la curva, la línea
+de la última generación, la línea del padre elegido y los datos de un cerebro
+guardado, el valor SHALL leerse como metros de ventaja.
 
 #### Scenario: Indicador del líder
 - **WHEN** el líder le lleva 120 metros de ventaja al tráfico
-- **THEN** el indicador de fitness del líder dice 120 m de ventaja
+- **THEN** el indicador se llama «Ventaja del líder» y dice 120 m
+
+#### Scenario: Indicador con otra función
+- **WHEN** rige la función distancia
+- **THEN** el indicador se llama «Distancia del líder»
 
 #### Scenario: Curva
 - **WHEN** termina una generación evaluada con la ventaja sobre el tráfico

@@ -110,3 +110,10 @@ test('modelo con una zona de 640 × 300: área y puntos dentro de ella', () => {
   for (const t of m.yTicks) assert.ok(t.y >= 10 && t.y <= 270);
   for (const t of m.xTicks) assert.ok(t.x >= 44 && t.x <= 630);
 });
+
+test('curva con la ventaja sobre el tráfico: el eje dice metros de ventaja', async () => {
+  const { chartModel, UNITS } = await import('../src/ui/chart.js');
+  assert.equal(UNITS.lead, 'metersAhead');
+  const model = chartModel([{ generation: 1, best: 120, average: 40, fitness: 'lead' }]);
+  assert.equal(model.unit, 'metersAhead');
+});

@@ -27,8 +27,16 @@ function assertMax(key, max, params) {
   }
 }
 
-test('Entrenar: guía de inicio de hasta 240 caracteres', () => {
-  assertMax('train.guide', GUIDE_MAX);
+// La guía de Entrenar tiene un tope propio: con el interruptor del enfriamiento, una guía más larga
+// hace desplazar el panel en 360 px (fitness-que-premia-superar, tarea 8.1).
+// Tope por idioma: el largo de cada texto medido, redondeado hacia arriba a la decena.
+const TRAIN_GUIDE_MAX = Object.freeze({ es: 190, en: 200 });
+
+test('Entrenar: guía de inicio de hasta 190 caracteres en español y 200 en inglés', () => {
+  for (const [lang, max] of Object.entries(TRAIN_GUIDE_MAX)) {
+    const t = text(lang, 'train.guide');
+    assert.ok(t.length <= max, `${lang}:train.guide tiene ${t.length} caracteres (máximo ${max}): ${t}`);
+  }
 });
 
 test('Entrenar: guía de inicio con selección manual de hasta 240 caracteres', () => {

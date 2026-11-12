@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { indicators, fitnessText, createTrainSession, MISSIONS } from '../src/tabs/train/session.js';
+import { indicators, fitnessText, shortFitnessText, leaderLabelKey, createTrainSession, MISSIONS } from '../src/tabs/train/session.js';
 import { SHORTCUTS, shortcutFor, toggleTurbo } from '../src/tabs/train/shortcuts.js';
 import { createTraining } from '../src/core/training.js';
 import { createBrain } from '../src/core/brain.js';
@@ -283,4 +283,25 @@ test('atajos de la selección manual: E elige al líder y Z deshace; con Ctrl o 
   assert.equal(shortcutFor({ code: 'KeyZ', ctrlKey: true }), null);
   assert.equal(shortcutFor({ code: 'KeyE', metaKey: true }), null);
   assert.equal(shortcutFor({ code: 'KeyE', target: { tagName: 'INPUT', type: 'text' } }), null);
+});
+
+test('indicador del líder con la ventaja: se llama «Ventaja del líder» y dice 120 m', () => {
+  assert.deepEqual(shortFitnessText(120.7, 'lead'), { key: 'train.value.meters', params: { value: 120 } });
+  assert.deepEqual(shortFitnessText(12.34, 'survival'), fitnessText(12.34, 'survival'));
+  const t = createTraining({ seed: 1, config: { population: 4 } });
+  for (let i = 0; i < 120; i++) t.step();
+  const ind = indicators(t);
+  assert.equal(ind.leaderLabel, 'train.stats.leader.lead');
+  assert.deepEqual(ind.leader, shortFitnessText(t.fitnessOf(t.leaderIndex), 'lead'));
+  assert.equal(ind.leader.key, 'train.value.meters');
+});
+
+test('indicador con otra función: con la distancia vigente se llama «Distancia del líder»', () => {
+  const t = createTraining({ seed: 1, config: { population: 4 } });
+  t.configure({ fitness: 'distance' });
+  assert.equal(indicators(t).leaderLabel, 'train.stats.leader.lead', 'hasta que rige, sigue la ventaja');
+  t.finishGeneration();
+  assert.equal(indicators(t).leaderLabel, 'train.stats.leader.distance');
+  assert.deepEqual(['lead', 'distance', 'survival', 'speed'].map(leaderLabelKey),
+    ['train.stats.leader.lead', 'train.stats.leader.distance', 'train.stats.leader.survival', 'train.stats.leader.speed']);
 });

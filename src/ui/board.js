@@ -7,17 +7,19 @@ import { el } from './dom.js';
 /**
  * Renglón de indicadores, cada uno con su rótulo y su valor.
  * @param {{id:string, labelKey:string}[]} items
- * @returns {{node: HTMLElement, values: Record<string, HTMLElement>}}
+ * @returns {{node: HTMLElement, values: Record<string, HTMLElement>, labels: Record<string, HTMLElement>}}
  */
 export function statStrip(items) {
   const values = {};
+  const labels = {};
   const node = el('dl', { class: 'board-strip', attrs: { 'aria-live': 'off' } },
     items.map(({ id, labelKey }) => {
       values[id] = el('dd', { class: 'board-stat-value' });
-      return el('div', { class: 'board-stat', dataset: { stat: id } }, el('dt', { i18n: labelKey }), values[id]);
+      labels[id] = el('dt', { i18n: labelKey });
+      return el('div', { class: 'board-stat', dataset: { stat: id } }, labels[id], values[id]);
     }));
   node.style.setProperty('--stats', String(items.length));
-  return { node, values };
+  return { node, values, labels };
 }
 
 /**

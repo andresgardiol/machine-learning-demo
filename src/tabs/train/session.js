@@ -25,8 +25,20 @@ export function fitnessText(value, kind) {
 }
 
 /**
+ * Valor corto del fitness, para el indicador del tablero: la ventaja se muestra en metros, sin la
+ * palabra "ventaja" (la dice el nombre del indicador). El resto, igual que fitnessText.
+ */
+export function shortFitnessText(value, kind) {
+  const text = fitnessText(value, kind);
+  return text.key === 'train.value.metersAhead' ? { key: 'train.value.meters', params: text.params } : text;
+}
+
+/** Nombre del indicador del fitness del líder según la función vigente ("Ventaja del líder", …). */
+export const leaderLabelKey = (kind) => `train.stats.leader.${FITNESS_UNITS[kind] ? kind : 'distance'}`;
+
+/**
  * Indicadores del entrenamiento: generación en curso, autos en carrera sobre el total, fitness del
- * líder ahora, vehículos que lleva superados el líder, mejor fitness de la última generación
+ * líder ahora (valor corto y nombre según la función vigente), vehículos que lleva superados el líder, mejor fitness de la última generación
  * terminada (null si todavía no terminó ninguna) y el motivo por el que terminó.
  */
 export function indicators(training) {
@@ -35,7 +47,8 @@ export function indicators(training) {
     generation: training.generation,
     alive: training.aliveCount,
     total: training.world.agents.length,
-    leader: fitnessText(training.fitnessOf(training.leaderIndex), training.config.fitness),
+    leader: shortFitnessText(training.fitnessOf(training.leaderIndex), training.config.fitness),
+    leaderLabel: leaderLabelKey(training.config.fitness),
     passed: training.passedOf(training.leaderIndex),
     lastBest: last ? fitnessText(last.best, last.fitness) : null,
     lastReason: last ? last.reason : null,

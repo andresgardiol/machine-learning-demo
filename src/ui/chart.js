@@ -7,7 +7,10 @@
 // La escala y los puntos salen de una función pura (chartModel) que se prueba en Node. Cuando
 // cambia la función de fitness, la curva empieza de nuevo: los valores anteriores no se comparan.
 
-export const UNITS = Object.freeze({ distance: 'meters', survival: 'seconds', speed: 'metersPerSecond' });
+import { FITNESS_UNITS } from '../core/evolution.js';
+
+/** Unidad del eje de cada función de fitness: la misma que el resto de la pestaña. */
+export const UNITS = FITNESS_UNITS;
 
 export const CHART_LAYOUT = Object.freeze({ width: 320, height: 170, left: 44, right: 10, top: 10, bottom: 30 });
 

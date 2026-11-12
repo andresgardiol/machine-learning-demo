@@ -137,6 +137,16 @@ pasar, y a velocidad máxima la misión podría no enterarse de un pico.
 hacia abajo. Los textos por unidad se agregan con la misma forma que los
 existentes (D7).
 
+En el tablero no entra "1200 m de ventaja": a 360 px cada indicador tiene unos
+76 px. Por eso el indicador del líder usa el valor corto (`shortFitnessText`:
+la ventaja en `train.value.meters`) y un nombre según la función vigente
+(`train.stats.leader.<función>`: "Ventaja del líder", "Distancia del líder",
+"Tiempo del líder", "Velocidad del líder"). Los autos en carrera se muestran
+como "80/100". Las columnas del renglón se reparten según el contenido
+(`minmax(min-content, 1fr)`). Medido a 360 px en los dos idiomas, con
+1000 · 500/500 · 1200 m · 60,0 s · 20,0 m/s · 99: los cuatro entran en un
+renglón, sin cortes.
+
 ### D5. Pestaña: cuarto indicador y misión
 
 - `statStrip` recibe un cuarto indicador, `passed`. Su valor sale de
@@ -201,6 +211,11 @@ Claves nuevas o que cambian, en español e inglés:
 | `help.train.setting.strengthCooling.what` | Con el enfriamiento encendido la fuerza baja sola en cada generación; este es el valor de la próxima. |
 | `help.train.setting.strengthCooling.why` | Apagá «Enfriar la mutación» para fijarla a mano. |
 | `train.stats.passed` | Superados por el líder |
+| `train.stats.leader.lead` | Ventaja del líder (reemplaza a `train.stats.leader`) |
+| `train.stats.leader.distance` | Distancia del líder |
+| `train.stats.leader.survival` | Tiempo del líder |
+| `train.stats.leader.speed` | Velocidad del líder |
+| `train.value.alive` | {value}/{total} (en los dos idiomas) |
 | `train.mission.passed` | Un auto que supere {goal} vehículos |
 | `train.value.metersAhead` | {value} m de ventaja |
 | `train.chart.unit.metersAhead` | m de ventaja |
@@ -208,8 +223,9 @@ Claves nuevas o que cambian, en español e inglés:
 | `train.parent.leader.metersAhead` | Padre: el líder de la generación {generation}, que llevaba {value} m de ventaja. |
 | `train.parent.champion.metersAhead` | Padre: el mejor de la generación {generation}, con {value} m de ventaja. |
 
-Se quita `train.mission.distance`. El inglés usa "Lead" para la función y
-"m ahead" para la unidad.
+Se quitan `train.mission.distance` y `train.stats.leader`. El inglés usa
+"Lead" para la función, "m ahead" para la unidad y "Leader’s lead",
+"Leader’s distance", "Leader’s time" y "Leader’s speed" para el indicador.
 
 ### D8. Pruebas existentes que cambian
 

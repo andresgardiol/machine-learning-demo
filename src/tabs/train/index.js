@@ -29,7 +29,7 @@ import {
 import {
   DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges, adoptBrain,
 } from './settings.js';
-import { createTrainSession, indicators, lastGeneration, parentStatus } from './session.js';
+import { createTrainSession, indicators, lastGeneration, parentStatus, leaderLabelKey } from './session.js';
 import { shortcutFor, toggleTurbo } from './shortcuts.js';
 
 export const DEFAULT_SEED = 1;
@@ -384,6 +384,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
 
   // Grupos de opciones con rótulos largos: rótulo arriba y opciones a todo el ancho.
   for (const g of Object.values(choices)) g.row.classList.add('setting-stacked');
+  // Las cuatro funciones de fitness van en dos renglones de dos: enteras a cualquier ancho del panel (D5).
+  choices.fitness.row.classList.add('fitness-choice');
   const pendingNote = () => el('p', { class: 'train-pending', attrs: { role: 'status' }, i18n: 'train.pending' });
   const basicPending = pendingNote();
   const advancedPending = pendingNote();
@@ -476,7 +478,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   const strip = statStrip([
     { id: 'generation', labelKey: 'train.stats.generation' },
     { id: 'alive', labelKey: 'train.stats.alive' },
-    { id: 'leader', labelKey: 'train.stats.leader' },
+    { id: 'leader', labelKey: leaderLabelKey(state.training.config.fitness) },
     { id: 'passed', labelKey: 'train.stats.passed' },
   ]);
   const lastBest = el('span', { class: 'board-last-best' });
@@ -522,6 +524,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     const ind = indicators(t);
     setText(strip.values.generation, 'train.value.count', { value: ind.generation });
     setText(strip.values.alive, 'train.value.alive', { value: ind.alive, total: ind.total });
+    setText(strip.labels.leader, ind.leaderLabel);
     setText(strip.values.leader, ind.leader.key, ind.leader.params);
     setText(strip.values.passed, 'train.value.count', { value: ind.passed });
     setText(generationBadge, 'train.badge.generation', { value: ind.generation });
