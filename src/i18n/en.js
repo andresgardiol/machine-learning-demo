@@ -570,7 +570,7 @@ export default {
   'help.train.save.why': 'What was learned is not lost: the brain becomes available in every tab, even while training goes on.',
   'help.train.save.disabled.what': 'There is no champion to save yet: a generation has to finish first.',
   'help.train.save.disabled.why': 'The champion is the one that drove best in a finished generation; before that there is nothing to compare it with.',
-  'help.train.save.update.what': 'Replaces the network and data of the brain this training came from, keeping its name.',
+  'help.train.save.update.what': 'Replaces the network and data of “{name}”, the brain this training came from, keeping its name.',
   'help.train.save.update.why': 'That way one brain accumulates its generations without filling the library with copies.',
   'help.train.save.name.what': 'The name the brain is saved with, up to 40 characters. If you leave it empty, the suggested one is used.',
   'help.train.save.name.why': 'If the name already exists, a number in parentheses is added to tell them apart.',

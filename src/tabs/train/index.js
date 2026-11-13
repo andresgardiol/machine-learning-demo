@@ -629,7 +629,12 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     saveActions.hidden = !source;
     updateButton.hidden = !source;
     updateButton.setAttribute('aria-disabled', String(!hasChampion));
-    if (source) setText(updateButton, 'train.save.updateNamed', { name: source.brain.name });
+    if (source) {
+      setText(updateButton, 'train.save.updateNamed', { name: source.brain.name });
+      // El botón corta un nombre largo con puntos suspensivos: el tooltip lo dice completo.
+      const params = JSON.stringify({ name: source.brain.name });
+      if (updateButton.getAttribute('data-help-params') !== params) updateButton.setAttribute('data-help-params', params);
+    }
     if (nameInput.placeholder !== (library ? library.suggestName(i18n.t('library.defaultName')) : '')) {
       nameInput.placeholder = library ? library.suggestName(i18n.t('library.defaultName')) : '';
     }

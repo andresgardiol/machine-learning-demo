@@ -570,7 +570,7 @@ export default {
   'help.train.save.why': 'Lo aprendido no se pierde: el cerebro queda disponible en todas las pestañas, aunque el entrenamiento siga.',
   'help.train.save.disabled.what': 'Todavía no hay campeón para guardar: hace falta que termine una generación.',
   'help.train.save.disabled.why': 'El campeón es el que mejor manejó en una generación terminada; antes de eso no hay con qué compararlo.',
-  'help.train.save.update.what': 'Reemplaza la red y los datos del cerebro del que vino este entrenamiento, conservando su nombre.',
+  'help.train.save.update.what': 'Reemplaza la red y los datos de «{name}», el cerebro del que vino este entrenamiento, conservando su nombre.',
   'help.train.save.update.why': 'Así un mismo cerebro acumula sus generaciones sin llenar la biblioteca de copias.',
   'help.train.save.name.what': 'El nombre con que se guarda el cerebro, de hasta 40 caracteres. Si lo dejás vacío se usa el sugerido.',
   'help.train.save.name.why': 'Si el nombre ya existe, se agrega un número entre paréntesis para distinguirlos.',
