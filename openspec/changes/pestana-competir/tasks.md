@@ -68,9 +68,9 @@ criterio: se informa lo medido y se espera la respuesta.
 
 ## 9. Accesibilidad
 
-- [ ] 9.1 Marcador y tabla como tablas con encabezados; celdas con nombre completo de pista, resultado, estado y marca. Verificar leyendo el árbol de accesibilidad el escenario "Lector de pantalla".
-- [ ] 9.2 Anunciar la llegada del primero y el fin de la carrera, y no anunciar los cambios de orden, los choques ni cada segundo de la cuenta. Verificar los escenarios "Fin de la carrera anunciado" y "Llega el primero".
-- [ ] 9.3 Recorrer la pestaña entera con el teclado: orden del foco, foco siempre visible, lista de competidores, marcador, controles deshabilitados con su explicación y objetivos de al menos 24 px. Informar lo que no se cumpla.
+- [x] 9.1 Marcador y tabla como tablas con encabezados; celdas con nombre completo de pista, resultado, estado y marca. Verificar leyendo el árbol de accesibilidad el escenario "Lector de pantalla".
+- [x] 9.2 Anunciar la llegada del primero y el fin de la carrera, y no anunciar los cambios de orden, los choques ni cada segundo de la cuenta. Verificar los escenarios "Fin de la carrera anunciado" y "Llega el primero".
+- [x] 9.3 Recorrer la pestaña entera con el teclado: orden del foco, foco siempre visible, lista de competidores, marcador, controles deshabilitados con su explicación y objetivos de al menos 24 px. Informar lo que no se cumpla.
 
 ## 10. Verificación integral
 
