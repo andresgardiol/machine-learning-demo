@@ -12,8 +12,10 @@ Decidido por el dueño el 12 de noviembre de 2026:
    cambio `circuitos-y-paisaje`: tres circuitos fijos sin tráfico, entrenar en
    una o varias pistas, paisaje con interruptor y "ver como la máquina" en las
    tres pestañas.
-2. **Pestaña 4, Competir.** Es clave: es donde se habla de generalización y
-   sobreajuste y se demuestra lo aprendido.
+2. ~~**Pestaña 4, Competir.**~~ Hecho en el cambio `pestana-competir`: carrera
+   de fantasmas con meta entre cerebros, programas y la persona, chocar y
+   reaparecer protegido, cuatro cerebros de ejemplo y tabla por pista con dónde
+   entrenó cada cerebro.
 3. **Pestañas 5 y 6,** Inspeccionar y Laboratorio.
 4. **Al final, los dos arreglos de Reglas a mano** anotados más abajo (los
    ejemplos solo valen con la velocidad por defecto; el programa recordado no
@@ -180,6 +182,50 @@ El resto de las notas de este archivo no tiene orden fijo.
     y volver a abrir (artículo 6), textos en español e inglés (artículo 11) y
     ninguna dependencia nueva.
 
+- **Los tooltips ayudan al principio y después molestan.** Aparecen en cada
+  control a los 0,4 s de posar el cursor. Al empezar sirven; cuando ya se
+  conoce la interfaz, tapan lo que se quiere tocar. Le pasó al dueño también
+  en la demo original, donde lo resolvió con más demora (13 de noviembre de
+  2026). Ideas para evaluar, sin decidir:
+  - Más demora (por ejemplo 1 s) y, una vez abierto uno, los siguientes
+    aparecen enseguida por unos segundos, como en los sistemas operativos.
+  - Atarlos al interruptor "Guía": con la guía activa, como hoy; con la guía
+    apagada, solo al pedirlos.
+  - Pedirlos a mano: una tecla que se mantiene apretada o un modo "¿qué es
+    esto?" que se enciende y se apaga.
+  - Que se cansen solos: cada control muestra su tooltip rápido las primeras
+    veces y después pide posar el cursor más tiempo.
+  - Dos tamaños: primero un renglón con qué hace; el "por qué importa", si el
+    cursor se queda o con una tecla.
+  - A tener en cuenta: con el foco del teclado tienen que seguir apareciendo,
+    cerrarse con Escape y poder alcanzarse con el cursor; y cada control tiene
+    que seguir teniendo su explicación a mano.
+
+- **Lo que quedó fuera de `pestana-competir`** (noviembre de 2026), cada cosa con
+  su propia propuesta: que los competidores se choquen entre sí; elegir la
+  cantidad de vueltas o la distancia; semáforo de largada, bandera, podio y
+  repetición; configurar los 5 s sin avanzar y los 20 s de espera; una
+  biblioteca de programas de Reglas a mano con nombre; guardar los resultados
+  entre visitas; evaluar en las cuatro pistas con un solo botón; editar o
+  seguir entrenando los ejemplos; más de seis competidores; los programas de
+  3 y 20 sensores como competidores; quitar de la barra el tráfico en un
+  circuito (hoy se ve deshabilitado en las cuatro pestañas).
+- **Lo que quedó sin medir o débil en `pestana-competir`:**
+  - El ejemplo "Calle, mismo tráfico" no muestra haber memorizado: en diez
+    tráficos nuevos choca 0,2 veces en promedio contra 0,1 del de tráfico nuevo
+    (la comprobación se cumple por un choque) y, con densidad 100 % o
+    irregularidad 50 %, choca igual o menos. Los de la calle llegan sin chocar
+    en los tres circuitos. El contraste que sí se ve es el del óvalo en la
+    calle (12 a 15 choques por carrera).
+  - Fluidez con seis competidores en el circuito de curvas (mínimo 55 cuadros
+    por segundo): sin medir, el navegador estuvo oculto (1,5 cuadros por
+    segundo). Dibujar un cuadro tarda 0,16 ms de media en la máquina de
+    desarrollo, lo que no reemplaza la medida.
+  - A 1366×768 el panel se desplaza de 55 a 131 px y el tablero hasta 49 px (a
+    1440×900, nada).
+  - Sin probar con un lector de pantalla real, en Safari ni en Firefox.
+  - La persona que maneja a 15 m/s en el óvalo queda fuera por la espera de
+    20 s al 98 % (medido con un manejo simulado).
 - **Lo que quedó fuera de `circuitos-y-paisaje`.** Anotado para más adelante,
   cada cosa con su propia propuesta:
   - cruces de calles que pasan por debajo y tramos de autopista elevada sobre
