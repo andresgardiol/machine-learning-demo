@@ -315,7 +315,9 @@ ancho taparía lo que se quiere mirar al cambiar el ajuste.
 
 ### D12. En Entrenar, lo de la barra rige en el momento
 
-- **Núcleo:** `training.restartGeneration()` aplica lo que esté pendiente y
+- **Núcleo:** `training.restartGeneration()` aplica los cambios de escenario
+  que estén pendientes (los demás siguen esperando, porque la población de la
+  generación en curso no puede cambiar) y
   vuelve a armar el mundo de la generación en curso con las mismas redes y el
   mismo número de generación. No agrega nada al historial ni cambia el
   campeón, y no toca las elecciones de padre. La semilla del tráfico de esa
