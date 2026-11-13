@@ -76,32 +76,6 @@ El resto de las notas de este archivo no tiene orden fijo.
     que arranque en 20 m/s y que cargar un ejemplo o restablecer la vuelvan a
     20, como ya hacen con los sensores. Cambia, solo para esta pestaña, el
     requisito de que la velocidad sea una sola para todas.
-- **El programa recordado no recuerda los sensores.** Se guarda solo el
-  texto: si se carga el ejemplo de 20 sensores y se recarga la página, la
-  pestaña abre con 5 sensores y el error de sensores que no existen.
-  Propuesta, sin implementar: recordar los sensores junto al programa.
-
-- **Bug: cambiar la red o los sensores no tiene efecto si se sigue entrenando
-  un cerebro.** Encontrado por el dueño el 12 de noviembre de 2026, con
-  capturas. En Entrenar, siguiendo el entrenamiento de un cerebro guardado
-  (5 sensores, en el circuito largo), cambió la cantidad de sensores a 18, el
-  alcance y la apertura, y también las capas ocultas. Aceptó el aviso de que
-  eso empieza un entrenamiento nuevo, pero el auto del escenario y la red del
-  tablero siguieron con 5 sensores; los deslizadores sí muestran los valores
-  nuevos.
-  - Hipótesis, sin verificar: al empezar el entrenamiento nuevo la pestaña
-    sigue pasándole el cerebro que se estaba continuando
-    (`src/tabs/train/index.js`, `startTraining`), y en el núcleo la red y los
-    sensores de ese cerebro mandan sobre la configuración
-    (`src/core/training.js`, `createTraining`). Si es así, los ajustes y el
-    entrenamiento quedan diciendo cosas distintas.
-  - A decidir al arreglarlo: cambiar la red o los sensores debería dejar de
-    seguir a ese cerebro y arrancar una población nueva con los ajustes
-    elegidos, y el aviso debería decirlo. Revisar también qué muestra la
-    biblioteca ("Seguís entrenando…") después del cambio.
-
-## Ideas
-
 - **Detalles que dejó el tablero de aprendizaje** (cambio
   `tablero-de-aprendizaje`, noviembre de 2026):
   - Con el foco puesto con Tab en un botón común del panel, los atajos
@@ -162,7 +136,7 @@ El resto de las notas de este archivo no tiene orden fijo.
   - **Probar con un lector de pantalla y con una herramienta automática.** El
     cambio verificó leyendo el árbol de accesibilidad del navegador y
     recorriendo todo con teclado, pero no se probó con VoiceOver ni con una
-    herramienta como axe: las pestañas de vista, el selector de pista y la
+    herramienta como axe: las pestañas de vista, la barra de escenario y la
     descripción del escenario quedan para que las pruebe el dueño.
   - **El editor de Reglas a mano corta el recorrido con Tab.** Tab y Mayús+Tab
     agregan y quitan sangría, y Escape devuelve el foco al escenario (lo dice
@@ -174,9 +148,18 @@ El resto de las notas de este archivo no tiene orden fijo.
     rótulos de los botones y los textos de guía y de choque dejan de mostrarla,
     pero las ayudas ("Atajo: tecla R") la siguen diciendo.
   - **Con selección manual, la vista de entrenamiento se desplaza a
-    1440×900.** Mide 846 px en español y 828 en inglés contra 811 a la vista
-    (panel de 360 px). Lo que pide la spec (quién elige al padre, pausar,
-    siguiente, elegir, deshacer y la línea del padre) se ve sin desplazar.
+    1440×900.** Con la barra de escenario quedan 746 px a la vista, y con
+    selección manual el contenido mide 846 px (876 mientras el cambio de modo
+    espera a la generación siguiente). Lo que pide la spec (quién elige al
+    padre, pausar, siguiente, elegir, deshacer y la línea del padre) se ve sin
+    desplazar. Con selección automática la vista entra justo: 746 de 746 px.
+  - **Entrenar alternando varias pistas.** La interfaz entrena en una sola
+    pista; el núcleo conserva la lista y los cerebros entrenados así siguen
+    valiendo. Si se retoma, hay que decidir dónde se marcan las pistas.
+  - **Editar la red sobre el diagrama del tablero.** Hoy está en la vista de
+    ajustes, a un clic.
+  - **Eliminar todos los cerebros de una vez.** Hoy se eliminan uno por uno,
+    cada uno con su confirmación.
   - **El borde del riel de los deslizadores es el del navegador.** Medido en
     Chrome: #858585, más de 3:1 sobre el panel. No se midió en Safari ni en
     Firefox.

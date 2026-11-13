@@ -92,12 +92,12 @@
 
 ## 14. Segunda ronda: verificación integral
 
-- [ ] 14.1 Recorrer las tres pestañas y comprobar que no queda ninguna sección plegable en los paneles ni ningún ajuste a más de un clic. Listar dónde quedó cada ajuste.
-- [ ] 14.2 Recorrer la barra y las tres pestañas con teclado solamente y leer el árbol de accesibilidad de la barra. Informar lo que no se pueda hacer.
-- [ ] 14.3 Medir todos los controles accionables nuevos: ninguno por debajo de 24 por 24 px.
-- [ ] 14.4 Entregar una captura de cada pestaña a 1440×900, y una de Entrenar con la vista de ajustes.
-- [ ] 14.5 Repasar el filtro de entrada de proposal.md contra lo que se ve e informar cualquier respuesta que ya no valga.
-- [ ] 14.6 Actualizar `PENDIENTES.md`: quitar las notas "El programa recordado no recuerda los sensores" y "Bug: cambiar la red o los sensores no tiene efecto si se sigue entrenando un cerebro", y anotar lo que haya quedado fuera (alternar pistas, editar la red sobre el diagrama, eliminar todos los cerebros de una vez).
+- [x] 14.1 Recorrer las tres pestañas y comprobar que no queda ninguna sección plegable en los paneles ni ningún ajuste a más de un clic. Listar dónde quedó cada ajuste.
+- [x] 14.2 Recorrer la barra y las tres pestañas con teclado solamente y leer el árbol de accesibilidad de la barra. Informar lo que no se pueda hacer.
+- [x] 14.3 Medir todos los controles accionables nuevos: ninguno por debajo de 24 por 24 px.
+- [x] 14.4 Entregar una captura de cada pestaña a 1440×900, y una de Entrenar con la vista de ajustes.
+- [x] 14.5 Repasar el filtro de entrada de proposal.md contra lo que se ve e informar cualquier respuesta que ya no valga.
+- [x] 14.6 Actualizar `PENDIENTES.md`: quitar las notas "El programa recordado no recuerda los sensores" y "Bug: cambiar la red o los sensores no tiene efecto si se sigue entrenando un cerebro", y anotar lo que haya quedado fuera (alternar pistas, editar la red sobre el diagrama, eliminar todos los cerebros de una vez).
 
 ## Workflow follow-up
 
