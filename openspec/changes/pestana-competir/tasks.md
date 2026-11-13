@@ -15,10 +15,10 @@ criterio: se informa lo medido y se espera la respuesta.
 
 ## 2. Cerebros de ejemplo
 
-- [ ] 2.1 Crear `tools/train-examples.mjs` y el script `npm run examples` (design.md D6): entrena los cuatro ejemplos con semillas fijas, elige el campeón, comprueba los contrastes con `createRace`, con la penalización por defecto, y escribe `src/data/example-brains.js` solo si todos se cumplen. Informar, por ejemplo: semilla, generaciones y lo medido.
-- [ ] 2.2 Correr la herramienta. Si algún contraste de "Lo que muestran los ejemplos" no se cumple con ninguna semilla de la lista, **detenerse y consultar** con lo medido de cada intento (choques y llegadas en los diez tráficos nuevos, resultado en el tráfico de práctica, llegada en el óvalo). No aflojar la comprobación ni cambiar cómo se entrena un ejemplo sin consultar.
-- [ ] 2.3 Informar, sin umbral, cómo le va a cada ejemplo en cada una de las cuatro pistas y en la calle con el tráfico de práctica (lo que después va a mostrar la tabla: llegó o no, tiempo, parte de la carrera y choques), rotulado como medido. Informar también cómo le va al programa de 7 sensores en la calle recta.
-- [ ] 2.4 Agregar la prueba de `npm test` que valida los cuatro cerebros y vuelve a comprobar los contrastes. Verificar los escenarios de "Cuatro cerebros incluidos" y "Ejemplos que se pueden regenerar" (dos corridas de la herramienta dan el mismo archivo).
+- [x] 2.1 Crear `tools/train-examples.mjs` y el script `npm run examples` (design.md D6): entrena los cuatro ejemplos con semillas fijas, elige el campeón, comprueba los contrastes con `createRace`, con la penalización por defecto, y escribe `src/data/example-brains.js` solo si todos se cumplen. Informar, por ejemplo: semilla, generaciones y lo medido.
+- [x] 2.2 Correr la herramienta. Si algún contraste de "Lo que muestran los ejemplos" no se cumple con ninguna semilla de la lista, **detenerse y consultar** con lo medido de cada intento (choques y llegadas en los diez tráficos nuevos, resultado en el tráfico de práctica, llegada en el óvalo). No aflojar la comprobación ni cambiar cómo se entrena un ejemplo sin consultar.
+- [x] 2.3 Informar, sin umbral, cómo le va a cada ejemplo en cada una de las cuatro pistas y en la calle con el tráfico de práctica (lo que después va a mostrar la tabla: llegó o no, tiempo, parte de la carrera y choques), rotulado como medido. Informar también cómo le va al programa de 7 sensores en la calle recta.
+- [x] 2.4 Agregar la prueba de `npm test` que valida los cuatro cerebros y vuelve a comprobar los contrastes. Verificar los escenarios de "Cuatro cerebros incluidos" y "Ejemplos que se pueden regenerar" (dos corridas de la herramienta dan el mismo archivo).
 
 ## 3. Lógica de la pestaña sin DOM
 
