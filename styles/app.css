@@ -47,7 +47,7 @@ code { background: var(--color-surface-2); padding: 0 var(--space-1); border-rad
 #app { height: 100%; }
 .app {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
   grid-template-columns: minmax(0, 1fr);
   height: 100vh;
   min-width: 0;
@@ -277,7 +277,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .narrow-notice { display: none; }
 /* Solo en pantallas de celular (menos de 600 px, ver NARROW_WIDTH en ui/app.js). */
 @media (max-width: 599.98px) {
-  .app > .topbar, .app > .workspace { display: none; }
+  .app > .topbar, .app > .scenario-zone, .app > .workspace { display: none; }
   .app { grid-template-rows: 1fr; }
   .narrow-notice {
     display: block;
@@ -414,52 +414,20 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Escenario angosto (design.md D7): con menos de 360 px, las insignias y el mensaje de choque bajan
    para no pisarse con los controles de cámara. */
 .stage { container: stage / inline-size; }
-/* Esquina superior izquierda del escenario (panel-de-entrenar-por-vistas D5). El primer renglón es
-   solo para los controles de cámara y el paisaje (arriba a la derecha). Debajo, el renglón del
-   selector de pista, en el mismo lugar en todas las pestañas; en Entrenar lleva a su derecha el
-   rótulo de generación, que baja a otro renglón si no entra (sin achicar ni cortar al selector).
-   Después, los demás mensajes. */
+/* Esquina superior izquierda del escenario, en el segundo renglón (panel-de-entrenar-por-vistas D11):
+   el primero es para los controles de cámara y el paisaje (arriba a la derecha). Ahí van, uno debajo
+   del otro, el rótulo de generación, el aviso de que volvió a empezar y los demás mensajes. */
 .stage-corner {
   position: absolute; top: 48px; left: var(--space-2); right: var(--space-2);
   display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); pointer-events: none;
 }
-.stage-picker-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); max-width: 100%; }
-.stage-picker-row > * { pointer-events: auto; flex: 0 0 auto; max-width: 100%; }
-.stage-picker-row > .stage-badge { pointer-events: none; white-space: nowrap; }
+/* Aviso de que la generación volvió a empezar (D12): más chico que el rótulo de generación. */
+.restarted-badge { margin: 0; font-size: 13px; font-weight: 400; }
 @container stage (max-width: 359.98px) {
   .crash-layer { padding-top: 136px; }
 }
 
-/* Selector de pista (src/render/track-picker.js): un botón con la pista a la vista y un menú con las
-   cuatro, cada una con la miniatura de su trazado. */
-.track-picker { position: relative; z-index: 5; }
-.track-picker-button {
-  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; height: 32px; padding: 0 var(--space-2);
-  background: var(--color-surface); border: 1px solid var(--color-control-border); border-radius: var(--radius);
-  font-size: 14px; cursor: pointer;
-}
-.track-picker-button:hover, .track-picker.open .track-picker-button { border-color: var(--color-accent); }
-.track-picker-label { white-space: nowrap; }
-.track-picker-caret { color: var(--color-text-muted); font-size: 12px; }
-.track-picker-menu {
-  position: absolute; top: calc(100% + 4px); left: 0; width: max-content; min-width: 100%; max-width: min(280px, calc(100cqi - 16px));
-  padding: var(--space-1); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius);
-  box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
-}
-.track-picker-menu[hidden] { display: none; }
-.track-picker-item {
-  display: grid; grid-template-columns: 1.1em 40px minmax(0, 1fr); align-items: center; gap: var(--space-2);
-  width: 100%; min-height: 36px; padding: 2px var(--space-2); background: transparent; border: 0; border-radius: 6px;
-  text-align: left; font-size: 14px; cursor: pointer;
-}
-.track-picker-item:hover { background: var(--color-surface-2); }
-.track-picker-item:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
-/* Elegida o marcada: marca llena, letra más pesada y fondo (no solo el color). */
-.track-picker-item[aria-checked="true"] { font-weight: 700; background: var(--color-surface-2); }
-.track-picker-check { color: var(--color-accent); text-align: center; }
-.track-picker-name { overflow-wrap: anywhere; }
 .track-thumb { display: block; color: var(--color-text-muted); }
-.track-picker-item[aria-checked="true"] .track-thumb { color: var(--color-text); }
 .track-thumb polyline { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 
 /* Confirmación en línea (src/ui/controls.js): dentro del panel, junto al control que la pidió. */
@@ -754,3 +722,52 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .tab[aria-disabled="true"] { border-color: var(--color-control-border); }
 .segment[aria-disabled="true"] { outline: 1px dashed var(--color-control-border); outline-offset: -4px; }
 .setting input[type="range"][aria-disabled="true"] { outline: 1px dashed var(--color-control-border); outline-offset: 2px; border-radius: 2px; }
+
+/* ---- Barra de escenario (src/tabs/shared/scenario-bar.js, panel-de-entrenar-por-vistas D11) ------
+   Debajo del encabezado y a todo el ancho, igual en las tres pestañas. Desde 1366 px entra en un
+   renglón; con menos ancho, los grupos pasan a un segundo renglón. Cada control: nombre y valor en un
+   renglón y el deslizador debajo, con 120 px como mínimo. */
+.scenario-zone { background: var(--color-surface); border-bottom: 1px solid var(--color-border); position: relative; z-index: 6; }
+.scenario-zone:empty { display: none; }
+.scenario-bar {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: var(--space-1) var(--space-3); padding: 3px var(--space-3) 4px;
+}
+.bar-group { position: relative; display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1 1 auto; }
+.bar-group-track, .bar-group-reset { flex: 0 0 auto; }
+.bar-group-label { font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-muted); white-space: nowrap; align-self: flex-start; }
+.bar-group-body { display: flex; align-items: flex-end; gap: var(--space-2); }
+.bar-control { display: flex; flex-direction: column; justify-content: flex-end; flex: 1 1 120px; min-width: 120px; }
+.bar-label { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 13px; line-height: 16px; white-space: nowrap; }
+.bar-name { font-size: 13px; line-height: 16px; white-space: nowrap; }
+.bar-value { font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
+.bar-control input[type="range"] { width: 100%; min-width: 0; height: 24px; margin: 0; accent-color: var(--color-accent); }
+.bar-control input[type="range"]:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.bar-control input[type="range"][aria-disabled="true"] { cursor: not-allowed; opacity: 0.6; }
+.bar-lanes { flex: 0 0 auto; min-width: 0; }
+.bar-lanes .segments { height: 26px; }
+.bar-lanes .segment { min-width: 32px; min-height: 24px; padding: 0 var(--space-2); font-size: 13px; line-height: 1; }
+.bar-lanes .segment[aria-disabled="true"] { cursor: not-allowed; opacity: 0.6; }
+/* Pistas: miniatura y nombre corto; la elegida lleva borde grueso, letra más pesada y fondo (no solo color). */
+.bar-tracks { display: flex; gap: 4px; }
+.bar-track {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  min-width: 54px; min-height: 40px; padding: 1px 5px;
+  background: transparent; border: 1px solid var(--color-control-border); border-radius: var(--radius);
+  font-size: 12px; line-height: 1.2; cursor: pointer; color: var(--color-text-muted);
+}
+.bar-track:hover { border-color: var(--color-accent); }
+.bar-track:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.bar-track[aria-checked="true"] {
+  color: var(--color-text); font-weight: 700; background: var(--color-surface-2);
+  border: 2px solid var(--color-accent); padding: 0 4px;
+}
+.bar-track-name { white-space: nowrap; }
+.bar-track .track-thumb { color: currentColor; }
+.bar-group-reset { align-self: flex-end; }
+.bar-reset { white-space: nowrap; min-height: 32px; padding: 0 var(--space-2); font-size: 14px; }
+/* Confirmaciones pegadas a la barra, debajo del grupo que las pidió (sobre el escenario). */
+.bar-slot { position: absolute; top: calc(100% + 6px); left: 0; z-index: 7; width: max-content; max-width: 340px; }
+.bar-group-reset .bar-slot { left: auto; right: 0; }
+.bar-slot .inline-confirm { margin: 0; box-shadow: 0 6px 20px rgb(0 0 0 / 0.45); background: var(--color-surface); }
+.bar-slot:empty { display: none; }

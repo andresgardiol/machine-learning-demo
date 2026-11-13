@@ -3,9 +3,10 @@
 //
 // Composición: mundo del núcleo + controlador de teclado + vista + bucle; el tablero con los
 // indicadores del intento, lo que perciben los sensores y lo que se acciona (design.md D10); y el
-// panel con guía, marcha, vista, misiones y configuración avanzada. La lógica que se puede probar
+// panel con guía, marcha, vista y misiones; y la barra de escenario, común a las tres pestañas
+// (panel-de-entrenar-por-vistas D11), con la pista, el tráfico, los sensores y la velocidad. La lógica que se puede probar
 // sin DOM vive en session.js (indicadores, misiones y lecturas), settings.js y shortcuts.js. Las
-// barras de percepción, los cuatro controles y la sección avanzada son piezas compartidas con la
+// barras de percepción, los cuatro controles y la barra de escenario son piezas compartidas con la
 // pestaña Reglas a mano (tabs/shared/, design.md D5).
 import { createWorld } from '../../core/world.js';
 import { createKeyboardController } from '../../input/keyboard.js';
@@ -16,7 +17,8 @@ import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { button, switchButton, createTextSetter } from '../../ui/controls.js';
 import { statStrip, boardCard } from '../../ui/board.js';
 import { perceptionBlock, actionBlock } from '../shared/driving-cards.js';
-import { streetAdvanced, setUnavailable } from '../shared/street-advanced.js';
+import { setUnavailable } from '../shared/street-advanced.js';
+import { scenarioBar } from '../shared/scenario-bar.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { drivingDescription } from '../shared/stage-text.js';
@@ -30,23 +32,21 @@ export const DEFAULT_SEED = 1;
 
 // Misiones cumplidas: siguen marcadas hasta cerrar la aplicación, aunque la pestaña se vuelva a montar.
 const completedMissions = new Set();
+// Ajustes de la barra de escenario de esta pestaña: se conservan al salir y volver, hasta cerrar la
+// aplicación (barra-escenario, "Valores de cada pestaña"). La velocidad es la de toda la app.
+let keptSettings = null;
 // Tarjetas del tablero desplegadas: se conservan al salir de la pestaña y volver.
 const cards = { perception: true, action: true };
 
-export function mount({ stage, board, panel, i18n, store, reportError }) {
+export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   // La velocidad máxima del auto es una sola para toda la app: vive en el almacén de la app.
-  let settings = normalizeSettings({ ...DEFAULT_SETTINGS, maxSpeed: store?.get().carSpeed ?? DEFAULT_SETTINGS.maxSpeed });
+  let settings = normalizeSettings({ ...(keptSettings ?? DEFAULT_SETTINGS), maxSpeed: store?.get().carSpeed ?? DEFAULT_SETTINGS.maxSpeed });
   let seed = DEFAULT_SEED;
   const keyboard = createKeyboardController();
   const makeWorld = () => createWorld({ ...worldSpec(settings, seed), controller: keyboard });
   let world = makeWorld();
   const session = createDriveSession({ completed: completedMissions });
-  // Selector de pista sobre el escenario (panel-de-entrenar-por-vistas D5): cambiar de pista reinicia
-  // el intento en la pista nueva.
-  const view = createStageView({
-    container: stage, store,
-    trackPicker: { mode: 'single', i18n, onSelect: ([track]) => { if (track !== settings.track) applySettings({ ...settings, track }); } },
-  });
+  const view = createStageView({ container: stage, store });
   const options = { showSensors: true, machineView: false };
   // Descripción en texto del escenario, para lectores de pantalla (panel-de-entrenar-por-vistas D9).
   const description = stageDescription({ stage });
@@ -153,11 +153,12 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
 
   board.append(strip.node, perceptionCard.node, actionCard.node);
 
-  // Configuración avanzada (colapsada)
-  // Velocidad, densidad e irregularidad se aplican en marcha; carriles y sensores reinician el intento.
+  // Barra de escenario (D11): velocidad, densidad e irregularidad se aplican en marcha; la pista, los
+  // carriles y los sensores reinician el intento. Un arrastre de deslizador cuenta un solo intento.
   function applySettings(next, { countAttempt = true } = {}) {
     const before = settings;
     settings = normalizeSettings(next);
+    keptSettings = settings;
     store?.set({ carSpeed: settings.maxSpeed });
     if (needsRestart(before, settings)) {
       restartAttempt({ rebuild: true, countAttempt });
@@ -169,11 +170,18 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     }
     sync();
   }
-  const advanced = streetAdvanced({ i18n, settings, apply: applySettings });
+  const scenario = scenarioBar({
+    i18n, settings, idPrefix: 'drive',
+    onChange: (key, value, { first }) => {
+      if (settings[key] !== value) applySettings({ ...settings, [key]: value }, { countAttempt: first });
+    },
+    onReset: () => applySettings({ ...DEFAULT_SETTINGS }, { countAttempt: true }),
+  });
+  bar?.append(scenario.node);
 
   panel.append(
     el('h1', { class: 'sr-only', i18n: 'drive.title' }),
-    intro, run, viewSwitches, missions, advanced.node);
+    intro, run, viewSwitches, missions);
 
   // --- Mensajes sobre el escenario ---------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
@@ -206,7 +214,6 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     missionList.hidden = circuit;
     missionsCircuit.hidden = !circuit;
     setUnavailable(newTrafficButton, circuit, 'drive.newTraffic');
-    view.trackPicker.update({ selected: [settings.track], current: settings.track });
     description.set(drivingDescription({
       t: i18n.t, track: settings.track, lanes: settings.lanes, paused: world.paused, crashed,
       meters: session.distance, machineView: options.machineView && !crashed,
@@ -248,8 +255,8 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     if (circuit) setText(introWhat, 'drive.guide.what.circuit', { track: i18n.t(`track.${settings.track}`) });
     else setText(introWhat, 'drive.guide.what', { lanes: settings.lanes });
 
-    // Configuración avanzada
-    advanced.sync(settings);
+    // Barra de escenario
+    scenario.sync(settings);
   }
 
   // --- Bucle ----------------------------------------------------------------------
@@ -301,6 +308,7 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
   panel.addEventListener('click', onClick);
   board.addEventListener('click', onClick);
   stage.addEventListener('click', onClick);
+  bar?.addEventListener('click', onClick);
   const offLanguage = i18n.onChange(() => sync());
 
   sync();
@@ -321,8 +329,10 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
       panel.removeEventListener('click', onClick);
       board.removeEventListener('click', onClick);
       stage.removeEventListener('click', onClick);
+      bar?.removeEventListener('click', onClick);
       keyboard.dispose();
       description.dispose();
+      scenario.dispose();
       view.dispose();
     },
   };

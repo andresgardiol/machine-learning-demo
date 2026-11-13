@@ -4,6 +4,10 @@
 //   instant         se aplican al instante (velocidad de la simulación, sensores visibles, secciones)
 //   nextGeneration  quedan pendientes hasta la próxima generación (evolución y escenario)
 //   newTraining     piden un entrenamiento nuevo (forma de la red, activación y sensores)
+//
+// Los de escenario (pista, carriles, densidad, irregularidad y velocidad) están en la barra de
+// escenario y la pestaña no los deja esperando: el núcleo los aplica al volver a empezar la
+// generación en curso (panel-de-entrenar-por-vistas D12, RESTART_GENERATION_KEYS).
 import { DEFAULT_TRAINING_CONFIG, normalizeTrainingConfig, normalizeTracks, SELECTION_MODES } from '../../core/training.js';
 import { TRACK_IDS } from '../../core/circuits.js';
 import { EVOLUTION_LIMITS, FITNESS_KINDS } from '../../core/evolution.js';
@@ -161,3 +165,29 @@ export const TRAFFIC_SETTINGS = Object.freeze(['lanes', 'density', 'irregularity
  * @param {object|null} pending cambios pendientes del entrenamiento (`training.pending`)
  */
 export const settingsWaiting = (pending) => Object.keys(pending ?? {}).some((k) => k !== 'selectionMode');
+
+/**
+ * Ajustes de escenario que, en esta pestaña, vuelven a empezar la generación en curso en lugar de
+ * esperar a la siguiente (panel-de-entrenar-por-vistas D12). Son los de la barra de escenario menos
+ * los sensores, que piden un entrenamiento nuevo.
+ */
+export const RESTART_GENERATION_KEYS = Object.freeze(['tracks', 'lanes', 'density', 'irregularity', 'maxSpeed']);
+
+/** Ajustes de la barra de escenario (con las claves de street-settings.js) a partir de los de la pestaña. */
+export function barSettings(settings) {
+  const s = normalizeSettings(settings);
+  return {
+    track: s.tracks[0], lanes: s.lanes, density: s.density, irregularity: s.irregularity, maxSpeed: s.maxSpeed,
+    sensorCount: s.sensorCount, sensorRange: s.sensorRange, sensorSpread: s.sensorSpread,
+  };
+}
+
+/** Cambio de la pestaña que corresponde a un cambio de la barra: la pista elegida es la única. */
+export const barPatch = (key, value) => (key === 'track' ? { tracks: [value] } : { [key]: value });
+
+/** Valores por defecto de lo que muestra la barra de escenario en esta pestaña. */
+export const BAR_DEFAULTS = Object.freeze({
+  tracks: DEFAULT_SETTINGS.tracks, lanes: DEFAULT_SETTINGS.lanes, density: DEFAULT_SETTINGS.density,
+  irregularity: DEFAULT_SETTINGS.irregularity, maxSpeed: DEFAULT_SETTINGS.maxSpeed,
+  sensorCount: DEFAULT_SETTINGS.sensorCount, sensorRange: DEFAULT_SETTINGS.sensorRange, sensorSpread: DEFAULT_SETTINGS.sensorSpread,
+});

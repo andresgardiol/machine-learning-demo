@@ -49,7 +49,7 @@ test('borde de los controles: 3:1 o más sobre el panel, el fondo y las tarjetas
 
 test('lo usan los campos de texto, los grupos de opciones, los interruptores y los botones con contorno', () => {
   for (const selector of ['.tool {', '.switch {', '.switch-track {', '.lang {', '.segments {', '.segment + .segment {',
-    '.camera-button {', '.track-picker-button {', '.library-name-input, .library-rename {', '.code-editor {', '.palette-word {']) {
+    '.camera-button {', '.bar-track {', '.library-name-input, .library-rename {', '.code-editor {', '.palette-word {']) {
     const start = app.indexOf(`\n${selector}`);
     assert.ok(start >= 0, `falta la regla ${selector}`);
     const rule = app.slice(start, app.indexOf('}', start));

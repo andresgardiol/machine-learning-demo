@@ -3,7 +3,9 @@
 // aviso de ventana angosta y manejo de fallas.
 //
 // Cada pestaña es un módulo con mount(ctx) que devuelve { unmount() }.
-//   ctx = { stage, board, panel, i18n, store, library, preferences, reportError }
+//   ctx = { stage, board, panel, bar, i18n, store, library, preferences, reportError }
+// `bar` es la zona de la barra de escenario, debajo del encabezado y a todo el ancho
+// (panel-de-entrenar-por-vistas D11); una pestaña que no la usa la deja vacía y no ocupa lugar.
 // Una pestaña que no pone nada en `board` conserva la disposición de dos zonas (design.md D1).
 // La biblioteca de cerebros es una sola para toda la app: se crea al arrancar (design.md D8).
 // La lista de pestañas (incluidas las aún no disponibles) la entrega quien arranca la app.
@@ -127,6 +129,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     attrs: { role: 'separator', tabindex: '0', 'aria-orientation': 'vertical', 'aria-controls': 'panel', 'data-edge': 'panel' },
   });
   const workspace = el('main', { class: 'workspace' }, stage, stageSplitter, board, splitter, panel);
+  const barZone = el('div', { class: 'scenario-zone' });
 
   // --- Créditos ------------------------------------------------------------
   const creditsTitle = el('h2', { i18n: 'credits.title', attrs: { id: 'credits-title' } });
@@ -157,7 +160,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
       restartButton));
   errorBox.hidden = true;
 
-  const shell = el('div', { class: 'app' }, header, workspace, narrow, credits, errorBox);
+  const shell = el('div', { class: 'app' }, header, barZone, workspace, narrow, credits, errorBox);
   root.replaceChildren(shell);
 
   // --- Anchos de las zonas (design.md D2 y D3) ----------------------------------------
@@ -321,17 +324,19 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     if (!credits.open) credits.showModal();
   }
 
-  const ctxFor = () => ({ stage, board, panel, i18n, store, library, preferences, reportError });
+  const ctxFor = () => ({ stage, board, panel, bar: barZone, i18n, store, library, preferences, reportError });
 
   function mount(id) {
     const tab = tabs.find((t) => t.id === id);
     stage.replaceChildren();
     board.replaceChildren();
     panel.replaceChildren();
+    barZone.replaceChildren();
     const instance = tab.module.mount(ctxFor());
     active = { id, instance };
     layout();
     i18n.translateTree(workspace);
+    i18n.translateTree(barZone);
   }
 
   function unmount() {
@@ -342,6 +347,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     stage.replaceChildren();
     board.replaceChildren();
     panel.replaceChildren();
+    barZone.replaceChildren();
     layout();
   }
 
@@ -390,7 +396,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   if (store.get().activeTab) safely(() => mount(store.get().activeTab));
 
   return {
-    store, stage, board, panel, library, openTab, layout, reportError, restartTab,
+    store, stage, board, panel, bar: barZone, library, openTab, layout, reportError, restartTab,
     get activeTab() { return active?.id ?? null; },
     get instance() { return active?.instance ?? null; },
   };

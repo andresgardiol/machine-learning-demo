@@ -15,7 +15,6 @@ import { createTraining, NEW_TRAINING_KEYS, SELECTION_MODES } from '../../core/t
 import { FITNESS_KINDS } from '../../core/evolution.js';
 import { ACTIVATIONS } from '../../core/network.js';
 import { TRAFFIC_MODES, copyBrain } from '../../core/brain.js';
-import { ALLOWED_LANES } from '../../core/constants.js';
 import { createStageView } from '../../render/view.js';
 import { createNetworkView } from '../../render/network-view.js';
 import { createFitnessChart } from '../../ui/chart.js';
@@ -32,10 +31,11 @@ import {
 } from '../../ui/controls.js';
 import {
   DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges, adoptBrain,
-  onlyCircuits, TRAFFIC_SETTINGS, settingsWaiting,
+  onlyCircuits, settingsWaiting, barSettings, barPatch, BAR_DEFAULTS, RESTART_GENERATION_KEYS,
 } from './settings.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { setUnavailable } from '../shared/street-advanced.js';
+import { scenarioBar } from '../shared/scenario-bar.js';
 import { createTrainSession, indicators, lastGeneration, parentStatus, leaderLabelKey } from './session.js';
 import { shortcutFor, toggleTurbo } from './shortcuts.js';
 
@@ -92,7 +92,7 @@ function nextGenerationConfig(settings) {
   return config;
 }
 
-export function mount({ stage, board, panel, i18n, store, library, reportError }) {
+export function mount({ stage, board, panel, bar, i18n, store, library, reportError }) {
   if (!state) {
     const settings = normalizeSettings({ ...DEFAULT_SETTINGS, maxSpeed: store?.get().carSpeed ?? DEFAULT_SETTINGS.maxSpeed });
     state = {
@@ -104,26 +104,23 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
       missions: createTrainSession({ completed: completedMissions }),
       machineView: false, // ver como la máquina (circuitos-y-paisaje D13): solo cambia lo que se dibuja
       saveMessage: null, // resultado del último guardado, con su acción (D4)
+      restarted: null, // generación que la barra hizo volver a empezar: { training, generation } (D12)
       undo: null, // versión anterior del cerebro actualizado, para deshacer (D4)
     };
     library?.beginTraining(state.session);
   }
 
-  // La velocidad máxima es una sola para toda la app: si cambió en otra pestaña, rige desde la
-  // próxima generación, como cualquier cambio de escenario.
+  // La velocidad máxima es una sola para toda la app: si cambió en otra pestaña, rige en el momento,
+  // como cualquier cambio de la barra de escenario (D12).
   const carSpeed = store?.get().carSpeed;
   if (carSpeed !== undefined && carSpeed !== state.settings.maxSpeed) {
     state.settings = normalizeSettings({ ...state.settings, maxSpeed: carSpeed });
-    state.training.configure({ maxSpeed: state.settings.maxSpeed });
+    state.training.configure(nextGenerationConfig(state.settings));
+    restartGeneration();
   }
 
   const setText = createTextSetter(i18n);
-  // Selector de pista sobre el escenario (D5), en modo múltiple: las pistas marcadas rigen desde la
-  // generación siguiente, como cualquier ajuste de escenario.
-  const view = createStageView({
-    container: stage, store,
-    trackPicker: { mode: 'multi', i18n, onSelect: (tracks) => setSetting('tracks', tracks) },
-  });
+  const view = createStageView({ container: stage, store });
   const focusStage = () => stage.focus({ preventScroll: true });
   // Descripción en texto del escenario, para lectores de pantalla (D9).
   const description = stageDescription({ stage });
@@ -164,6 +161,15 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     sync();
   }
 
+  /**
+   * Vuelve a empezar la generación en curso con la misma población (D12): lo pide un cambio de la
+   * barra de escenario. Un aviso junto al rótulo de generación lo dice hasta que esa generación termina.
+   */
+  function restartGeneration() {
+    state.training.restartGeneration();
+    state.restarted = { training: state.training, generation: state.training.generation };
+  }
+
   /** Pide confirmación si ya terminó alguna generación; si no, aplica de inmediato. */
   function withProgressCheck(confirm, message, apply, { onCancel } = {}) {
     const done = state.training.completed;
@@ -192,6 +198,11 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     if (changes.nextGeneration.length > 0) {
       state.training.configure(nextGenerationConfig(target));
       store?.set({ carSpeed: target.maxSpeed });
+      // Lo de la barra de escenario rige en el momento: la generación en curso vuelve a empezar (D12).
+      if (changes.nextGeneration.some((k) => RESTART_GENERATION_KEYS.includes(k))) {
+        restartGeneration();
+        view?.followCar();
+      }
     }
     if (changes.instant.includes('speed')) loop.setSpeed(target.speed);
     sync();
@@ -364,11 +375,12 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row)));
 
   // --- Panel: configuración ----------------------------------------------------------------------
-  // Una confirmación de entrenamiento nuevo en el grupo de red y otra en el de sensores, junto al
-  // ajuste que la pidió.
+  // Una confirmación de entrenamiento nuevo en el grupo de red y otra pegada a la barra de escenario,
+  // debajo de los sensores, junto al ajuste que la pidió; restablecer la barra tiene la suya.
   const networkConfirm = inlineConfirm({ i18n });
   const sensorsConfirm = inlineConfirm({ i18n });
   const resetConfirm = inlineConfirm({ i18n });
+  const barResetConfirm = inlineConfirm({ i18n });
 
   /** Fila con deslizador para un ajuste. Los que piden un entrenamiento nuevo se aplican al soltar. */
   function slider(key, confirm) {
@@ -412,7 +424,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     selected: state.settings[key],
     options: values.map((v) => ({ value: v, i18n: `${optionKey}.${v}`, help: `${optionKey}.${v}` })),
     onSelect: (v) => {
-      if (TRAFFIC_SETTINGS.includes(key) && onlyCircuits(state.settings.tracks)) return; // sin calle recta no hay tráfico
+      if (key === 'trafficMode' && onlyCircuits(state.settings.tracks)) return; // en un circuito no hay tráfico
       if (v !== state.settings[key]) setSetting(key, v, confirm);
     },
   });
@@ -420,9 +432,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   const sliders = [
     slider('population'), slider('mutationStrength'),
     slider('elite'), slider('selection'), slider('mutationRate'), slider('maxDuration'),
-    slider('density'), slider('irregularity'), slider('maxSpeed'),
     slider('hiddenLayers', networkConfirm), slider('neurons1', networkConfirm), slider('neurons2', networkConfirm), slider('neurons3', networkConfirm),
-    slider('sensorCount', sensorsConfirm), slider('sensorRange', sensorsConfirm), slider('sensorSpread', sensorsConfirm),
   ];
   const row = (key) => sliders.find((s) => s.key === key).row;
   const switches = [toggle('mutationCooling'), toggle('crossover'), toggle('slowRule')];
@@ -430,16 +440,6 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   const choices = {
     fitness: choice('fitness', FITNESS_KINDS, 'train.fitness'),
     trafficMode: choice('trafficMode', TRAFFIC_MODES, 'train.trafficMode'),
-    lanes: optionGroup({
-      labelKey: 'train.setting.lanes',
-      labelHelp: 'train.setting.lanes',
-      selected: state.settings.lanes,
-      options: ALLOWED_LANES.map((n) => ({ value: n, i18n: 'drive.lanes.option', params: { n }, help: 'train.setting.lanes', labelKey: 'drive.lanes.optionLabel' })),
-      onSelect: (v) => {
-        if (onlyCircuits(state.settings.tracks)) return; // sin calle recta no hay tráfico
-        if (v !== state.settings.lanes) setSetting('lanes', v);
-      },
-    }),
     activation: choice('activation', ACTIVATIONS, 'train.activation', networkConfirm),
   };
 
@@ -483,16 +483,27 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
         choices.fitness.row,
         row('elite'), row('selection'), row('mutationRate'), el('div', { class: 'switch-row' }, sw('crossover')),
         row('maxDuration'), el('div', { class: 'switch-row' }, sw('slowRule')), choices.trafficMode.row),
-      group('scenario', choices.lanes.row, row('density'), row('irregularity'), row('maxSpeed')),
       group('network',
         el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
         row('hiddenLayers'), row('neurons1'), row('neurons2'), row('neurons3'), choices.activation.row,
-        networkConfirm.node),
-      group('sensors',
-        el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
-        row('sensorCount'), row('sensorRange'), row('sensorSpread'),
-        sensorsConfirm.node)),
+        networkConfirm.node)),
     el('div', { class: 'settings-reset' }, resetButton), resetConfirm.node);
+
+  // --- Barra de escenario (D11 y D12) ------------------------------------------------------------
+  // Una sola pista. La pista, el tráfico y la velocidad vuelven a empezar la generación en curso al
+  // soltar el control; mientras se arrastra solo cambia el valor a la vista. Los sensores piden un
+  // entrenamiento nuevo, con la confirmación pegada a la barra.
+  const scenario = scenarioBar({
+    i18n, settings: barSettings(state.settings), idPrefix: 'train',
+    help: (key) => `train.setting.${key}`, trackHelp: 'train.tracks', noTrafficHelp: 'train.noTraffic', resetHelp: 'train.resetScenario',
+    onChange: (key, value, { final }) => {
+      if (final) applySettings({ ...state.settings, ...barPatch(key, value) }, sensorsConfirm);
+    },
+    onReset: () => applySettings({ ...state.settings, ...BAR_DEFAULTS }, barResetConfirm),
+  });
+  scenario.slot('sensors').append(sensorsConfirm.node);
+  scenario.slot('reset').append(barResetConfirm.node);
+  bar?.append(scenario.node);
 
   // Guardar (D4). En la vista de entrenamiento, un solo botón con su resultado en el mismo renglón:
   // guarda con el nombre sugerido o actualiza el cerebro del entrenamiento. Guardar no suma renglones.
@@ -603,7 +614,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   function cancelConfirms(view) {
     const byView = {
       training: [toolbarConfirm],
-      settings: [networkConfirm, sensorsConfirm, resetConfirm],
+      settings: [networkConfirm, resetConfirm],
       brains: [],
     };
     for (const c of byView[view] ?? []) if (c.isOpen) c.cancel();
@@ -652,9 +663,11 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   const generationBadge = el('div', { class: 'stage-badge generation-badge', attrs: { role: 'status' } });
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'train.paused', attrs: { role: 'status' } });
   const machineBadge = el('div', { class: 'stage-badge machine-badge', i18n: 'drive.machine.badge' });
-  // El rótulo de generación va a la derecha del selector de pista (D5); los demás mensajes, debajo.
-  view.pickerRow.append(generationBadge);
-  view.corner.append(el('div', { class: 'stage-badges' }, pauseBadge, machineBadge));
+  // Aviso de que la generación volvió a empezar por un cambio de la barra (D12): junto al rótulo de
+  // generación, hasta que esa generación termina.
+  const restartedBadge = el('p', { class: 'stage-badge restarted-badge', attrs: { role: 'status' } });
+  // Esquina superior izquierda, en el segundo renglón (D11): generación, el aviso y los demás mensajes.
+  view.corner.append(el('div', { class: 'stage-badges' }, generationBadge, restartedBadge, pauseBadge, machineBadge));
 
   // --- Sincronizar el panel con el estado ------------------------------------------------------------
   function sync() {
@@ -669,9 +682,12 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     setText(strip.labels.passed, ind.laps === null ? 'train.stats.passed' : 'train.stats.laps');
     if (ind.laps === null) setText(strip.values.passed, 'train.value.count', { value: ind.passed });
     else setText(strip.values.passed, 'drive.value.laps', { value: formatFixed(ind.laps, 1, i18n.language) });
-    // El rótulo ya no nombra la pista: el selector, justo debajo, la dice (D5).
+    // El rótulo no nombra la pista: la barra de escenario la muestra elegida (D11).
     setText(generationBadge, 'train.badge.generation', { value: ind.generation });
-    view.trackPicker.update({ selected: s.tracks, current: ind.trackId, pending: Boolean(t.pending && 'tracks' in t.pending) });
+    const restarted = state.restarted?.training === t && state.restarted.generation === t.generation;
+    restartedBadge.hidden = !restarted;
+    if (restarted) setText(restartedBadge, 'train.badge.restarted');
+    else if (restartedBadge.textContent) { restartedBadge.textContent = ''; restartedBadge.removeAttribute('data-i18n'); }
     description.set(trainingDescription({
       t: i18n.t, track: ind.trackId, lanes: t.config.lanes, generation: ind.generation, alive: ind.alive, total: ind.total,
       paused: state.paused, machineView: state.machineView,
@@ -804,14 +820,12 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     selectionMode.select(s.selectionMode);
     sensorsSwitch.setAttribute('aria-checked', String(s.showSensors));
     machineSwitch.setAttribute('aria-checked', String(state.machineView));
-    // Sin la calle recta marcada no hay tráfico: carriles, densidad, irregularidad y modo, deshabilitados.
+    // En un circuito no hay tráfico: el modo de tráfico, deshabilitado (los de la barra, también).
     const noTraffic = onlyCircuits(s.tracks);
-    for (const b of choices.lanes.buttons) setUnavailable(b, noTraffic, 'train.setting.lanes', 'train.noTraffic');
     for (const b of choices.trafficMode.buttons) setUnavailable(b, noTraffic, `train.trafficMode.${b.optionValue}`, 'train.noTraffic');
-    for (const key of ['density', 'irregularity']) setUnavailable(sliders.find((x) => x.key === key).input, noTraffic, `train.setting.${key}`, 'train.noTraffic');
     choices.fitness.select(s.fitness);
     choices.trafficMode.select(s.trafficMode);
-    choices.lanes.select(s.lanes);
+    scenario.sync(barSettings(s));
     choices.activation.select(s.activation);
   }
 
@@ -875,7 +889,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   // Tras un clic con el mouse (detail > 0) en un control de la pestaña, el foco vuelve al escenario
   // (salvo en una confirmación, que conserva el foco para poder cancelarla con Escape).
   function onClick(e) {
-    if (panel.querySelector('.inline-confirm:not([hidden])')) return;
+    if (panel.querySelector('.inline-confirm:not([hidden])') || bar?.querySelector('.inline-confirm:not([hidden])')) return;
     if (e.detail > 0 && returnsFocusToStage(e.target)) focusStage();
   }
   // Página oculta o cerrándose (recarga incluida): el autoguardado pendiente se escribe ya.
@@ -888,6 +902,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   panel.addEventListener('click', onClick);
   board.addEventListener('click', onClick);
   stage.addEventListener('click', onClick);
+  bar?.addEventListener('click', onClick);
   const offLanguage = i18n.onChange(() => { sync(); chart.refresh(); });
 
   attachTraining();
@@ -922,10 +937,13 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
       views.dispose();
       panel.classList.remove('panel-with-views');
       stage.removeEventListener('click', onClick);
+      bar?.removeEventListener('click', onClick);
       toolbarConfirm.dispose();
       networkConfirm.dispose();
       sensorsConfirm.dispose();
       resetConfirm.dispose();
+      barResetConfirm.dispose();
+      scenario.dispose();
       offLibrary();
       chart.dispose();
       networkView.dispose();

@@ -23,7 +23,8 @@ import { createCodeEditor } from '../../ui/editor.js';
 import { downloadText, readText } from '../../ui/files.js';
 import { RULES_PROGRAM_MAX } from '../../ui/preferences.js';
 import { perceptionBlock, actionBlock, READINGS_MAX } from '../shared/driving-cards.js';
-import { streetAdvanced, setUnavailable } from '../shared/street-advanced.js';
+import { setUnavailable } from '../shared/street-advanced.js';
+import { scenarioBar } from '../shared/scenario-bar.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { drivingDescription } from '../shared/stage-text.js';
@@ -79,19 +80,13 @@ function createState({ i18n, store, preferences }) {
     showSensors: true,
     machineView: false, // ver como la máquina (circuitos-y-paisaje D13): solo cambia lo que se dibuja
     cards: { program: true, io: true },
-    advancedOpen: false,
   };
 }
 
-export function mount({ stage, board, panel, i18n, store, preferences, reportError }) {
+export function mount({ stage, board, panel, bar, i18n, store, preferences, reportError }) {
   state ??= createState({ i18n, store, preferences });
   const { program, controller, session } = state;
-  // Selector de pista sobre el escenario (panel-de-entrenar-por-vistas D5): cambiar de pista reinicia
-  // el intento en la pista nueva.
-  const view = createStageView({
-    container: stage, store,
-    trackPicker: { mode: 'single', i18n, onSelect: ([track]) => { if (track !== state.settings.track) applySettings({ ...state.settings, track }); } },
-  });
+  const view = createStageView({ container: stage, store });
   // Descripción en texto del escenario, para lectores de pantalla (panel-de-entrenar-por-vistas D9).
   const description = stageDescription({ stage });
   const setText = createTextSetter(i18n);
@@ -406,7 +401,7 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
     el('h2', { class: 'panel-heading', i18n: 'rules.missions.title' }),
     missionList, missionsCircuit);
 
-  // --- Panel: configuración avanzada (la misma de la pestaña 1) --------------------------
+  // --- Barra de escenario (la misma de la pestaña 1, panel-de-entrenar-por-vistas D11) ------------
   function applySettings(next, { countAttempt = true } = {}) {
     const before = state.settings;
     state.settings = normalizeSettings(next);
@@ -425,14 +420,18 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
     }
     sync();
   }
-  const advanced = streetAdvanced({
-    i18n, settings: state.settings, apply: applySettings, idPrefix: 'rules',
-    open: state.advancedOpen, onToggle: (open) => { state.advancedOpen = open; },
+  const scenario = scenarioBar({
+    i18n, settings: state.settings, idPrefix: 'rules',
+    onChange: (key, value, { first }) => {
+      if (state.settings[key] !== value) applySettings({ ...state.settings, [key]: value }, { countAttempt: first });
+    },
+    onReset: () => applySettings({ ...DEFAULT_SETTINGS }, { countAttempt: true }),
   });
+  bar?.append(scenario.node);
 
   panel.append(
     el('h1', { class: 'sr-only', i18n: 'rules.title' }),
-    intro, run, viewSwitches, programSection, missions, advanced.node);
+    intro, run, viewSwitches, programSection, missions);
 
   // --- Mensajes sobre el escenario ----------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
@@ -465,7 +464,6 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
     missionList.hidden = circuit;
     missionsCircuit.hidden = !circuit;
     setUnavailable(newTrafficButton, circuit, 'rules.newTraffic');
-    view.trackPicker.update({ selected: [state.settings.track], current: state.settings.track });
     setText(strip.values.best, 'drive.value.meters', meters(session.best));
     setText(strip.values.rules, 'drive.value.count', { value: program.rules });
 
@@ -507,7 +505,7 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
     if (crashed) {
       setText(state.autoRetry ? crashBadgeText : crashBody, crashKey, meters(session.distance));
     }
-    advanced.sync(state.settings);
+    scenario.sync(state.settings);
   }
 
   // --- Bucle --------------------------------------------------------------------------
@@ -557,6 +555,7 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
   panel.addEventListener('click', onClick);
   board.addEventListener('click', onClick);
   stage.addEventListener('click', onClick);
+  bar?.addEventListener('click', onClick);
   const offLanguage = i18n.onChange(() => {
     renderPalette();
     sync();
@@ -589,8 +588,10 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
       panel.removeEventListener('click', onClick);
       board.removeEventListener('click', onClick);
       stage.removeEventListener('click', onClick);
+      bar?.removeEventListener('click', onClick);
       editor.dispose();
       description.dispose();
+      scenario.dispose();
       view.dispose();
     },
   };
