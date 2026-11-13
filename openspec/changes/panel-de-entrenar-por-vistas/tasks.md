@@ -49,11 +49,11 @@
 
 ## 7. Verificación integral
 
-- [ ] 7.1 Recorrer las tres pestañas de la aplicación con teclado solamente, y las tres vistas de Entrenar: llegar a cada control, abrir el selector de pista, cambiar de vista y volver, sin trampas de foco y con el foco siempre visible. Informar lo que no se pueda hacer.
-- [ ] 7.2 Medir en el DOM, a 1440×900 y con el panel en 360 px, el alto de cada vista en los dos idiomas e informarlo.
-- [ ] 7.3 Comprobar que ningún ajuste de ninguna pestaña quedó a más de un nivel de plegado, y listar dónde quedó cada ajuste que antes estaba en "Avanzado".
-- [ ] 7.4 Repasar el filtro de entrada de proposal.md contra lo que se ve en el navegador e informar cualquier respuesta que ya no valga.
-- [ ] 7.5 Actualizar `PENDIENTES.md`: quitar la nota "Los ajustes más interesantes de Entrenar están demasiado escondidos" y anotar lo que haya quedado fuera, incluida la prueba con lector de pantalla y con una herramienta automática, que este cambio no hizo.
+- [x] 7.1 Recorrer las tres pestañas de la aplicación con teclado solamente, y las tres vistas de Entrenar: llegar a cada control, abrir el selector de pista, cambiar de vista y volver, sin trampas de foco y con el foco siempre visible. Informar lo que no se pueda hacer.
+- [x] 7.2 Medir en el DOM, a 1440×900 y con el panel en 360 px, el alto de cada vista en los dos idiomas e informarlo.
+- [x] 7.3 Comprobar que ningún ajuste de ninguna pestaña quedó a más de un nivel de plegado, y listar dónde quedó cada ajuste que antes estaba en "Avanzado".
+- [x] 7.4 Repasar el filtro de entrada de proposal.md contra lo que se ve en el navegador e informar cualquier respuesta que ya no valga.
+- [x] 7.5 Actualizar `PENDIENTES.md`: quitar la nota "Los ajustes más interesantes de Entrenar están demasiado escondidos" y anotar lo que haya quedado fuera, incluida la prueba con lector de pantalla y con una herramienta automática, que este cambio no hizo.
 
 ## Workflow follow-up
 

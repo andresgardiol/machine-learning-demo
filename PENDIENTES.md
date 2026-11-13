@@ -157,20 +157,29 @@ El resto de las notas de este archivo no tiene orden fijo.
   que el tráfico siga sin chocarse y que siempre quede un camino libre para el
   auto principal. Va de la mano de la idea anterior.
 
-- **Los ajustes más interesantes de Entrenar están demasiado escondidos.**
-  Observación del dueño (12 de noviembre de 2026, con captura): la función de
-  fitness, la élite, las pistas, el tráfico, la red y los sensores están
-  dentro de "Avanzado", y ahí adentro otra vez dentro de Evolución,
-  Escenario, Red y Sensores. Son dos niveles de plegado para llegar a lo que
-  más conviene tocar al experimentar.
-  - Cómo encararlo: el mismo ejercicio que se hizo con el tablero de
-    aprendizaje. Una crítica de diseño del panel con la skill de UX que mejor
-    encaje (la de crítica de diseño), tres alternativas de organización para
-    comparar, y recién después la propuesta de OpenSpec con la elegida.
-  - A tener en cuenta: el panel de Entrenar hoy entra justo a 1440×900 sin
-    desplazarse; el principiante no tiene que ver más controles que hoy
-    (artículos 4 y 6); y cada cambio que se hizo sumó ajustes a "Avanzado"
-    (pistas del entrenamiento, enfriamiento, función de fitness nueva).
+- **Lo que quedó fuera de `panel-de-entrenar-por-vistas`.** Anotado para más
+  adelante:
+  - **Probar con un lector de pantalla y con una herramienta automática.** El
+    cambio verificó leyendo el árbol de accesibilidad del navegador y
+    recorriendo todo con teclado, pero no se probó con VoiceOver ni con una
+    herramienta como axe: las pestañas de vista, el selector de pista y la
+    descripción del escenario quedan para que las pruebe el dueño.
+  - **El editor de Reglas a mano corta el recorrido con Tab.** Tab y Mayús+Tab
+    agregan y quitan sangría, y Escape devuelve el foco al escenario (lo dice
+    la ayuda del editor). Avanzando con Tab desde el escenario se vuelve a
+    entrar al editor, así que la paleta y el panel de esa pestaña solo se
+    alcanzan retrocediendo con Mayús+Tab desde el encabezado. No es una
+    trampa, pero es incómodo.
+  - **Los tooltips siguen nombrando la tecla con los atajos apagados.** Los
+    rótulos de los botones y los textos de guía y de choque dejan de mostrarla,
+    pero las ayudas ("Atajo: tecla R") la siguen diciendo.
+  - **Con selección manual, la vista de entrenamiento se desplaza a
+    1440×900.** Mide 846 px en español y 828 en inglés contra 811 a la vista
+    (panel de 360 px). Lo que pide la spec (quién elige al padre, pausar,
+    siguiente, elegir, deshacer y la línea del padre) se ve sin desplazar.
+  - **El borde del riel de los deslizadores es el del navegador.** Medido en
+    Chrome: #858585, más de 3:1 sobre el panel. No se midió en Safari ni en
+    Firefox.
 
 - **Introducción guiada para quien llega sin la teoría.** La guía explica
   cada control, pero la pantalla tiene mucha información a la vez y da por
