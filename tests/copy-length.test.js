@@ -194,3 +194,12 @@ test('Entrenar: una palabra para los ajustes, "el fitness" en masculino y mision
     if (key === 'train.basic.title' || key === 'train.resetSettings') assert.doesNotMatch(value, /onfiguración/, key);
   }
 });
+
+// --- pestana-competir: guía, ayuda de la tabla y misiones (D16) -----------------------------------
+test('Competir: guía de hasta 240 caracteres, ayuda de la tabla de hasta 120 y misiones de hasta 34', async () => {
+  const { MISSIONS: COMPETE_MISSIONS } = await import('../src/tabs/compete/missions.js');
+  assertMax('compete.guide', GUIDE_MAX);
+  assertMax('compete.table.hint', HINT_MAX);
+  assert.equal(COMPETE_MISSIONS.length, 3);
+  for (const m of COMPETE_MISSIONS) assertMax(`compete.mission.${m.id}`, MISSION_MAX, { goal: m.goal });
+});

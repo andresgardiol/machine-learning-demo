@@ -62,9 +62,9 @@ criterio: se informa lo medido y se espera la respuesta.
 
 ## 8. Guía, misiones y textos
 
-- [ ] 8.1 Guía de inicio y misiones con su progreso. Verificar los escenarios de "Guía de inicio" y "Misiones", cumpliendo las tres misiones de verdad.
-- [ ] 8.2 Textos de design.md D16 y todos los demás en `src/i18n/es.js` y `en.js`. Verificar que `tests/copy-length.test.js` y `tests/i18n.test.js` pasan con los textos nuevos y el escenario "Pestaña en inglés".
-- [ ] 8.3 Tooltips "qué hace / por qué importa" de cada control, estado deshabilitado y marca. Verificar los escenarios de tooltip de "Controles de la pestaña explicados" y que `mlLab.auditTooltips()` no informa nada en la pestaña.
+- [x] 8.1 Guía de inicio y misiones con su progreso. Verificar los escenarios de "Guía de inicio" y "Misiones", cumpliendo las tres misiones de verdad.
+- [x] 8.2 Textos de design.md D16 y todos los demás en `src/i18n/es.js` y `en.js`. Verificar que `tests/copy-length.test.js` y `tests/i18n.test.js` pasan con los textos nuevos y el escenario "Pestaña en inglés".
+- [x] 8.3 Tooltips "qué hace / por qué importa" de cada control, estado deshabilitado y marca. Verificar los escenarios de tooltip de "Controles de la pestaña explicados" y que `mlLab.auditTooltips()` no informa nada en la pestaña.
 
 ## 9. Accesibilidad
 
