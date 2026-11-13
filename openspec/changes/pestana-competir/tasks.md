@@ -74,7 +74,7 @@ criterio: se informa lo medido y se espera la respuesta.
 
 ## 10. Verificación integral
 
-- [ ] 10.1 Medir en el DOM los escenarios de "Pestaña a la vista sin desplazarse" a 1440×900 y a 1366×768, con el panel en 360 y en 400 px, en los dos idiomas, con "Vos" y sin "Vos", en la calle recta y en un circuito. Recorrer esas cuatro situaciones y listar cualquier ajuste a la vista que no tenga efecto (escenario "Nada deshabilitado por la pestaña"). Si el panel o el tablero se desplazan, **detenerse y consultar** con las medidas de cada bloque.
+- [x] 10.1 Medir en el DOM los escenarios de "Pestaña a la vista sin desplazarse" a 1440×900 y a 1366×768, con el panel en 360 y en 400 px, en los dos idiomas, con "Vos" y sin "Vos", en la calle recta y en un circuito. Recorrer esas cuatro situaciones y listar cualquier ajuste a la vista que no tenga efecto (escenario "Nada deshabilitado por la pestaña"). Si el panel o el tablero se desplazan, **detenerse y consultar** con las medidas de cada bloque.
 - [x] 10.2 Correr como persona una carrera entera en cada pista, chocando a propósito. Informar cuánto duró cada una, si los 20 segundos de espera y los 5 sin avanzar se sienten justos, y cualquier reaparición rara (dentro de un vehículo, mirando mal, fuera de la pista).
 - [ ] 10.3 Medir la fluidez del escenario "Carrera en el circuito más largo" de `vista-escenario`: seis competidores, sensores encendidos y paisaje. Si baja de 55 cuadros por segundo, **detenerse y consultar** con lo medido.
 - [x] 10.4 Recorrer el filtro de entrada de la propuesta, fila por fila, en el navegador: qué se ve al abrir, cómo se ignora cada cosa y cómo se vuelve atrás. Informar lo que no se cumpla.

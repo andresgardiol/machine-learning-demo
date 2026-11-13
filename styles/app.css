@@ -891,3 +891,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Los dos interruptores de vista en un renglón a 360 px, también en español (como en Entrenar). */
 .compete-view { gap: 6px; flex-wrap: nowrap; }
 .compete-view .switch { padding-left: 5px; padding-right: 5px; font-size: 14px; white-space: nowrap; }
+/* Ventanas bajas (menos de 800 px de alto, consulta 10.1): la lista de competidores no baja de 4 filas. */
+@media (max-height: 799.98px) {
+  .compete-list-block { min-height: calc(4 * 38px + 34px); }
+}

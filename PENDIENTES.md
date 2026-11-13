@@ -218,11 +218,16 @@ El resto de las notas de este archivo no tiene orden fijo.
     en los tres circuitos. El contraste que sí se ve es el del óvalo en la
     calle (12 a 15 choques por carrera).
   - Fluidez con seis competidores en el circuito de curvas (mínimo 55 cuadros
-    por segundo): sin medir, el navegador estuvo oculto (1,5 cuadros por
-    segundo). Dibujar un cuadro tarda 0,16 ms de media en la máquina de
-    desarrollo, lo que no reemplaza la medida.
-  - A 1366×768 el panel se desplaza de 55 a 131 px y el tablero hasta 49 px (a
-    1440×900, nada).
+    por segundo, tarea 10.3): **sin medir**, porque el navegador estuvo oculto
+    (1,5 cuadros por segundo). Sustituto medido: dibujar un cuadro tarda 0,16
+    ms de media y 0,5 ms como máximo, y un paso de la carrera 0,04 ms. Queda
+    como verificación del dueño: abrir Competir con el navegador a la vista,
+    seis competidores en el circuito de curvas, sensores y paisaje, y medir
+    diez segundos.
+  - Límite conocido: a 1366×768 el panel de Competir se desplaza hasta 55 px
+    (sin "Vos", en la calle, con el panel en 360 px; con la lista en su mínimo
+    de 4 filas para ventanas de menos de 800 px de alto) y el tablero hasta
+    49 px. A 1440×900, nada.
   - Sin probar con un lector de pantalla real, en Safari ni en Firefox.
   - La persona que maneja a 15 m/s en el óvalo queda fuera por la espera de
     20 s al 98 % (medido con un manejo simulado).
