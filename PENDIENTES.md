@@ -23,6 +23,13 @@ El resto de las notas de este archivo no tiene orden fijo.
 
 ## Próximo
 
+- **Fluidez con paisaje y circuitos sin medir.** La tarea 10.1 de
+  `circuitos-y-paisaje` quedó sin hacer porque el panel del navegador estuvo
+  oculto (sin cuadros no hay medida que valga). Falta medir, diez segundos
+  cada una y con el paisaje encendido: un auto en la calle recta y en el gran
+  premio (mínimo 55 cuadros por segundo) y una población de 100 en la calle
+  recta y en el gran premio (mínimo 50).
+
 - **Manejar sin chocar con tráfico irregular.** El cambio
   `fitness-que-premia-superar` hizo que, con los valores por defecto (ventaja
   sobre el tráfico, élite 10, mutación que se enfría e irregularidad 0 %), la
