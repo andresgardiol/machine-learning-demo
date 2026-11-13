@@ -423,9 +423,10 @@ test('conservar un autoguardado: guardarlo con nombre lo vuelve un cerebro que l
   for (const [g, s] of [[13, 'a'], [1, 'b'], [1, 'c']]) { clock.advance(2000); library.autosave(brain({ generations: g }), { session: s }); }
   assert.deepEqual(library.get(kept.id).brain.training.generations, 12);
   assert.deepEqual(savedNames(library), ['Conservado']);
-  // Un autoguardado no se elimina ni se renombra desde la biblioteca.
+  // Un autoguardado no se renombra desde la biblioteca, pero se puede eliminar (panel-de-entrenar-por-vistas D14).
   const current = library.list().find((e) => e.slot === 'current').brain;
-  assert.equal(library.remove(current.id).code, 'protected');
+  assert.equal(library.remove(current.id).ok, true);
+  assert.equal(library.list().some((e) => e.slot === 'current'), false);
 });
 
 test('empezar un entrenamiento nuevo pasa el autoguardado del anterior a "entrenamiento anterior" en el acto', () => {
@@ -486,4 +487,50 @@ test('deshacer: la copia tomada antes no cambia aunque cambie el cerebro, y uno 
   library.remove(p.id);
   assert.equal(library.restore(before).ok, false);
   assert.equal(library.list().length, 0);
+});
+
+// --- Eliminar cualquier cerebro (panel-de-entrenar-por-vistas D14) ---------------------------------
+
+test('Eliminar el entrenamiento anterior: desaparece y no vuelve hasta que se abandone otro entrenamiento', () => {
+  const storage = memoryStorage();
+  const { library, clock } = setup({ storage });
+  library.autosave(brain({ seed: 1, generations: 30 }), { session: 'a' });
+  clock.advance(2000);
+  library.autosave(brain({ seed: 2, generations: 2 }), { session: 'b' });
+  const previous = library.list().find((e) => e.slot === 'previous').brain;
+  assert.equal(library.remove(previous.id).ok, true);
+  assert.deepEqual(autosaves(library), [['current', 2]]);
+  assert.deepEqual(autosaves(setup({ storage }).library), [['current', 2]]); // también en el almacenamiento
+  // Más generaciones del mismo entrenamiento: el anterior no vuelve.
+  clock.advance(2000);
+  library.autosave(brain({ seed: 2, generations: 3 }), { session: 'b' });
+  assert.deepEqual(autosaves(library), [['current', 3]]);
+  // Se abandona "b": ahora sí hay un entrenamiento anterior, el de "b".
+  library.beginTraining('c');
+  assert.deepEqual(autosaves(library), [['previous', 3]]);
+});
+
+test('Eliminar el entrenamiento en curso: desaparece y reaparece al terminar la generación siguiente', () => {
+  const storage = memoryStorage();
+  const { library, clock } = setup({ storage });
+  library.autosave(brain({ generations: 7 }), { session: 'a' });
+  const current = library.list().find((e) => e.slot === 'current').brain;
+  assert.equal(library.remove(current.id).ok, true);
+  assert.deepEqual(autosaves(library), []);
+  assert.deepEqual(autosaves(setup({ storage }).library), []);
+  clock.advance(2000);
+  library.autosave(brain({ generations: 8 }), { session: 'a' });
+  assert.deepEqual(autosaves(library), [['current', 8]]);
+});
+
+test('Biblioteca vacía: se eliminan los guardados y los dos autoguardados', () => {
+  const { library, clock } = setup();
+  library.save(brain({ generations: 4 }), { name: 'Prudente' });
+  library.autosave(brain({ seed: 1, generations: 5 }), { session: 'a' });
+  clock.advance(2000);
+  library.autosave(brain({ seed: 2, generations: 1 }), { session: 'b' });
+  assert.equal(library.list().length, 3);
+  for (const e of library.list()) assert.equal(library.remove(e.brain.id).ok, true, e.origin);
+  assert.deepEqual(library.list(), []);
+  assert.equal(library.remove('nada').code, 'notFound');
 });

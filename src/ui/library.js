@@ -6,7 +6,7 @@
 //   mlLab.autosave.previous  autoguardado del entrenamiento anterior   { session, brain }
 //
 // Cada operación devuelve { ok: true, brain } o { ok: false, code } con un código que la vista
-// traduce (protected, notFound, emptyName, notABrain, unsupportedVersion, shapeMismatch, notFinite,
+// traduce (notFound, emptyName, notABrain, unsupportedVersion, shapeMismatch, notFinite,
 // sensorMismatch). Si el almacenamiento falla, la biblioteca sigue en memoria y lo informa en
 // `status` (`unavailable` si el navegador no permite guardar, `quota` si no queda espacio).
 import { validateBrain, copyBrain } from '../core/brain.js';
@@ -233,9 +233,20 @@ export function createLibrary({ storage = null, clock, newId, schedule = (fn, ms
       return { ok: true, brain: copyBrain(entry), warning: result };
     },
 
-    /** Elimina un cerebro guardado (la confirmación la pide la vista antes de llamar). */
+    /**
+     * Elimina un cerebro guardado o un autoguardado (panel-de-entrenar-por-vistas D14); la
+     * confirmación la pide la vista antes de llamar. El autoguardado del entrenamiento anterior no
+     * vuelve hasta que se abandone otro entrenamiento; el del entrenamiento en curso vuelve a crearse
+     * con el próximo autoguardado, al terminar la generación siguiente.
+     */
     remove(id) {
-      if (!findSaved(id)) return fail(isAutosave(id) ? 'protected' : 'notFound');
+      if (isAutosave(id)) {
+        for (const slot of ['current', 'previous']) if (autosaves[slot]?.brain.id === id) autosaves[slot] = null;
+        const result = writeAutosaves();
+        notify();
+        return { ok: true, warning: result };
+      }
+      if (!findSaved(id)) return fail('notFound');
       saved = saved.filter((b) => b.id !== id);
       const result = writeSaved();
       notify();

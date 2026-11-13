@@ -177,17 +177,17 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
       downloadText({ fileName: exportFileName(s.name), text: library.exportText(s.id), doc });
     }, 'tool small');
     const actions = [continueButton, exportButton];
-    if (s.editable) {
-      actions.push(button('library.rename', 'library.rename', () => { renaming = s.id; render(); }, 'tool small'));
-      actions.push(button('library.delete', 'library.delete', () => confirm.open({
-        message: 'library.confirm.delete', params: { name: s.name }, confirmKey: 'library.delete',
-        onConfirm: () => { library.remove(s.id); showMessage(null); },
-        onCancel: () => { if (dirty) render(); },
-      }), 'tool small'));
-    } else {
-      // Los autoguardados no se renombran ni se eliminan: se conservan guardándolos con nombre.
-      actions.push(el('button', { class: 'tool small', i18n: 'library.rename', help: 'library.autosaveLocked', attrs: { type: 'button', disabled: true } }));
-    }
+    // Todo cerebro se puede eliminar, también los autoguardados (panel-de-entrenar-por-vistas D14); los
+    // autoguardados no se renombran: se conservan guardándolos con nombre.
+    if (s.editable) actions.push(button('library.rename', 'library.rename', () => { renaming = s.id; render(); }, 'tool small'));
+    else actions.push(el('button', { class: 'tool small', i18n: 'library.rename', help: 'library.autosaveLocked', attrs: { type: 'button', disabled: true } }));
+    // El del entrenamiento en curso vuelve a guardarse solo: la confirmación lo avisa.
+    const deleteMessage = entry.origin === 'autosave' && entry.slot === 'current' ? 'library.confirm.delete.current' : 'library.confirm.delete';
+    actions.push(button('library.delete', 'library.delete', () => confirm.open({
+      message: deleteMessage, params: { name: s.nameKey ? i18n.t(s.nameKey) : s.name }, confirmKey: 'library.delete',
+      onConfirm: () => { library.remove(s.id); showMessage(null); },
+      onCancel: () => { if (dirty) render(); },
+    }), 'tool small'));
 
     const details = el('details', { class: 'library-more', attrs: { open: openDetails.has(s.id) } },
       el('summary', { i18n: 'library.more', help: 'library.more' }), detailList(entry.brain));

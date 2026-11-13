@@ -78,8 +78,8 @@
 
 ## 11. Segunda ronda: eliminar cualquier cerebro
 
-- [ ] 11.1 Permitir eliminar los dos autoguardados en la biblioteca (design.md D14). Verificar con pruebas de `library` cada tipo de entrada y que el autoguardado en curso vuelve a crearse al terminar la generación siguiente.
-- [ ] 11.2 Ofrecer "Eliminar" en los autoguardados, con la confirmación que corresponde a cada uno. Verificar en el navegador los escenarios "Eliminar el entrenamiento anterior", "Eliminar el entrenamiento en curso" y "Biblioteca vacía" de la spec `cerebros`.
+- [x] 11.1 Permitir eliminar los dos autoguardados en la biblioteca (design.md D14). Verificar con pruebas de `library` cada tipo de entrada y que el autoguardado en curso vuelve a crearse al terminar la generación siguiente.
+- [x] 11.2 Ofrecer "Eliminar" en los autoguardados, con la confirmación que corresponde a cada uno. Verificar en el navegador los escenarios "Eliminar el entrenamiento anterior", "Eliminar el entrenamiento en curso" y "Biblioteca vacía" de la spec `cerebros`.
 
 ## 12. Segunda ronda: Reglas a mano abre sin errores
 
