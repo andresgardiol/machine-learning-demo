@@ -47,11 +47,11 @@ criterio: se informa lo medido y se espera la respuesta.
 
 ## 6. Panel: competidores
 
-- [ ] 6.1 Lista de competidores con casillas, número, color, tipo y dónde entrenó, que se desplaza por dentro. Verificar en el navegador los escenarios de "Elegir a los competidores", con una biblioteca de quince cerebros, y los de "Ejemplos que no cambian".
-- [ ] 6.2 Los dos programas. Verificar los escenarios de "Programa de ejemplo como competidor" y de "Tu programa como competidor": con el programa inicial, con uno con errores, cambiándolo en Reglas a mano y con los dos programas corriendo a la vez.
-- [ ] 6.3 "Vos" (design.md D5): cartel para largar con botón y tecla, carrera que espera y velocidades que no se muestran. Verificar los escenarios de "Vos como competidor", manejando una carrera entera en la calle y otra en un circuito, con los atajos encendidos y apagados. Si el cartel tapa la línea de salida o los autos en alguna pista, **detenerse y consultar** con una captura.
-- [ ] 6.4 Cámara con "Vos" (design.md D5). Verificar los escenarios "Vos en carrera", "Chocar y reaparecer", "Cuando ya no manejás" y "Carrera nueva con vos" de "Seguir a un competidor": yendo último, con un rival que se aleja, y chocando varias veces, la cámara no deja el auto de la persona.
-- [ ] 6.5 Atajos de design.md D14. Verificar con pruebas de la lógica y en el navegador que respetan el interruptor "Atajos", que no actúan al escribir en un campo y que espacio larga, pausa, reanuda y, con la carrera terminada, arma otra.
+- [x] 6.1 Lista de competidores con casillas, número, color, tipo y dónde entrenó, que se desplaza por dentro. Verificar en el navegador los escenarios de "Elegir a los competidores", con una biblioteca de quince cerebros, y los de "Ejemplos que no cambian".
+- [x] 6.2 Los dos programas. Verificar los escenarios de "Programa de ejemplo como competidor" y de "Tu programa como competidor": con el programa inicial, con uno con errores, cambiándolo en Reglas a mano y con los dos programas corriendo a la vez.
+- [x] 6.3 "Vos" (design.md D5): cartel para largar con botón y tecla, carrera que espera y velocidades que no se muestran. Verificar los escenarios de "Vos como competidor", manejando una carrera entera en la calle y otra en un circuito, con los atajos encendidos y apagados. Si el cartel tapa la línea de salida o los autos en alguna pista, **detenerse y consultar** con una captura.
+- [x] 6.4 Cámara con "Vos" (design.md D5). Verificar los escenarios "Vos en carrera", "Chocar y reaparecer", "Cuando ya no manejás" y "Carrera nueva con vos" de "Seguir a un competidor": yendo último, con un rival que se aleja, y chocando varias veces, la cámara no deja el auto de la persona.
+- [x] 6.5 Atajos de design.md D14. Verificar con pruebas de la lógica y en el navegador que respetan el interruptor "Atajos", que no actúan al escribir en un campo y que espacio larga, pausa, reanuda y, con la carrera terminada, arma otra.
 
 ## 7. Tablero
 
