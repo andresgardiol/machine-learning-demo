@@ -820,7 +820,11 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .compete-badge[data-color="competitor6"] { background: var(--color-competitor-6); }
 .compete-missions .mission-list { gap: 4px; }
 .compete-missions .mission-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.compete-foot { display: flex; justify-content: flex-end; }
+/* "Borrar resultados" en el renglón del título de la tabla por pista, a la derecha. */
+.card[data-card="compete-table"] > .card-heading { display: flex; align-items: center; gap: var(--space-2); padding-right: var(--space-2); }
+.card[data-card="compete-table"] > .card-heading .card-title { flex: 1 1 auto; min-width: 0; }
+.compete-clear { flex: 0 0 auto; white-space: nowrap; }
+.compete-clear[hidden] { display: none; }
 
 /* Tablero: el marcador y la tabla por pista como tablas (D9). */
 .compete-score, .compete-tracks { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }

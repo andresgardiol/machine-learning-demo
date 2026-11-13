@@ -348,8 +348,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   const clearButton = button('compete.clear', 'compete.clear', () => { results.clear(); renderTable(); }, 'tool small compete-clear');
 
   panel.append(el('h1', { class: 'sr-only', i18n: 'compete.title' }),
-    el('div', { class: 'compete-panel' }, intro, runSection, trafficSection, penalty.row, viewSwitches, listSection, missions,
-      el('div', { class: 'compete-foot' }, clearButton)));
+    el('div', { class: 'compete-panel' }, intro, runSection, trafficSection, penalty.row, viewSwitches, listSection, missions));
 
   // --- Barra de escenario (D12): pista, tráfico y velocidad; sin sensores ---------------------
   // Grupo propio de Competir en la barra (D1b y D12): la meta, entre el tráfico y la velocidad, en el
@@ -436,10 +435,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   const tableCard = boardCard({
     id: 'compete-table', titleKey: 'compete.table.title', help: 'compete.table', hintKey: 'compete.table.hint',
     open: state.cards.table, grow: 1,
-    onToggle: (open) => { state.cards.table = open; },
+    onToggle: (open) => { state.cards.table = open; syncClear(); },
   });
   const trackTable = el('table', { class: 'compete-tracks' });
   tableCard.append(trackTable);
+  // "Borrar resultados" va en el renglón del título de la tabla (D10), sin sumar alto: solo con algún
+  // resultado y con la tarjeta desplegada.
+  tableCard.node.querySelector('.card-heading').append(clearButton);
+  function syncClear() { clearButton.hidden = results.size === 0 || !tableCard.open; }
 
   board.append(strip.node, announcer, scoreCard.node, tableCard.node);
 
@@ -577,6 +580,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
         el('span', { class: 'compete-badge', dataset: { color: colorKey(key, slot) }, attrs: { 'aria-hidden': 'true' } }, String(slot)),
         el('span', { class: 'compete-table-name' }, nameOf(c))), ...cells);
     }).filter(Boolean);
+    syncClear();
     trackTable.replaceChildren(el('caption', { class: 'sr-only', i18n: 'compete.table.title' }), el('thead', {}, head), el('tbody', {}, rows));
     i18n.translateTree(trackTable);
   }
