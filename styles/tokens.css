@@ -43,6 +43,15 @@
   --color-kerb-b: #8c939c;
   --color-stand: #3b4350;
   --color-crosswalk: #6c7480;
+  /* Competidores de una carrera (pestana-competir D11): contraste de 3:1 o más contra la calle,
+     distintos entre sí, del verde de "Vos", del naranja del tráfico y del rojo del choque. El número
+     es la identificación principal; el color, la secundaria. */
+  --color-competitor-1: #2fd5f0;
+  --color-competitor-2: #ff7ac8;
+  --color-competitor-3: #f4e04d;
+  --color-competitor-4: #b49cff;
+  --color-competitor-5: #eef1f5;
+  --color-competitor-6: #d9b38c;
 
   --space-1: 4px;
   --space-2: 8px;

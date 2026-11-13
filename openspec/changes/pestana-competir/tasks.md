@@ -30,10 +30,10 @@ criterio: se informa lo medido y se espera la respuesta.
 
 ## 4. Escenario y barra
 
-- [ ] 4.1 Sumar a `render` la opción `competitors` y las seis variables de color (design.md D11): color y número por auto, el seguido arriba con sus sensores, la marca de choque durante la penalización, el contorno del recién reaparecido y los que ya no corren atenuados. Verificar en el navegador los escenarios de "Competidores distinguibles", con seis autos superpuestos en la salida, y medir el contraste de cada color contra la calle (3:1).
-- [ ] 4.2 Dibujar la meta (design.md D11): la franja a cuadros en la calle recta y la línea de salida a cuadros en los circuitos. Verificar en el navegador los escenarios de "Meta a la vista", con 2 y con 4 carriles.
-- [ ] 4.3 Sumar la descripción en texto del escenario para una carrera. Verificar con una prueba su contenido en los dos idiomas.
-- [ ] 4.4 Sumar a `scenarioBar` los grupos que una pestaña no usa, que no se crean, y `barEffect('compete', …)` (design.md D12). Verificar con pruebas el efecto de cada clave y, en el navegador, los escenarios de "Grupo que no aplica en una pestaña" y "Mismo orden en Competir": sin hueco, sin el grupo en el orden del foco ni en el árbol de accesibilidad, y la barra en un renglón a 1366 px. Comprobar que la barra de las pestañas 1 a 3 no cambió.
+- [x] 4.1 Sumar a `render` la opción `competitors` y las seis variables de color (design.md D11): color y número por auto, el seguido arriba con sus sensores, la marca de choque durante la penalización, el contorno del recién reaparecido y los que ya no corren atenuados. Verificar en el navegador los escenarios de "Competidores distinguibles", con seis autos superpuestos en la salida, y medir el contraste de cada color contra la calle (3:1).
+- [x] 4.2 Dibujar la meta (design.md D11): la franja a cuadros en la calle recta y la línea de salida a cuadros en los circuitos. Verificar en el navegador los escenarios de "Meta a la vista", con 2 y con 4 carriles.
+- [x] 4.3 Sumar la descripción en texto del escenario para una carrera. Verificar con una prueba su contenido en los dos idiomas.
+- [x] 4.4 Sumar a `scenarioBar` los grupos que una pestaña no usa, que no se crean, y `barEffect('compete', …)` (design.md D12). Verificar con pruebas el efecto de cada clave y, en el navegador, los escenarios de "Grupo que no aplica en una pestaña" y "Mismo orden en Competir": sin hueco, sin el grupo en el orden del foco ni en el árbol de accesibilidad, y la barra en un renglón a 1366 px. Comprobar que la barra de las pestañas 1 a 3 no cambió.
 
 ## 5. Pestaña: carrera lista para largar
 

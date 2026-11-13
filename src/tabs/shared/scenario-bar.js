@@ -42,11 +42,14 @@ const LIVE_KEYS = Object.freeze(['maxSpeed', 'density', 'irregularity']);
  *   'restartAttempt'    reinicia el intento (El problema y Reglas a mano)
  *   'restartGeneration' vuelve a empezar la generación en curso con la misma población (Entrenar)
  *   'newTraining'       empieza un entrenamiento nuevo, con confirmación si hay progreso (Entrenar)
- * @param {'drive'|'rules'|'train'} tab
+ *   'newRace'           empieza otra carrera con los mismos competidores (Competir, pestana-competir D12)
+ * Competir no usa los sensores: para ellos, null.
+ * @param {'drive'|'rules'|'train'|'compete'} tab
  * @returns {string|null} null si la clave no es de la barra
  */
 export function barEffect(tab, key) {
   if (!BAR_KEYS.includes(key)) return null;
+  if (tab === 'compete') return SENSOR_KEYS.includes(key) ? null : 'newRace';
   if (tab === 'train') return SENSOR_KEYS.includes(key) ? 'newTraining' : 'restartGeneration';
   return LIVE_KEYS.includes(key) ? 'live' : 'restartAttempt';
 }
@@ -98,12 +101,16 @@ const FORMATS = Object.freeze({
  * @param {string} [spec.trackHelp] ayuda del rótulo de las pistas
  * @param {string} [spec.noTrafficHelp] ayuda de los ajustes de tráfico en un circuito
  * @param {string} [spec.resetHelp]
+ * @param {string[]} [spec.omit] grupos que la pestaña no usa (pestana-competir D12): no se crean, ni
+ *   ocultos ni en el orden del foco; los demás conservan su orden
  * @returns {{node:HTMLElement, sync:(settings:object)=>void, slot:(group:string)=>HTMLElement, dispose:()=>void}}
  */
 export function scenarioBar({
   i18n, settings, onChange, onReset, idPrefix = 'bar',
   help = (key) => `drive.${key}`, trackHelp = 'track', noTrafficHelp = 'drive.noTraffic', resetHelp = 'drive.resetSettings',
+  omit = [],
 }) {
+  const shown = (id) => !omit.includes(id);
   const setText = createTextSetter(i18n);
   let current = settings;
   const circuit = () => isCircuit(current.track);
@@ -155,7 +162,8 @@ export function scenarioBar({
     el('div', { class: 'segments', attrs: { role: 'group', 'aria-labelledby': laneLabelId } }, laneButtons));
 
   // --- Deslizadores -----------------------------------------------------------------------------
-  const sliders = new Map(SLIDERS.map((s) => {
+  const omittedKeys = BAR_GROUPS.filter((g) => !shown(g.id)).flatMap((g) => g.keys);
+  const sliders = new Map(SLIDERS.filter((s) => !omittedKeys.includes(s.key)).map((s) => {
     const id = `${idPrefix}-${s.key}`;
     const value = el('output', { class: 'bar-value', attrs: { for: id, 'aria-hidden': 'true' } });
     const gesture = createSliderGesture((v, info) => onChange(s.key, v, info));
@@ -208,12 +216,14 @@ export function scenarioBar({
   slots.reset = el('div', { class: 'bar-slot' });
 
   const node = el('div', { class: 'scenario-bar', i18nAttr: 'aria-label:bar.title', attrs: { role: 'group' } },
-    group('track', { i18n: 'bar.group.track', help: trackHelp, attrs: { id: trackLabelId } }, trackGroup),
-    group('traffic', { i18n: 'bar.group.traffic', attrs: { id: `${idPrefix}-traffic-label` } },
-      lanes, sliderNode('density'), sliderNode('irregularity')),
-    group('sensors', { i18n: 'bar.group.sensors', attrs: { id: `${idPrefix}-sensors-label` } },
-      sliderNode('sensorCount'), sliderNode('sensorRange'), sliderNode('sensorSpread')),
-    group('car', { i18n: 'bar.group.car', attrs: { id: `${idPrefix}-car-label` } }, sliderNode('maxSpeed')),
+    ...[
+      () => group('track', { i18n: 'bar.group.track', help: trackHelp, attrs: { id: trackLabelId } }, trackGroup),
+      () => group('traffic', { i18n: 'bar.group.traffic', attrs: { id: `${idPrefix}-traffic-label` } },
+        lanes, sliderNode('density'), sliderNode('irregularity')),
+      () => group('sensors', { i18n: 'bar.group.sensors', attrs: { id: `${idPrefix}-sensors-label` } },
+        sliderNode('sensorCount'), sliderNode('sensorRange'), sliderNode('sensorSpread')),
+      () => group('car', { i18n: 'bar.group.car', attrs: { id: `${idPrefix}-car-label` } }, sliderNode('maxSpeed')),
+    ].filter((_, i) => shown(BAR_GROUPS[i].id)).map((make) => make()),
     el('div', { class: 'bar-group bar-group-reset' }, resetButton, slots.reset));
 
   /** Muestra los valores de `next`. Un deslizador que se está arrastrando conserva el suyo. */

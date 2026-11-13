@@ -43,12 +43,26 @@ const COLOR_VARS = {
   crosswalk: '--color-crosswalk',
   checkerA: '--color-crosswalk',
   checkerB: '--color-bg',
+  // Carrera (pestana-competir D11): un color por casilla; el número es la identificación principal.
+  competitor1: '--color-competitor-1',
+  competitor2: '--color-competitor-2',
+  competitor3: '--color-competitor-3',
+  competitor4: '--color-competitor-4',
+  competitor5: '--color-competitor-5',
+  competitor6: '--color-competitor-6',
+  finishA: '--color-road-edge',
+  finishB: '--color-bg',
 };
 
 // Opacidad de los autos de la población que no están en foco.
 const RACING_ALPHA = 0.4;
 const ELITE_ALPHA = 0.7;
 const OUT_ALPHA = 0.3;
+// Carrera: los que ya no corren, atenuados; el recién reaparecido, translúcido como un fantasma.
+const RACE_DONE_ALPHA = 0.4;
+const RACE_GHOST_ALPHA = 0.45;
+const BADGE_RADIUS = 9; // radio de la insignia con el número (px)
+const FINISH_SQUARE = 1; // lado de cada cuadro de la meta (m)
 
 const DASH = 3; // largo de cada trazo de la línea de carril (m); el hueco mide lo mismo
 const RESET_VIEW_KEY = 'KeyV';
@@ -455,6 +469,117 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     ctx.fill();
   }
 
+  /**
+   * Franja a cuadros que cruza la pista de borde a borde a `distance` metros de la salida, de
+   * `rows` cuadros de largo (pestana-competir D11): la meta en la calle recta, la salida-llegada en un circuito.
+   */
+  function drawCheckeredLine(track, distance, b, rows = 2) {
+    const at = track.pointAt(distance);
+    const p = at.position;
+    if (p.x < b.minX - track.width || p.x > b.maxX + track.width || p.y < b.minY - track.width || p.y > b.maxY + track.width) return;
+    const cols = Math.max(1, Math.round(track.width / FINISH_SQUARE));
+    const side = track.width / cols;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(at.angle);
+    for (const tone of [0, 1]) {
+      ctx.fillStyle = tone === 0 ? colors.finishA : colors.finishB;
+      ctx.beginPath();
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if ((r + c) % 2 !== tone) continue;
+          ctx.rect(r * side - (rows * side) / 2, -track.width / 2 + c * side, side, side);
+        }
+      }
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /** Contorno de un auto. */
+  function contourPath(car) {
+    const [a, b2, c, d] = carContour(car);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y); ctx.lineTo(b2.x, b2.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y);
+    ctx.closePath();
+  }
+
+  /**
+   * Un competidor de una carrera (D11): con su color; chocado (cumpliendo la penalización), con la
+   * marca de choque; recién reaparecido, como un fantasma (translúcido y con contorno punteado); ya
+   * sin correr, atenuado.
+   */
+  function drawCompetitor(car, look, px) {
+    const color = colors[look.color] || colors.car;
+    if (look.state === 'penalized') {
+      const [fl, fr, rr, rl] = carContour(car);
+      polygon([fl, fr, rr, rl]);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = colors.carCrashed;
+      ctx.lineWidth = 2.5 * px;
+      ctx.stroke();
+      ctx.strokeStyle = colors.carCrashed;
+      ctx.lineWidth = 3 * px;
+      ctx.beginPath();
+      ctx.moveTo(fl.x, fl.y); ctx.lineTo(rr.x, rr.y);
+      ctx.moveTo(fr.x, fr.y); ctx.lineTo(rl.x, rl.y);
+      ctx.stroke();
+      return;
+    }
+    if (look.state === 'protected') {
+      ctx.globalAlpha = RACE_GHOST_ALPHA;
+      drawVehicle(car.position, car.angle, color, px);
+      ctx.globalAlpha = 1;
+      contourPath(car);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2 * px;
+      ctx.setLineDash([5 * px, 4 * px]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      return;
+    }
+    if (look.state === 'done') {
+      ctx.globalAlpha = RACE_DONE_ALPHA;
+      drawVehicle(car.position, car.angle, color, px);
+      ctx.globalAlpha = 1;
+      return;
+    }
+    drawVehicle(car.position, car.angle, color, px);
+  }
+
+  /** Insignias con el número de cada competidor, de tamaño fijo en pantalla, junto a su auto. */
+  function drawBadges(entries) {
+    const m = ctx.getTransform();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const k = 1 / dpr;
+    ctx.font = `700 ${11}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Varios autos en el mismo lugar (la salida): las insignias se escalonan para que se lean todas.
+    const placed = [];
+    for (const { car, look } of entries) {
+      const sx = (m.a * car.position.x + m.c * car.position.y + m.e) * k;
+      const sy = (m.b * car.position.x + m.d * car.position.y + m.f) * k;
+      let x = sx + BADGE_RADIUS + 8;
+      let y = sy - BADGE_RADIUS - 6;
+      while (placed.some((q) => Math.hypot(q.x - x, q.y - y) < 2 * BADGE_RADIUS)) x += 2 * BADGE_RADIUS + 2;
+      placed.push({ x, y });
+      ctx.globalAlpha = look.state === 'done' ? 0.75 : 1;
+      ctx.beginPath();
+      ctx.arc(x, y, BADGE_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = colors[look.color] || colors.car;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = look.focus ? colors.roadEdge : colors.outline;
+      ctx.stroke();
+      ctx.fillStyle = colors.outline;
+      ctx.fillText(String(look.number), x, y + 0.5);
+      ctx.globalAlpha = 1;
+    }
+    ctx.setTransform(m);
+  }
+
   /** Objetivo de la cámara con un foco que puede cambiar (design.md D11). */
   function focusTarget(world, focus) {
     const now = win.performance.now();
@@ -482,8 +607,14 @@ export function createStageView({ container, camera = createCamera(), doc = docu
    *   scenery: dibuja el paisaje alrededor de la pista (encendido por defecto; machineView lo anula).
    *   focus: índice del agente a destacar y seguir (sin focus, dibuja el primer auto como siempre).
    *   elite: índices de los agentes de élite, que llevan una marca propia.
+   *   competitors: en una carrera (pestana-competir D11), por cada agente { color, number, state }:
+   *     color es una clave de color ('car' para la persona, 'competitor1' a 'competitor6'); state,
+   *     'racing', 'penalized' (cumpliendo la penalización), 'protected' (recién reaparecido) o 'done'.
+   *   goal: la meta de la carrera ({ kind, meters }); se dibuja a cuadros.
    */
-  function render(world, { showSensors = true, machineView = false, scenery: showScenery = sceneryOn(), focus, elite = [] } = {}) {
+  function render(world, {
+    showSensors = true, machineView = false, scenery: showScenery = sceneryOn(), focus, elite = [], competitors = null, goal = null,
+  } = {}) {
     resize();
     const population = Number.isInteger(focus) && world.agents?.[focus] !== undefined;
     const car = population ? world.agents[focus].car : world.car;
@@ -526,8 +657,10 @@ export function createStageView({ container, camera = createCamera(), doc = docu
       const b = camera.visibleBounds(viewport);
       if (withScenery) scenery.under(ctx, world, b, colors);
       const paint = withScenery ? () => scenery.paint(ctx, world, b, colors) : undefined;
+      // Meta de una carrera: en la calle recta, a la distancia de la meta; en un circuito, la salida.
+      const finish = goal ? () => { if (paint) paint(); drawCheckeredLine(world.track, world.track.closed ? 0 : goal.meters, b); } : paint;
       if (world.track.closed) {
-        drawClosedTrack(world.track, b, px, paint);
+        drawClosedTrack(world.track, b, px, finish);
         if (withScenery) scenery.over(ctx, world, b, colors);
       } else {
         const middle = { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 };
@@ -535,12 +668,34 @@ export function createStageView({ container, camera = createCamera(), doc = docu
         const at = world.track.progressOf(middle).progress;
         const from = Math.max(world.track.start, at - radius);
         const to = Math.min(world.track.end, at + radius);
-        drawTrack(world.track, from, to, px, paint);
+        drawTrack(world.track, from, to, px, finish);
         if (withScenery) scenery.over(ctx, world, b, colors);
         const inView = (v) => v.position.x >= b.minX - CAR_LENGTH && v.position.x <= b.maxX + CAR_LENGTH
           && v.position.y >= b.minY - CAR_LENGTH && v.position.y <= b.maxY + CAR_LENGTH;
         drawTraffic(world.vehiclesIn(from - CAR_LENGTH, to + CAR_LENGTH).filter(inView), px);
       }
+    }
+    if (population && competitors) {
+      // Carrera: cada competidor con su color y su número; el seguido, último y con sus rayos.
+      const b = camera.visibleBounds(viewport);
+      const margin = CAR_LENGTH;
+      const inView = (c) => c.position.x >= b.minX - margin && c.position.x <= b.maxX + margin
+        && c.position.y >= b.minY - margin && c.position.y <= b.maxY + margin;
+      const entries = [];
+      world.agents.forEach((a, i) => {
+        if (i === focus || !inView(a.car) || !competitors[i]) return;
+        entries.push({ car: a.car, look: competitors[i] });
+      });
+      if (!machineView) {
+        // Primero los que ya no corren, después los que corren.
+        for (const e of entries) if (e.look.state === 'done') drawCompetitor(e.car, e.look, px);
+        for (const e of entries) if (e.look.state !== 'done') drawCompetitor(e.car, e.look, px);
+      }
+      const own = competitors[focus] ?? { color: 'car', number: focus + 1, state: 'racing' };
+      if (showSensors && own.state !== 'done' && own.state !== 'penalized') drawRays(world.agents[focus].rays, px);
+      drawCompetitor(car, own, px);
+      drawBadges([...(machineView ? [] : entries), { car, look: { ...own, focus: true } }]);
+      return;
     }
     if (population && machineView) {
       // Ver como la máquina con una población: solo el auto del foco y sus rayos.
