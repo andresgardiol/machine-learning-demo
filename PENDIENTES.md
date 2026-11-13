@@ -81,6 +81,25 @@ El resto de las notas de este archivo no tiene orden fijo.
   pestaña abre con 5 sensores y el error de sensores que no existen.
   Propuesta, sin implementar: recordar los sensores junto al programa.
 
+- **Bug: cambiar la red o los sensores no tiene efecto si se sigue entrenando
+  un cerebro.** Encontrado por el dueño el 12 de noviembre de 2026, con
+  capturas. En Entrenar, siguiendo el entrenamiento de un cerebro guardado
+  (5 sensores, en el circuito largo), cambió la cantidad de sensores a 18, el
+  alcance y la apertura, y también las capas ocultas. Aceptó el aviso de que
+  eso empieza un entrenamiento nuevo, pero el auto del escenario y la red del
+  tablero siguieron con 5 sensores; los deslizadores sí muestran los valores
+  nuevos.
+  - Hipótesis, sin verificar: al empezar el entrenamiento nuevo la pestaña
+    sigue pasándole el cerebro que se estaba continuando
+    (`src/tabs/train/index.js`, `startTraining`), y en el núcleo la red y los
+    sensores de ese cerebro mandan sobre la configuración
+    (`src/core/training.js`, `createTraining`). Si es así, los ajustes y el
+    entrenamiento quedan diciendo cosas distintas.
+  - A decidir al arreglarlo: cambiar la red o los sensores debería dejar de
+    seguir a ese cerebro y arrancar una población nueva con los ajustes
+    elegidos, y el aviso debería decirlo. Revisar también qué muestra la
+    biblioteca ("Seguís entrenando…") después del cambio.
+
 ## Ideas
 
 - **Detalles que dejó el tablero de aprendizaje** (cambio
