@@ -31,7 +31,7 @@ import {
 } from '../../ui/controls.js';
 import {
   DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges, adoptBrain,
-  onlyCircuits, settingsWaiting, resetPanelSettings, barSettings, barPatch, BAR_DEFAULTS, RESTART_GENERATION_KEYS,
+  onlyCircuits, settingsWaiting, resetPanelSettings, followingAfter, barSettings, barPatch, BAR_DEFAULTS, RESTART_GENERATION_KEYS,
 } from './settings.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { setUnavailable } from '../shared/street-advanced.js';
@@ -183,11 +183,21 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const target = normalizeSettings(next);
     const changes = classifyChanges(state.settings, target);
     if (changes.newTraining.length > 0) {
-      withProgressCheck(confirm, 'train.confirm.newTraining', () => {
+      // Siguiendo un cerebro, el entrenamiento nuevo deja de seguirlo y empieza al azar (D16); la
+      // confirmación lo dice.
+      const followed = state.brain ? state.brain.name : null;
+      const apply = () => {
         state.settings = target;
         store?.set({ carSpeed: target.maxSpeed });
+        const next = followingAfter(state, changes);
+        state.brain = next.brain;
+        state.brainSource = next.brainSource;
+        if (followed !== null) libraryView.showMessage(null);
         startTraining();
-      }, { onCancel: () => sync() });
+      };
+      if (state.training.completed === 0) apply();
+      else if (followed !== null) confirm.open({ message: 'train.confirm.newTraining.brain', params: { value: state.training.completed, name: followed }, onConfirm: apply, onCancel: () => sync() });
+      else confirm.open({ message: 'train.confirm.newTraining', params: { value: state.training.completed }, onConfirm: apply, onCancel: () => sync() });
       sync(); // mientras se espera la confirmación, los controles muestran el valor vigente
       return;
     }

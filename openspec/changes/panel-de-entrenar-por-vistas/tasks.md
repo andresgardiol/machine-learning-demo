@@ -88,7 +88,7 @@
 
 ## 13. Segunda ronda: cambiar la red o los sensores siguiendo un cerebro
 
-- [ ] 13.1 Dejar de seguir al cerebro cuando un cambio de red o de sensores empieza un entrenamiento nuevo, y decirlo en la confirmación (design.md D16). Verificar con una prueba de la lógica de la pestaña y en el navegador los escenarios "Cambio mientras se sigue entrenando un cerebro" y "La confirmación lo avisa".
+- [x] 13.1 Dejar de seguir al cerebro cuando un cambio de red o de sensores empieza un entrenamiento nuevo, y decirlo en la confirmación (design.md D16). Verificar con una prueba de la lógica de la pestaña y en el navegador los escenarios "Cambio mientras se sigue entrenando un cerebro" y "La confirmación lo avisa".
 
 ## 14. Segunda ronda: verificación integral
 

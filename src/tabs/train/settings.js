@@ -211,3 +211,14 @@ export const BAR_DEFAULTS = Object.freeze({
   irregularity: DEFAULT_SETTINGS.irregularity, maxSpeed: DEFAULT_SETTINGS.maxSpeed,
   sensorCount: DEFAULT_SETTINGS.sensorCount, sensorRange: DEFAULT_SETTINGS.sensorRange, sensorSpread: DEFAULT_SETTINGS.sensorSpread,
 });
+
+/**
+ * Cerebro que sigue el entrenamiento después de un cambio (panel-de-entrenar-por-vistas D16): un
+ * cambio de red o de sensores empieza un entrenamiento nuevo con una población al azar, así que se
+ * deja de seguir al cerebro (y de ofrecer actualizarlo). Cualquier otro cambio lo conserva.
+ * @param {{brain:object|null, brainSource:string|null}} following
+ * @param {{newTraining:string[]}} changes resultado de classifyChanges
+ */
+export function followingAfter(following, changes) {
+  return changes.newTraining.length > 0 ? { brain: null, brainSource: null } : { brain: following.brain, brainSource: following.brainSource };
+}

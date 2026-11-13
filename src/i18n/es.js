@@ -357,6 +357,8 @@ export default {
   'train.confirm.newPopulation': 'Una población nueva deja atrás {value} generaciones. El campeón queda autoguardado en la biblioteca como entrenamiento anterior.',
   'train.confirm.newPopulation.one': 'Una población nueva deja atrás {value} generación. El campeón queda autoguardado en la biblioteca como entrenamiento anterior.',
   'train.confirm.newTraining': 'Este cambio empieza un entrenamiento nuevo: se dejan atrás {value} generaciones. El campeón queda autoguardado en la biblioteca como entrenamiento anterior.',
+  'train.confirm.newTraining.brain': 'Este cambio empieza un entrenamiento nuevo con una población al azar: se deja de seguir a «{name}», que sigue en la biblioteca sin cambios, y se dejan atrás {value} generaciones.',
+  'train.confirm.newTraining.brain.one': 'Este cambio empieza un entrenamiento nuevo con una población al azar: se deja de seguir a «{name}», que sigue en la biblioteca sin cambios, y se deja atrás {value} generación.',
   'train.confirm.newTraining.one': 'Este cambio empieza un entrenamiento nuevo: se deja atrás {value} generación. El campeón queda autoguardado en la biblioteca como entrenamiento anterior.',
   'library.autosave.name': 'Autoguardado',
   'library.autosave.current': 'Entrenamiento en curso',

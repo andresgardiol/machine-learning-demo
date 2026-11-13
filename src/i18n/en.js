@@ -357,6 +357,8 @@ export default {
   'train.confirm.newPopulation': 'A new population leaves {value} generations behind. The champion stays autosaved in the library as the previous training.',
   'train.confirm.newPopulation.one': 'A new population leaves {value} generation behind. The champion stays autosaved in the library as the previous training.',
   'train.confirm.newTraining': 'This change starts a new training: {value} generations are left behind. The champion stays autosaved in the library as the previous training.',
+  'train.confirm.newTraining.brain': 'This change starts a new training with a random population: it stops following “{name}”, which stays in the library unchanged, and {value} generations are left behind.',
+  'train.confirm.newTraining.brain.one': 'This change starts a new training with a random population: it stops following “{name}”, which stays in the library unchanged, and {value} generation is left behind.',
   'train.confirm.newTraining.one': 'This change starts a new training: {value} generation is left behind. The champion stays autosaved in the library as the previous training.',
   'library.autosave.name': 'Autosave',
   'library.autosave.current': 'Training in progress',
