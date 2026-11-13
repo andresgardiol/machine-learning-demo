@@ -2,7 +2,7 @@
 // de la pestaña Reglas a mano y paisaje). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
 
 /** Atajos de una tecla encendidos por defecto (panel-de-entrenar-por-vistas D9). */
 export const DEFAULT_SHORTCUTS = true;
@@ -84,5 +84,22 @@ export function createPreferences(getStorage = defaultStorage) {
       return typeof v === 'string' && v.length <= RULES_PROGRAM_MAX ? v : null;
     },
     set rulesProgram(value) { write(KEYS.rulesProgram, String(value ?? '')); },
+    /**
+     * Sensores del auto para el que está escrito el programa recordado (panel-de-entrenar-por-vistas
+     * D15): { count, range, spread } con números, o null si no hay (o no se pueden leer). La pestaña
+     * los ajusta a sus rangos.
+     */
+    get rulesSensors() {
+      try {
+        const v = JSON.parse(read(KEYS.rulesSensors) ?? 'null');
+        const ok = v && ['count', 'range', 'spread'].every((k) => Number.isFinite(v[k]));
+        return ok ? { count: v.count, range: v.range, spread: v.spread } : null;
+      } catch {
+        return null;
+      }
+    },
+    set rulesSensors(value) {
+      write(KEYS.rulesSensors, JSON.stringify({ count: value.count, range: value.range, spread: value.spread }));
+    },
   };
 }

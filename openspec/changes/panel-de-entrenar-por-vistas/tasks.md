@@ -83,8 +83,8 @@
 
 ## 12. Segunda ronda: Reglas a mano abre sin errores
 
-- [ ] 12.1 Recordar los sensores junto con el programa (design.md D15). Verificar con pruebas de `preferences` y de la lógica de la pestaña los escenarios "Ejemplo de veinte sensores recordado", "Programa guardado sin sus sensores" y "Sensores cambiados a mano".
-- [ ] 12.2 Verificar en el navegador, partiendo de un almacenamiento que tiene solo el programa del ejemplo de 20 sensores (el caso que encontró el dueño), que la pestaña abre sin ningún error y el auto maneja.
+- [x] 12.1 Recordar los sensores junto con el programa (design.md D15). Verificar con pruebas de `preferences` y de la lógica de la pestaña los escenarios "Ejemplo de veinte sensores recordado", "Programa guardado sin sus sensores" y "Sensores cambiados a mano".
+- [x] 12.2 Verificar en el navegador, partiendo de un almacenamiento que tiene solo el programa del ejemplo de 20 sensores (el caso que encontró el dueño), que la pestaña abre sin ningún error y el auto maneja.
 
 ## 13. Segunda ronda: cambiar la red o los sensores siguiendo un cerebro
 

@@ -1,4 +1,6 @@
-// Programa inicial y programas de ejemplo de la pestaña Reglas a mano (design.md D10), sin DOM.
+// Programa inicial y programas de ejemplo de la pestaña Reglas a mano (design.md D10), y los sensores
+// con que abre un programa recordado (panel-de-entrenar-por-vistas D15), sin DOM.
+import { tokenize } from '../../core/rules.js';
 //
 // Cada programa es un texto de los diccionarios (en los dos idiomas) más los sensores del auto para
 // el que está escrito. Cargar un ejemplo cambia el programa y los sensores.
@@ -39,3 +41,30 @@ export const sensorSettings = (p) => ({ sensorCount: p.sensors.count, sensorRang
  * Lo demás (velocidad y tráfico) no cambia.
  */
 export const settingsForProgram = (settings, p) => ({ ...settings, ...sensorSettings(p), track: 'straight' });
+
+/** Sensor más alto que nombra el código de un programa (los comentarios no cuentan); 0 si no nombra ninguno. */
+export function highestSensor(text) {
+  let max = 0;
+  for (const line of String(text ?? '').split(/\r\n?|\n/)) {
+    for (const t of tokenize(line)) if (t.type === 'sensor' && t.index > max) max = t.index;
+  }
+  return max;
+}
+
+/**
+ * Sensores con que abre la pestaña (panel-de-entrenar-por-vistas D15), con las claves de los ajustes
+ * de la calle:
+ *   - con sensores recordados, esos (la pestaña los ajusta a sus rangos);
+ *   - con un programa recordado sin sus sensores (lo guardó una versión anterior), la cantidad es la
+ *     mayor entre la del programa inicial y el sensor más alto que el programa nombra; alcance y
+ *     apertura, los del programa inicial;
+ *   - sin programa recordado, los del programa inicial.
+ * Así el programa recordado siempre puede manejar al abrir.
+ * @param {{program: string|null, sensors: {count:number, range:number, spread:number}|null}} remembered
+ */
+export function rememberedSensors({ program = null, sensors = null } = {}) {
+  const initial = sensorSettings(INITIAL_PROGRAM);
+  if (program === null) return initial;
+  if (sensors) return { sensorCount: sensors.count, sensorRange: sensors.range, sensorSpread: sensors.spread };
+  return { ...initial, sensorCount: Math.max(initial.sensorCount, highestSensor(program)) };
+}

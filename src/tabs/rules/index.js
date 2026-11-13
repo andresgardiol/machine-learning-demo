@@ -34,7 +34,7 @@ import {
 import { createProgramState } from './program.js';
 import { createRulesSession, MISSIONS, viewOptions } from './session.js';
 import {
-  DEFAULT_SEED, INITIAL_PROGRAM, EXAMPLES, knownTexts, sensorSettings, settingsForProgram,
+  DEFAULT_SEED, INITIAL_PROGRAM, EXAMPLES, knownTexts, settingsForProgram, rememberedSensors,
 } from './examples.js';
 import { shortcutFor } from './shortcuts.js';
 
@@ -62,12 +62,13 @@ let state = null;
 export function resetState() { state = null; }
 
 function createState({ i18n, store, preferences }) {
+  // El programa recordado abre con los sensores para los que está escrito (D15).
+  const remembered = preferences?.rulesProgram ?? null;
   const settings = normalizeSettings({
     ...DEFAULT_SETTINGS,
-    ...sensorSettings(INITIAL_PROGRAM),
+    ...rememberedSensors({ program: remembered, sensors: remembered === null ? null : preferences?.rulesSensors ?? null }),
     maxSpeed: store?.get().carSpeed ?? DEFAULT_SETTINGS.maxSpeed,
   });
-  const remembered = preferences?.rulesProgram ?? null;
   const text = remembered ?? i18n.t(INITIAL_PROGRAM.textKey);
   const program = createProgramState({ text, sensors: settings.sensorCount });
   const controller = createRulesController({ program: program.valid });
@@ -136,7 +137,15 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     dirty = false;
     const result = program.update(editor.value);
     afterProgramChange(result);
-    if (preferences) preferences.rulesProgram = program.text;
+    remember();
+  }
+
+  /** Recuerda el programa junto con los sensores del auto para el que está escrito (D15). */
+  function remember() {
+    if (!preferences) return;
+    preferences.rulesProgram = program.text;
+    const s = state.settings;
+    preferences.rulesSensors = { count: s.sensorCount, range: s.sensorRange, spread: s.sensorSpread };
   }
 
   function afterProgramChange(result) {
@@ -410,6 +419,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
       // Cambiar los sensores vuelve a analizar el programa: si deja de valer, el auto no acciona nada.
       afterProgramChange(program.setSensors(state.settings.sensorCount));
     }
+    if (['sensorCount', 'sensorRange', 'sensorSpread'].some((k) => state.settings[k] !== before[k])) remember();
     if (needsRestart(before, state.settings)) {
       restartAttempt({ rebuild: true, countAttempt });
       return;
