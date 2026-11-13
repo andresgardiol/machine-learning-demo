@@ -738,4 +738,18 @@ export default {
   'rules.mission.pass': 'Superá {goal} vehículos sin chocar',
   'rules.mission.passMany': 'Superá {goal} vehículos sin chocar',
   'rules.mission.traffics': 'Superá 10 en {goal} tráficos distintos',
+  // Vistas del panel (panel-de-entrenar-por-vistas)
+  'views.label': 'Vistas del panel',
+  'views.label.count': '{name} ({value})',
+  'views.name.count': '{name}, {value}',
+  'views.name.pending': '{name}, cambios esperando a la próxima generación',
+  'train.view.training': 'Entrenamiento',
+  'train.view.settings': 'Ajustes',
+  'train.view.brains': 'Cerebros',
+  'help.train.view.training.what': 'Muestra lo que se usa mientras la población aprende: la marcha, la vista, la población, la mutación, guardar y las misiones.',
+  'help.train.view.training.why': 'Es lo que se toca a cada rato; los ajustes y los cerebros quedan a un clic, sin tapar el entrenamiento.',
+  'help.train.view.settings.what': 'Reúne todos los ajustes del entrenamiento en cuatro grupos: evolución, escenario, red y sensores. Una marca avisa si hay cambios esperando.',
+  'help.train.view.settings.why': 'Deciden qué se premia, en qué se practica y con qué red se aprende. Cambiar de vista no cambia el entrenamiento.',
+  'help.train.view.brains.what': 'Reúne la biblioteca: guardar el campeón con el nombre que elijas, importar y las acciones de cada cerebro. Muestra cuántos hay.',
+  'help.train.view.brains.why': 'Lo aprendido se conserva: un cerebro se puede seguir entrenando, exportar o llevar a otras pestañas.',
 };

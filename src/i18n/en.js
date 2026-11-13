@@ -738,4 +738,18 @@ export default {
   'rules.mission.pass': 'Pass {goal} vehicles without crashing',
   'rules.mission.passMany': 'Pass {goal} vehicles without crashing',
   'rules.mission.traffics': 'Pass 10 in {goal} different traffics',
+  // Vistas del panel (panel-de-entrenar-por-vistas)
+  'views.label': 'Panel views',
+  'views.label.count': '{name} ({value})',
+  'views.name.count': '{name}, {value}',
+  'views.name.pending': '{name}, changes waiting for the next generation',
+  'train.view.training': 'Training',
+  'train.view.settings': 'Settings',
+  'train.view.brains': 'Brains',
+  'help.train.view.training.what': 'Shows what you use while the population learns: run controls, view, population, mutation, saving and missions.',
+  'help.train.view.training.why': 'These are the controls you touch all the time; settings and brains are one click away without covering the training.',
+  'help.train.view.settings.what': 'Gathers every training setting in four groups: evolution, scenario, network and sensors. A mark warns when changes are waiting.',
+  'help.train.view.settings.why': 'They decide what is rewarded, where the cars practice and which network learns. Switching views does not change the training.',
+  'help.train.view.brains.what': 'Gathers the library: save the champion with the name you choose, import, and each brain\'s actions. Shows how many there are.',
+  'help.train.view.brains.why': 'What was learned is kept: a brain can keep training, be exported or be taken to other tabs.',
 };

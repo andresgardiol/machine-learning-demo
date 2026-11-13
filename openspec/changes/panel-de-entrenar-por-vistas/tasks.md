@@ -2,8 +2,8 @@
 
 ## 1. Pestañas de vista del panel
 
-- [ ] 1.1 Crear el componente común de vistas con pestañas (design.md D1): barra con `tablist`, flechas con activación automática, Inicio y Fin, una sola pestaña en el orden de Tab y vistas ocultas con `hidden`, sin desmontar. Verificar con pruebas de su lógica sin DOM la vista por defecto, el cambio de vista y el nombre accesible, y en el navegador los escenarios "Teclado", "Pestañas anunciadas", "Foco a la vista" y "Tooltips" de la spec `pestana-entrenar`.
-- [ ] 1.2 Agregar los estilos de la barra, fija arriba del panel, y los textos en `src/i18n/es.js` y `en.js`. Verificar con `tests/copy-length.test.js` que los tres nombres, con un contador de dos dígitos, entran a 360 px, y medirlo en el DOM en los dos idiomas.
+- [x] 1.1 Crear el componente común de vistas con pestañas (design.md D1): barra con `tablist`, flechas con activación automática, Inicio y Fin, una sola pestaña en el orden de Tab y vistas ocultas con `hidden`, sin desmontar. Verificar con pruebas de su lógica sin DOM la vista por defecto, el cambio de vista y el nombre accesible, y en el navegador los escenarios "Teclado", "Pestañas anunciadas", "Foco a la vista" y "Tooltips" de la spec `pestana-entrenar`.
+- [x] 1.2 Agregar los estilos de la barra, fija arriba del panel, y los textos en `src/i18n/es.js` y `en.js`. Verificar con `tests/copy-length.test.js` que los tres nombres, con un contador de dos dígitos, entran a 360 px, y medirlo en el DOM en los dos idiomas.
 
 ## 2. Panel de Entrenar en tres vistas
 

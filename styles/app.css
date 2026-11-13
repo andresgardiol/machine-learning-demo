@@ -215,6 +215,34 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   background: var(--color-surface);
 }
 
+/* Panel repartido en vistas con pestañas (src/ui/panel-views.js, panel-de-entrenar-por-vistas D1):
+   la barra queda fija arriba y lo que se desplaza, si hace falta, es el contenido de la vista. */
+.panel.panel-with-views { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+.panel.panel-with-views > * + * { margin-top: 0; }
+.view-tabs {
+  display: flex; flex: 0 0 auto; gap: 2px; padding: var(--space-2) var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border); background: var(--color-surface);
+}
+.view-tab {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  flex: 1 1 auto; min-width: 0; min-height: 32px; margin-bottom: -1px; padding: var(--space-1) var(--space-2);
+  background: transparent; border: 1px solid transparent; border-bottom: 0; border-radius: var(--radius) var(--radius) 0 0;
+  color: var(--color-text-muted); font-size: 14px; white-space: nowrap; cursor: pointer;
+}
+.view-tab:hover { color: var(--color-text); background: var(--color-surface-2); }
+/* Elegida: borde, fondo del panel, raya de color arriba y letra más pesada (no solo el color). */
+.view-tab[aria-selected="true"] {
+  background: var(--color-surface); border-color: var(--color-border); color: var(--color-text); font-weight: 700;
+  box-shadow: inset 0 3px 0 var(--color-accent);
+}
+.view-tab:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+/* Cambios esperando a la próxima generación: un punto junto al nombre (y el nombre accesible lo dice). */
+.view-tab-pending { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent); box-shadow: 0 0 0 2px var(--color-text); }
+.view-tab-pending[hidden] { display: none; }
+.view-panes { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--space-3); scroll-padding-top: var(--space-3); scroll-padding-bottom: var(--space-3); }
+.view-pane[hidden] { display: none; }
+.view-pane > div > * + * { margin-top: var(--space-3); }
+
 /* Interruptor de guía: oculta textos de guía y misiones sin desmontarlos (conservan su progreso). */
 .app[data-guide="off"] .guide { display: none !important; }
 
@@ -476,6 +504,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .save-actions[hidden], .save-status[hidden] { display: none; }
 .save-status { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
 .groups { display: grid; }
+/* Vista de ajustes: aviso, grupos y restablecer, uno debajo del otro. */
+.train-settings .groups { border-bottom: 1px solid var(--color-border); }
+.train-settings > .train-pending { margin-top: 0; }
+.train-settings .group:first-child { border-top: 0; }
 .train-pending { margin: var(--space-2) 0 0; padding: var(--space-1) var(--space-2); border-left: 3px solid var(--color-accent); font-size: 13px; color: var(--color-text); background: var(--color-surface-2); border-radius: 0 var(--radius) var(--radius) 0; }
 .train-pending[hidden] { display: none; }
 .generation-badge { font-variant-numeric: tabular-nums; }

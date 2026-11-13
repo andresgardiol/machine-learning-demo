@@ -148,3 +148,17 @@ test('circuitos: guía en un circuito, línea de las misiones y ayuda de la curv
   assertMax('drive.missions.circuit', HINT_MAX);
   assertMax('train.chart.hint.tracks', HINT_MAX);
 });
+
+// Pestañas de vista del panel de Entrenar (panel-de-entrenar-por-vistas D1): las tres, con un contador
+// de cerebros de dos dígitos, entran en un renglón a 360 px. Medido en el navegador a 360 px: en
+// español, con "Cerebros (14)", las tres ocupan 323 de los 328 px de la barra; en inglés, 324.
+const VIEW_TABS_MAX = 34;
+
+test('Entrenar: las tres pestañas de vista, con un contador de dos dígitos, suman hasta 34 caracteres', () => {
+  for (const lang of Object.keys(LANGS)) {
+    const names = [text(lang, 'train.view.training'), text(lang, 'train.view.settings'),
+      text(lang, 'views.label.count', { name: text(lang, 'train.view.brains'), value: 99 })];
+    const total = names.join('').length;
+    assert.ok(total <= VIEW_TABS_MAX, `${lang}: las pestañas suman ${total} caracteres (máximo ${VIEW_TABS_MAX}): ${names.join(' | ')}`);
+  }
+});
