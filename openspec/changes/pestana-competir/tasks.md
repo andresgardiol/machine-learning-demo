@@ -80,4 +80,4 @@ criterio: se informa lo medido y se espera la respuesta.
 - [x] 10.4 Recorrer el filtro de entrada de la propuesta, fila por fila, en el navegador: qué se ve al abrir, cómo se ignora cada cosa y cómo se vuelve atrás. Informar lo que no se cumpla.
 - [x] 10.5 Comprobar que las pestañas 1 a 3 no cambiaron: `npm test` completo y un recorrido corto de cada una en el navegador (barra, panel, atajos).
 - [x] 10.6 Correr `openspec validate pestana-competir --strict` y `npm test`. Actualizar `PENDIENTES.md`: marcar la pestaña 4 como hecha en el orden de trabajo y anotar lo que quedó fuera de alcance y lo que quedó sin medir.
-- [ ] 10.7 Informe final que separe lo medido, lo observado en el navegador y lo que no se probó (lector de pantalla real, Safari y Firefox).
+- [x] 10.7 Informe final que separe lo medido, lo observado en el navegador y lo que no se probó (lector de pantalla real, Safari y Firefox).
