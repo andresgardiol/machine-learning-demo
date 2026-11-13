@@ -34,6 +34,9 @@ import { STEP, CAR_LENGTH, REVERSE_FRACTION, TRAFFIC_CHANGE_AHEAD, TRAFFIC_SPEED
  * @param {number} [spec.maxSpeed] velocidad máxima de avance del auto (m/s), de 12 a 40; 15 por defecto (mundo de un auto)
  * @param {object} [spec.controller] objeto con control(perception) (ver controller.js) (mundo de un auto)
  * @param {{controller?:object, sensors?:object, maxSpeed?:number}[]} [spec.cars] varios autos, cada uno con lo suyo
+ * @param {boolean} [spec.keepClock] el reloj (y el tráfico) siguen avanzando aunque no quede ningún
+ *   auto en carrera (pestana-competir D1c: en una carrera, todos pueden estar cumpliendo la
+ *   penalización a la vez). Sin uso en las pestañas 1 a 3: ahí, con todos chocados, el mundo se detiene.
  */
 export function createWorld(spec = {}) {
   const { seed = 1, lanes, density, irregularity } = spec;
@@ -57,6 +60,8 @@ export function createWorld(spec = {}) {
     laps: 0, // vueltas completas (en una pista cerrada; en una abierta, siempre 0)
     lapDistance: 0, // última distancia dentro de la vuelta
     crashCause: null,
+    protecting: false, // recién reaparecido (respawn): el tráfico no lo choca
+    protectedUntil: -Infinity, // la protección dura al menos hasta este instante
     nearby: [],
     rays: [],
     perception: null,
@@ -146,10 +151,17 @@ export function createWorld(spec = {}) {
     for (const [a, b] of track.bordersNear(car.position, CAR_LENGTH)) {
       for (const [c, d] of edges) if (segmentIntersection(a, b, c, d)) return 'edge';
     }
+    let touching = false;
     for (const v of agent.nearby) {
-      if (distance(v.position, car.position) <= CAR_LENGTH * 1.5 && contoursTouch(contour, v.contour)) return 'vehicle';
+      if (distance(v.position, car.position) <= CAR_LENGTH * 1.5 && contoursTouch(contour, v.contour)) { touching = true; break; }
     }
-    return null;
+    // Recién reaparecido (respawn), el tráfico no lo choca, y la protección no termina mientras esté
+    // encimado con un vehículo: termina en el primer paso, cumplido su tiempo, en que no toca ninguno.
+    if (agent.protecting) {
+      if (time >= agent.protectedUntil && !touching) agent.protecting = false;
+      return null;
+    }
+    return touching ? 'vehicle' : null;
   }
 
   /** Vuelve al estado inicial con la misma semilla y la configuración actual (también la del tráfico). */
@@ -167,6 +179,8 @@ export function createWorld(spec = {}) {
       a.laps = 0;
       a.lapDistance = 0;
       a.crashCause = null;
+      a.protecting = false;
+      a.protectedUntil = -Infinity;
     }
     time = 0;
     steps = 0;
@@ -177,7 +191,10 @@ export function createWorld(spec = {}) {
   function step() {
     if (paused) return;
     const running = agents.filter((a) => !a.car.crashed);
-    if (running.length === 0) return;
+    if (running.length === 0) {
+      if (spec.keepClock) { steps += 1; time = steps * STEP; }
+      return;
+    }
     for (const a of running) stepCar(a.car, normalizeControls(a.controller.control(a.perception)), STEP);
     steps += 1;
     time = steps * STEP;
@@ -241,6 +258,36 @@ export function createWorld(spec = {}) {
       look([a]);
       return true;
     },
+    /**
+     * Vuelve a poner en la pista al agente `index` (pestana-competir D1c): en el carril de salida (el
+     * centro, en un circuito), a `progress` metros de la salida (en un circuito, contando las vueltas:
+     * vueltas × largo + distancia), mirando hacia adelante, detenido y en carrera. Durante al menos
+     * `protect` segundos el tráfico no lo choca, y la protección no termina mientras esté encimado con
+     * un vehículo; los bordes sí lo chocan, y sus sensores ven todo como siempre. Sus
+     * sensores y su velocidad máxima no cambian. Sin uso en las pestañas 1 a 3.
+     */
+    respawn(index, { progress = 0, protect = 0 } = {}) {
+      const a = agents[index];
+      if (!a) return false;
+      const p = Math.max(0, progress);
+      const at = track.laneCenter(startLane, p);
+      a.car.position = { ...at.position };
+      a.car.angle = at.angle;
+      a.car.speed = 0;
+      a.car.crashed = false;
+      a.crashCause = null;
+      a.segmentIndex = at.segmentIndex;
+      if (track.closed) {
+        a.laps = Math.floor(p / track.length);
+        a.lapDistance = p - a.laps * track.length;
+      }
+      a.protecting = protect > 0;
+      a.protectedUntil = protect > 0 ? time + protect : -Infinity;
+      look([a]);
+      return true;
+    },
+    /** ¿El tráfico no puede chocar todavía al agente `index`? (ver respawn) */
+    isProtected(index) { return Boolean(agents[index]?.protecting); },
     /** Vehículos del tráfico con su posición sobre la línea central en [from, to], en el instante actual. */
     vehiclesIn(from, to) { return traffic.vehicles(time, from, to); },
     /** Copia plana del estado (del primer auto) para pruebas, comparaciones y dibujo. */
