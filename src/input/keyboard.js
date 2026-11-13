@@ -13,6 +13,24 @@ export const KEY_BINDINGS = Object.freeze({
   ArrowRight: 'right', KeyD: 'right',
 });
 
+// --- Atajos de una tecla (panel-de-entrenar-por-vistas D9) -------------------------------------
+// Con la preferencia "Atajos" apagada, ninguna tecla de carácter (barra espaciadora, letras y
+// números) dispara una acción ni maneja el auto; las flechas siguen manejando. Es un estado de toda
+// la aplicación: lo fija la estructura común al arrancar y al cambiar el interruptor.
+let characterShortcuts = true;
+
+/** Enciende o apaga los atajos de una tecla de carácter. */
+export function setCharacterShortcuts(on) { characterShortcuts = Boolean(on); }
+
+/** ¿Están encendidos los atajos de una tecla de carácter? */
+export const characterShortcutsOn = () => characterShortcuts;
+
+/** ¿El código de tecla es de una tecla de carácter (barra espaciadora, letra o número)? */
+export const isCharacterKey = (code) => code === 'Space' || /^Key[A-Z]$/.test(code ?? '') || /^Digit[0-9]$/.test(code ?? '');
+
+/** ¿Se atiende la tecla `code` como atajo o para manejar? No, si es de carácter y los atajos están apagados. */
+export const keyAllowed = (code) => characterShortcuts || !isCharacterKey(code);
+
 const NON_TEXT_INPUTS = new Set(['button', 'checkbox', 'radio', 'range', 'reset', 'submit', 'color', 'file', 'image']);
 
 /** ¿El evento ocurre mientras la persona escribe en un campo de texto? */
@@ -46,6 +64,7 @@ export function createKeyboardController({ target = globalThis.window, doc = glo
   function onKeyDown(e) {
     const action = KEY_BINDINGS[e.code];
     if (!action || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!keyAllowed(e.code)) return; // W A S D, apagadas con los atajos; las flechas siguen
     if (isTypingTarget(e.target) || ownsArrowKeys(e.target)) return;
     pressed.add(e.code);
     if (e.code.startsWith('Arrow')) e.preventDefault(); // que las flechas no desplacen la página

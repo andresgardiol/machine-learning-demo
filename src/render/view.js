@@ -16,6 +16,7 @@ import {
 } from './camera.js';
 import { createSceneryPainter } from './scenery.js';
 import { createTrackPicker } from './track-picker.js';
+import { keyAllowed } from '../input/keyboard.js';
 
 const COLOR_VARS = {
   background: '--color-bg',
@@ -208,6 +209,7 @@ export function createStageView({ container, camera = createCamera(), doc = docu
   // Atajo para restablecer la vista.
   function onKeyDown(e) {
     if (e.code !== RESET_VIEW_KEY || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!keyAllowed(e.code)) return; // atajos de una tecla apagados (panel-de-entrenar-por-vistas D9)
     if (isTypingTarget(e.target)) return;
     resetView();
   }

@@ -25,6 +25,8 @@ import { RULES_PROGRAM_MAX } from '../../ui/preferences.js';
 import { perceptionBlock, actionBlock, READINGS_MAX } from '../shared/driving-cards.js';
 import { streetAdvanced, setUnavailable } from '../shared/street-advanced.js';
 import { formatFixed } from '../../ui/i18n.js';
+import { stageDescription } from '../../ui/stage-description.js';
+import { drivingDescription } from '../shared/stage-text.js';
 import {
   DEFAULT_SETTINGS, needsRestart, normalizeSettings, worldSpec, onCircuit, lapsShown,
 } from '../shared/street-settings.js';
@@ -90,6 +92,8 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
     container: stage, store,
     trackPicker: { mode: 'single', i18n, onSelect: ([track]) => { if (track !== state.settings.track) applySettings({ ...state.settings, track }); } },
   });
+  // Descripción en texto del escenario, para lectores de pantalla (panel-de-entrenar-por-vistas D9).
+  const description = stageDescription({ stage });
   const setText = createTextSetter(i18n);
   const focusStage = () => stage.focus({ preventScroll: true });
   const makeWorld = () => createWorld({ ...worldSpec(state.settings, state.seed), controller });
@@ -492,6 +496,10 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
 
     const crashed = world.crashed;
     machineBadge.hidden = !(state.machineView && !crashed);
+    description.set(drivingDescription({
+      t: i18n.t, track: state.settings.track, lanes: state.settings.lanes, paused: world.paused, crashed,
+      meters: session.distance, machineView: state.machineView && !crashed,
+    }));
     const crashKey = world.crashCause === 'vehicle' ? 'rules.crash.vehicle' : circuit ? 'rules.crash.edge.circuit' : 'rules.crash.edge';
     setText(crashHowto, circuit ? 'rules.crash.howto.circuit' : 'rules.crash.howto');
     crashBadge.hidden = !(crashed && state.autoRetry);
@@ -582,6 +590,7 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
       board.removeEventListener('click', onClick);
       stage.removeEventListener('click', onClick);
       editor.dispose();
+      description.dispose();
       view.dispose();
     },
   };

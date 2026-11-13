@@ -18,6 +18,8 @@ import { statStrip, boardCard } from '../../ui/board.js';
 import { perceptionBlock, actionBlock } from '../shared/driving-cards.js';
 import { streetAdvanced, setUnavailable } from '../shared/street-advanced.js';
 import { formatFixed } from '../../ui/i18n.js';
+import { stageDescription } from '../../ui/stage-description.js';
+import { drivingDescription } from '../shared/stage-text.js';
 import { createDriveSession } from './session.js';
 import {
   DEFAULT_SETTINGS, needsRestart, normalizeSettings, worldSpec, onCircuit, lapsShown,
@@ -46,6 +48,8 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     trackPicker: { mode: 'single', i18n, onSelect: ([track]) => { if (track !== settings.track) applySettings({ ...settings, track }); } },
   });
   const options = { showSensors: true, machineView: false };
+  // Descripción en texto del escenario, para lectores de pantalla (panel-de-entrenar-por-vistas D9).
+  const description = stageDescription({ stage });
 
   const setText = createTextSetter(i18n);
 
@@ -203,6 +207,10 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
     missionsCircuit.hidden = !circuit;
     setUnavailable(newTrafficButton, circuit, 'drive.newTraffic');
     view.trackPicker.update({ selected: [settings.track], current: settings.track });
+    description.set(drivingDescription({
+      t: i18n.t, track: settings.track, lanes: settings.lanes, paused: world.paused, crashed,
+      meters: session.distance, machineView: options.machineView && !crashed,
+    }));
     setText(strip.values.attempts, 'drive.value.count', { value: session.attempts });
     setText(strip.values.best, 'drive.value.meters', meters(session.best));
 
@@ -314,6 +322,7 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
       board.removeEventListener('click', onClick);
       stage.removeEventListener('click', onClick);
       keyboard.dispose();
+      description.dispose();
       view.dispose();
     },
   };

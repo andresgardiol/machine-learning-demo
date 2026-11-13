@@ -22,6 +22,8 @@ import { createFitnessChart } from '../../ui/chart.js';
 import { createLoop, SPEEDS } from '../../ui/loop.js';
 import { createLibraryView } from '../../ui/library-view.js';
 import { panelViews } from '../../ui/panel-views.js';
+import { stageDescription } from '../../ui/stage-description.js';
+import { trainingDescription } from '../shared/stage-text.js';
 import { el } from '../../ui/dom.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { statStrip, boardCard } from '../../ui/board.js';
@@ -123,6 +125,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     trackPicker: { mode: 'multi', i18n, onSelect: (tracks) => setSetting('tracks', tracks) },
   });
   const focusStage = () => stage.focus({ preventScroll: true });
+  // Descripción en texto del escenario, para lectores de pantalla (D9).
+  const description = stageDescription({ stage });
 
   // --- Entrenamiento ------------------------------------------------------------------------
   let offGeneration = () => {};
@@ -668,6 +672,10 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     // El rótulo ya no nombra la pista: el selector, justo debajo, la dice (D5).
     setText(generationBadge, 'train.badge.generation', { value: ind.generation });
     view.trackPicker.update({ selected: s.tracks, current: ind.trackId, pending: Boolean(t.pending && 'tracks' in t.pending) });
+    description.set(trainingDescription({
+      t: i18n.t, track: ind.trackId, lanes: t.config.lanes, generation: ind.generation, alive: ind.alive, total: ind.total,
+      paused: state.paused, machineView: state.machineView,
+    }));
     machineBadge.hidden = !state.machineView;
     // Línea de la última generación: dos tramos con su clave, así el cambio de idioma los reescribe.
     const last = lastGeneration(t);
@@ -921,6 +929,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
       offLibrary();
       chart.dispose();
       networkView.dispose();
+      description.dispose();
       view.dispose();
     },
   };

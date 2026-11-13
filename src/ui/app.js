@@ -15,6 +15,7 @@ import {
 } from './layout.js';
 import { MAX_SPEED } from '../core/constants.js';
 import { createLibrary } from './library.js';
+import { setCharacterShortcuts } from './shortcuts.js';
 
 /** Almacenamiento del navegador, o null si no está disponible (el acceso mismo puede fallar). */
 function browserStorage() {
@@ -45,6 +46,15 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     activeTab: tabs.find((t) => t.module)?.id ?? null,
     carSpeed: preferences.carSpeed ?? MAX_SPEED,
     scenery: preferences.scenery ?? true, // paisaje alrededor de la pista, igual en todas las pestañas
+    shortcuts: preferences.shortcuts ?? true, // atajos de una tecla (panel-de-entrenar-por-vistas D9)
+  });
+  // Atajos de una tecla: los decide shortcutFrom y el teclado; los rótulos muestran o no su tecla.
+  const applyShortcuts = (on) => { setCharacterShortcuts(on); i18n.setShortcutLabels?.(on); };
+  applyShortcuts(store.get().shortcuts);
+  store.subscribe((state, prev) => {
+    if (state.shortcuts === prev.shortcuts) return;
+    preferences.shortcuts = state.shortcuts;
+    applyShortcuts(state.shortcuts);
   });
   store.subscribe((state, prev) => { if (state.carSpeed !== prev.carSpeed) preferences.carSpeed = state.carSpeed; });
   store.subscribe((state, prev) => { if (state.scenery !== prev.scenery) preferences.scenery = state.scenery; });
@@ -75,6 +85,13 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     on: { click: () => setGuide(!store.get().guide) },
   }, el('span', { class: 'switch-track', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'app.guide' }));
 
+  // Interruptor "Atajos", junto al de guía: apaga los atajos de una sola tecla.
+  const shortcutsSwitch = el('button', {
+    class: 'switch', help: 'shortcuts',
+    attrs: { type: 'button', role: 'switch', 'aria-checked': 'true', id: 'shortcuts-switch' },
+    on: { click: () => store.set({ shortcuts: !store.get().shortcuts }) },
+  }, el('span', { class: 'switch-track', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'app.shortcuts' }));
+
   const languageButtons = LANGUAGES.map((lang) => el('button', {
     class: 'lang-option', i18n: `language.${lang}`, help: 'language',
     i18nAttr: `aria-label:language.${lang}.name`,
@@ -92,7 +109,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   const header = el('header', { class: 'topbar' },
     el('div', { class: 'brand', i18n: 'app.title' }),
     tabBar,
-    el('div', { class: 'tools' }, guideSwitch, languageGroup, creditsButton));
+    el('div', { class: 'tools' }, guideSwitch, shortcutsSwitch, languageGroup, creditsButton));
 
   // --- Disposición común: escenario, tablero y panel (en ese orden de foco) ----
   const stage = el('section', { class: 'stage', i18nAttr: 'aria-label:app.stage', attrs: { tabindex: '-1' } });
@@ -281,6 +298,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     const { guide, activeTab } = store.get();
     shell.dataset.guide = guide ? 'on' : 'off';
     guideSwitch.setAttribute('aria-checked', String(guide));
+    shortcutsSwitch.setAttribute('aria-checked', String(store.get().shortcuts));
     for (const b of tabButtons) {
       const selected = b.dataset.tab === activeTab;
       b.setAttribute('aria-selected', String(selected));

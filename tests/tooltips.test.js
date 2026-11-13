@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { placeTooltip, helpKeys, opensTooltip, WRITING_AREA_SELECTOR } from '../src/ui/tooltips.js';
+import { placeTooltip, helpKeys, opensTooltip, WRITING_AREA_SELECTOR, pointerLeaveAction, HIDE_DELAY_MS } from '../src/ui/tooltips.js';
 
 const viewport = { width: 1280, height: 800 };
 const size = { width: 260, height: 120 };
@@ -60,4 +60,17 @@ test('los demás controles: el tooltip aparece con el cursor y con el foco de te
   assert.equal(opensTooltip({ cause: 'hover', writingArea: false, keyboard: false }), true);
   assert.equal(opensTooltip({ cause: 'focus', writingArea: false, keyboard: true, focusVisible: true }), true);
   assert.equal(opensTooltip({ cause: 'focus', writingArea: false, keyboard: false, focusVisible: false }), false);
+});
+
+// --- panel-de-entrenar-por-vistas D9: tooltip alcanzable con el cursor (WCAG 1.4.13) -------------
+
+test('Llevar el cursor al tooltip: al salir del control se espera un momento corto; sobre el tooltip, sigue abierto', () => {
+  assert.equal(pointerLeaveAction({ from: 'control', toControl: false, toTooltip: false }), 'delay');
+  assert.equal(pointerLeaveAction({ from: 'control', toControl: false, toTooltip: true }), 'keep');
+  assert.ok(HIDE_DELAY_MS > 0 && HIDE_DELAY_MS <= 500, `${HIDE_DELAY_MS} ms`);
+});
+
+test('Salir del tooltip: sin volver al control, se cierra ya; volviendo al control, sigue abierto', () => {
+  assert.equal(pointerLeaveAction({ from: 'tooltip', toControl: false, toTooltip: false }), 'now');
+  assert.equal(pointerLeaveAction({ from: 'tooltip', toControl: true, toTooltip: false }), 'keep');
 });

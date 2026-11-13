@@ -2,7 +2,10 @@
 // de la pestaña Reglas a mano y paisaje). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', scenery: 'mlLab.scenery' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
+
+/** Atajos de una tecla encendidos por defecto (panel-de-entrenar-por-vistas D9). */
+export const DEFAULT_SHORTCUTS = true;
 
 /** Largo máximo del programa recordado de la pestaña Reglas a mano (design.md D8). */
 export const RULES_PROGRAM_MAX = 20000;
@@ -51,6 +54,12 @@ export function createPreferences(getStorage = defaultStorage) {
       return v === 'off' ? false : v === 'on' ? true : DEFAULT_PREFERENCES.scenery;
     },
     set scenery(value) { write(KEYS.scenery, value ? 'on' : 'off'); },
+    /** Interruptor "Atajos": atajos de una tecla encendidos o apagados; encendido por defecto. */
+    get shortcuts() {
+      const v = read(KEYS.shortcuts);
+      return v === 'off' ? false : v === 'on' ? true : DEFAULT_SHORTCUTS;
+    },
+    set shortcuts(value) { write(KEYS.shortcuts, value ? 'on' : 'off'); },
     /** Ancho del panel derecho en píxeles, o null si no se guardó uno válido. */
     get panelWidth() {
       const v = Number.parseInt(read(KEYS.panelWidth) ?? '', 10);

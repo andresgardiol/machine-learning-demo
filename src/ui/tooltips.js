@@ -13,6 +13,11 @@
 // apenas se escribe o se hace clic en ella.
 
 export const SHOW_DELAY_MS = 400;
+/**
+ * Espera antes de cerrar al salir el cursor del control (panel-de-entrenar-por-vistas D9, WCAG
+ * 1.4.13): da tiempo a llevar el cursor hasta el tooltip, que queda abierto mientras está encima.
+ */
+export const HIDE_DELAY_MS = 300;
 const GAP = 8;
 const MARGIN = 8;
 
@@ -28,6 +33,18 @@ export function opensTooltip({ cause, writingArea, keyboard, focusVisible = keyb
   if (cause === 'hover') return !writingArea;
   // Con el foco, un área de escritura siempre muestra el anillo (también tras un clic): cuenta solo Tab.
   return writingArea ? keyboard : focusVisible;
+}
+
+/**
+ * Qué hacer con un tooltip visible cuando el cursor sale de algo (D9):
+ *   'keep'  sigue abierto (el cursor pasó del control al tooltip o del tooltip al control)
+ *   'delay' se cierra tras HIDE_DELAY_MS, salvo que el cursor llegue antes al tooltip
+ *   'now'   se cierra ya (el cursor sale del tooltip sin volver al control)
+ * @param {{from:'control'|'tooltip', toControl:boolean, toTooltip:boolean}} spec
+ */
+export function pointerLeaveAction({ from, toControl, toTooltip }) {
+  if (toControl || toTooltip) return 'keep';
+  return from === 'control' ? 'delay' : 'now';
 }
 
 export const helpKeys = (id) => ({ what: `help.${id}.what`, why: `help.${id}.why` });
@@ -63,7 +80,7 @@ export function placeTooltip(anchor, size, viewport, gap = GAP, margin = MARGIN)
  * @param {{doc?: Document, i18n: object, delay?: number}} spec
  * @returns {{hide: Function, dispose: Function, element: HTMLElement}}
  */
-export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS }) {
+export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS, hideDelay = HIDE_DELAY_MS }) {
   const win = doc.defaultView;
   const tip = doc.createElement('div');
   tip.className = 'tooltip';
@@ -83,6 +100,7 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS })
 
   let current = null; // control con el tooltip visible o pendiente
   let timer = null;
+  let hideTimer = null; // cierre demorado al salir el cursor del control
   let tabbing = false; // la última interacción fue la tecla Tab (y no un clic)
 
   const isWritingArea = (control) => control.matches(WRITING_AREA_SELECTOR);
@@ -114,6 +132,8 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS })
   }
 
   function show(control) {
+    clearTimeout(hideTimer);
+    hideTimer = null;
     clearTimeout(timer);
     timer = null;
     current = control;
@@ -124,6 +144,8 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS })
   }
 
   function hide() {
+    clearTimeout(hideTimer);
+    hideTimer = null;
     clearTimeout(timer);
     timer = null;
     if (current) current.removeAttribute('aria-describedby');
@@ -133,7 +155,9 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS })
 
   function onPointerOver(e) {
     if (e.pointerType && e.pointerType !== 'mouse') return;
+    if (tip.contains(e.target)) return; // el cursor sobre el tooltip no abre otro
     const control = controlOf(e.target);
+    if (control === current && hideTimer !== null) { clearTimeout(hideTimer); hideTimer = null; return; }
     if (!control || control === current) return;
     if (!opensTooltip({ cause: 'hover', writingArea: isWritingArea(control), keyboard: false })) return;
     hide();
@@ -144,11 +168,24 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS })
   function onPointerOut(e) {
     if (!current) return;
     const to = e.relatedTarget;
-    if (to && current.contains(to)) return;
-    if (controlOf(e.target) !== current) return;
+    const from = tip.contains(e.target) ? 'tooltip' : controlOf(e.target) === current ? 'control' : null;
+    if (!from) return;
+    if (from === 'tooltip' && to && tip.contains(to)) return; // se mueve dentro del tooltip
+    if (from === 'control' && to && current.contains(to)) return; // se mueve dentro del control
     if (doc.activeElement === current && current.matches(':focus-visible')) return;
-    hide();
+    const action = pointerLeaveAction({ from, toControl: Boolean(to && current.contains(to)), toTooltip: Boolean(to && tip.contains(to)) });
+    if (action === 'keep') return;
+    // Todavía no apareció (el cursor estaba de paso): se cancela sin esperar.
+    if (action === 'now' || tip.hidden) { hide(); return; }
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => { hideTimer = null; hide(); }, hideDelay);
   }
+  /** El cursor llegó al tooltip: queda abierto mientras esté encima. */
+  function onTipEnter() {
+    clearTimeout(hideTimer);
+    hideTimer = null;
+  }
+  tip.addEventListener('pointerenter', onTipEnter);
 
   function onFocusIn(e) {
     const control = controlOf(e.target);

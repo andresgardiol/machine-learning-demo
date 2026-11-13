@@ -63,6 +63,9 @@ export function localizeParams(params, language) {
 export function createI18n({ dictionaries, language = 'es' }) {
   let current = LANGUAGES.includes(language) ? language : 'es';
   const listeners = new Set();
+  // Rótulos con su atajo: con los atajos de una tecla apagados, un texto que tiene la variante
+  // `<clave>.plain` usa esa, sin la tecla ("Pausar" en lugar de "Pausar (espacio)").
+  let shortcutLabels = true;
 
   const other = (lang) => LANGUAGES.find((l) => l !== lang);
 
@@ -74,10 +77,21 @@ export function createI18n({ dictionaries, language = 'es' }) {
    * Los parámetros numéricos se escriben según el idioma activo ("1,5" en español, "1.5" en inglés).
    */
   function t(key, params) {
-    const variant = singularKey(key, params);
+    const variant = singularKey(plainKey(key), params);
     const own = dictionaries[current]?.[variant];
     const text = own ?? dictionaries[other(current)]?.[variant] ?? key;
     return format(text, localizeParams(params, current));
+  }
+
+  function plainKey(key) {
+    return !shortcutLabels && has(`${key}.plain`) ? `${key}.plain` : key;
+  }
+
+  /** Muestra u oculta las teclas de atajo en los rótulos; avisa como un cambio de idioma. */
+  function setShortcutLabels(on) {
+    if (Boolean(on) === shortcutLabels) return;
+    shortcutLabels = Boolean(on);
+    for (const fn of [...listeners]) fn(current);
   }
 
   function singularKey(key, params) {
@@ -118,7 +132,8 @@ export function createI18n({ dictionaries, language = 'es' }) {
   }
 
   return {
-    t, has, setLanguage, onChange, translateTree,
+    t, has, setLanguage, onChange, translateTree, setShortcutLabels,
+    get shortcutLabels() { return shortcutLabels; },
     get language() { return current; },
     get dictionaries() { return dictionaries; },
   };

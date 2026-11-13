@@ -5,7 +5,10 @@
   --color-surface-2: #242c37;
   --color-text: #eef1f5;
   --color-text-muted: #aab3c0;
-  --color-border: #3a4554;
+  --color-border: #3a4554; /* líneas que solo separan zonas: divisores, tarjetas y secciones */
+  /* Borde o contorno que permite reconocer un control (campos, grupos de opciones, interruptores y
+     botones con contorno): 3:1 o más sobre el fondo, el panel y las tarjetas (panel-de-entrenar-por-vistas D9). */
+  --color-control-border: #74808f;
   --color-accent: #4ea1ff;
   --color-tooltip-bg: #0b0e12;
 
