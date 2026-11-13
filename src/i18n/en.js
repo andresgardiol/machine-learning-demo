@@ -1000,4 +1000,9 @@ export default {
   'help.compete.bar.goal.meters.why': 'More meters means more traffic to pass: a brain that crashes now and then shows it more.',
   'help.compete.bar.goal.laps.what': 'How many laps the race has on this circuit, from 1 to 5. It applies on release and starts another race.',
   'help.compete.bar.goal.laps.why': 'With more laps you see whether a racer repeats the lap well or slips now and then.',
+  'compete.main.counting': 'Starting…',
+  'compete.countdown.announce': 'The race starts in {value} seconds.',
+  'compete.countdown.go': 'Go!',
+  'help.compete.main.counting.what': 'The race is about to start: it counts 3, 2, 1 on the stage.',
+  'help.compete.main.counting.why': 'The countdown gives you time to put your hands on the arrow keys; while it counts, this button does nothing.',
 };

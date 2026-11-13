@@ -1000,4 +1000,9 @@ export default {
   'help.compete.bar.goal.meters.why': 'Más metros es más tráfico que pasar: un cerebro que choca de vez en cuando lo nota más.',
   'help.compete.bar.goal.laps.what': 'Cuántas vueltas tiene la carrera en este circuito, de 1 a 5. Actúa al soltar y empieza otra carrera.',
   'help.compete.bar.goal.laps.why': 'Con más vueltas se ve si un competidor repite bien la vuelta o se equivoca de vez en cuando.',
+  'compete.main.counting': 'Largando…',
+  'compete.countdown.announce': 'La carrera larga en {value} segundos.',
+  'compete.countdown.go': '¡Ya!',
+  'help.compete.main.counting.what': 'La carrera está por largar: cuenta 3, 2, 1 sobre el escenario.',
+  'help.compete.main.counting.why': 'La cuenta te da tiempo de poner las manos en las flechas; mientras cuenta, este botón no hace nada.',
 };

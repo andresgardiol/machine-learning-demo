@@ -15,9 +15,10 @@ export function shortcutFor(e) {
 
 /**
  * Qué hace la acción principal (el botón principal y la barra espaciadora) según la fase:
- * esperando en la salida, larga; corriendo, pausa; en pausa, reanuda; terminada, otra carrera.
- * @param {'waiting'|'running'|'paused'|'finished'} phase
+ * esperando en la salida, larga; contando (la cuenta regresiva), nada; corriendo, pausa; en pausa,
+ * reanuda; terminada, otra carrera.
+ * @param {'waiting'|'counting'|'running'|'paused'|'finished'} phase
  */
 export function mainAction(phase) {
-  return { waiting: 'start', running: 'pause', paused: 'resume', finished: 'another' }[phase] ?? 'start';
+  return { waiting: 'start', counting: 'counting', running: 'pause', paused: 'resume', finished: 'another' }[phase] ?? 'start';
 }

@@ -36,6 +36,7 @@ import { createResults, STREET_TRAFFICS } from './results.js';
 import { createCompeteMissions } from './missions.js';
 import { createSeedSeries, seedFor } from './seeds.js';
 import { shortcutFor, mainAction } from './shortcuts.js';
+import { createCountdown, COUNTDOWN_FROM } from './countdown.js';
 
 /** Valores de la barra al abrir y al restablecer (D3): los del entrenamiento. */
 export const BAR_DEFAULTS = Object.freeze({
@@ -148,6 +149,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     state.phase = keys.includes('human') ? 'waiting' : 'running';
     state.follow = null;
     state.firstAnnounced = false;
+    countdown.cancel(); // una carrera nueva corta la cuenta y vuelve al cartel (D5)
     keyboard.releaseAll();
     view.followCar();
     announce(null);
@@ -157,12 +159,26 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     sync();
   }
 
+  // Cuenta regresiva al largar con "Vos" (D5): de la pestaña; la carrera no avanza pasos mientras cuenta.
+  const countdown = createCountdown();
+  const clock = () => performance.now() / 1000;
   function start() {
     if (state.phase !== 'waiting') return;
-    state.phase = 'running';
-    keyboard.releaseAll();
     focusStage();
+    if (humanIn()) {
+      // Las flechas que ya están apretadas siguen apretadas: el auto arranca sin soltarlas al terminar.
+      state.phase = 'counting';
+      countdown.start(clock());
+      announce(t('compete.countdown.announce', { value: COUNTDOWN_FROM }));
+    } else {
+      state.phase = 'running';
+    }
     sync();
+  }
+  /** La cuenta terminó: arranca la carrera, con el tiempo en cero. */
+  function tickCountdown() {
+    if (state.phase !== 'counting') return;
+    if (countdown.at(clock()).state !== 'counting') state.phase = 'running';
   }
   function togglePause() {
     if (state.phase === 'running') state.phase = 'paused';
@@ -171,6 +187,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   }
   function main() {
     const action = mainAction(state.phase);
+    if (action === 'counting') return; // durante la cuenta, ni pausa ni saltea (D5)
     if (action === 'start') start();
     else if (action === 'another') anotherRace();
     else togglePause();
@@ -596,6 +613,26 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'train.paused', attrs: { role: 'status' } });
   const machineBadge = el('div', { class: 'stage-badge machine-badge', i18n: 'drive.machine.badge' });
   view.corner.append(el('div', { class: 'stage-badges' }, waitBadge, pauseBadge, machineBadge));
+  // Números de la cuenta regresiva, en grande sobre el escenario; el lector de pantalla oye un solo
+  // anuncio al empezar, no cada número.
+  const countNumber = el('div', { class: 'countdown-number', attrs: { 'aria-hidden': 'true' } });
+  const countLayer = el('div', { class: 'countdown-layer', attrs: { 'aria-hidden': 'true' } }, countNumber);
+  stage.append(countLayer);
+  function syncCountdown() {
+    const c = countdown.at(clock());
+    const show = c.state === 'counting' || c.state === 'go';
+    countLayer.hidden = !show;
+    if (!show) return;
+    const text = c.state === 'go' ? t('compete.countdown.go') : String(c.number);
+    if (countNumber.textContent !== text) {
+      countNumber.textContent = text;
+      countNumber.dataset.go = String(c.state === 'go');
+      // Reinicia la animación de entrada de cada número (sin animación con movimiento reducido, por CSS).
+      countNumber.classList.remove('countdown-pop');
+      void countNumber.offsetWidth;
+      countNumber.classList.add('countdown-pop');
+    }
+  }
 
   /** Índice del auto que sigue la cámara (D5 y D11). */
   function focusIndex() {
@@ -631,6 +668,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     const action = mainAction(phase);
     setText(mainButton, `compete.main.${action}`);
     mainButton.dataset.help = `compete.main.${action}`;
+    mainButton.setAttribute('aria-disabled', String(action === 'counting'));
     mainButton.setAttribute('aria-pressed', String(phase === 'paused'));
     // Sin "Vos", las velocidades de simulación; con "Vos", se corre en tiempo real y no se muestran.
     speeds.row.hidden = humanIn();
@@ -691,6 +729,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
 
     // Escenario: cartel para largar y cuenta de la espera.
     startLayer.hidden = phase !== 'waiting';
+    syncCountdown();
     if (phase === 'waiting') {
       setText(startText, 'compete.start.text', { goal: goalText(t, { kind: g.kind, value: g.value }) });
       startKey.hidden = !characterShortcutsOn();
@@ -702,7 +741,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     const focus = focusIndex();
     description.set(raceDescription({
       t, track: race.trackId, lanes: state.settings.lanes, goal: g, count: race.results.length,
-      phase, leader: leaderName, winner: phase === 'finished' ? winnerName() : null,
+      phase: phase === 'counting' ? 'waiting' : phase, leader: leaderName, winner: phase === 'finished' ? winnerName() : null,
       followed: nameOf(candidateOf(state.raceKeys[focus])), machineView: state.machineView,
     }));
     renderScoreboard(now);
@@ -724,6 +763,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     speed: 1,
   });
   function draw() {
+      tickCountdown();
+      syncCountdown();
       const race = state.race;
       view.render(race.world, {
         showSensors: state.showSensors || state.machineView,
@@ -775,6 +816,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   if (!state.race || removed.length > 0 || changed || speedChanged) newRace();
   else {
     if (state.phase === 'running') state.phase = 'paused'; // la carrera quedó en pausa al salir (D13)
+    if (state.phase === 'counting') state.phase = 'waiting'; // la cuenta se cortó al salir: vuelve el cartel
     rebuildScoreboard();
     sync();
   }
@@ -793,6 +835,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     start, togglePause, restart, anotherRace, main, toggleCompetitor,
     unmount() {
       if (state.phase === 'running') state.phase = 'paused';
+      if (state.phase === 'counting') { state.phase = 'waiting'; countdown.cancel(); }
       loop.dispose();
       keyboard.dispose();
       offLanguage();
@@ -805,6 +848,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
       scenario.dispose();
       description.dispose();
       startLayer.remove();
+      countLayer.remove();
       view.dispose();
     },
   };
