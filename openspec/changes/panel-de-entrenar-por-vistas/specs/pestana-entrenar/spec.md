@@ -29,9 +29,11 @@ anterior.
 ### Requirement: Configuración avanzada
 La pestaña SHALL ofrecer, en la vista de ajustes del panel, los ajustes de
 evolución (élite, selección, probabilidad de mutación, cruce, función de
-fitness, duración máxima, eliminar a los lentos y modo de tráfico) y de escenario (carriles, densidad,
-irregularidad y velocidad máxima del auto). Todos SHALL aplicarse desde la
-generación siguiente, con la misma indicación que la configuración básica.
+fitness, duración máxima, eliminar a los lentos y modo de tráfico) que SHALL aplicarse desde la generación siguiente, con la misma indicación
+que la configuración básica. Los de escenario (pista, carriles, densidad,
+irregularidad y velocidad máxima del auto) SHALL estar en la barra de
+escenario y aplicarse en el momento: la generación en curso vuelve a empezar
+con la misma población.
 
 #### Scenario: Sección colapsada
 - **WHEN** se abre la pestaña
@@ -43,7 +45,7 @@ generación siguiente, con la misma indicación que la configuración básica.
 
 #### Scenario: Cambiar los carriles
 - **WHEN** la persona elige cuatro carriles durante una generación
-- **THEN** la generación en curso termina en tres carriles y la siguiente corre en cuatro
+- **THEN** la generación en curso vuelve a empezar en ese momento, con los mismos autos, en una calle de cuatro carriles, sin ninguna indicación de cambio pendiente
 
 #### Scenario: Apagar la regla de los lentos
 - **WHEN** la persona apaga "eliminar a los lentos" durante una generación
@@ -55,8 +57,9 @@ generación siguiente, con la misma indicación que la configuración básica.
 
 ### Requirement: Red y sensores
 La pestaña SHALL ofrecer, en la vista de ajustes, la cantidad de capas
-ocultas (0 a 3), las neuronas de cada capa (1 a 16), la activación de las capas
-ocultas y los sensores (cantidad, alcance y apertura). Cambiar cualquiera de
+ocultas (0 a 3), las neuronas de cada capa (1 a 16) y la activación de las
+capas ocultas, y en la barra de escenario, los sensores (cantidad, alcance y
+apertura). Cambiar cualquiera de
 ellos MUST empezar un entrenamiento nuevo: de inmediato si no terminó ninguna
 generación, y con confirmación si ya terminó alguna.
 
@@ -75,6 +78,14 @@ generación, y con confirmación si ya terminó alguna.
 #### Scenario: Arrastre de un deslizador
 - **WHEN** la persona arrastra el deslizador de neuronas pasando por varios valores con progreso acumulado
 - **THEN** la confirmación se pide una sola vez, al soltar el deslizador
+
+#### Scenario: Cambio mientras se sigue entrenando un cerebro
+- **WHEN** el entrenamiento sigue al cerebro guardado "Prudente", de 5 sensores, y la persona pasa a 18 sensores y confirma
+- **THEN** empieza un entrenamiento nuevo con una población al azar de 18 sensores, el escenario y la red del tablero muestran 18, y la pestaña deja de decir que se sigue entrenando "Prudente"
+
+#### Scenario: La confirmación lo avisa
+- **WHEN** la persona cambia la red o los sensores mientras sigue entrenando un cerebro guardado
+- **THEN** la confirmación dice que se deja de seguir a ese cerebro, que no se borra de la biblioteca, y que se empieza con una población nueva
 
 ### Requirement: Guardar el campeón
 La vista de entrenamiento SHALL ofrecer un solo botón para guardar en la
@@ -191,36 +202,39 @@ tamaños.
 - **THEN** la vista de entrenamiento sigue sin barra de desplazamiento, ni vertical ni horizontal
 
 ### Requirement: Avanzado por grupos
-En la vista de ajustes, los ajustes SHALL estar organizados en cuatro grupos
-plegables a un solo nivel: evolución, abierto al entrar, y escenario, red y
-sensores, plegados. Cada grupo SHALL conservar si quedó abierto al salir de la
-pestaña y volver, hasta cerrar la aplicación. El botón de restablecer y el
-aviso de cambios esperando SHALL verse en la vista aunque todos los grupos
-estén plegados. Cada grupo SHALL tener un tooltip, en español y en inglés.
+En la vista de ajustes, los ajustes SHALL estar en dos bloques a la vista, sin
+plegar y cada uno con su título: primero la red (capas ocultas, neuronas y
+activación) y después la evolución, con la función de fitness primero. El
+botón de restablecer y el aviso de cambios esperando SHALL verse en la vista.
+Cada ajuste SHALL tener su tooltip, en español y en inglés.
 
 #### Scenario: Abrir la sección avanzada
 - **WHEN** la persona pasa a la vista de ajustes por primera vez
-- **THEN** ve los títulos de los cuatro grupos y el botón de restablecer, con el grupo de evolución abierto y la función de fitness como primer ajuste
+- **THEN** ve, sin desplegar nada, el bloque de la red arriba y el de la evolución debajo, con todos sus ajustes
 
 #### Scenario: Abrir un grupo
-- **WHEN** la persona mira el grupo de evolución
+- **WHEN** la persona mira el bloque de evolución
 - **THEN** ve la función de fitness, la élite, la selección, la probabilidad de mutación, el cruce, la duración máxima, eliminar a los lentos y el modo de tráfico
 
 #### Scenario: Grupo recordado
-- **WHEN** la persona deja abierto el grupo de escenario, abre otra pestaña y vuelve
-- **THEN** el grupo de escenario sigue abierto al pasar a la vista de ajustes
+- **WHEN** la persona deja el panel en la vista de ajustes, abre otra pestaña y vuelve
+- **THEN** el panel sigue en la vista de ajustes, con los dos bloques a la vista
 
 #### Scenario: Confirmación de la red junto a su grupo
 - **WHEN** la persona cambia las capas ocultas con generaciones terminadas
-- **THEN** la confirmación de entrenamiento nuevo aparece dentro del grupo de red, junto al ajuste que la pidió
+- **THEN** la confirmación de entrenamiento nuevo aparece dentro del bloque de red, junto al ajuste que la pidió
 
 #### Scenario: Tooltip de un grupo
-- **WHEN** la persona posa el cursor sobre el título del grupo de evolución
-- **THEN** un tooltip en el idioma activo dice qué ajustes reúne y por qué importan
+- **WHEN** la persona posa el cursor sobre la función de fitness
+- **THEN** un tooltip en el idioma activo dice qué hace y por qué importa
 
 #### Scenario: A un clic
-- **WHEN** la persona quiere cambiar la función de fitness desde la vista de entrenamiento
-- **THEN** le alcanza con un clic, en la pestaña de ajustes, para tenerla a la vista
+- **WHEN** la persona quiere cambiar las capas de la red o la función de fitness desde la vista de entrenamiento
+- **THEN** le alcanza con un clic, en la pestaña de ajustes, para tenerlas a la vista
+
+#### Scenario: La red, sin desplazarse
+- **WHEN** la persona pasa a la vista de ajustes con la ventana en 1440×900
+- **THEN** el bloque de la red se ve entero sin desplazar el panel
 
 ### Requirement: Ajustes que no aplican con selección manual
 Con selección manual, los ajustes de selección, élite y cruce de la vista de
@@ -259,40 +273,63 @@ panel en su ancho por defecto, en español y en inglés.
 - **THEN** vuelven a ventaja, 10 y 0 %, y el enfriamiento se enciende, desde la generación siguiente y sin reiniciar el entrenamiento
 
 ### Requirement: Pistas del entrenamiento
-El selector de pista del escenario SHALL permitir, en esta pestaña, marcar
-una o varias de las cuatro pistas del catálogo, con la calle recta sola por
-defecto. MUST quedar siempre al menos una marcada. Los cambios SHALL regir
-desde la generación siguiente, con la misma indicación que los demás ajustes.
-El ajuste SHALL tener un tooltip que diga qué hace y por qué importa, en
-español y en inglés.
+En esta pestaña se entrena en una sola pista a la vez: la elegida en la barra
+de escenario, la calle recta por defecto. Elegir otra pista MUST aplicarse en
+el momento: la generación en curso vuelve a empezar en la pista nueva, con la
+misma población y el mismo número de generación. El ajuste SHALL tener un
+tooltip que diga qué hace y por qué importa, en español y en inglés.
 
 #### Scenario: Estado por defecto
-- **WHEN** se abre la pestaña y se abre el selector de pista del escenario
-- **THEN** solo la calle recta está marcada
+- **WHEN** se abre la pestaña
+- **THEN** la pista elegida en la barra de escenario es la calle recta
 
 #### Scenario: Marcar un circuito
-- **WHEN** la persona marca el óvalo además de la calle recta durante una generación
-- **THEN** aparece la indicación de cambios pendientes y, desde la generación siguiente, las generaciones alternan entre la calle recta y el óvalo
+- **WHEN** la persona elige el óvalo durante la generación 7
+- **THEN** la generación 7 vuelve a empezar en el óvalo en ese momento, con los mismos autos, sin esperar a la siguiente y sin ninguna indicación de cambio pendiente
 
 #### Scenario: Última pista marcada
-- **WHEN** la persona intenta desmarcar la única pista marcada
-- **THEN** sigue marcada y su tooltip explica que hace falta al menos una
+- **WHEN** la persona elige una pista
+- **THEN** la anterior deja de estar elegida: siempre hay exactamente una
 
 #### Scenario: Restablecer
-- **WHEN** la persona marcó tres pistas y presiona restablecer
-- **THEN** desde la generación siguiente vuelve a entrenarse solo en la calle recta, sin reiniciar el entrenamiento
+- **WHEN** la persona eligió el circuito de curvas y restablece el escenario
+- **THEN** la generación en curso vuelve a empezar en la calle recta, sin reiniciar el entrenamiento
 
 #### Scenario: Tooltip
-- **WHEN** la persona posa el cursor sobre las pistas del entrenamiento
-- **THEN** el tooltip explica que con varias pistas cada generación corre en una distinta, y que practicar en situaciones distintas ayuda a que lo aprendido sirva en pistas nuevas
+- **WHEN** la persona posa el cursor sobre las pistas de la barra
+- **THEN** el tooltip explica que cada pista plantea un problema distinto y que cambiarla vuelve a empezar la generación en curso con los mismos autos
 
-#### Scenario: Varias pistas a la vista
-- **WHEN** están marcadas la calle recta, el óvalo y el circuito de curvas, y la generación en curso corre en el óvalo
-- **THEN** el selector, cerrado, dice que la pista es el óvalo y que se alternan tres
+#### Scenario: Cerebro entrenado en varias pistas
+- **WHEN** la persona sigue entrenando un cerebro guardado que alternaba varias pistas
+- **THEN** el entrenamiento corre solo en la pista elegida en la barra, y los datos del cerebro siguen diciendo en qué pistas se entrenó antes
 
-#### Scenario: Cambio de pistas pendiente
-- **WHEN** la persona marca o desmarca una pista durante una generación
-- **THEN** el selector, cerrado, muestra una marca de cambio pendiente, igual a la de la pestaña de ajustes, hasta que empieza la generación siguiente
+### Requirement: Generación en un circuito
+Mientras una generación corre en un circuito, la pestaña SHALL mostrar el
+nombre de la pista junto al número de generación sobre el escenario, y el
+cuarto indicador del tablero SHALL pasar a mostrar las vueltas del líder, con
+un decimal. En un circuito, los ajustes de
+carriles, densidad, irregularidad y modo de tráfico SHALL verse deshabilitados
+y explicar que en un circuito no hay tráfico.
+
+#### Scenario: Pista a la vista
+- **WHEN** la generación 12 corre en el óvalo
+- **THEN** sobre el escenario se lee el número de generación y la barra de escenario muestra elegido el óvalo
+
+#### Scenario: Indicador de vueltas
+- **WHEN** el líder lleva una vuelta y cuarto del óvalo
+- **THEN** el cuarto indicador se llama "Vueltas del líder" y muestra 1,2: un decimal, redondeado hacia abajo
+
+#### Scenario: Vuelta a la calle
+- **WHEN** la persona vuelve a elegir la calle recta
+- **THEN** el cuarto indicador vuelve a ser el de vehículos superados por el líder
+
+#### Scenario: Solo circuitos
+- **WHEN** la pista elegida es un circuito
+- **THEN** carriles, densidad e irregularidad, en la barra, y el modo de tráfico, en los ajustes, están deshabilitados, con su explicación, y conservan sus valores
+
+#### Scenario: Curva con varias pistas
+- **WHEN** la persona cambia de pista a mitad de un entrenamiento
+- **THEN** la curva de fitness sigue siendo una sola, en metros de ventaja, y sigue mostrando las generaciones anteriores
 
 ## ADDED Requirements
 
@@ -300,7 +337,7 @@ español y en inglés.
 El panel de Entrenar SHALL repartir su contenido en tres vistas, elegibles con
 tres pestañas siempre visibles arriba del panel: entrenamiento (guía,
 controles de marcha, interruptores de vista, configuración básica, guardar y
-misiones), ajustes (los cuatro grupos y restablecer) y cerebros (guardar con
+misiones), ajustes (la red, la evolución y restablecer) y cerebros (guardar con
 nombre y la biblioteca). Al abrir SHALL verse la de entrenamiento. Cambiar de
 vista MUST NOT cambiar el entrenamiento ni ningún ajuste.
 
@@ -347,8 +384,9 @@ vista MUST NOT cambiar el entrenamiento ni ningún ajuste.
 ### Requirement: Cambios pendientes a la vista
 Mientras haya ajustes esperando a la próxima generación, la pestaña de la
 vista de ajustes SHALL mostrar una marca que lo indique, se esté en la vista
-que se esté, y la marca MUST desaparecer cuando esa generación empieza. La
-marca MUST NOT depender solo del color.
+que se esté, y la marca MUST desaparecer cuando esa generación empieza. Solo
+esperan los ajustes de evolución, la población y la mutación: los de la barra
+de escenario rigen en el momento. La marca MUST NOT depender solo del color.
 
 #### Scenario: Cambio hecho y vista cambiada
 - **WHEN** la persona cambia la élite en la vista de ajustes y vuelve a la vista de entrenamiento durante la misma generación

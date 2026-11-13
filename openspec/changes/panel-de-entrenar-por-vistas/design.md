@@ -261,7 +261,150 @@ lector de pantalla queda para el dueño.
 - Las pruebas existentes de la pestaña que dependan de dónde está un control
   en el DOM se adaptan; las de comportamiento no cambian.
 
+## Segunda ronda
+
+El dueño revisó la primera ronda en el navegador. Le gustó el panel de
+Entrenar en vistas y pidió repensar lo demás: los ajustes de tráfico, red y
+sensores seguían escondidos (y los de evolución, que son los que menos usa,
+eran los únicos abiertos), las pestañas 1 y 2 seguían con "Avanzado" plegado,
+no quería marcar varias pistas ni que el cambio de pista esperara a la
+generación siguiente, y quería poder eliminar cualquier cerebro. Las
+decisiones D11 a D17 reemplazan lo que indican de D2, D3 y D5.
+
+### D11. Barra de escenario
+
+Los ajustes de la calle y del auto son los mismos en las tres pestañas. En
+lugar de repetirlos en cada panel, van en una barra común.
+
+- **Disposición:** `src/ui/app.js` y `src/ui/layout.js` suman una zona entre
+  el encabezado y las tres zonas de siempre, a todo el ancho. Cada pestaña
+  recibe su contenedor al montarse, igual que el escenario, el tablero y el
+  panel. Una pestaña sin escenario la deja vacía y la zona no ocupa lugar.
+- **Componente:** un módulo en `src/tabs/shared/` que arma la barra a partir
+  de los ajustes de la pestaña y avisa cada cambio con
+  `onChange(key, value, { final })`. `final` es falso mientras se arrastra un
+  deslizador (solo se actualiza el valor a la vista) y verdadero al soltarlo.
+  Reutiliza las definiciones de `street-settings.js` y las miniaturas de
+  trazado de la primera ronda.
+- **Contenido, de izquierda a derecha:** pista (cuatro opciones a la vista,
+  con miniatura y nombre corto, como grupo de opciones excluyentes: una sola
+  parada de Tab y flechas para cambiar); tráfico (carriles, densidad,
+  irregularidad); sensores (cantidad, alcance, apertura); velocidad máxima;
+  y "Restablecer". Cada grupo lleva su rótulo.
+- **Control compacto:** nombre y valor en un renglón y el deslizador debajo,
+  con un ancho mínimo de 120 px. Presupuesto a 1366 px: pistas 265, carriles
+  110, seis deslizadores 720, restablecer 110 y separaciones; entra en un
+  renglón de unos 60 px. Con menos ancho, la barra pasa a dos renglones.
+- **Qué se quita:** la sección "Avanzado" y su botón de restablecer en las
+  pestañas 1 y 2 (`street-advanced.js` deja de armar una sección plegable);
+  el selector de pista sobre el escenario de D5 y su menú; los grupos de
+  escenario y de sensores de la vista de ajustes de Entrenar. El rótulo de
+  generación vuelve a la esquina superior izquierda del escenario, en el
+  segundo renglón, donde no se encima con los controles de cámara.
+- **Accesibilidad:** la barra es un `role="group"` con nombre "Escenario" y
+  un subgrupo por rótulo; las pistas, un `radiogroup`; los nombres cortos
+  llevan el nombre completo como nombre accesible y en el tooltip. Usa el
+  color de límites y el tamaño mínimo de D9.
+
+Alternativa descartada: dejar los ajustes en cada panel sin plegar. En El
+problema entran justo; en Reglas a mano y en Entrenar no entran y quedarían a
+un clic en una vista aparte, que es lo que el dueño objetó.
+
+Alternativa descartada: un panel flotante sobre el escenario. Con 400 px de
+ancho taparía lo que se quiere mirar al cambiar el ajuste.
+
+### D12. En Entrenar, lo de la barra rige en el momento
+
+- **Núcleo:** `training.restartGeneration()` aplica lo que esté pendiente y
+  vuelve a armar el mundo de la generación en curso con las mismas redes y el
+  mismo número de generación. No agrega nada al historial ni cambia el
+  campeón, y no toca las elecciones de padre. La semilla del tráfico de esa
+  generación no cambia, así que sin cambios de configuración la generación se
+  repite igual.
+- **Pestaña:** para las claves de la barra (pista, carriles, densidad,
+  irregularidad y velocidad), con `final` verdadero se llama a
+  `training.configure(...)` y enseguida a `training.restartGeneration()`. No
+  quedan como cambios pendientes ni encienden la marca de D3.
+- **Pista única:** la pestaña manda siempre una lista de una sola pista. El
+  núcleo conserva la lista para que los cerebros ya entrenados alternando
+  pistas sigan valiendo.
+- **Aviso:** una línea con `role="status"` junto al rótulo de generación dice
+  que la generación volvió a empezar; queda hasta que esa generación termina.
+- **Sensores:** siguen la regla de entrenamiento nuevo con confirmación. La
+  confirmación se muestra pegada a la barra, debajo del grupo de sensores.
+- **Lo que sigue esperando** a la generación siguiente: población, mutación,
+  enfriamiento y los ajustes de evolución. Reemplaza la lista de D3.
+
+Alternativa descartada: que también los ajustes de evolución rijan en el
+momento. Actúan recién al armar la generación siguiente, así que no hay nada
+que mostrar antes, y cambiar eso obligaba a tocar más reglas del núcleo.
+
+### D13. Vista de ajustes sin plegables
+
+Dos bloques con título, a la vista: la red (nota de entrenamiento nuevo, capas
+ocultas, neuronas de cada capa y activación, con su confirmación) y la
+evolución (función de fitness, élite, selección, probabilidad de mutación,
+cruce, duración máxima, eliminar a los lentos y modo de tráfico), y al final
+"Restablecer ajustes", que restablece esos dos bloques. Se quitan los grupos
+plegables y su estado recordado. Con la red de tres capas la vista puede
+desplazarse; el bloque de la red, que va primero, se ve entero. Reemplaza el
+punto "Ajustes" de D2.
+
+### D14. Autoguardados eliminables
+
+La biblioteca ofrece "Eliminar" también en los dos autoguardados, con la
+misma confirmación. El del entrenamiento anterior no vuelve hasta que se
+abandone otro entrenamiento. El del entrenamiento en curso vuelve a crearse
+al terminar la próxima generación, y su confirmación lo avisa. Renombrar un
+autoguardado sigue sin ofrecerse: para conservarlo se lo guarda con nombre.
+
+### D15. Programa recordado con sus sensores
+
+Preferencia nueva `rulesSensors` (`mlLab.rules.sensors`): cantidad, alcance y
+apertura, guardados cada vez que cambian el programa o los sensores. Al
+abrir:
+
+- Si hay sensores recordados, se usan (normalizados a sus rangos).
+- Si hay programa pero no sensores (lo guardó una versión anterior), la
+  cantidad es la mayor entre la de por defecto y el sensor más alto que el
+  programa nombra; alcance y apertura, los de por defecto.
+
+Así el programa recordado siempre puede manejar al abrir.
+
+### D16. Cambiar la red o los sensores siguiendo un cerebro
+
+La hipótesis anotada en PENDIENTES se confirma al leer el código: la pestaña
+conserva el cerebro que se está continuando y lo vuelve a pasar al crear el
+entrenamiento nuevo, y en el núcleo ese cerebro manda sobre la red y los
+sensores elegidos. Al empezar un entrenamiento nuevo por un cambio de red o
+de sensores, la pestaña deja de seguir al cerebro (y de ofrecer actualizarlo)
+y arranca una población al azar con los ajustes elegidos. La confirmación lo
+dice. Reiniciar y población nueva siguen como hoy.
+
+### D17. Pruebas de la segunda ronda
+
+- Núcleo: `restartGeneration` (misma población, historial intacto,
+  reproducible).
+- Lógica sin DOM de la barra: qué claves reinician el intento, la generación
+  o piden entrenamiento nuevo en cada pestaña, y `final`.
+- Biblioteca: eliminar cada tipo de entrada.
+- Reglas a mano: sensores recordados, incluido el caso sin sensores.
+- Las pruebas de la primera ronda sobre el selector múltiple, la marca de
+  pista pendiente y los grupos plegables de ajustes se quitan o se reescriben;
+  son de este mismo cambio.
+
 ## Risks / Trade-offs
+
+- [La barra le saca unos 60 px de alto a las tres zonas, y la vista de
+  entrenamiento de Entrenar tenía 66 px libres] → Se mide; si esa vista pasa
+  a desplazarse a 1440×900, se consulta antes de mover controles.
+- [La barra no entra en un renglón a 1366 px en algún idioma] → Se mide; si
+  no entra, se consulta con las medidas antes de abreviar nombres.
+- [Volver a empezar la generación con cada cambio de la barra corta lo que
+  se estaba mirando] → Es el efecto pedido: el cambio se ve en el momento. Se
+  reinicia una sola vez, al soltar el deslizador, y un aviso lo dice.
+- [Se pierde entrenar alternando pistas] → Decisión del dueño. El núcleo lo
+  conserva por si se retoma.
 
 - [Los ajustes y la marcha no se ven a la vez] → El escenario y el tablero
   siguen siempre a la vista, que es donde se ve el efecto; la marca de cambios

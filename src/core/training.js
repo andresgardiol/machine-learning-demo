@@ -14,6 +14,8 @@
 //   training.step()              un paso; si la generación termina, la cierra y arma la siguiente
 //   training.finishGeneration()  la cierra ahora, con el motivo "a pedido"
 //   training.configure(partial)  queda pendiente hasta la próxima generación; rechaza cambios de red o de sensores
+//   training.restartGeneration() vuelve a empezar la generación en curso con la misma población y los
+//                                cambios de escenario pendientes (panel-de-entrenar-por-vistas D12)
 //   training.generation | history | champion | leaderIndex | aliveCount
 //   training.config | pending | world | eliteCount
 //   training.brain({ id, name, now })   cerebro del entrenamiento: el campeón o, con selección manual, el padre elegido
@@ -182,6 +184,13 @@ export function changedKeys(before, after) {
 export const scenarioOf = (config) => ({
   track: config.tracks.join('+'), lanes: config.lanes, density: config.density, irregularity: config.irregularity, trafficMode: config.trafficMode,
 });
+
+/**
+ * Claves del escenario: las que usa el mundo de una generación. Son las que `restartGeneration`
+ * aplica en el momento (panel-de-entrenar-por-vistas D12); las demás siguen esperando a la
+ * generación siguiente, porque actúan al armarla.
+ */
+export const SCENARIO_KEYS = Object.freeze(['tracks', 'lanes', 'density', 'irregularity', 'maxSpeed']);
 
 /** Semilla del tráfico de la generación `generation`. */
 export function trafficSeedFor(seed, config, generation) {
@@ -402,6 +411,25 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
   }
 
   /**
+   * Vuelve a empezar la generación en curso (panel-de-entrenar-por-vistas D12): aplica los cambios
+   * de escenario que esperaban (SCENARIO_KEYS) y arma de nuevo su mundo con las mismas redes y el
+   * mismo número de generación. Lo logrado hasta ahí se descarta: no queda en el historial, no
+   * cambia el campeón ni las elecciones de padre. La semilla del tráfico es la de esa generación,
+   * así que sin cambios la generación se repite igual. Los demás cambios siguen pendientes.
+   */
+  function restartGeneration() {
+    if (pending) {
+      const now = Object.fromEntries(Object.entries(pending).filter(([k]) => SCENARIO_KEYS.includes(k)));
+      if (Object.keys(now).length > 0) {
+        config = normalizeTrainingConfig({ ...config, ...now });
+        const rest = Object.fromEntries(Object.entries(pending).filter(([k]) => !SCENARIO_KEYS.includes(k)));
+        pending = Object.keys(rest).length > 0 ? rest : null;
+      }
+    }
+    startGeneration();
+  }
+
+  /**
    * Toma al líder de ahora como padre elegido (design.md D2): copia su red y el fitness que lleva con
    * la función vigente. No toca el mundo ni la población en curso. Si su red es idéntica a la del
    * padre actual, no cambia nada y devuelve null; si no, devuelve la elección, con una copia de la red.
@@ -469,6 +497,7 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     step,
     finishGeneration: () => finishGeneration('requested'),
     configure,
+    restartGeneration,
     brain: brainOfTraining,
     chooseLeader,
     undoChoice,

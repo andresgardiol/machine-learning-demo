@@ -55,6 +55,50 @@
 - [x] 7.4 Repasar el filtro de entrada de proposal.md contra lo que se ve en el navegador e informar cualquier respuesta que ya no valga.
 - [x] 7.5 Actualizar `PENDIENTES.md`: quitar la nota "Los ajustes más interesantes de Entrenar están demasiado escondidos" y anotar lo que haya quedado fuera, incluida la prueba con lector de pantalla y con una herramienta automática, que este cambio no hizo.
 
+## 8. Segunda ronda: volver a empezar la generación en curso
+
+- [x] 8.1 Agregar `training.restartGeneration()` al núcleo (design.md D12). Verificar con pruebas los escenarios "Cambio de escenario", "Sin cambios pendientes" y "Selección manual" de la spec `neuroevolucion`.
+- [x] 8.2 Verificar con una prueba el escenario "Reinicio reproducible", y que las pruebas de reproducibilidad existentes pasan sin cambios.
+
+## 9. Segunda ronda: barra de escenario
+
+- [ ] 9.1 Agregar la zona de la barra a la disposición común y crear el componente (design.md D11), con sus textos en los dos idiomas. Verificar con pruebas de su lógica sin DOM qué avisa con `final` falso y verdadero, y en el navegador los escenarios "Estado por defecto" y "Mismo lugar en las tres pestañas" de la spec `barra-escenario`.
+- [ ] 9.2 Armar las pistas como cuatro opciones a la vista con miniatura y nombre corto. Verificar en el navegador los escenarios de "Pista en la barra" y, leyendo el árbol de accesibilidad, que cada opción lleva el nombre completo.
+- [ ] 9.3 Usar la barra en El problema y en Reglas a mano y quitar de sus paneles la sección "Avanzado" y de sus escenarios el selector de la primera ronda. Verificar en el navegador los escenarios de "Configuración avanzada", "Restablecer la configuración", "Elegir la pista" y "Pestaña en un circuito" de `pestana-conducir`, los de "Configuración avanzada" de `pestana-reglas`, y que los dos paneles no se desplazan a 1440×900.
+- [ ] 9.4 Usar la barra en Entrenar: una sola pista, y pista, carriles, densidad, irregularidad y velocidad vuelven a empezar la generación en curso al soltar el control (design.md D12). Quitar el selector múltiple, la marca de pista pendiente y los grupos de escenario y de sensores de la vista de ajustes. Verificar en el navegador los escenarios de "Pistas del entrenamiento", "Generación en un circuito" y "Cambios del escenario en el momento".
+- [ ] 9.5 Mostrar la confirmación de entrenamiento nuevo junto a la barra cuando cambian los sensores en Entrenar, y el aviso de que la generación volvió a empezar. Verificar en el navegador "Sensores en Entrenar", "Aviso de lo que pasó" y "Restablecer en Entrenar con los sensores cambiados".
+- [ ] 9.6 Deshabilitar el tráfico en un circuito y agregar "Restablecer". Verificar los escenarios de "Ajustes de tráfico en un circuito" y "Restablecer el escenario" en las tres pestañas.
+- [ ] 9.7 Tooltips en los dos idiomas, teclado, roles y tamaños (design.md D11). Verificar los escenarios de "Barra explicada y accesible", que `mlLab.auditTooltips()` no informa nada y que la prueba de contrastes sigue pasando.
+- [ ] 9.8 Medir la barra en el DOM a 1440 y a 1366 px, en español y en inglés: alto, y que entra en un renglón sin texto cortado. Medir a 1440×900 la vista de entrenamiento de Entrenar con la barra. Si la barra no entra en un renglón a 1366 px, o esa vista pasa a desplazarse, **detenerse y consultar** con las medidas.
+
+## 10. Segunda ronda: vista de ajustes sin plegables
+
+- [ ] 10.1 Dejar la vista de ajustes de Entrenar con dos bloques a la vista, red y evolución, sin grupos plegables (design.md D13). Verificar en el navegador los escenarios de "Avanzado por grupos", incluido "La red, sin desplazarse", y que "Restablecer ajustes" restablece los dos bloques.
+- [ ] 10.2 Hacer que la marca de cambios pendientes cuente solo población, mutación, enfriamiento y evolución. Verificar con una prueba y en el navegador los escenarios de "Cambios pendientes a la vista".
+
+## 11. Segunda ronda: eliminar cualquier cerebro
+
+- [ ] 11.1 Permitir eliminar los dos autoguardados en la biblioteca (design.md D14). Verificar con pruebas de `library` cada tipo de entrada y que el autoguardado en curso vuelve a crearse al terminar la generación siguiente.
+- [ ] 11.2 Ofrecer "Eliminar" en los autoguardados, con la confirmación que corresponde a cada uno. Verificar en el navegador los escenarios "Eliminar el entrenamiento anterior", "Eliminar el entrenamiento en curso" y "Biblioteca vacía" de la spec `cerebros`.
+
+## 12. Segunda ronda: Reglas a mano abre sin errores
+
+- [ ] 12.1 Recordar los sensores junto con el programa (design.md D15). Verificar con pruebas de `preferences` y de la lógica de la pestaña los escenarios "Ejemplo de veinte sensores recordado", "Programa guardado sin sus sensores" y "Sensores cambiados a mano".
+- [ ] 12.2 Verificar en el navegador, partiendo de un almacenamiento que tiene solo el programa del ejemplo de 20 sensores (el caso que encontró el dueño), que la pestaña abre sin ningún error y el auto maneja.
+
+## 13. Segunda ronda: cambiar la red o los sensores siguiendo un cerebro
+
+- [ ] 13.1 Dejar de seguir al cerebro cuando un cambio de red o de sensores empieza un entrenamiento nuevo, y decirlo en la confirmación (design.md D16). Verificar con una prueba de la lógica de la pestaña y en el navegador los escenarios "Cambio mientras se sigue entrenando un cerebro" y "La confirmación lo avisa".
+
+## 14. Segunda ronda: verificación integral
+
+- [ ] 14.1 Recorrer las tres pestañas y comprobar que no queda ninguna sección plegable en los paneles ni ningún ajuste a más de un clic. Listar dónde quedó cada ajuste.
+- [ ] 14.2 Recorrer la barra y las tres pestañas con teclado solamente y leer el árbol de accesibilidad de la barra. Informar lo que no se pueda hacer.
+- [ ] 14.3 Medir todos los controles accionables nuevos: ninguno por debajo de 24 por 24 px.
+- [ ] 14.4 Entregar una captura de cada pestaña a 1440×900, y una de Entrenar con la vista de ajustes.
+- [ ] 14.5 Repasar el filtro de entrada de proposal.md contra lo que se ve e informar cualquier respuesta que ya no valga.
+- [ ] 14.6 Actualizar `PENDIENTES.md`: quitar las notas "El programa recordado no recuerda los sensores" y "Bug: cambiar la red o los sensores no tiene efecto si se sigue entrenando un cerebro", y anotar lo que haya quedado fuera (alternar pistas, editar la red sobre el diagrama, eliminar todos los cerebros de una vez).
+
 ## Workflow follow-up
 
 - El dueño prueba con VoiceOver las pestañas de vista, el selector de pista y la descripción del escenario.

@@ -27,13 +27,49 @@ un lugar propio.
 
 ## What Changes
 
+Este cambio tuvo dos rondas. La primera (vistas del panel, guardar, textos y
+accesibilidad) se implementó y el dueño la revisó en el navegador. De esa
+revisión salió la segunda, que corrige lo que no convenció. Abajo va el
+resultado final; lo que la segunda ronda reemplaza de la primera está
+indicado.
+
+**Segunda ronda, a pedido del dueño:**
+
+- **Barra de escenario**, nueva: debajo del encabezado y a todo el ancho,
+  igual en las tres pestañas y siempre a la vista, con la pista, el tráfico
+  (carriles, densidad, irregularidad), los sensores (cantidad, alcance,
+  apertura), la velocidad y restablecer. Reemplaza a la sección "Avanzado" de
+  El problema y de Reglas a mano, al grupo de escenario y al de sensores de
+  Entrenar, y al selector de pista sobre el escenario de la primera ronda.
+- **Una sola pista, que se aplica en el momento.** En Entrenar se dejan de
+  marcar varias pistas que se alternaban: se elige una y la generación en
+  curso vuelve a empezar ahí, con los mismos autos. La primera ronda permitía
+  marcar varias y aplicaba el cambio en la generación siguiente, y eso
+  confundía.
+- **En Entrenar, todo lo de la barra rige en el momento:** pista, carriles,
+  densidad, irregularidad y velocidad vuelven a empezar la generación en
+  curso. Solo esperan a la generación siguiente los ajustes de evolución, la
+  población y la mutación, que actúan al armarla.
+- **Vista Ajustes sin nada plegado:** dos bloques a la vista, primero la red
+  (capas, neuronas, activación) y después la evolución. La primera ronda
+  dejaba tres de cuatro grupos plegados.
+- **Ningún panel tiene secciones plegables.**
+- **Todos los cerebros se pueden eliminar,** incluidos los dos autoguardados.
+- **Reglas a mano ya no abre con un error:** el programa recordado se guarda
+  con los sensores del auto para el que está escrito.
+- **Cambiar la red o los sensores mientras se sigue entrenando un cerebro
+  guardado tiene efecto:** se deja de seguir a ese cerebro y se empieza una
+  población nueva. Era un bug anotado en PENDIENTES.
+
+**Primera ronda:**
+
 - **El panel de Entrenar pasa a tener tres vistas**, con tres pestañas siempre
   visibles arriba del panel:
   - **Entrenamiento:** lo de hoy menos las dos secciones plegables: guía,
     controles de marcha, interruptores de vista, población, mutación, guardar
     y misiones. Es la vista que se ve al abrir.
-  - **Ajustes:** los cuatro grupos (evolución, escenario, red y sensores) a un
-    solo nivel, con evolución abierto y la función de fitness primero.
+  - **Ajustes:** la red y la evolución, a la vista y sin plegar (ver la
+    segunda ronda).
   - **Cerebros:** guardar con nombre y la biblioteca, con todo el alto del
     panel.
 - **Desaparece la sección "Avanzado" de Entrenar** y, con ella, el segundo
@@ -44,10 +80,9 @@ un lugar propio.
   solo botón, que guarda con un nombre sugerido o actualiza el cerebro que el
   entrenamiento ya tiene. Ponerle nombre y guardar como nuevo se hace en la
   vista de cerebros.
-- **El selector de pista pasa al escenario**, en el mismo lugar en las tres
-  pestañas, con una miniatura de cada trazado. En Entrenar permite marcar
-  varias. Sale del panel de El problema y de Reglas a mano, y del grupo de
-  escenario de Entrenar.
+- **El selector de pista sale de los paneles** y queda en un lugar común a
+  las tres pestañas, con una miniatura de cada trazado (la segunda ronda lo
+  lleva a la barra de escenario, con una sola pista).
 - **Nombres de pista descriptivos:** "Óvalo con chicana" en lugar de "Riñón" y
   "Circuito de curvas" en lugar de "Gran premio".
 - **Actualizar un cerebro se puede deshacer:** como el botón de guardar pasa
@@ -77,6 +112,8 @@ un lugar propio.
 | Selector de pista en el escenario | Cada pista plantea un problema distinto | Está junto a lo que cambia, con la silueta de cada trazado | La calle recta sigue siendo la pista por defecto | Elegir otra pista reinicia el intento o rige desde la generación siguiente; se vuelve eligiendo la calle recta |
 | Interruptor "Atajos" | Ninguno de ML: evita que una tecla suelta dispare una acción | Un interruptor con nombre y tooltip, junto al de guía | Está encendido por defecto; quien no lo toca no nota nada | Se vuelve a encender con un clic |
 | Bordes con contraste, tooltip alcanzable, tamaño mínimo y escenario descrito | Ninguno de ML: hacen usable la app con baja visión, teclado y lector de pantalla | No agregan nada que aprender | No aplica | No aplica |
+| Barra de escenario | Cada pista, cada tráfico y cada juego de sensores es un problema distinto, y cambiarlo se ve al instante | Está siempre a la vista, con el nombre y el valor de cada ajuste | Quien no la toca maneja y entrena con los valores por defecto | Cada cambio se ve en el momento; restablecer vuelve a los valores por defecto |
+| Eliminar cualquier cerebro | Ninguno de ML: da control total sobre la biblioteca | El mismo botón que ya tenían los cerebros guardados | No aplica | Pide confirmación; el autoguardado en curso vuelve solo |
 | Nombres descriptivos | La dificultad crece de una pista a la otra | El nombre dice qué tiene el trazado | No aplica | No aplica |
 
 ### A quién sirve
@@ -91,8 +128,14 @@ un lugar propio.
 ### Fuera de alcance
 
 - Cambiar qué ajustes existen, sus rangos o sus valores por defecto.
-- Cambios al panel de El problema y de Reglas a mano, salvo sacar de ahí el
-  selector de pista.
+- Entrenar alternando varias pistas: deja de ofrecerse en la interfaz. El
+  núcleo conserva la capacidad, y los cerebros ya entrenados así siguen
+  valiendo.
+- Editar la red sobre el diagrama del tablero: queda en la vista de ajustes,
+  a un clic.
+- Que los ejemplos de Reglas a mano valgan con cualquier velocidad: sigue
+  anotado en PENDIENTES.
+- Un botón para eliminar todos los cerebros de una vez.
 - Comparar cerebros entre sí o hacerlos competir: es la pestaña Competir.
 - Eliminar o renombrar los autoguardados, cerebros incluidos y otras ideas de
   la biblioteca anotadas en PENDIENTES.
@@ -109,6 +152,8 @@ un lugar propio.
 
 ### New Capabilities
 
+- `barra-escenario`: la barra común con los ajustes de la pista, el tráfico,
+  los sensores y la velocidad, y cómo rige cada cambio.
 - `accesibilidad`: requisitos de toda la interfaz para teclado, lector de
   pantalla, dictado por voz y baja visión: atajos desactivables, contraste de
   los límites de los controles, tamaño mínimo y descripción del escenario.
@@ -121,10 +166,12 @@ un lugar propio.
   selector del escenario.
 - `estructura-app`: un panel con más contenido del que entra usa vistas con
   pestañas en lugar de secciones plegables anidadas.
-- `vista-escenario`: se agrega el selector de pista sobre el escenario, común
-  a todas las pestañas.
-- `pestana-conducir`: el selector de pista sale del panel y pasa al
-  escenario.
+- `pestana-conducir` y `pestana-reglas`: los ajustes de la calle y del auto
+  pasan a la barra de escenario y desaparece la sección plegable. En
+  `pestana-reglas`, además, el programa se recuerda con sus sensores.
+- `cerebros`: se puede eliminar cualquier cerebro, también los autoguardados.
+- `neuroevolucion`: se puede volver a empezar la generación en curso con la
+  misma población.
 - `pista`: nombres visibles de las pistas.
 - `ayuda-contextual`: el tooltip sigue a la vista mientras el cursor está
   sobre él.
@@ -146,7 +193,11 @@ un lugar propio.
   (tooltip alcanzable), `src/ui/shortcuts.js` y `src/ui/preferences.js`
   (preferencia de atajos), `src/ui/app.js` (interruptor en el encabezado) y
   `src/render/view.js` (descripción del escenario).
-- **Núcleo:** sin cambios.
+- **Núcleo:** `src/core/training.js` suma volver a empezar la generación en
+  curso. Es el único cambio del núcleo.
+- **Disposición:** `src/ui/app.js` y `src/ui/layout.js` suman la zona de la
+  barra de escenario; módulo nuevo para la barra en `src/ui/` o en
+  `src/tabs/shared/`.
 - **Cerebros guardados:** siguen valiendo; solo cambia el nombre con que se
   muestran dos pistas.
 - **Pruebas:** nuevas para la lógica sin DOM de las vistas y del selector; las
