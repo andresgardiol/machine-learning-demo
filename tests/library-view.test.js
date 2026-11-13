@@ -109,8 +109,8 @@ test('pistas en los datos: el escenario nombra la pista o las pistas en el idiom
   assert.equal(text(es_, { ...base, track: undefined, generations: 1 }), 'Calle recta, 3 carriles, densidad 50 %, irregularidad 0 %, tráfico nuevo: 1 generación');
   // Un circuito: sin tráfico.
   assert.equal(text(es_, { ...base, track: 'oval', generations: 30 }), 'Óvalo: 30 generaciones');
-  assert.equal(text(en_, { ...base, track: 'grandPrix', generations: 12 }), 'Grand prix: 12 generations');
+  assert.equal(text(en_, { ...base, track: 'grandPrix', generations: 12 }), 'Curves circuit: 12 generations');
   // Varias pistas.
-  assert.equal(text(es_, { ...base, track: 'straight+kidney', generations: 40 }), 'alternando Calle recta y Riñón, 3 carriles, densidad 50 %, irregularidad 0 %, tráfico nuevo: 40 generaciones');
-  assert.equal(text(en_, { ...base, track: 'oval+kidney+grandPrix', generations: 9 }), 'alternating Oval, Kidney and Grand prix: 9 generations');
+  assert.equal(text(es_, { ...base, track: 'straight+kidney', generations: 40 }), 'alternando Calle recta y Óvalo con chicana, 3 carriles, densidad 50 %, irregularidad 0 %, tráfico nuevo: 40 generaciones');
+  assert.equal(text(en_, { ...base, track: 'oval+kidney+grandPrix', generations: 9 }), 'alternating Oval, Oval with chicane and Curves circuit: 9 generations');
 });

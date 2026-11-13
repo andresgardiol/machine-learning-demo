@@ -123,12 +123,13 @@ test('Reglas a mano: nombres de misiones de hasta 34 caracteres, con su meta rea
 });
 
 // --- circuitos-y-paisaje: nombres de pista, indicador de vueltas e interruptor del paisaje ----------
-// Las pistas van en dos columnas en el panel de 360 px: cada nombre tiene unos 150 px.
-const TRACK_NAME_MAX = 16;
+// Los nombres van en el selector de pista del escenario (panel-de-entrenar-por-vistas D6): con el
+// más largo, "Circuito de curvas · se alternan 4" entra en el escenario de 400 px (medido: 256 px).
+const TRACK_NAME_MAX = 18;
 // El interruptor del paisaje comparte el renglón de la cámara con +, − y "Seguir al auto (V)".
 const SCENERY_MAX = 10;
 
-test('circuitos: nombres de pista de hasta 16 caracteres', () => {
+test('circuitos: nombres de pista de hasta 18 caracteres', () => {
   for (const id of ['straight', 'oval', 'kidney', 'grandPrix']) assertMax(`track.${id}`, TRACK_NAME_MAX);
   assertMax('track.label', TRACK_NAME_MAX);
   assertMax('train.tracks', TRACK_NAME_MAX);
@@ -144,7 +145,7 @@ test('circuitos: el interruptor del paisaje es de hasta 10 caracteres', () => {
 });
 
 test('circuitos: guía en un circuito, línea de las misiones y ayuda de la curva dentro de sus topes', () => {
-  assertMax('drive.guide.what.circuit', GUIDE_MAX, { track: 'Gran premio' });
+  assertMax('drive.guide.what.circuit', GUIDE_MAX, { track: 'Circuito de curvas' });
   assertMax('drive.missions.circuit', HINT_MAX);
   assertMax('train.chart.hint.tracks', HINT_MAX);
 });
@@ -160,5 +161,36 @@ test('Entrenar: las tres pestañas de vista, con un contador de dos dígitos, su
       text(lang, 'views.label.count', { name: text(lang, 'train.view.brains'), value: 99 })];
     const total = names.join('').length;
     assert.ok(total <= VIEW_TABS_MAX, `${lang}: las pestañas suman ${total} caracteres (máximo ${VIEW_TABS_MAX}): ${names.join(' | ')}`);
+  }
+});
+
+// --- panel-de-entrenar-por-vistas: nombres de las pistas y textos de Entrenar (D6 y D8) -------------
+
+test('nombres de las pistas: los cuatro, en orden, en español y en inglés', () => {
+  const ids = ['straight', 'oval', 'kidney', 'grandPrix'];
+  assert.deepEqual(ids.map((id) => text('es', `track.${id}`)), ['Calle recta', 'Óvalo', 'Óvalo con chicana', 'Circuito de curvas']);
+  assert.deepEqual(ids.map((id) => text('en', `track.${id}`)), ['Straight street', 'Oval', 'Oval with chicane', 'Curves circuit']);
+});
+
+test('chicana: el tooltip del óvalo con chicana dice qué es', () => {
+  assert.match(text('es', 'help.track.option.kidney.what'), /chicana: un zigzag corto que obliga a doblar a un lado y enseguida al otro/);
+  assert.match(text('en', 'help.track.option.kidney.what'), /chicane: a short zigzag/);
+});
+
+test('Entrenar: una palabra para los ajustes, "el fitness" en masculino y misiones en imperativo', () => {
+  assert.equal(text('es', 'train.basic.title'), 'Población y mutación');
+  assert.equal(text('en', 'train.basic.title'), 'Population and mutation');
+  assert.equal(text('es', 'train.resetSettings'), 'Restablecer ajustes');
+  assert.equal(text('en', 'train.resetSettings'), 'Reset settings');
+  assert.equal(text('es', 'train.view.settings'), 'Ajustes');
+  assert.equal(text('es', 'train.selectionMode.auto'), 'El fitness');
+  assert.equal(text('es', 'train.mission.fitness'), 'Probá otra función de fitness');
+  assert.equal(text('en', 'train.mission.fitness'), 'Try another fitness function');
+  assert.equal(text('en', 'train.stats.passed'), 'Leader has passed');
+  // Ningún texto visible de Entrenar usa "la fitness" ni nombra un bloque o botón "Configuración".
+  for (const [key, value] of Object.entries(es)) {
+    if (!key.startsWith('train.') && !key.startsWith('help.train.')) continue;
+    assert.doesNotMatch(value, /\b[Ll]a fitness\b/, key);
+    if (key === 'train.basic.title' || key === 'train.resetSettings') assert.doesNotMatch(value, /onfiguración/, key);
   }
 });

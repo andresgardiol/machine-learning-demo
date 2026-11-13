@@ -32,10 +32,10 @@
 
 ## 5. Nombres de las pistas
 
-- [ ] 5.1 Cambiar los nombres visibles de las dos pistas en los dos idiomas (design.md D6). Verificar con una prueba los cuatro nombres de cada idioma y, en el navegador, los escenarios de "Nombres de las pistas".
-- [ ] 5.2 Revisar a 360 px, en los dos idiomas, cada texto que nombra una pista dentro de una oración (datos de un cerebro, aviso al cargar un ejemplo desde un circuito, ayudas). Informar los que hubo que ajustar.
+- [x] 5.1 Cambiar los nombres visibles de las dos pistas en los dos idiomas (design.md D6). Verificar con una prueba los cuatro nombres de cada idioma y, en el navegador, los escenarios de "Nombres de las pistas".
+- [x] 5.2 Revisar a 360 px, en los dos idiomas, cada texto que nombra una pista dentro de una oración (datos de un cerebro, aviso al cargar un ejemplo desde un circuito, ayudas). Informar los que hubo que ajustar.
 
-- [ ] 5.3 Aplicar los cambios de texto de design.md D8 en los dos idiomas, incluido el tooltip que explica qué es una chicana. Verificar con pruebas los textos nuevos, que `tests/copy-length.test.js` pasa y, en el navegador, los escenarios de "Textos de la pestaña coherentes" y "Palabra poco conocida".
+- [x] 5.3 Aplicar los cambios de texto de design.md D8 en los dos idiomas, incluido el tooltip que explica qué es una chicana. Verificar con pruebas los textos nuevos, que `tests/copy-length.test.js` pasa y, en el navegador, los escenarios de "Textos de la pestaña coherentes" y "Palabra poco conocida".
 
 ## 6. Accesibilidad de toda la aplicación
 
