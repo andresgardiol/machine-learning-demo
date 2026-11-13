@@ -768,8 +768,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* --- Competir (pestana-competir) ------------------------------------------------------------- */
 /* Panel en una sola vista (D10): los bloques arriba, sin desplazarse; la lista de competidores
    ocupa el alto que sobra y se desplaza por dentro. */
-.panel:has(> .compete-panel) { display: flex; flex-direction: column; overflow: hidden; }
-.compete-panel { display: flex; flex-direction: column; gap: var(--space-2); flex: 1 1 auto; min-height: 0; }
+/* Si no entra (una ventana más baja), el panel se desplaza entero: nada queda recortado. */
+.panel:has(> .compete-panel) { display: flex; flex-direction: column; }
+.compete-panel { display: flex; flex-direction: column; gap: var(--space-2); flex: 1 0 auto; }
 .compete-panel > * { flex: 0 0 auto; margin: 0; }
 .compete-intro { font-size: 14px; line-height: 1.4; }
 .compete-run { display: grid; gap: var(--space-2); }
@@ -780,7 +781,8 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .compete-traffic { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
 .compete-nobody { margin: var(--space-1) 0 0; }
 .compete-penalty input[type="range"] { height: 24px; }
-.compete-list-block { display: flex; flex-direction: column; flex: 1 1 auto !important; min-height: calc(6 * 34px + 28px); }
+/* La lista ocupa el alto libre (base 0) y no baja de seis filas; si ni así entra, se desplaza el panel. */
+.compete-list-block { display: flex; flex-direction: column; flex: 1 1 0 !important; min-height: calc(6 * 38px + 34px); }
 .compete-list-head { display: flex; justify-content: space-between; align-items: baseline; }
 .compete-list-head .panel-heading { margin: 0 0 var(--space-1); }
 .compete-list-count { font-size: 13px; font-variant-numeric: tabular-nums; }
@@ -886,3 +888,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   .compete-result-crashes { font-size: 11px; }
   .compete-table-name { font-size: 12px; hyphens: auto; }
 }
+/* Los dos interruptores de vista en un renglón a 360 px, también en español (como en Entrenar). */
+.compete-view { gap: 6px; flex-wrap: nowrap; }
+.compete-view .switch { padding-left: 5px; padding-right: 5px; font-size: 14px; white-space: nowrap; }

@@ -403,6 +403,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     scoreHead.replaceChildren(
       th('compete.score.pos'), th('compete.score.name'), th('compete.score.done'), th('compete.score.crashes'),
       ...(circuit ? [th('compete.score.bestLap')] : []), th('compete.score.state'));
+    i18n.translateTree(scoreHead);
     scoreBody.replaceChildren();
     scoreRows = state.raceKeys.map((key, i) => {
       const c = candidateOf(key);
