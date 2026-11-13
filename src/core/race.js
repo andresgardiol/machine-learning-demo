@@ -9,7 +9,8 @@
 // Chocar no saca de la carrera (D1c): el auto queda detenido `crashPenalty` segundos donde chocó y
 // reaparece RESPAWN_BACK metros más atrás, en el carril de salida (el centro, en un circuito),
 // detenido y mirando hacia adelante; durante RESPAWN_GRACE segundos, y mientras siga encimado con un
-// vehículo, el tráfico no lo choca: es un fantasma también para el tráfico. Queda fuera como "no terminó"
+// vehículo, el tráfico no lo choca: es un fantasma también para el tráfico. Un vehículo choca una
+// sola vez a cada competidor: el que ya lo chocó, después lo atraviesa. Queda fuera como "no terminó"
 // quien pasa RACE_STALL_SECONDS sin superar su mayor progreso, quien sigue corriendo
 // RACE_WAIT_SECONDS después de que llegó el primero y quien sigue corriendo a los RACE_MAX_SECONDS
 // (D1d). Quien llega deja de correr y su resultado no cambia más.
@@ -200,6 +201,8 @@ export function createRace({
         }
         if (a.crashed) {
           r.crashes += 1;
+          // Un vehículo choca una sola vez a cada competidor (D1c, punto 5): después lo atraviesa.
+          if (a.crashCause === 'vehicle') world.passThrough(i, a.crashVehicle);
           r.penalized = true;
           s.crashProgress = a.progress;
           s.respawnAt = steps + penaltySteps;

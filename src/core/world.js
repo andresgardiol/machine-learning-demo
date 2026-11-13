@@ -61,6 +61,8 @@ export function createWorld(spec = {}) {
     lapDistance: 0, // última distancia dentro de la vuelta
     crashCause: null,
     protecting: false, // recién reaparecido (respawn): el tráfico no lo choca
+    passThrough: null, // ids de vehículos que no lo chocan (los que ya lo chocaron en una carrera)
+    crashVehicle: null, // id del vehículo del último choque contra el tráfico
     protectedUntil: -Infinity, // la protección dura al menos hasta este instante
     nearby: [],
     rays: [],
@@ -151,9 +153,10 @@ export function createWorld(spec = {}) {
     for (const [a, b] of track.bordersNear(car.position, CAR_LENGTH)) {
       for (const [c, d] of edges) if (segmentIntersection(a, b, c, d)) return 'edge';
     }
-    let touching = false;
+    let touching = null;
     for (const v of agent.nearby) {
-      if (distance(v.position, car.position) <= CAR_LENGTH * 1.5 && contoursTouch(contour, v.contour)) { touching = true; break; }
+      if (agent.passThrough?.has(v.id)) continue;
+      if (distance(v.position, car.position) <= CAR_LENGTH * 1.5 && contoursTouch(contour, v.contour)) { touching = v; break; }
     }
     // Recién reaparecido (respawn), el tráfico no lo choca, y la protección no termina mientras esté
     // encimado con un vehículo: termina en el primer paso, cumplido su tiempo, en que no toca ninguno.
@@ -161,7 +164,9 @@ export function createWorld(spec = {}) {
       if (time >= agent.protectedUntil && !touching) agent.protecting = false;
       return null;
     }
-    return touching ? 'vehicle' : null;
+    if (!touching) return null;
+    agent.crashVehicle = touching.id;
+    return 'vehicle';
   }
 
   /** Vuelve al estado inicial con la misma semilla y la configuración actual (también la del tráfico). */
@@ -181,6 +186,8 @@ export function createWorld(spec = {}) {
       a.crashCause = null;
       a.protecting = false;
       a.protectedUntil = -Infinity;
+      a.passThrough = null;
+      a.crashVehicle = null;
     }
     time = 0;
     steps = 0;
@@ -285,6 +292,16 @@ export function createWorld(spec = {}) {
       a.protectedUntil = protect > 0 ? time + protect : -Infinity;
       look([a]);
       return true;
+    },
+    /**
+     * El vehículo `id` ya no choca al agente `index` (pestana-competir D1c, punto 5): lo atraviesa.
+     * Sus sensores lo siguen viendo. Sin uso en las pestañas 1 a 3.
+     */
+    passThrough(index, id) {
+      const a = agents[index];
+      if (!a || id === null || id === undefined) return;
+      if (!a.passThrough) a.passThrough = new Set();
+      a.passThrough.add(id);
     },
     /** ¿El tráfico no puede chocar todavía al agente `index`? (ver respawn) */
     isProtected(index) { return Boolean(agents[index]?.protecting); },

@@ -120,6 +120,29 @@ por haber reaparecido pegado a él.
 - **WHEN** un cerebro que maneja bien desde la largada choca contra un vehículo y reaparece
 - **THEN** no vuelve a chocar contra ese mismo vehículo en los segundos siguientes
 
+### Requirement: Un vehículo choca una sola vez
+Un vehículo del tráfico contra el que un competidor ya chocó MUST NOT volver a
+chocarlo en esa carrera: el competidor lo atraviesa. Así ningún competidor
+queda chocando contra el mismo vehículo, sea cual sea la penalización, y sus
+choques cuentan obstáculos distintos. Vale por competidor: ese vehículo sigue
+chocando a los demás.
+
+#### Scenario: Penalización larga
+- **WHEN** con una penalización de 1 segundo un competidor choca contra un vehículo, reaparece y lo alcanza cuando la protección ya terminó
+- **THEN** lo atraviesa sin chocar
+
+#### Scenario: Otro vehículo
+- **WHEN** ese competidor toca después otro vehículo, sin estar protegido
+- **THEN** choca
+
+#### Scenario: Otro competidor
+- **WHEN** otro competidor toca el vehículo contra el que chocó el primero
+- **THEN** choca
+
+#### Scenario: Los bordes cuentan siempre
+- **WHEN** un competidor choca dos veces contra el borde en el mismo lugar
+- **THEN** se cuentan dos choques
+
 ### Requirement: Competidor que no avanza
 Un competidor que pasa 5 segundos sin superar su mayor progreso SHALL quedar
 fuera de la carrera, como que no terminó, con lo logrado hasta ahí, corran o

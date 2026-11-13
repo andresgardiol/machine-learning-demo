@@ -133,6 +133,10 @@ Cuando un competidor choca:
    no termina mientras esté encimado con uno: termina en el primer paso,
    cumplidos los 2 s, en que no toca ningún vehículo.
 4. Los bordes lo chocan siempre, y sus sensores ven todo como siempre.
+5. **Un vehículo choca una sola vez a cada competidor.** El vehículo contra
+   el que chocó ya no puede chocarlo en esa carrera: lo atraviesa. Los
+   vehículos del tráfico tienen identidad estable (`id`, grupo y carril), así
+   que la carrera lleva, por competidor, los que ya chocó.
 
 Es el reaparecer de un juego de carreras: un momento de fantasma para salir
 del lío. En esta pestaña los competidores ya son fantasmas entre sí, y el
@@ -170,8 +174,20 @@ reaparecer):
   espera: el que aprendió con tráfico nuevo, uno por carrera; el que
   memorizó, cinco; el programa, diez.
 
-La fila de 2 s se midió sin la extensión de la protección mientras hay un
-vehículo encimado; **la regla completa todavía no está medida.**
+**Medido con la regla completa** (protección que no termina encimado),
+irregularidad 0 y penalización 0,1 s: llegan 20 de 20 los tres, con 22, 72 y
+118 choques y ninguno en cadena; ningún choque al salir de la protección. El
+cerebro de tráfico nuevo gana 16 de las 20 carreras y pasa protegido el 4 %
+del tiempo; el programa, el 22 %.
+
+**Medido, y motivo del punto 5:** con penalización de 1 s aparece otra
+cadena. En ese segundo el vehículo chocado se aleja 10 m; el auto lo alcanza
+justo cuando termina la protección y lo vuelve a chocar a los 2,2 a 2,4 s, en
+un ciclo de 3,35 s que dura el resto de la carrera. Alargar la protección
+con la penalización lo corre de lugar pero depende de cuánto acelere cada
+controlador. Que el mismo vehículo no pueda chocar dos veces lo impide por
+construcción, con cualquier penalización. **El punto 5 todavía no está
+medido.**
 
 *Alternativa descartada:* reaparecer a la velocidad del tráfico, sin
 protección. Evita el choque desde atrás, pero en un circuito no hay tráfico y
@@ -498,9 +514,16 @@ programa actuales, y se aplican las bajas de D8.
 
 ### D14. Atajos
 
-Los de las otras pestañas, con el mismo interruptor "Atajos": espacio (largar,
-pausar o reanudar; con la carrera terminada, otra carrera), R (reiniciar), N
-(otra carrera), E (sensores), V (ver como la máquina). Con "Vos" en carrera, las flechas manejan y no cambian de control
+Con el mismo interruptor "Atajos" de las otras pestañas: espacio (largar,
+pausar o reanudar; con la carrera terminada, otra carrera), R (reiniciar,
+como en El problema y en Reglas a mano) y N (otra carrera, como "siguiente"
+en Entrenar). V sigue restableciendo la vista de la cámara, como en todas las
+pestañas.
+
+Los interruptores de sensores y de ver como la máquina no llevan atajo, igual
+que en las otras pestañas. Una letra tiene que hacer lo mismo en toda la
+aplicación: la E ya es "elegir" en Entrenar y la V es de la cámara. (La
+primera versión de este diseño les asignaba E y V por error.) Con "Vos" en carrera, las flechas manejan y no cambian de control
 cuando el foco está en el escenario.
 
 ### D15. Misiones

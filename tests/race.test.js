@@ -314,7 +314,7 @@ test('en carreras con tráfico denso, nadie sale de la protección encimado con 
           const a = race.world.agents[i];
           const p = a.progress;
           const close = race.world.vehiclesIn(p - 2 * CAR_LENGTH, p + 2 * CAR_LENGTH)
-            .filter((v) => Math.abs(v.distance - p) < CAR_LENGTH && Math.abs(v.position.y - a.car.position.y) < 2);
+            .filter((v) => !a.passThrough?.has(v.id) && Math.abs(v.distance - p) < CAR_LENGTH && Math.abs(v.position.y - a.car.position.y) < 2);
           assert.equal(close.length, 0, `seed ${seed}, ${a.car.position.x}`);
         }
         wasProtected[i] = now;
@@ -508,4 +508,37 @@ test('sin navegador: una carrera entera termina y da sus resultados', () => {
   runToEnd(race);
   assert.equal(race.finished, true);
   assert.ok(['arrived', 'unfinished'].includes(race.results[0].state));
+});
+
+// --- Un vehículo choca una sola vez (D1c, punto 5) ----------------------------------------------
+
+test('penalización larga: el vehículo que ya lo chocó no lo vuelve a chocar; otro vehículo, sí', () => {
+  const race = createRace({ seed: 5, density: 100, irregularity: 0, crashPenalty: 1, competitors: [{ id: 'a', controller: forward }] });
+  const hits = [];
+  let prev = 0;
+  while (!race.finished && race.time < 60) {
+    race.step();
+    const r = race.results[0];
+    if (r.crashes > prev) {
+      prev = r.crashes;
+      const a = race.world.agents[0];
+      hits.push(a.crashCause === 'vehicle' ? a.crashVehicle : `edge@${Math.round(a.progress)}`);
+    }
+  }
+  assert.ok(hits.length >= 2, `choca más de una vez (${hits.length})`);
+  const vehicles = hits.filter((h) => !String(h).startsWith('edge'));
+  assert.equal(new Set(vehicles).size, vehicles.length, `cada vehículo, una sola vez: ${vehicles.join(', ')}`);
+});
+
+test('otro competidor: el vehículo que chocó al primero también lo choca a él', () => {
+  const race = createRace({ seed: 5, density: 100, irregularity: 0, competitors: [{ id: 'a', controller: forward }, { id: 'b', controller: forward }] });
+  while (race.results[0].crashes === 0) race.step();
+  assert.equal(race.results[1].crashes, 1);
+  assert.equal(race.world.agents[0].crashVehicle, race.world.agents[1].crashVehicle);
+});
+
+test('los bordes cuentan siempre: dos choques contra el borde en el mismo lugar son dos', () => {
+  const race = createRace({ density: 0, competitors: [{ id: 'a', controller: forwardLeft }] });
+  while (race.results[0].crashes < 2 && !race.finished) race.step();
+  assert.equal(race.results[0].crashes, 2);
 });
