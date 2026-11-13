@@ -21,6 +21,7 @@ import { createNetworkView } from '../../render/network-view.js';
 import { createFitnessChart } from '../../ui/chart.js';
 import { createLoop, SPEEDS } from '../../ui/loop.js';
 import { createLibraryView } from '../../ui/library-view.js';
+import { panelViews } from '../../ui/panel-views.js';
 import { el } from '../../ui/dom.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { statStrip, boardCard } from '../../ui/board.js';
@@ -29,7 +30,7 @@ import {
 } from '../../ui/controls.js';
 import {
   DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges, adoptBrain,
-  toggleTrack, onlyCircuits, TRAFFIC_SETTINGS,
+  toggleTrack, onlyCircuits, TRAFFIC_SETTINGS, settingsWaiting,
 } from './settings.js';
 import { TRACK_IDS } from '../../core/circuits.js';
 import { formatFixed } from '../../ui/i18n.js';
@@ -65,8 +66,13 @@ const FORMATS = Object.freeze({
 let state = null;
 // Misiones cumplidas: siguen marcadas hasta cerrar la aplicación, aunque se reinicie el entrenamiento.
 const completedMissions = new Set();
-// Secciones y grupos plegables del panel abiertos: se conservan al salir de la pestaña y volver.
-const open = { library: false, advanced: false, evolution: false, scenario: false, network: false, sensors: false };
+// Grupos plegables de la vista de ajustes abiertos: se conservan al salir de la pestaña y volver.
+// El de evolución arranca abierto (panel-de-entrenar-por-vistas D2).
+const open = { evolution: true, scenario: false, network: false, sensors: false };
+// Vista del panel elegida (D1): se conserva al salir de la pestaña y volver, hasta cerrar la aplicación.
+let currentView = 'training';
+/** Vistas del panel, en orden. */
+export const VIEWS = Object.freeze(['training', 'settings', 'brains']);
 
 let sessionCounter = 0;
 /** Identificador del entrenamiento para el autoguardado (cambia con cada entrenamiento nuevo). */
@@ -437,23 +443,25 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     el('div', { class: 'group-body' }, ...children));
 
   const resetButton = button('train.resetSettings', 'train.resetSettings', resetSettings);
-  const advanced = foldable('advanced', 'section train-advanced', 'train.advanced', 'train.advanced',
-    el('div', { class: 'section-body advanced-body' },
-      advancedPending,
-      el('div', { class: 'groups' },
-        group('evolution',
-          row('elite'), row('selection'), row('mutationRate'), el('div', { class: 'switch-row' }, sw('crossover')),
-          choices.fitness.row, row('maxDuration'), el('div', { class: 'switch-row' }, sw('slowRule')), choices.trafficMode.row),
-        group('scenario', tracksRow, choices.lanes.row, row('density'), row('irregularity'), row('maxSpeed')),
-        group('network',
-          el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
-          row('hiddenLayers'), row('neurons1'), row('neurons2'), row('neurons3'), choices.activation.row,
-          networkConfirm.node),
-        group('sensors',
-          el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
-          row('sensorCount'), row('sensorRange'), row('sensorSpread'),
-          sensorsConfirm.node)),
-      resetButton, resetConfirm.node));
+  // Vista de ajustes (D2): el aviso de cambios pendientes, los cuatro grupos a un solo nivel y
+  // restablecer. La función de fitness encabeza el grupo de evolución.
+  const settingsView = el('div', { class: 'train-settings' },
+    advancedPending,
+    el('div', { class: 'groups' },
+      group('evolution',
+        choices.fitness.row,
+        row('elite'), row('selection'), row('mutationRate'), el('div', { class: 'switch-row' }, sw('crossover')),
+        row('maxDuration'), el('div', { class: 'switch-row' }, sw('slowRule')), choices.trafficMode.row),
+      group('scenario', tracksRow, choices.lanes.row, row('density'), row('irregularity'), row('maxSpeed')),
+      group('network',
+        el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
+        row('hiddenLayers'), row('neurons1'), row('neurons2'), row('neurons3'), choices.activation.row,
+        networkConfirm.node),
+      group('sensors',
+        el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
+        row('sensorCount'), row('sensorRange'), row('sensorSpread'),
+        sensorsConfirm.node)),
+    el('div', { class: 'settings-reset' }, resetButton), resetConfirm.node);
 
   // Guardar el campeón, siempre a la vista, con su propia línea de resultado.
   const nameInput = el('input', {
@@ -486,22 +494,49 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     if (key) setText(saveStatus, key, params); else saveStatus.textContent = '';
   }
 
-  // Biblioteca (plegada al abrir); su título muestra cuántos cerebros hay.
+  // Vista de cerebros (D2): la biblioteca con todo el alto del panel.
   const libraryZone = el('div', { class: 'library-zone' });
-  const librarySummary = el('summary', { help: 'library.title' });
-  const librarySection = el('details', { class: 'section train-library', attrs: { open: open.library } },
-    librarySummary, el('div', { class: 'section-body' }, libraryZone));
-  librarySection.addEventListener('toggle', () => { open.library = librarySection.open; });
-  const countLibrary = () => setText(librarySummary, 'library.title.count', { value: library ? library.list().length : 0 });
+  const brainsView = el('div', { class: 'train-brains' }, libraryZone);
+
+  // Vistas del panel (D1): entrenamiento, ajustes y cerebros, con la barra fija arriba.
+  const trainingView = el('div', { class: 'train-training' }, intro, run, viewSwitches, basic, saveBlock, missions);
+  const views = panelViews({
+    idPrefix: 'train-view',
+    i18n,
+    selected: currentView,
+    views: [
+      { id: 'training', labelKey: 'train.view.training', help: 'train.view.training', node: trainingView },
+      { id: 'settings', labelKey: 'train.view.settings', help: 'train.view.settings', node: settingsView },
+      { id: 'brains', labelKey: 'train.view.brains', help: 'train.view.brains', node: brainsView, counted: true },
+    ],
+    onChange: (id, previous) => {
+      currentView = id;
+      cancelConfirms(previous);
+    },
+  });
+  const countLibrary = () => views.setCount('brains', library ? library.list().length : 0);
   countLibrary();
   const offLibrary = library ? library.subscribe(countLibrary) : () => {};
 
-  panel.append(
-    el('h1', { class: 'sr-only', i18n: 'train.title' }),
-    intro, run, viewSwitches, basic, saveBlock, missions, librarySection, advanced);
+  panel.classList.add('panel-with-views');
+  panel.append(el('h1', { class: 'sr-only', i18n: 'train.title' }), views.bar, views.container);
   const libraryView = library
     ? createLibraryView({ container: libraryZone, library, i18n, onContinue: continueFrom })
-    : { showMessage() {}, dispose() {} };
+    : { showMessage() {}, cancelConfirms() {}, dispose() {} };
+
+  /**
+   * Al dejar una vista se cancelan sus confirmaciones abiertas, como si se hubiera elegido cancelar:
+   * una confirmación escondida sería un modo invisible (D1).
+   */
+  function cancelConfirms(view) {
+    const byView = {
+      training: [toolbarConfirm],
+      settings: [networkConfirm, sensorsConfirm, resetConfirm],
+      brains: [],
+    };
+    for (const c of byView[view] ?? []) if (c.isOpen) c.cancel();
+    if (view === 'brains') libraryView.cancelConfirms();
+  }
 
   // --- Tablero: indicadores, última generación, curva y red (design.md D8) ---------------------------
   const strip = statStrip([
@@ -643,10 +678,11 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     // Cambios que esperan a la próxima generación: el del modo se avisa junto a su ajuste; los demás,
     // en la configuración.
     const waiting = t.pending ? Object.keys(t.pending) : [];
-    const othersWaiting = waiting.some((k) => k !== 'selectionMode');
+    const othersWaiting = settingsWaiting(t.pending);
     modePending.hidden = !waiting.includes('selectionMode');
     basicPending.hidden = !othersWaiting;
     advancedPending.hidden = !othersWaiting;
+    views.setPending('settings', othersWaiting);
     const dragging = document.activeElement;
     // Con el enfriamiento en uso, la fuerza baja sola: el deslizador muestra la de la generación
     // siguiente y no se edita (D9). Con selección manual, la fuerza es la del deslizador.
@@ -792,6 +828,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     get paused() { return state.paused; },
     get session() { return state.session; },
     get missions() { return state.missions; },
+    views,
     togglePause, nextGeneration, chooseLeader, undoChoice, restart, newPopulation, setSpeed, applySettings, resetSettings, saveChampion, continueFrom,
     unmount() {
       library?.flush();
@@ -805,6 +842,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
       panel.removeEventListener('click', onClick);
       board.removeEventListener('click', onClick);
       libraryView.dispose();
+      views.dispose();
+      panel.classList.remove('panel-with-views');
       stage.removeEventListener('click', onClick);
       toolbarConfirm.dispose();
       networkConfirm.dispose();

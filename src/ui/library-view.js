@@ -249,6 +249,8 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
     render,
     refresh,
     showMessage,
+    /** Cancela las confirmaciones abiertas (al dejar la vista donde está la biblioteca). */
+    cancelConfirms() { for (const c of confirms) if (c.isOpen) c.cancel(); },
     dispose() {
       off();
       offLanguage();

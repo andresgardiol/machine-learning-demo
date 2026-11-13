@@ -7,11 +7,11 @@
 
 ## 2. Panel de Entrenar en tres vistas
 
-- [ ] 2.1 Reorganizar `src/tabs/train/index.js` en las tres vistas de design.md D2, sin la sección "Avanzado": el grupo de evolución abierto al entrar y con la función de fitness primero. Verificar en el navegador los escenarios de "Vistas del panel", "Avanzado por grupos" y "Configuración avanzada", y que `npm test` pasa.
-- [ ] 2.2 Recordar la vista elegida en el estado de la pestaña. Verificar con una prueba y en el navegador el escenario "Vista recordada".
-- [ ] 2.3 Mostrar la marca de cambios pendientes en la pestaña de ajustes (design.md D3). Verificar con una prueba de la lógica sin DOM y en el navegador los tres escenarios de "Cambios pendientes a la vista".
-- [ ] 2.4 Verificar que cambiar de vista no altera el entrenamiento: una prueba compara el historial de dos entrenamientos iguales, uno cambiando de vista en cada generación; y en el navegador, que los atajos siguen funcionando desde las tres vistas.
-- [ ] 2.5 Cancelar las confirmaciones abiertas de una vista al dejarla. Verificar en el navegador el escenario "Confirmación abierta al cambiar de vista" con la confirmación de entrenamiento nuevo y con la de restablecer.
+- [x] 2.1 Reorganizar `src/tabs/train/index.js` en las tres vistas de design.md D2, sin la sección "Avanzado": el grupo de evolución abierto al entrar y con la función de fitness primero. Verificar en el navegador los escenarios de "Vistas del panel", "Avanzado por grupos" y "Configuración avanzada", y que `npm test` pasa.
+- [x] 2.2 Recordar la vista elegida en el estado de la pestaña. Verificar con una prueba y en el navegador el escenario "Vista recordada".
+- [x] 2.3 Mostrar la marca de cambios pendientes en la pestaña de ajustes (design.md D3). Verificar con una prueba de la lógica sin DOM y en el navegador los tres escenarios de "Cambios pendientes a la vista".
+- [x] 2.4 Verificar que cambiar de vista no altera el entrenamiento: una prueba compara el historial de dos entrenamientos iguales, uno cambiando de vista en cada generación; y en el navegador, que los atajos siguen funcionando desde las tres vistas.
+- [x] 2.5 Cancelar las confirmaciones abiertas de una vista al dejarla. Verificar en el navegador el escenario "Confirmación abierta al cambiar de vista" con la confirmación de entrenamiento nuevo y con la de restablecer.
 
 ## 3. Guardar y biblioteca
 

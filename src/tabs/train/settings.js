@@ -153,3 +153,11 @@ export const onlyCircuits = (tracks) => !normalizeTracks(tracks).includes('strai
 
 /** Ajustes del tráfico, deshabilitados cuando solo hay circuitos marcados. */
 export const TRAFFIC_SETTINGS = Object.freeze(['lanes', 'density', 'irregularity', 'trafficMode']);
+
+/**
+ * ¿Hay ajustes esperando a la próxima generación que marcar en la pestaña de ajustes
+ * (panel-de-entrenar-por-vistas D3)? Todos menos el modo de selección, que se cambia en la vista de
+ * entrenamiento y tiene su propio aviso.
+ * @param {object|null} pending cambios pendientes del entrenamiento (`training.pending`)
+ */
+export const settingsWaiting = (pending) => Object.keys(pending ?? {}).some((k) => k !== 'selectionMode');
