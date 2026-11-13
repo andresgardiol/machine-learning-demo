@@ -542,3 +542,46 @@ test('los bordes cuentan siempre: dos choques contra el borde en el mismo lugar 
   while (race.results[0].crashes < 2 && !race.finished) race.step();
   assert.equal(race.results[0].crashes, 2);
 });
+
+// --- Meta elegida (D1b) --------------------------------------------------------------------------
+
+test('meta elegida en la calle: nadie llega antes de los 2000 m', () => {
+  const race = createRace({ density: 0, goal: { meters: 2000 }, competitors: [{ id: 'a', controller: forward }] });
+  assert.deepEqual(race.goal, { kind: 'meters', value: 2000, meters: 2000 });
+  let at = null;
+  while (!race.finished) { race.step(); if (at === null && race.world.agents[0].progress >= 1000) at = race.results[0].state; }
+  assert.equal(at, 'racing', 'a los 1000 m sigue corriendo');
+  assert.equal(race.results[0].state, 'arrived');
+  assert.ok(race.results[0].time > 100);
+});
+
+test('meta elegida en un circuito: llega al cruzar la línea por tercera vez, y la parte se calcula sobre 3 vueltas', () => {
+  const race = raceWith({ track: 'grandPrix', goal: { laps: 3 } }, [(get, i) => pilot(get, i, () => 16)]);
+  const L = race.world.track.length;
+  assert.ok(near(race.goal.meters, 3 * L));
+  while (race.results[0].laps < 1) race.step();
+  assert.ok(race.results[0].share > 0.32 && race.results[0].share < 0.35);
+  runToEnd(race, Math.round(400 / STEP));
+  assert.equal(race.results[0].state, 'arrived');
+  assert.equal(race.results[0].laps, 3);
+});
+
+test('meta fuera de rango: se ajusta al límite (100 m → 500 m, 9 vueltas → 5)', () => {
+  assert.equal(raceGoal('straight', undefined, { meters: 100 }).value, 500);
+  assert.equal(raceGoal('straight', undefined, { meters: 9000 }).value, 3000);
+  assert.equal(raceGoal('oval', undefined, { laps: 9 }).value, 5);
+  assert.equal(raceGoal('oval', undefined, { laps: 0 }).value, 1);
+  assert.equal(raceGoal('straight', undefined, { meters: 1234 }).value, 1200, 'de a 100 m');
+  assert.equal(raceGoal('kidney', undefined, { meters: 2000 }).value, 1, 'en un circuito cuenta la cantidad de vueltas');
+  assert.equal(raceGoal('straight').value, 1000);
+});
+
+test('tiempo máximo: 180 s a 1000 m; a 3000 m con 12 m/s, 750 s', () => {
+  assert.equal(createRace({ competitors: [{ id: 'a', controller: idle }] }).maxSeconds, 180);
+  assert.equal(createRace({ goal: { meters: 3000 }, maxSpeed: 12, competitors: [{ id: 'a', controller: idle }] }).maxSeconds, 750);
+  const slow = raceWith({ density: 0, goal: { meters: 3000 }, maxSpeed: 12 }, [(get, i) => pilot(get, i, () => 3)]);
+  runToEnd(slow, Math.round(900 / STEP));
+  assert.equal(slow.finished, true);
+  assert.ok(near(slow.time, 750, STEP));
+  assert.equal(slow.results[0].state, 'unfinished');
+});

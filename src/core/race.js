@@ -20,6 +20,7 @@
 import { createWorld } from './world.js';
 import { createTrackById, DEFAULT_TRACK } from './circuits.js';
 import { CAR_LENGTH, STEP } from './constants.js';
+import { maxSpeedOf } from './car.js';
 
 /** Máximo de competidores en una carrera. */
 export const MAX_COMPETITORS = 6;
@@ -30,6 +31,12 @@ export const RACE_GOALS = Object.freeze({
   oval: Object.freeze({ kind: 'laps', value: 2 }),
   kidney: Object.freeze({ kind: 'laps', value: 1 }),
   grandPrix: Object.freeze({ kind: 'laps', value: 1 }),
+});
+
+/** Límites de una meta elegida (D1b): metros en la calle recta, vueltas en un circuito. */
+export const GOAL_LIMITS = Object.freeze({
+  meters: Object.freeze({ min: 500, max: 3000, step: 100 }),
+  laps: Object.freeze({ min: 1, max: 5, step: 1 }),
 });
 
 /** Penalización por choque por defecto (s), y sus límites (D1c y D10). */
@@ -48,8 +55,13 @@ export const RESPAWN_GRACE = 2;
 export const RACE_STALL_SECONDS = 5;
 /** Segundos que tienen los demás desde que llega el primero. */
 export const RACE_WAIT_SECONDS = 20;
-/** Duración máxima de una carrera (s). */
+/** Duración máxima mínima de una carrera (s): nunca menos que esto (D1b). */
 export const RACE_MAX_SECONDS = 180;
+/** El tiempo máximo es este múltiplo de lo que lleva recorrer la meta a la velocidad máxima (D1b). */
+export const RACE_MAX_FACTOR = 3;
+
+/** Tiempo máximo de una carrera (s): el triple de recorrer la meta a la velocidad máxima, y no menos de 180. */
+export const raceMaxSeconds = (meters, maxSpeed) => Math.max(RACE_MAX_SECONDS, (RACE_MAX_FACTOR * meters) / maxSpeedOf(maxSpeed));
 
 /** Estados de un competidor. */
 export const RACE_STATES = Object.freeze(['racing', 'arrived', 'unfinished']);
@@ -72,15 +84,27 @@ export function crashPenaltyOf(value) {
   return Math.round(Math.min(Math.max(n, min), max) * 10) / 10;
 }
 
+/** Valor de meta válido para una clase ('meters' o 'laps'): en sus límites y en su paso; sin valor, null. */
+export function goalValueOf(kind, value) {
+  const n = Number(value);
+  if (value === null || value === undefined || !Number.isFinite(n)) return null;
+  const { min, max, step } = GOAL_LIMITS[kind];
+  return Math.min(max, Math.max(min, Math.round(n / step) * step));
+}
+
 /**
- * Meta de una pista: { kind, value, meters }. `meters` es el recorrido (en un circuito, vueltas × largo).
+ * Meta de una carrera: { kind, value, meters }. `meters` es el recorrido (en un circuito, vueltas × largo).
+ * Sin `chosen`, la de la pista; con `{ meters }` o `{ laps }`, esa, ajustada a sus límites (D1b).
  * @param {string} trackId
  * @param {object} [track] la pista ya armada (para no volver a armarla)
+ * @param {{meters?:number, laps?:number}|null} [chosen]
  */
-export function raceGoal(trackId, track = createTrackById(trackId)) {
+export function raceGoal(trackId, track = createTrackById(trackId), chosen = null) {
   const g = RACE_GOALS[trackId];
   if (!g) throw new RaceError('unknownTrack', { track: trackId });
-  return { kind: g.kind, value: g.value, meters: g.kind === 'laps' ? g.value * track.length : g.value };
+  const asked = chosen ? goalValueOf(g.kind, g.kind === 'laps' ? chosen.laps : chosen.meters) : null;
+  const value = asked ?? g.value;
+  return { kind: g.kind, value, meters: g.kind === 'laps' ? value * track.length : value };
 }
 
 /** Dónde reaparece quien chocó a `crashAt` metros (D1c): RESPAWN_BACK más atrás, sin pasar de la salida. Nunca más atrás. */
@@ -92,7 +116,6 @@ export function respawnProgress(crashAt) {
 const EPS = 1e-9;
 const STALL_STEPS = Math.round(RACE_STALL_SECONDS / STEP);
 const WAIT_STEPS = Math.round(RACE_WAIT_SECONDS / STEP);
-const MAX_STEPS = Math.round(RACE_MAX_SECONDS / STEP);
 
 /**
  * @param {object} spec
@@ -103,11 +126,12 @@ const MAX_STEPS = Math.round(RACE_MAX_SECONDS / STEP);
  * @param {number} [spec.irregularity]
  * @param {number} [spec.maxSpeed] la misma para todos
  * @param {number} [spec.crashPenalty] segundos (0,1 por defecto)
+ * @param {{meters?:number, laps?:number}} [spec.goal] meta elegida (D1b); sin ella, la de la pista
  * @param {{id:string, controller:object, sensors?:object}[]} spec.competitors de 1 a MAX_COMPETITORS
  */
 export function createRace({
   track: trackId = DEFAULT_TRACK, seed = 1, lanes, density, irregularity, maxSpeed,
-  crashPenalty = RACE_CRASH_PENALTY, competitors = [],
+  crashPenalty = RACE_CRASH_PENALTY, competitors = [], goal: chosenGoal = null,
 } = {}) {
   if (!Array.isArray(competitors) || competitors.length === 0) throw new RaceError('noCompetitors', { min: 1 });
   if (competitors.length > MAX_COMPETITORS) throw new RaceError('tooManyCompetitors', { max: MAX_COMPETITORS, count: competitors.length });
@@ -119,7 +143,9 @@ export function createRace({
     cars: competitors.map((c) => ({ controller: c.controller, sensors: c.sensors, maxSpeed })),
   });
   const { track } = world;
-  const goal = raceGoal(trackId, track);
+  const goal = raceGoal(trackId, track, chosenGoal);
+  const maxSeconds = raceMaxSeconds(goal.meters, maxSpeed);
+  const MAX_STEPS = Math.round(maxSeconds / STEP);
 
   const results = competitors.map((c) => ({
     id: c.id,
@@ -236,6 +262,8 @@ export function createRace({
     world,
     goal,
     crashPenalty: penalty,
+    /** Tiempo máximo de esta carrera (s). */
+    maxSeconds,
     trackId,
     seed,
     /** Tiempo de carrera (s). */
