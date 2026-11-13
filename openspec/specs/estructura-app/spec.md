@@ -264,16 +264,17 @@ seguir funcionando.
 - **THEN** la simulación, el entrenamiento y el contenido del tablero siguen sin reiniciarse
 
 ### Requirement: Orden común del panel
-El panel de toda pestaña SHALL ordenar su contenido de arriba hacia abajo así:
-guía de inicio, controles de marcha, interruptores de vista, ajustes y
-acciones a la vista, misiones y, al final, las secciones plegables. Las
-secciones plegables SHALL verse iguales en todas las pestañas. El nombre de la
-pestaña MUST NOT repetirse como título visible del panel, y SHALL seguir
-disponible para los lectores de pantalla.
+El panel de toda pestaña SHALL ordenar su contenido así: guía de inicio,
+controles de marcha, interruptores de vista, ajustes y acciones a la vista y
+misiones. Los ajustes de la calle y del auto van en la barra de escenario.
+Un panel con más contenido del que entra SHALL repartirlo en vistas con
+pestañas arriba; la primera sigue este orden. Ningún ajuste MUST quedar en
+una sección plegable. El nombre de la pestaña MUST NOT
+repetirse como título visible, y SHALL seguir para lectores de pantalla.
 
 #### Scenario: Mismo orden en dos pestañas
 - **WHEN** la persona compara los paneles de El problema y de Entrenar
-- **THEN** en los dos aparecen, en ese orden, la guía, los controles de marcha, los interruptores de vista, las misiones y las secciones plegables
+- **THEN** en El problema y en la vista de entrenamiento de Entrenar aparecen, en ese orden, la guía, los controles de marcha, los interruptores de vista y las misiones
 
 #### Scenario: Guía oculta
 - **WHEN** la guía está oculta
@@ -282,3 +283,7 @@ disponible para los lectores de pantalla.
 #### Scenario: Título para lectores de pantalla
 - **WHEN** un lector de pantalla recorre el panel de Entrenar
 - **THEN** anuncia un título con el nombre de la pestaña aunque no se vea
+
+#### Scenario: Sin secciones plegables
+- **WHEN** la persona busca cualquier ajuste de cualquier pestaña
+- **THEN** lo encuentra a la vista, en la barra de escenario o en una vista del panel, sin desplegar nada

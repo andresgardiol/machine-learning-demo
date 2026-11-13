@@ -267,7 +267,7 @@ reemplazan el programa y los sensores.
 
 #### Scenario: Sensores de cada ejemplo
 - **WHEN** la persona carga el ejemplo de tres sensores y después el de veinte
-- **THEN** el auto tiene primero 3 sensores de 2 largos de auto y 60 grados, y después 20 sensores de 3 largos de auto y 120 grados, y la sección avanzada muestra esos valores
+- **THEN** el auto tiene primero 3 sensores de 2 largos de auto y 60 grados, y después 20 sensores de 3 largos de auto y 120 grados, y la barra de escenario muestra esos valores
 
 #### Scenario: Ejemplo con cambios propios
 - **WHEN** la persona escribió sus propias reglas y elige un ejemplo
@@ -314,8 +314,10 @@ con una confirmación si el texto fue escrito o cambiado por la persona.
 - **THEN** su programa queda como estaba
 
 ### Requirement: Programa recordado
-La pestaña SHALL recordar el texto del editor al salir de la pestaña y entre
-visitas en el mismo navegador. Si el navegador no permite guardar, la pestaña
+La pestaña SHALL recordar el texto del editor, junto con los sensores del auto
+para el que está escrito, al salir de la pestaña y entre visitas en el mismo
+navegador. Al abrir, el programa recordado MUST poder manejar: nunca se abre
+con un error que la persona no escribió. Si el navegador no permite guardar, la pestaña
 MUST funcionar igual, empezando con el programa inicial.
 
 #### Scenario: Volver a la pestaña
@@ -329,6 +331,18 @@ MUST funcionar igual, empezando con el programa inicial.
 #### Scenario: Navegador sin almacenamiento
 - **WHEN** el navegador impide guardar o leer
 - **THEN** la pestaña abre con el programa inicial y no muestra ningún error
+
+#### Scenario: Ejemplo de veinte sensores recordado
+- **WHEN** la persona carga el ejemplo de 20 sensores y vuelve a abrir la aplicación
+- **THEN** la pestaña abre con ese programa, el auto tiene 20 sensores de 3 largos de auto y 120 grados, y no hay ningún error
+
+#### Scenario: Programa guardado sin sus sensores
+- **WHEN** el navegador tiene un programa recordado por una versión anterior, sin sus sensores, que usa hasta `sensor20`
+- **THEN** la pestaña abre con ese programa y un auto con 20 sensores, la cantidad que el programa necesita, y no hay ningún error
+
+#### Scenario: Sensores cambiados a mano
+- **WHEN** la persona cambia los sensores en la barra de escenario y vuelve a abrir la aplicación
+- **THEN** la pestaña abre con los sensores que dejó
 
 ### Requirement: Exportar e importar el programa
 El panel SHALL permitir descargar el programa como un archivo de texto y
@@ -376,7 +390,7 @@ cerrar la aplicación.
 - **THEN** la misión sigue marcada como cumplida
 
 ### Requirement: Configuración avanzada
-La pestaña SHALL ofrecer, en una sección plegada al abrir, los mismos ajustes
+La pestaña SHALL ofrecer, en la barra de escenario y siempre a la vista, los mismos ajustes
 que la pestaña 1: velocidad máxima del auto (compartida por todas las
 pestañas), carriles, densidad e irregularidad del tráfico, y cantidad, alcance
 y apertura de los sensores, con un botón que los restablece. Cambiar los
@@ -384,14 +398,14 @@ sensores MUST volver a analizar el programa.
 
 #### Scenario: Sección plegada
 - **WHEN** se abre la pestaña
-- **THEN** los ajustes avanzados no están a la vista
+- **THEN** los ajustes de la calle y del auto están a la vista en la barra de escenario, sin desplegar nada, y el panel no tiene ninguna sección plegable
 
 #### Scenario: Menos sensores de los que usa el programa
 - **WHEN** el programa usa `sensor5` y la persona baja los sensores a 3
 - **THEN** se muestra el error de que el auto tiene 3 sensores, el auto deja de accionar controles y la paleta ofrece de `sensor1` a `sensor3`
 
 #### Scenario: Volver atrás
-- **WHEN** la persona restablece la configuración
+- **WHEN** la persona restablece el escenario
 - **THEN** el auto vuelve a tener 5 sensores, el error desaparece y el programa vuelve a manejar
 
 #### Scenario: Velocidad compartida

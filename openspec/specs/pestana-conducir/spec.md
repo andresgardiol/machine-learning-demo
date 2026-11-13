@@ -41,7 +41,7 @@ carriles que la calle tiene en ese momento.
 - **THEN** el texto de inicio habla de una calle de 3 carriles
 
 #### Scenario: Carriles elegidos
-- **WHEN** la persona elige cuatro carriles en la configuración avanzada
+- **WHEN** la persona elige cuatro carriles en la barra de escenario
 - **THEN** el texto de inicio pasa a hablar de una calle de 4 carriles, en el idioma activo
 
 #### Scenario: Texto breve
@@ -198,17 +198,17 @@ defecto.
 - **THEN** el nombre de cada misión y su estado se leen en el mismo renglón
 
 ### Requirement: Configuración avanzada
-La pestaña SHALL ofrecer, en una sección colapsada por defecto, la velocidad
-máxima del auto (compartida por todas las pestañas), la cantidad de
-carriles (2, 3 o 4), la densidad y la irregularidad del tráfico, y la cantidad,
-el alcance y la apertura de los sensores. Todo cambio MUST aplicarse de
+La pestaña SHALL ofrecer, en la barra de escenario y siempre a la vista, la
+velocidad máxima del auto (compartida por todas las pestañas), los carriles
+(2, 3 o 4), la densidad y la irregularidad del tráfico, y la cantidad, el
+alcance y la apertura de los sensores. Todo cambio MUST aplicarse de
 inmediato. La velocidad máxima, la densidad y la irregularidad MUST aplicarse
 en marcha, sin reiniciar el intento. Los carriles y los sensores SHALL
 reiniciar el intento con la nueva configuración.
 
 #### Scenario: Sección colapsada
 - **WHEN** se abre la pestaña
-- **THEN** los controles de configuración avanzada no están a la vista
+- **THEN** los ajustes de la calle y del auto están a la vista en la barra de escenario, sin desplegar nada, y el panel no tiene ninguna sección plegable
 
 #### Scenario: Cambiar los carriles
 - **WHEN** la persona elige cuatro carriles
@@ -227,12 +227,12 @@ reiniciar el intento con la nueva configuración.
 - **THEN** el auto muestra nueve rayos y el tablero nueve barras con sus números
 
 ### Requirement: Restablecer la configuración
-La pestaña SHALL ofrecer un botón que devuelve toda la configuración avanzada a
-sus valores por defecto.
+La barra de escenario SHALL ofrecer un botón que devuelve la pista, el
+tráfico, los sensores y la velocidad a sus valores por defecto.
 
 #### Scenario: Restablecer
 - **WHEN** la persona cambió velocidad, carriles, tráfico y sensores, y presiona restablecer
-- **THEN** el auto vuelve a 20 m/s, la calle a tres carriles, el tráfico a densidad e irregularidad de 50 %, y los sensores a 5 rayos, 3 largos de auto y 90 grados
+- **THEN** la pista vuelve a ser la calle recta, el auto vuelve a 20 m/s, la calle a tres carriles, el tráfico a densidad e irregularidad de 50 %, y los sensores a 5 rayos, 3 largos de auto y 90 grados
 
 ### Requirement: Controles de la pestaña explicados
 Cada control de la pestaña (reiniciar, tráfico nuevo, pausa, sensores, ver como
@@ -249,14 +249,14 @@ inglés.
 - **THEN** la guía, los indicadores, las misiones, los mensajes y los controles de la pestaña se muestran en inglés
 
 ### Requirement: Panel a la vista sin desplazarse
-Con la ventana en 1440×900, la guía activa y la sección avanzada plegada, el
-panel de El problema SHALL verse completo sin desplazarse. Con la ventana en
+Con la ventana en 1440×900, la guía activa y la barra de escenario a la vista,
+el panel de El problema SHALL verse completo sin desplazarse. Con la ventana en
 1366×768 SHALL verse sin desplazarse, como mínimo, los controles del intento y
 los interruptores de sensores y de ver como la máquina.
 
 #### Scenario: Pantalla de 1440×900
 - **WHEN** se abre la pestaña con la ventana en 1440×900 y la guía activa
-- **THEN** el panel no tiene barra de desplazamiento y se ven la guía, los controles del intento, los dos interruptores, las misiones y el título de la sección avanzada
+- **THEN** el panel no tiene barra de desplazamiento y se ven la guía, los controles del intento, los dos interruptores y las misiones
 
 #### Scenario: Pantalla de 1366×768
 - **WHEN** se abre la pestaña con la ventana en 1366×768 y la guía activa
@@ -267,8 +267,8 @@ los interruptores de sensores y de ver como la máquina.
 - **THEN** el auto, las barras de los sensores y los indicadores de acción están a la vista al mismo tiempo
 
 ### Requirement: Elegir la pista
-La pestaña SHALL ofrecer en el panel un selector de pista con las cuatro del
-catálogo, la calle recta elegida por defecto. Cambiar de pista MUST reiniciar
+La pestaña SHALL ofrecer, en la barra de escenario, las cuatro pistas del
+catálogo a la vista, la calle recta elegida por defecto. Cambiar de pista MUST reiniciar
 el intento en la pista nueva, con el mismo controlador y los mismos sensores.
 El selector SHALL tener un tooltip que diga qué hace y por qué importa, y los
 nombres de las pistas SHALL estar en español y en inglés.
@@ -290,7 +290,7 @@ nombres de las pistas SHALL estar en español y en inglés.
 - **THEN** un tooltip en el idioma activo explica que cambia dónde se maneja y que cada pista plantea un problema distinto: tráfico en la calle, curvas en los circuitos
 
 #### Scenario: Panel sin desplazarse
-- **WHEN** se abre la pestaña en 1440×900 con el selector de pista a la vista
+- **WHEN** se abre la pestaña en 1440×900 con la barra de escenario a la vista
 - **THEN** el panel se ve completo sin desplazarse
 
 ### Requirement: Pestaña en un circuito
@@ -305,8 +305,8 @@ que son de la calle recta, SHALL ocultarse y dejar una línea que lo diga.
 - **THEN** el indicador se llama "Vueltas" y muestra 1,5
 
 #### Scenario: Ajustes de tráfico
-- **WHEN** la persona despliega la configuración avanzada en un circuito
-- **THEN** carriles, densidad e irregularidad están deshabilitados y su tooltip explica que en un circuito no hay tráfico
+- **WHEN** la persona elige un circuito
+- **THEN** en la barra de escenario, carriles, densidad e irregularidad están deshabilitados y su tooltip explica que en un circuito no hay tráfico
 
 #### Scenario: Valores conservados
 - **WHEN** la persona tenía la densidad en 80 %, pasa a un circuito y vuelve a la calle recta
