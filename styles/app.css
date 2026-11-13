@@ -791,7 +791,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg);
 }
 .compete-item + .compete-item { border-top: 1px solid var(--color-border); }
-.compete-item { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto; align-items: center; column-gap: var(--space-2); min-height: 38px; padding: 2px var(--space-2); }
+.compete-item { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto; align-items: center; column-gap: var(--space-2); min-height: 36px; padding: 1px var(--space-2); }
 .compete-who { display: flex; flex-direction: column; min-width: 0; }
 .compete-row-button {
   display: inline-grid; place-items: center; min-width: 28px; min-height: 28px; padding: 0 4px;

@@ -224,12 +224,17 @@ El resto de las notas de este archivo no tiene orden fijo.
     como verificación del dueño: abrir Competir con el navegador a la vista,
     seis competidores en el circuito de curvas, sensores y paisaje, y medir
     diez segundos.
-  - Límite conocido: a 1366×768 el panel de Competir se desplaza hasta 55 px
-    (sin "Vos", en la calle, con el panel en 360 px; con la lista en su mínimo
-    de 4 filas para ventanas de menos de 800 px de alto) y el tablero hasta
-    49 px. A 1440×900, nada en el panel; el tablero se desplaza 4 px con un
-    cerebro de nombre de 40 caracteres, en inglés, en el óvalo y con el panel
-    en 400 px (la fila de la tabla por pista crece con el nombre partido).
+  - Límite conocido (lista con solo los que corren, grupo 12): a 1366×768 el
+    panel de Competir se desplaza hasta 126 px con seis competidores sin "Vos"
+    y el panel en 360 px (88 px con "Vos"; 14 px con tres sin "Vos"; con el
+    panel en 400 px, hasta 106 px), y el tablero hasta 33 px. A 1440×900, el
+    panel no se desplaza con tres ni con seis competidores. El tablero, a
+    1440×900, se desplaza de 51 a 74 px con seis cerebros de nombres de 40
+    caracteres sin "Vos" (la tabla por pista crece con los nombres partidos).
+- **Ideas que quedaron fuera de la lista de competidores de Competir:** buscar
+  por nombre en el selector para agregar (con veinte cerebros alcanza con
+  desplazarse; haría falta con muchos más), y una biblioteca de programas de
+  Reglas a mano con nombre (compite solo el programa actual).
   - Sin probar con un lector de pantalla real, en Safari ni en Firefox.
   - La persona que maneja a 15 m/s en el óvalo queda fuera por la espera de
     20 s al 98 % (medido con un manejo simulado).
