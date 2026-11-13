@@ -35,3 +35,17 @@ export function shortcutFrom(map, e) {
   if (typeof e.target?.closest === 'function' && e.target.closest('dialog, [role="alertdialog"]')) return null;
   return action;
 }
+
+/**
+ * ¿Un clic con el mouse en `target` devuelve el foco al escenario? Sí en los controles (botones,
+ * interruptores, deslizadores, títulos plegables y enlaces), para que los atajos sigan funcionando;
+ * no en un campo donde se escribe ni en el rótulo de uno, que se quedan con el foco hasta que la
+ * persona sale de ellos.
+ */
+export function returnsFocusToStage(target) {
+  const control = typeof target?.closest === 'function' ? target.closest('button, input, summary, a, label') : null;
+  if (!control) return false;
+  const tag = String(control.tagName ?? '').toUpperCase();
+  const field = tag === 'LABEL' ? (control.control ?? control.querySelector?.('input, textarea, select') ?? null) : control;
+  return !(field && isTypingTarget(field));
+}

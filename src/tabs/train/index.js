@@ -22,6 +22,7 @@ import { createFitnessChart } from '../../ui/chart.js';
 import { createLoop, SPEEDS } from '../../ui/loop.js';
 import { createLibraryView } from '../../ui/library-view.js';
 import { el } from '../../ui/dom.js';
+import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { statStrip, boardCard } from '../../ui/board.js';
 import {
   button, switchButton, sliderRow, optionGroup, createTextSetter, inlineConfirm,
@@ -759,7 +760,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   // (salvo en una confirmación, que conserva el foco para poder cancelarla con Escape).
   function onClick(e) {
     if (panel.querySelector('.inline-confirm:not([hidden])')) return;
-    if (e.detail > 0 && e.target?.closest?.('button, input, summary, a, label')) focusStage();
+    if (e.detail > 0 && returnsFocusToStage(e.target)) focusStage();
   }
   // Página oculta o cerrándose (recarga incluida): el autoguardado pendiente se escribe ya.
   const onVisibility = () => { if (document.hidden) library?.flush(); };

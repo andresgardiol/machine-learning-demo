@@ -16,6 +16,7 @@ import { createRulesController, classifyLine, countLines, RULES_LIMITS } from '.
 import { createStageView } from '../../render/view.js';
 import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
+import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { button, switchButton, createTextSetter, inlineConfirm } from '../../ui/controls.js';
 import { statStrip, boardCard } from '../../ui/board.js';
 import { createCodeEditor } from '../../ui/editor.js';
@@ -539,7 +540,7 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
   function onClick(e) {
     if (e.detail === 0 || !e.target?.closest) return;
     if (e.target.closest('.rules-palette, .code-editor')) return;
-    if (e.target.closest('button, input, summary, a, label')) focusStage();
+    if (returnsFocusToStage(e.target)) focusStage();
   }
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);

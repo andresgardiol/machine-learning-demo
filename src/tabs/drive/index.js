@@ -12,6 +12,7 @@ import { createKeyboardController } from '../../input/keyboard.js';
 import { createStageView } from '../../render/view.js';
 import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
+import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { button, switchButton, createTextSetter } from '../../ui/controls.js';
 import { statStrip, boardCard } from '../../ui/board.js';
 import { perceptionBlock, actionBlock } from '../shared/driving-cards.js';
@@ -283,7 +284,7 @@ export function mount({ stage, board, panel, i18n, store, reportError }) {
   }
   // Tras un clic con el mouse (detail > 0) en un control de la pestaña, el foco vuelve al escenario.
   function onClick(e) {
-    if (e.detail > 0 && e.target?.closest?.('button, input, summary, a, label')) focusStage();
+    if (e.detail > 0 && returnsFocusToStage(e.target)) focusStage();
   }
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
