@@ -22,11 +22,11 @@ criterio: se informa lo medido y se espera la respuesta.
 
 ## 3. Lógica de la pestaña sin DOM
 
-- [ ] 3.1 Crear `src/tabs/compete/competitors.js` (design.md D4): candidatos, disponibilidad con su motivo, selección de uno a seis, selección por defecto y casillas de número y color. Verificar con pruebas la selección por defecto (igual con y sin biblioteca, y con un programa propio con errores), el máximo, el mínimo, que la casilla se conserva al desmarcar a otro, el programa de ejemplo de 7 sensores en los dos idiomas, el programa propio con errores, el programa sin recordar y un cerebro inválido.
-- [ ] 3.2 Crear `src/tabs/compete/marks.js` (design.md D7). Verificar con pruebas los escenarios de "Dónde entrenó cada cerebro" con cerebros de una pista, de varias, de modo `same`, de los dos modos y sin generaciones.
-- [ ] 3.3 Crear `src/tabs/compete/results.js` (design.md D8). Verificar con pruebas: solo anotan las carreras terminadas, los dos resultados de la calle recta, el resultado con otros ajustes (incluida otra penalización), el competidor desmarcado y vuelto a marcar, el cerebro actualizado, el cerebro eliminado, el programa cambiado y borrar resultados.
-- [ ] 3.4 Crear `src/tabs/compete/missions.js` (design.md D15). Verificar con pruebas los escenarios de "Misiones".
-- [ ] 3.5 Crear la serie de semillas de la carrera (design.md D2). Verificar con pruebas que la primera es fija, que "otra carrera" no repite ninguna ni usa la del tráfico de práctica, y cuándo un cerebro practicó con el tráfico de práctica de la barra.
+- [x] 3.1 Crear `src/tabs/compete/competitors.js` (design.md D4): candidatos, disponibilidad con su motivo, selección de uno a seis, selección por defecto y casillas de número y color. Verificar con pruebas la selección por defecto (igual con y sin biblioteca, y con un programa propio con errores), el máximo, el mínimo, que la casilla se conserva al desmarcar a otro, el programa de ejemplo de 7 sensores en los dos idiomas, el programa propio con errores, el programa sin recordar y un cerebro inválido.
+- [x] 3.2 Crear `src/tabs/compete/marks.js` (design.md D7). Verificar con pruebas los escenarios de "Dónde entrenó cada cerebro" con cerebros de una pista, de varias, de modo `same`, de los dos modos y sin generaciones.
+- [x] 3.3 Crear `src/tabs/compete/results.js` (design.md D8). Verificar con pruebas: solo anotan las carreras terminadas, los dos resultados de la calle recta, el resultado con otros ajustes (incluida otra penalización), el competidor desmarcado y vuelto a marcar, el cerebro actualizado, el cerebro eliminado, el programa cambiado y borrar resultados.
+- [x] 3.4 Crear `src/tabs/compete/missions.js` (design.md D15). Verificar con pruebas los escenarios de "Misiones".
+- [x] 3.5 Crear la serie de semillas de la carrera (design.md D2). Verificar con pruebas que la primera es fija, que "otra carrera" no repite ninguna ni usa la del tráfico de práctica, y cuándo un cerebro practicó con el tráfico de práctica de la barra.
 
 ## 4. Escenario y barra
 
