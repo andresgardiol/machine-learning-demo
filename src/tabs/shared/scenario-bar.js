@@ -48,6 +48,8 @@ const LIVE_KEYS = Object.freeze(['maxSpeed', 'density', 'irregularity']);
  * @returns {string|null} null si la clave no es de la barra
  */
 export function barEffect(tab, key) {
+  // La meta es un grupo propio de Competir (pestana-competir D12): ninguna otra pestaña lo tiene.
+  if (key === 'goal') return tab === 'compete' ? 'newRace' : null;
   if (!BAR_KEYS.includes(key)) return null;
   if (tab === 'compete') return SENSOR_KEYS.includes(key) ? null : 'newRace';
   if (tab === 'train') return SENSOR_KEYS.includes(key) ? 'newTraining' : 'restartGeneration';
@@ -80,6 +82,17 @@ export function trackAfterKey(current, key) {
   return to === undefined ? null : TRACK_IDS[to];
 }
 
+/**
+ * Grupo de la barra con el mismo aspecto, rótulo y roles que los demás, para un grupo propio de una
+ * pestaña (barra-escenario, "Grupo propio de una pestaña").
+ * @param {{id:string, labelKey:string, labelId:string, help?:string}} spec
+ */
+export function barGroupNode({ id, labelKey, labelId, help }, ...children) {
+  return el('div', { class: `bar-group bar-group-${id}`, attrs: { role: 'group', 'aria-labelledby': labelId } },
+    el('span', { class: 'bar-group-label', i18n: labelKey, help, attrs: { id: labelId } }),
+    el('div', { class: 'bar-group-body' }, ...children));
+}
+
 /** Formato corto del valor de cada deslizador en la barra, y el completo para lectores de pantalla. */
 const FORMATS = Object.freeze({
   density: { short: 'drive.value.percent', full: 'drive.value.percent' },
@@ -103,12 +116,14 @@ const FORMATS = Object.freeze({
  * @param {string} [spec.resetHelp]
  * @param {string[]} [spec.omit] grupos que la pestaña no usa (pestana-competir D12): no se crean, ni
  *   ocultos ni en el orden del foco; los demás conservan su orden
+ * @param {{after:string, node:HTMLElement}[]} [spec.extra] grupos propios de la pestaña (barra-escenario,
+ *   "Grupo propio de una pestaña"), armados con `barGroupNode`, que van después del grupo `after`
  * @returns {{node:HTMLElement, sync:(settings:object)=>void, slot:(group:string)=>HTMLElement, dispose:()=>void}}
  */
 export function scenarioBar({
   i18n, settings, onChange, onReset, idPrefix = 'bar',
   help = (key) => `drive.${key}`, trackHelp = 'track', noTrafficHelp = 'drive.noTraffic', resetHelp = 'drive.resetSettings',
-  omit = [],
+  omit = [], extra = [],
 }) {
   const shown = (id) => !omit.includes(id);
   const setText = createTextSetter(i18n);
@@ -223,7 +238,8 @@ export function scenarioBar({
       () => group('sensors', { i18n: 'bar.group.sensors', attrs: { id: `${idPrefix}-sensors-label` } },
         sliderNode('sensorCount'), sliderNode('sensorRange'), sliderNode('sensorSpread')),
       () => group('car', { i18n: 'bar.group.car', attrs: { id: `${idPrefix}-car-label` } }, sliderNode('maxSpeed')),
-    ].filter((_, i) => shown(BAR_GROUPS[i].id)).map((make) => make()),
+    ].flatMap((make, i) => (shown(BAR_GROUPS[i].id) ? [make()] : [])
+      .concat(extra.filter((x) => x.after === BAR_GROUPS[i].id).map((x) => x.node))),
     el('div', { class: 'bar-group bar-group-reset' }, resetButton, slots.reset));
 
   /** Muestra los valores de `next`. Un deslizador que se está arrastrando conserva el suyo. */

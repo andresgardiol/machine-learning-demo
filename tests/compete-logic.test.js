@@ -207,3 +207,12 @@ test('el tráfico de práctica usa siempre su semilla', () => {
   assert.equal(seedFor('practice', 1234), SCENARIO_TRAFFIC_SEED);
   assert.equal(seedFor('new', 1234), 1234);
 });
+
+test('resultados de otra meta: se marcan con otros ajustes, también en un circuito', () => {
+  const r = createResults();
+  r.record({ track: 'oval', settings: { ...settings, goal: 2 }, entries: [{ key: 'x', signature: 's', result: arrived(60) }] });
+  r.record({ track: 'straight', settings: { ...settings, goal: 1000 }, entries: [{ key: 'x', signature: 's', result: arrived(50) }] });
+  assert.equal(r.cell('x', 's', 'oval', { ...settings, goal: 2 })[0].other, false);
+  assert.equal(r.cell('x', 's', 'oval', { ...settings, goal: 3 })[0].other, true);
+  assert.equal(r.cell('x', 's', 'straight', { ...settings, goal: 2000 })[0].other, true);
+});

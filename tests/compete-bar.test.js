@@ -33,3 +33,8 @@ test('descripción de una carrera en inglés', () => {
   assert.equal(goalText(t, { kind: 'laps', value: 1 }), 'Race over 1 lap.');
   for (const s of [text]) assert.doesNotMatch(s, /\[stage/);
 });
+
+test('la meta es un grupo propio de Competir: empieza otra carrera ahí y no existe en las otras pestañas', () => {
+  assert.equal(barEffect('compete', 'goal'), 'newRace');
+  for (const tab of ['drive', 'rules', 'train']) assert.equal(barEffect(tab, 'goal'), null);
+});

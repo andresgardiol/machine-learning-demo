@@ -3,9 +3,9 @@
 // de práctica). Cada resultado recuerda con qué ajustes se corrió. Vive hasta cerrar la aplicación.
 
 /** Ajustes que se recuerdan con cada resultado. */
-export const RESULT_SETTINGS = Object.freeze(['lanes', 'density', 'irregularity', 'maxSpeed', 'crashPenalty']);
+export const RESULT_SETTINGS = Object.freeze(['lanes', 'density', 'irregularity', 'maxSpeed', 'crashPenalty', 'goal']);
 /** Los que valen en un circuito (sin tráfico). */
-const CIRCUIT_SETTINGS = Object.freeze(['maxSpeed', 'crashPenalty']);
+const CIRCUIT_SETTINGS = Object.freeze(['maxSpeed', 'crashPenalty', 'goal']);
 /** Tráficos de la calle recta, en el orden en que se muestran. */
 export const STREET_TRAFFICS = Object.freeze(['new', 'practice']);
 

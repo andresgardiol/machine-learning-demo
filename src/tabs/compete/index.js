@@ -10,7 +10,7 @@
 // El estado vive en el módulo (D13): la selección, los ajustes, los resultados, el contador de
 // semillas, las misiones y el competidor seguido se conservan al salir y volver; la carrera queda en
 // pausa mientras la pestaña no está a la vista.
-import { createRace, RACE_GOALS, CRASH_PENALTY_LIMITS, RACE_CRASH_PENALTY, crashPenaltyOf, RACE_WAIT_SECONDS } from '../../core/race.js';
+import { createRace, RACE_GOALS, GOAL_LIMITS, goalValueOf, CRASH_PENALTY_LIMITS, RACE_CRASH_PENALTY, crashPenaltyOf, RACE_WAIT_SECONDS } from '../../core/race.js';
 import { TRACK_IDS, isCircuit } from '../../core/circuits.js';
 import { MAX_SPEED } from '../../core/constants.js';
 import { DEFAULT_TRAFFIC } from '../../core/traffic.js';
@@ -26,7 +26,7 @@ import { button, switchButton, sliderRow, optionGroup, createTextSetter } from '
 import { statStrip, boardCard } from '../../ui/board.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { stageDescription } from '../../ui/stage-description.js';
-import { scenarioBar } from '../shared/scenario-bar.js';
+import { scenarioBar, barGroupNode, createSliderGesture } from '../shared/scenario-bar.js';
 import { normalizeSettings as normalizeStreet, lapsShown } from '../shared/street-settings.js';
 import { raceDescription, goalText } from '../shared/stage-text.js';
 import { EXAMPLE_BRAINS } from '../../data/example-brains.js';
@@ -41,6 +41,9 @@ import { shortcutFor, mainAction } from './shortcuts.js';
 export const BAR_DEFAULTS = Object.freeze({
   track: 'straight', lanes: DEFAULT_LANES, density: DEFAULT_TRAFFIC.density, irregularity: TRAINING_IRREGULARITY, maxSpeed: MAX_SPEED,
 });
+
+/** Meta de cada pista al abrir y al restablecer (D1b): la de la pista. */
+const defaultGoals = () => Object.fromEntries(Object.entries(RACE_GOALS).map(([id, g]) => [id, g.value]));
 
 /** Cada cuánto, como mucho, se reordena el marcador (ms). */
 const REORDER_MS = 500;
@@ -65,6 +68,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
       traffic: 'new', // tráfico de la carrera en la calle recta: 'new' o 'practice' (D2)
       newSeed: seeds.first,
       crashPenalty: RACE_CRASH_PENALTY,
+      goals: defaultGoals(), // una meta por pista (D1b): metros en la calle recta, vueltas en un circuito
       selection: createSelection(),
       speed: 1,
       showSensors: true,
@@ -130,7 +134,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     const keys = state.selection.keys;
     const competitors = keys.map((k) => buildCompetitor(candidateOf(k), { t, keyboard: () => keyboard }));
     const s = state.settings;
+    const kind = RACE_GOALS[s.track].kind;
     state.race = createRace({
+      goal: { [kind]: state.goals[s.track] },
       track: s.track, seed: seedFor(onCircuit() ? 'new' : state.traffic, state.newSeed),
       lanes: s.lanes, density: s.density, irregularity: s.irregularity, maxSpeed: s.maxSpeed,
       crashPenalty: state.crashPenalty, competitors,
@@ -138,7 +144,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     state.raceKeys = keys;
     state.raceSignatures = keys.map((k) => candidateOf(k).signature);
     state.raceTraffic = state.traffic;
-    state.raceSettings = { lanes: s.lanes, density: s.density, irregularity: s.irregularity, maxSpeed: s.maxSpeed, crashPenalty: state.crashPenalty };
+    state.raceSettings = { lanes: s.lanes, density: s.density, irregularity: s.irregularity, maxSpeed: s.maxSpeed, crashPenalty: state.crashPenalty, goal: state.goals[s.track] };
     state.phase = keys.includes('human') ? 'waiting' : 'running';
     state.follow = null;
     state.firstAnnounced = false;
@@ -346,22 +352,62 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
       el('div', { class: 'compete-foot' }, clearButton)));
 
   // --- Barra de escenario (D12): pista, tráfico y velocidad; sin sensores ---------------------
+  // Grupo propio de Competir en la barra (D1b y D12): la meta, entre el tráfico y la velocidad, en el
+  // lugar que dejan los sensores. Metros de a 100 en la calle recta; vueltas en un circuito.
+  const goalId = 'compete-goal';
+  const goalValue = el('output', { class: 'bar-value', attrs: { for: goalId, 'aria-hidden': 'true' } });
+  const goalName = el('span', { class: 'bar-name' });
+  const goalGesture = createSliderGesture((v, { final }) => { showGoal(v); if (final) setGoal(v); });
+  const goalInput = el('input', {
+    attrs: { type: 'range', id: goalId },
+    on: { input: (e) => goalGesture.input(Number(e.target.value)), change: (e) => goalGesture.change(Number(e.target.value)) },
+  });
+  const goalGroup = barGroupNode({ id: 'goal', labelKey: 'bar.group.goal', labelId: 'compete-goal-label', help: 'compete.bar.goal' },
+    el('div', { class: 'bar-control' }, el('label', { class: 'bar-label', attrs: { for: goalId } }, goalName, goalValue), goalInput));
+  const goalKind = () => RACE_GOALS[state.settings.track].kind;
+  function showGoal(v) {
+    const kind = goalKind();
+    setText(goalValue, `compete.goal.short.${kind}`, { value: v });
+    const full = t(`compete.goal.full.${kind}`, { value: v });
+    if (goalInput.getAttribute('aria-valuetext') !== full) goalInput.setAttribute('aria-valuetext', full);
+  }
+  /** Cambia la meta de la pista elegida y empieza otra carrera, con la misma semilla (D1b). */
+  function setGoal(v) {
+    const value = goalValueOf(goalKind(), v);
+    if (value === state.goals[state.settings.track]) return;
+    state.goals = { ...state.goals, [state.settings.track]: value };
+    newRace();
+  }
+  function syncGoal() {
+    const kind = goalKind();
+    const lim = GOAL_LIMITS[kind];
+    for (const [k, v] of [['min', lim.min], ['max', lim.max], ['step', lim.step]]) if (goalInput.getAttribute(k) !== String(v)) goalInput.setAttribute(k, String(v));
+    setText(goalName, `bar.goal.${kind}`);
+    goalInput.dataset.help = `compete.bar.goal.${kind}`;
+    const label = t(`bar.goal.${kind}`);
+    if (goalInput.getAttribute('aria-label') !== label) goalInput.setAttribute('aria-label', label);
+    if (goalGesture.active) return;
+    const v = state.goals[state.settings.track];
+    if (Number(goalInput.value) !== v) goalInput.value = String(v);
+    showGoal(v);
+  }
+
   const scenario = scenarioBar({
-    i18n, settings: { ...state.settings }, idPrefix: 'compete', omit: ['sensors'],
+    i18n, settings: { ...state.settings }, idPrefix: 'compete', omit: ['sensors'], extra: [{ after: 'traffic', node: goalGroup }],
     help: (key) => `compete.bar.${key}`, trackHelp: 'compete.bar.track', noTrafficHelp: 'drive.noTraffic', resetHelp: 'compete.bar.reset',
     onChange: (key, value, { final }) => {
       if (!final) return;
       applyBar({ ...state.settings, [key]: value });
     },
-    onReset: () => applyBar({ ...BAR_DEFAULTS }),
+    onReset: () => { state.goals = defaultGoals(); applyBar({ ...BAR_DEFAULTS }, { force: true }); },
   });
   bar?.append(scenario.node);
 
   /** Un cambio de la barra empieza otra carrera (D12): la misma semilla con tráfico de práctica; una nueva si no. */
-  function applyBar(next) {
+  function applyBar(next, { force = false } = {}) {
     const n = normalizeStreet({ ...next });
     const target = { track: n.track, lanes: n.lanes, density: n.density, irregularity: n.irregularity, maxSpeed: n.maxSpeed };
-    if (JSON.stringify(target) === JSON.stringify(state.settings)) { sync(); return; }
+    if (!force && JSON.stringify(target) === JSON.stringify(state.settings)) { sync(); return; }
     if (target.maxSpeed !== state.settings.maxSpeed) store?.set({ carSpeed: target.maxSpeed });
     state.settings = target;
     newRace({ seed: state.traffic === 'practice' ? 'same' : 'next' });
@@ -488,7 +534,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
 
   /** Tabla por pista (D9): una fila por competidor marcado, una columna por pista. */
   function renderTable() {
-    const current = { ...state.settings, crashPenalty: state.crashPenalty };
+    const current = { ...state.settings, crashPenalty: state.crashPenalty, goal: state.goals[state.settings.track] };
+    const goalOf = (track) => ({ ...current, goal: state.goals[track] });
     const head = el('tr', {}, el('th', { attrs: { scope: 'col' } }, el('span', { i18n: 'compete.table.who' })),
       ...TRACK_IDS.map((id) => el('th', { attrs: { scope: 'col' }, dataset: { track: id } },
         el('span', { i18n: `track.short.${id}`, attrs: { 'aria-hidden': 'true' } }),
@@ -498,7 +545,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
       if (!c) return null;
       const slot = state.selection.slotOf(key);
       const cells = TRACK_IDS.map((track) => {
-        const got = results.cell(key, c.signature, track, current);
+        const got = results.cell(key, c.signature, track, goalOf(track));
         const td = el('td', { class: 'compete-cell', dataset: { track } });
         const markKind = markFor(c.brain ?? null, track);
         if (got.length === 0) {
@@ -616,7 +663,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     if (race.waitLeft !== null && !race.finished) setText(strip.values.time, 'compete.stats.timeWait', { value: time, left: Math.ceil(race.waitLeft) });
     else setText(strip.values.time, 'compete.value.seconds', { value: time });
     const arrived = race.results.filter((r) => r.state === 'arrived').length;
-    const g = RACE_GOALS[race.trackId];
+    const g = race.goal;
     setText(strip.values.goal, g.kind === 'laps' ? (g.value === 1 ? 'compete.stats.goalLap' : 'compete.stats.goalLaps') : 'compete.stats.goalMeters',
       { value: g.value, arrived, total: race.results.length });
     let leaderName = null;
@@ -656,6 +703,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     }));
     renderScoreboard(now);
     scenario.sync({ ...state.settings });
+    syncGoal();
   }
 
   // --- Bucle ------------------------------------------------------------------------------------
