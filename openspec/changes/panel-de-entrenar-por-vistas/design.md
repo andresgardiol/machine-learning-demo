@@ -148,13 +148,17 @@ Un componente de la vista del escenario, que las tres pestañas configuran:
   Las miniaturas se dibujan una vez con la línea central de cada pista de
   `src/core/circuits.js`, a 40×28 px, con la misma orientación que en el
   escenario; la de la calle recta es un segmento vertical.
-- Ubicación: arriba a la izquierda del escenario, en un segundo renglón
-  debajo del rótulo de generación, porque el primer renglón está completo. En
-  las pestañas 1 y 2, donde no hay rótulo de generación, ocupa ese mismo
-  segundo renglón, para que esté en el mismo lugar en las tres.
+- Ubicación: arriba a la izquierda del escenario, en un segundo renglón,
+  debajo de los controles de cámara, porque el primer renglón está completo:
+  queda solo para la cámara y el paisaje en las tres pestañas. En Entrenar, el
+  rótulo de generación pasa a ese mismo segundo renglón, a la derecha del
+  selector. El selector queda en el mismo lugar en las tres pestañas, y el
+  rótulo no lo achica ni lo corta: si los dos no entran en el renglón, el
+  rótulo baja solo a un tercer renglón, en lugar de encimarse o de cortar
+  texto.
 - Con el selector en el escenario, el rótulo de generación de Entrenar deja
   de nombrar la pista ("Generación 12" y no "Generación 12 · Óvalo"): el
-  selector, justo debajo, ya lo dice.
+  selector, justo al lado, ya lo dice.
 - Se quitan el selector del panel de las pestañas 1 y 2 y las opciones
   marcables del grupo de escenario de Entrenar. La lógica no cambia: en 1 y 2
   cambiar la pista reinicia el intento; en 3 rige desde la generación

@@ -24,7 +24,6 @@ import { downloadText, readText } from '../../ui/files.js';
 import { RULES_PROGRAM_MAX } from '../../ui/preferences.js';
 import { perceptionBlock, actionBlock, READINGS_MAX } from '../shared/driving-cards.js';
 import { streetAdvanced, setUnavailable } from '../shared/street-advanced.js';
-import { trackPicker } from '../shared/track-picker.js';
 import { formatFixed } from '../../ui/i18n.js';
 import {
   DEFAULT_SETTINGS, needsRestart, normalizeSettings, worldSpec, onCircuit, lapsShown,
@@ -85,7 +84,12 @@ function createState({ i18n, store, preferences }) {
 export function mount({ stage, board, panel, i18n, store, preferences, reportError }) {
   state ??= createState({ i18n, store, preferences });
   const { program, controller, session } = state;
-  const view = createStageView({ container: stage, store });
+  // Selector de pista sobre el escenario (panel-de-entrenar-por-vistas D5): cambiar de pista reinicia
+  // el intento en la pista nueva.
+  const view = createStageView({
+    container: stage, store,
+    trackPicker: { mode: 'single', i18n, onSelect: ([track]) => { if (track !== state.settings.track) applySettings({ ...state.settings, track }); } },
+  });
   const setText = createTextSetter(i18n);
   const focusStage = () => stage.focus({ preventScroll: true });
   const makeWorld = () => createWorld({ ...worldSpec(state.settings, state.seed), controller });
@@ -277,9 +281,6 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
     el('div', { class: 'run-main' }, pauseButton, button('rules.restart', 'rules.restart', restart)),
     el('div', { class: 'run-secondary' }, newTrafficButton));
 
-  // Pista (circuitos-y-paisaje D6): cambiarla reinicia el intento con el mismo programa.
-  const picker = trackPicker({ selected: state.settings.track, onSelect: (track) => applySettings({ ...state.settings, track }) });
-
   const sensorsSwitch = switchButton('rules.sensors', 'rules.sensors', state.showSensors, () => {
     state.showSensors = !state.showSensors;
     sync();
@@ -427,7 +428,7 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
 
   panel.append(
     el('h1', { class: 'sr-only', i18n: 'rules.title' }),
-    intro, run, picker.node, viewSwitches, programSection, missions, advanced.node);
+    intro, run, viewSwitches, programSection, missions, advanced.node);
 
   // --- Mensajes sobre el escenario ----------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
@@ -443,7 +444,8 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
     crashHowto,
     button('rules.restart', 'rules.restart', restart, 'tool primary'));
   const crashLayer = el('div', { class: 'crash-layer' }, crashBox);
-  stage.append(el('div', { class: 'stage-badges' }, pauseBadge, machineBadge, crashBadge), crashLayer);
+  view.corner.append(el('div', { class: 'stage-badges' }, pauseBadge, machineBadge, crashBadge));
+  stage.append(crashLayer);
 
   // --- Sincronizar con el estado ------------------------------------------------------
   const meters = (v) => ({ value: Math.floor(v) });
@@ -459,7 +461,7 @@ export function mount({ stage, board, panel, i18n, store, preferences, reportErr
     missionList.hidden = circuit;
     missionsCircuit.hidden = !circuit;
     setUnavailable(newTrafficButton, circuit, 'rules.newTraffic');
-    picker.select(state.settings.track);
+    view.trackPicker.update({ selected: [state.settings.track], current: state.settings.track });
     setText(strip.values.best, 'drive.value.meters', meters(session.best));
     setText(strip.values.rules, 'drive.value.count', { value: program.rules });
 

@@ -15,6 +15,7 @@ import {
   createCamera, orientationFor, panStarts, retarget, advanceBlend, blendTarget, NO_BLEND, fitTrack,
 } from './camera.js';
 import { createSceneryPainter } from './scenery.js';
+import { createTrackPicker } from './track-picker.js';
 
 const COLOR_VARS = {
   background: '--color-bg',
@@ -62,11 +63,15 @@ const isTypingTarget = (t) => Boolean(t) && (t.isContentEditable
   || (t.tagName === 'INPUT' && !['button', 'checkbox', 'radio', 'range', 'reset', 'submit'].includes(t.type)));
 
 /**
- * @param {{container: HTMLElement, camera?: object, doc?: Document, store?: object}} spec
+ * @param {{container: HTMLElement, camera?: object, doc?: Document, store?: object,
+ *          trackPicker?: {mode:'single'|'multi', i18n:object, onSelect:(selected:string[], id:string)=>void}}} spec
  *   store: almacén de la app; si está, la vista ofrece junto a los controles de cámara el interruptor
  *   del paisaje, que lee y cambia `scenery` (el mismo para todas las pestañas).
+ *   trackPicker: si está, la vista ofrece el selector de pista arriba a la izquierda, en el mismo
+ *   lugar en todas las pestañas (panel-de-entrenar-por-vistas D5); la pestaña lo actualiza con
+ *   `view.trackPicker.update({ selected, current, pending })`.
  */
-export function createStageView({ container, camera = createCamera(), doc = document, store = null }) {
+export function createStageView({ container, camera = createCamera(), doc = document, store = null, trackPicker = null }) {
   const win = doc.defaultView;
   const canvas = doc.createElement('canvas');
   canvas.className = 'stage-canvas';
@@ -100,6 +105,23 @@ export function createStageView({ container, camera = createCamera(), doc = docu
   controls.append(...(sceneryButton ? [sceneryButton] : []), zoomInButton, zoomOutButton, resetButton);
 
   container.append(canvas, controls);
+
+  // Selector de pista (D5): un componente de la vista, que cada pestaña configura.
+  const picker = trackPicker ? createTrackPicker({
+    doc, t: trackPicker.i18n.t, mode: trackPicker.mode, onSelect: trackPicker.onSelect,
+  }) : null;
+  // Esquina superior izquierda, debajo de los controles de cámara (el primer renglón es solo para la
+  // cámara y el paisaje): el renglón del selector, en el mismo lugar en todas las pestañas, y debajo los
+  // mensajes que cada pestaña agrega. Lo que la pestaña suma al renglón del selector va a su derecha y
+  // baja a otro renglón si no entra, sin achicar ni cortar al selector.
+  const pickerRow = doc.createElement('div');
+  pickerRow.className = 'stage-picker-row';
+  if (picker) pickerRow.append(picker.node);
+  const corner = doc.createElement('div');
+  corner.className = 'stage-corner';
+  corner.append(pickerRow);
+  container.append(corner);
+  const offPickerLanguage = picker ? trackPicker.i18n.onChange(() => picker.refresh()) : () => {};
 
   let colors = readColors(doc);
   const scenery = createSceneryPainter();
@@ -575,7 +597,15 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     followCar() { camera.follow(); blend = NO_BLEND; syncFollowIndicator(); },
     refreshColors() { colors = readColors(doc); },
     get viewport() { return { ...viewport }; },
+    trackPicker: picker,
+    /** Renglón del selector de pista: lo que se agrega va a su derecha (por ejemplo, el rótulo de generación). */
+    pickerRow,
+    /** Esquina superior izquierda: los mensajes del escenario van acá, debajo del renglón del selector. */
+    corner,
     dispose() {
+      corner.remove();
+      offPickerLanguage();
+      picker?.dispose();
       observer.disconnect();
       unsubscribeScenery();
       canvas.removeEventListener('wheel', onWheel);

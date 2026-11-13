@@ -395,13 +395,13 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .segment:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
 
 /* Mensajes sobre el escenario */
-.stage-badges { position: absolute; top: var(--space-2); left: var(--space-2); display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); pointer-events: none; }
+.stage-badges { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); pointer-events: none; }
 .stage-badge { padding: var(--space-1) var(--space-2); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 14px; font-weight: 600; }
 .stage-badge[hidden] { display: none; }
 .pause-badge { border-color: var(--color-accent); }
 .pause-badge::before { content: "❚❚ "; color: var(--color-accent); }
 /* Arriba al centro: el auto queda abajo (calle vertical) y el mensaje no lo tapa; deja libres los controles de cámara. */
-.crash-layer { position: absolute; inset: 0; display: grid; place-items: start center; padding: 56px var(--space-4) var(--space-4); pointer-events: none; }
+.crash-layer { position: absolute; inset: 0; display: grid; place-items: start center; padding: 96px var(--space-4) var(--space-4); pointer-events: none; }
 .crash-layer[hidden] { display: none; }
 .crash-box {
   pointer-events: auto; max-width: 420px; padding: var(--space-3) var(--space-4);
@@ -413,12 +413,53 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Escenario angosto (design.md D7): con menos de 360 px, las insignias y el mensaje de choque bajan
    para no pisarse con los controles de cámara. */
 .stage { container: stage / inline-size; }
-/* Las insignias no llegan a los controles de cámara (arriba a la derecha): pasan a otro renglón. */
-.stage-badges { max-width: calc(100% - 232px); }
-@container stage (max-width: 359.98px) {
-  .stage-badges { top: 48px; max-width: calc(100% - 16px); }
-  .crash-layer { padding-top: calc(56px + 48px); }
+/* Esquina superior izquierda del escenario (panel-de-entrenar-por-vistas D5). El primer renglón es
+   solo para los controles de cámara y el paisaje (arriba a la derecha). Debajo, el renglón del
+   selector de pista, en el mismo lugar en todas las pestañas; en Entrenar lleva a su derecha el
+   rótulo de generación, que baja a otro renglón si no entra (sin achicar ni cortar al selector).
+   Después, los demás mensajes. */
+.stage-corner {
+  position: absolute; top: 48px; left: var(--space-2); right: var(--space-2);
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); pointer-events: none;
 }
+.stage-picker-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); max-width: 100%; }
+.stage-picker-row > * { pointer-events: auto; flex: 0 0 auto; max-width: 100%; }
+.stage-picker-row > .stage-badge { pointer-events: none; white-space: nowrap; }
+@container stage (max-width: 359.98px) {
+  .crash-layer { padding-top: 136px; }
+}
+
+/* Selector de pista (src/render/track-picker.js): un botón con la pista a la vista y un menú con las
+   cuatro, cada una con la miniatura de su trazado. */
+.track-picker { position: relative; z-index: 5; }
+.track-picker-button {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; height: 32px; padding: 0 var(--space-2);
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius);
+  font-size: 14px; cursor: pointer;
+}
+.track-picker-button:hover, .track-picker.open .track-picker-button { border-color: var(--color-accent); }
+.track-picker-label { white-space: nowrap; }
+.track-picker-caret { color: var(--color-text-muted); font-size: 12px; }
+.track-picker-menu {
+  position: absolute; top: calc(100% + 4px); left: 0; width: max-content; min-width: 100%; max-width: min(280px, calc(100cqi - 16px));
+  padding: var(--space-1); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
+}
+.track-picker-menu[hidden] { display: none; }
+.track-picker-item {
+  display: grid; grid-template-columns: 1.1em 40px minmax(0, 1fr); align-items: center; gap: var(--space-2);
+  width: 100%; min-height: 36px; padding: 2px var(--space-2); background: transparent; border: 0; border-radius: 6px;
+  text-align: left; font-size: 14px; cursor: pointer;
+}
+.track-picker-item:hover { background: var(--color-surface-2); }
+.track-picker-item:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+/* Elegida o marcada: marca llena, letra más pesada y fondo (no solo el color). */
+.track-picker-item[aria-checked="true"] { font-weight: 700; background: var(--color-surface-2); }
+.track-picker-check { color: var(--color-accent); text-align: center; }
+.track-picker-name { overflow-wrap: anywhere; }
+.track-thumb { display: block; color: var(--color-text-muted); }
+.track-picker-item[aria-checked="true"] .track-thumb { color: var(--color-text); }
+.track-thumb polyline { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 
 /* Confirmación en línea (src/ui/controls.js): dentro del panel, junto al control que la pidió. */
 .inline-confirm {
@@ -566,8 +607,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .setting-stacked .segments { display: flex; flex-wrap: wrap; }
 .setting-stacked .segment { flex: 1 1 auto; }
 .fitness-choice .segments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-/* Pistas (circuitos-y-paisaje D6 y D10): cuatro opciones en dos renglones de dos. */
-.track-choice .segments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 /* Ajustes que no aplican (por ejemplo, el tráfico en un circuito): se ven, pero apagados. */
 .segment[aria-disabled="true"], .setting input[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
 .setting[hidden] { display: none; }

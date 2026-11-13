@@ -43,7 +43,7 @@ al auto ni a los demás controles del escenario.
 
 #### Scenario: Escenario angosto
 - **WHEN** el escenario mide 400 píxeles de ancho, en español o en inglés
-- **THEN** el selector, el rótulo de generación y los controles de cámara y de paisaje se ven enteros, sin encimarse
+- **THEN** el selector, el rótulo de generación y los controles de cámara y de paisaje se ven enteros y sin encimarse, también con una generación de tres dígitos y varias pistas marcadas
 
 #### Scenario: Ver como la máquina
 - **WHEN** está activo "ver como la máquina"

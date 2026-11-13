@@ -23,12 +23,12 @@
 
 ## 4. Selector de pista en el escenario
 
-- [ ] 4.1 Crear el selector como parte de la vista del escenario, con sus modos simple y múltiple y las miniaturas (design.md D5). Verificar con pruebas de su lógica sin DOM los dos modos, la última pista marcada y el texto del botón cerrado.
-- [ ] 4.2 Ubicarlo arriba a la izquierda del escenario, en el segundo renglón. Verificar en el navegador los escenarios de "Selector de pista sobre el escenario", incluido "Escenario angosto" a 400 px en los dos idiomas; si se encima con el auto o con otro control, **detenerse y consultar** con una captura.
-- [ ] 4.3 Usarlo en El problema y en Reglas a mano y quitar el selector de sus paneles. Verificar en el navegador los escenarios de "Elegir la pista" de las specs `pestana-conducir` y `pestana-reglas`, y que los paneles de las dos pestañas siguen sin desplazarse a 1440×900.
-- [ ] 4.4 Usarlo en Entrenar en modo múltiple, quitar las pistas del grupo de escenario y sacar el nombre de la pista del rótulo de generación. Verificar en el navegador los escenarios de "Pistas del entrenamiento", incluidos "Varias pistas a la vista" y "Cambio de pistas pendiente".
-- [ ] 4.5 Agregar los tooltips del selector en los dos idiomas. Verificar los escenarios de "Selector de pista explicado" y que `mlLab.auditTooltips()` no informa controles sin ayuda en las tres pestañas, con el selector abierto y cerrado.
-- [ ] 4.6 Dar al selector los roles y estados de design.md D5 y hacer que el menú entre en el escenario. Verificar en el navegador los escenarios "Lector de pantalla" (leyendo el árbol de accesibilidad) y "Menú entero a la vista".
+- [x] 4.1 Crear el selector como parte de la vista del escenario, con sus modos simple y múltiple y las miniaturas (design.md D5). Verificar con pruebas de su lógica sin DOM los dos modos, la última pista marcada y el texto del botón cerrado.
+- [x] 4.2 Ubicarlo arriba a la izquierda del escenario, en el segundo renglón. Verificar en el navegador los escenarios de "Selector de pista sobre el escenario", incluido "Escenario angosto" a 400 px en los dos idiomas; si se encima con el auto o con otro control, **detenerse y consultar** con una captura.
+- [x] 4.3 Usarlo en El problema y en Reglas a mano y quitar el selector de sus paneles. Verificar en el navegador los escenarios de "Elegir la pista" de las specs `pestana-conducir` y `pestana-reglas`, y que los paneles de las dos pestañas siguen sin desplazarse a 1440×900.
+- [x] 4.4 Usarlo en Entrenar en modo múltiple, quitar las pistas del grupo de escenario y sacar el nombre de la pista del rótulo de generación. Verificar en el navegador los escenarios de "Pistas del entrenamiento", incluidos "Varias pistas a la vista" y "Cambio de pistas pendiente".
+- [x] 4.5 Agregar los tooltips del selector en los dos idiomas. Verificar los escenarios de "Selector de pista explicado" y que `mlLab.auditTooltips()` no informa controles sin ayuda en las tres pestañas, con el selector abierto y cerrado.
+- [x] 4.6 Dar al selector los roles y estados de design.md D5 y hacer que el menú entre en el escenario. Verificar en el navegador los escenarios "Lector de pantalla" (leyendo el árbol de accesibilidad) y "Menú entero a la vista".
 
 ## 5. Nombres de las pistas
 
