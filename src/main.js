@@ -9,13 +9,14 @@ import { createApp } from './ui/app.js';
 import * as driveTab from './tabs/drive/index.js';
 import * as rulesTab from './tabs/rules/index.js';
 import * as trainTab from './tabs/train/index.js';
+import * as competeTab from './tabs/compete/index.js';
 
 // Pestañas del recorrido, en orden. Las que no tienen módulo se muestran como no disponibles.
 const TABS = [
   { id: 'drive', module: driveTab },
   { id: 'rules', module: rulesTab },
   { id: 'train', module: trainTab },
-  { id: 'compete' },
+  { id: 'compete', module: competeTab },
   { id: 'inspect' },
   { id: 'lab' },
 ];

@@ -872,7 +872,7 @@ export default {
   'compete.stats.goalLaps': '{value} laps · {arrived} of {total} in',
   'compete.stats.goalLap': '{value} lap · {arrived} of {total} in',
   'compete.stats.leader': 'Leader',
-  'compete.stats.winner': 'Result',
+  'compete.stats.won': 'Winner: {name}',
   'compete.stats.nobody': 'Nobody finished',
   'compete.value.name': '{name}',
   'compete.value.seconds': '{value} s',

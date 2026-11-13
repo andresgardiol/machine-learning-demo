@@ -764,3 +764,112 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .bar-group-reset .bar-slot { left: auto; right: 0; }
 .bar-slot .inline-confirm { margin: 0; box-shadow: 0 6px 20px rgb(0 0 0 / 0.45); background: var(--color-surface); }
 .bar-slot:empty { display: none; }
+
+/* --- Competir (pestana-competir) ------------------------------------------------------------- */
+/* Panel en una sola vista (D10): los bloques arriba, sin desplazarse; la lista de competidores
+   ocupa el alto que sobra y se desplaza por dentro. */
+.panel:has(> .compete-panel) { display: flex; flex-direction: column; overflow: hidden; }
+.compete-panel { display: flex; flex-direction: column; gap: var(--space-2); flex: 1 1 auto; min-height: 0; }
+.compete-panel > * { flex: 0 0 auto; margin: 0; }
+.compete-intro { font-size: 14px; line-height: 1.4; }
+.compete-run { display: grid; gap: var(--space-2); }
+.compete-run .run-main .tool { padding-left: var(--space-1); padding-right: var(--space-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.compete-run .run-main .compete-main { flex: 1.4 1 0; }
+.compete-speeds { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+.compete-speeds[hidden], .compete-traffic-block[hidden], .compete-nobody[hidden] { display: none; }
+.compete-traffic { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+.compete-nobody { margin: var(--space-1) 0 0; }
+.compete-penalty input[type="range"] { height: 24px; }
+.compete-list-block { display: flex; flex-direction: column; flex: 1 1 auto !important; min-height: calc(6 * 34px + 28px); }
+.compete-list-head { display: flex; justify-content: space-between; align-items: baseline; }
+.compete-list-head .panel-heading { margin: 0 0 var(--space-1); }
+.compete-list-count { font-size: 13px; font-variant-numeric: tabular-nums; }
+.compete-list {
+  list-style: none; margin: 0; padding: 2px; flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg);
+}
+.compete-item + .compete-item { border-top: 1px solid var(--color-border); }
+.compete-check {
+  display: grid; grid-template-columns: 18px 22px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: var(--space-2);
+  align-items: center; width: 100%; min-height: 34px; padding: 3px var(--space-2); background: transparent; border: 0; border-radius: 6px;
+  color: var(--color-text); text-align: left; cursor: pointer; font-size: 14px;
+}
+.compete-check:hover { background: var(--color-surface-2); }
+.compete-check:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.compete-check[aria-disabled="true"] { cursor: not-allowed; }
+.compete-check[aria-disabled="true"] .compete-name, .compete-check[aria-disabled="true"] .compete-meta { opacity: 0.55; }
+.compete-box { grid-row: 1 / 3; width: 16px; height: 16px; border: 2px solid var(--color-control-border); border-radius: 4px; }
+.compete-check[aria-checked="true"] .compete-box { background: var(--color-accent); border-color: var(--color-accent); box-shadow: inset 0 0 0 2px var(--color-bg); }
+.compete-check > .compete-badge { grid-row: 1 / 3; }
+.compete-name { grid-column: 3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; }
+.compete-meta { grid-column: 3; font-size: 12px; color: var(--color-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
+/* Número con el color del competidor: el número es la identificación principal (D11). */
+.compete-badge {
+  display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+  font-size: 12px; font-weight: 700; color: var(--color-bg); font-variant-numeric: tabular-nums; flex: 0 0 auto;
+}
+.compete-badge:empty { visibility: hidden; }
+.compete-badge[data-color="car"] { background: var(--color-car); }
+.compete-badge[data-color="competitor1"] { background: var(--color-competitor-1); }
+.compete-badge[data-color="competitor2"] { background: var(--color-competitor-2); }
+.compete-badge[data-color="competitor3"] { background: var(--color-competitor-3); }
+.compete-badge[data-color="competitor4"] { background: var(--color-competitor-4); }
+.compete-badge[data-color="competitor5"] { background: var(--color-competitor-5); }
+.compete-badge[data-color="competitor6"] { background: var(--color-competitor-6); }
+.compete-missions .mission-list { gap: 4px; }
+.compete-missions .mission-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.compete-foot { display: flex; justify-content: flex-end; }
+
+/* Tablero: el marcador y la tabla por pista como tablas (D9). */
+.compete-score, .compete-tracks { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+.compete-score th, .compete-score td, .compete-tracks th, .compete-tracks td { padding: 3px 4px; text-align: left; vertical-align: middle; }
+.compete-score thead th, .compete-tracks thead th { font-size: 12px; font-weight: 600; color: var(--color-text-muted); border-bottom: 1px solid var(--color-border); }
+.compete-score tbody tr + tr th, .compete-score tbody tr + tr td, .compete-tracks tbody tr + tr th, .compete-tracks tbody tr + tr td { border-top: 1px solid var(--color-border); }
+.compete-score .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.compete-score thead th:nth-child(1) { width: 2.6em; }
+.compete-score thead th:nth-child(3) { width: 4.6em; }
+.compete-score thead th:nth-child(4) { width: 4.2em; }
+.compete-score[data-circuit="true"] thead th:nth-child(5) { width: 4.6em; }
+.compete-score thead th:last-child { width: 6.4em; }
+.compete-score-who { display: flex; align-items: center; gap: 4px; min-width: 0; font-weight: 400; }
+.compete-score-who .link-button, .compete-score-plain { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; }
+.compete-score-kind { white-space: nowrap; font-size: 12px; }
+.compete-score tr[data-followed="true"] .compete-score-who { font-weight: 700; }
+.compete-score tr[data-followed="true"] .link-button { text-decoration-thickness: 2px; }
+.compete-score tr[data-state="arrived"] .compete-state { color: var(--color-car); font-weight: 600; }
+.compete-score tr[data-state="unfinished"] .compete-state { color: var(--color-text-muted); }
+.compete-score tr[data-state="unfinished"] td, .compete-score tr[data-state="unfinished"] th { opacity: 0.85; }
+.compete-tracks thead th:first-child { width: 28%; }
+.compete-table-who { display: flex; align-items: center; gap: 4px; min-width: 0; font-weight: 400; }
+.compete-table-name { min-width: 0; overflow-wrap: anywhere; line-height: 1.25; }
+.compete-cell { line-height: 1.25; }
+.compete-result { display: flex; flex-direction: column; }
+.compete-result + .compete-result { margin-top: 3px; }
+.compete-result-main { font-weight: 600; font-variant-numeric: tabular-nums; }
+.compete-result-crashes { font-size: 12px; color: var(--color-text-muted); }
+.compete-result[data-other="true"] { opacity: 0.55; }
+.compete-other { font-size: 11px; font-style: italic; }
+.compete-dash { color: var(--color-text-muted); }
+/* Marcas (D7): se distinguen por el texto y por la forma, no solo por el color. */
+.compete-mark {
+  display: inline-block; margin-top: 3px; padding: 0 5px; border-radius: 999px; font-size: 11px; line-height: 16px; white-space: nowrap;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.compete-mark[data-mark="trained"], .compete-mark[data-mark="trainedSame"] { background: var(--color-surface-2); color: var(--color-text); border: 1px solid var(--color-surface-2); }
+.compete-mark[data-mark="unseen"] { background: transparent; color: var(--color-text-muted); border: 1px dashed var(--color-control-border); }
+.compete-mark:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+
+/* Escenario: cartel para largar (D5) y cuenta de la espera. Arriba al centro, como el mensaje de choque:
+   la salida y los autos quedan abajo. */
+.start-layer { position: absolute; inset: 0; display: grid; place-items: start center; padding: 96px var(--space-4) var(--space-4); pointer-events: none; }
+.start-layer[hidden] { display: none; }
+.start-card {
+  pointer-events: auto; display: grid; justify-items: center; gap: var(--space-2); max-width: 360px; padding: var(--space-3) var(--space-4);
+  background: var(--color-surface); border: 2px solid var(--color-car); border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
+  text-align: center;
+}
+.start-card-text { margin: 0; font-size: 15px; }
+.start-card-key { margin: 0; font-size: 13px; }
+.start-card-key[hidden] { display: none; }
+.wait-badge { border-color: var(--color-competitor-3); font-variant-numeric: tabular-nums; }
+.compete-score-who [hidden] { display: none !important; }

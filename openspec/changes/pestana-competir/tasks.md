@@ -37,13 +37,13 @@ criterio: se informa lo medido y se espera la respuesta.
 
 ## 5. Pestaña: carrera lista para largar
 
-- [ ] 5.1 Crear `src/tabs/compete/index.js` con `mount` / `unmount` y estado conservado (design.md D13), registrarlo en `src/main.js` y reemplazar los textos de "próximamente". Verificar en el navegador los escenarios "Abrir Competir" y "Explicación de Competir" de `estructura-app` y los de "Carrera lista al abrir".
-- [ ] 5.2 Controles de la carrera: largar, pausar y reanudar, reiniciar, otra carrera y, sin "Vos", velocidades. Verificar en el navegador los escenarios de "Controles de la carrera".
-- [ ] 5.3 Penalización por choque en el panel y reaparición a la vista. Verificar en el navegador los escenarios de "Chocar y seguir", chocando contra un borde y contra un vehículo, con la penalización en 0, 0,1 y 2 segundos.
-- [ ] 5.4 Meta y espera: la meta antes de largar y en carrera, y la cuenta de 20 segundos en el tablero y sobre el escenario. Verificar los escenarios de "Meta y espera", con una carrera donde llegan todos y otra donde se acaba la espera.
-- [ ] 5.5 Conectar la barra: pista, tráfico y velocidad empiezan otra carrera; "Restablecer" vuelve a los valores de design.md D3. Verificar los escenarios de "Barra de escenario en Competir".
-- [ ] 5.6 Tráfico de la carrera: nuevo o de práctica, solo a la vista en la calle recta, con el aviso de design.md D2. Verificar los escenarios de "Tráfico de la carrera", incluido que la elección se conserva al pasar por un circuito.
-- [ ] 5.7 Verificar los escenarios de "La carrera se conserva al cambiar de pestaña", con una carrera a medias y con una terminada.
+- [x] 5.1 Crear `src/tabs/compete/index.js` con `mount` / `unmount` y estado conservado (design.md D13), registrarlo en `src/main.js` y reemplazar los textos de "próximamente". Verificar en el navegador los escenarios "Abrir Competir" y "Explicación de Competir" de `estructura-app` y los de "Carrera lista al abrir".
+- [x] 5.2 Controles de la carrera: largar, pausar y reanudar, reiniciar, otra carrera y, sin "Vos", velocidades. Verificar en el navegador los escenarios de "Controles de la carrera".
+- [x] 5.3 Penalización por choque en el panel y reaparición a la vista. Verificar en el navegador los escenarios de "Chocar y seguir", chocando contra un borde y contra un vehículo, con la penalización en 0, 0,1 y 2 segundos.
+- [x] 5.4 Meta y espera: la meta antes de largar y en carrera, y la cuenta de 20 segundos en el tablero y sobre el escenario. Verificar los escenarios de "Meta y espera", con una carrera donde llegan todos y otra donde se acaba la espera.
+- [x] 5.5 Conectar la barra: pista, tráfico y velocidad empiezan otra carrera; "Restablecer" vuelve a los valores de design.md D3. Verificar los escenarios de "Barra de escenario en Competir".
+- [x] 5.6 Tráfico de la carrera: nuevo o de práctica, solo a la vista en la calle recta, con el aviso de design.md D2. Verificar los escenarios de "Tráfico de la carrera", incluido que la elección se conserva al pasar por un circuito.
+- [x] 5.7 Verificar los escenarios de "La carrera se conserva al cambiar de pestaña", con una carrera a medias y con una terminada.
 
 ## 6. Panel: competidores
 
