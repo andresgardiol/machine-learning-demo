@@ -15,11 +15,11 @@
 
 ## 3. Guardar y biblioteca
 
-- [ ] 3.1 Dejar en la vista de entrenamiento un solo botón de guardar con su resultado en el mismo renglón (design.md D4). Verificar en el navegador los escenarios "Guardar con un clic", "Guardar con la biblioteca plegada", "Guardar tras continuar un cerebro", "Guardar al padre elegido", "Selección manual sin padre", "Sin campeón todavía" y "Nombre largo".
-- [ ] 3.2 Armar la vista de cerebros: guardar con nombre, importar y la lista con todo el alto. Verificar en el navegador los escenarios de "Biblioteca de cerebros en la pestaña", incluidos "Lista larga" y "Guardar como nuevo", y que el campo de nombre conserva el foco al hacer clic.
-- [ ] 3.3 Hacer que "Renombrar", en el mensaje de guardado, pase a la vista de cerebros con ese cerebro en modo renombrar y el foco en el campo. Verificar en el navegador el escenario "Ir a ponerle nombre".
-- [ ] 3.4 Verificar en el DOM los escenarios de "Panel a la vista sin desplazarse", incluido "Después de guardar": a 1440×900 y a 1366×768, con el panel en 360 y en 400 px, en español y en inglés. Si la vista de entrenamiento se desplaza, **detenerse y consultar** con las medidas.
-- [ ] 3.5 Agregar "Deshacer" al mensaje de una actualización, conservando en memoria la versión anterior del cerebro (design.md D4). Verificar con una prueba que deshacer deja el cerebro idéntico al de antes, y en el navegador los escenarios "Deshacer una actualización", "No se pudo guardar" (con un almacenamiento que falla) y "Mensaje que no se va solo".
+- [x] 3.1 Dejar en la vista de entrenamiento un solo botón de guardar con su resultado en el mismo renglón (design.md D4). Verificar en el navegador los escenarios "Guardar con un clic", "Guardar con la biblioteca plegada", "Guardar tras continuar un cerebro", "Guardar al padre elegido", "Selección manual sin padre", "Sin campeón todavía" y "Nombre largo".
+- [x] 3.2 Armar la vista de cerebros: guardar con nombre, importar y la lista con todo el alto. Verificar en el navegador los escenarios de "Biblioteca de cerebros en la pestaña", incluidos "Lista larga" y "Guardar como nuevo", y que el campo de nombre conserva el foco al hacer clic.
+- [x] 3.3 Hacer que "Renombrar", en el mensaje de guardado, pase a la vista de cerebros con ese cerebro en modo renombrar y el foco en el campo. Verificar en el navegador el escenario "Ir a ponerle nombre".
+- [x] 3.4 Verificar en el DOM los escenarios de "Panel a la vista sin desplazarse", incluido "Después de guardar": a 1440×900 y a 1366×768, con el panel en 360 y en 400 px, en español y en inglés. Si la vista de entrenamiento se desplaza, **detenerse y consultar** con las medidas.
+- [x] 3.5 Agregar "Deshacer" al mensaje de una actualización, conservando en memoria la versión anterior del cerebro (design.md D4). Verificar con una prueba que deshacer deja el cerebro idéntico al de antes, y en el navegador los escenarios "Deshacer una actualización", "No se pudo guardar" (con un almacenamiento que falla) y "Mensaje que no se va solo".
 
 ## 4. Selector de pista en el escenario
 

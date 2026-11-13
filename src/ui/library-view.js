@@ -249,6 +249,14 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
     render,
     refresh,
     showMessage,
+    /** Pone un cerebro guardado en modo renombrar, con el foco en su nombre. */
+    startRename(id) {
+      if (!library.get(id) || library.get(id).origin !== 'saved') return;
+      for (const c of confirms) if (c.isOpen) c.cancel();
+      renaming = id;
+      render();
+      container.querySelector('.library-rename')?.scrollIntoView({ block: 'nearest' });
+    },
     /** Cancela las confirmaciones abiertas (al dejar la vista donde está la biblioteca). */
     cancelConfirms() { for (const c of confirms) if (c.isOpen) c.cancel(); },
     dispose() {

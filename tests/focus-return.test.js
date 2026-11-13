@@ -45,3 +45,10 @@ test('mientras se escribe en un campo de texto, los atajos no se disparan', () =
   for (const code of ['Space', 'KeyN', 'KeyT', 'KeyE', 'KeyZ']) assert.equal(trainShortcut({ code, target: field }), null, code);
   for (const code of ['Space', 'KeyR']) assert.equal(driveShortcut({ code, target: field }), null, code);
 });
+
+test('un clic en "Renombrar" del mensaje de guardado (data-focus="keep") no devuelve el foco al escenario', () => {
+  const keep = { ...node('BUTTON'), getAttribute: (a) => (a === 'data-focus' ? 'keep' : null) };
+  keep.closest = () => keep;
+  assert.equal(returnsFocusToStage(keep), false);
+  assert.equal(returnsFocusToStage(node('BUTTON')), true);
+});

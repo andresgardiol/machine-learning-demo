@@ -488,8 +488,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Ajustes que no aplican con selección manual: atenuados, con su tooltip que explica por qué. */
 .setting.not-applicable, .switch.not-applicable { opacity: 0.5; }
 .setting.not-applicable input[type="range"], .switch.not-applicable { cursor: not-allowed; }
-.train-save { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
-.train-save .panel-heading { display: block; margin: 0; }
 .save-row, .save-actions { display: flex; gap: var(--space-2); }
 .save-row .library-name-input { flex: 1 1 auto; min-width: 0; }
 .save-row .tool { flex: 0 0 auto; }
@@ -501,8 +499,34 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   flex: 1000 1 0; min-width: 9em;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.save-actions[hidden], .save-status[hidden] { display: none; }
-.save-status { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.save-actions[hidden] { display: none; }
+/* Guardar en la vista de entrenamiento (panel-de-entrenar-por-vistas D4): un renglón con el botón y,
+   al lado, el resultado. El resultado tiene siempre el mismo alto (dos renglones de texto y, debajo,
+   su acción), así guardar no cambia el alto de la vista; un texto más largo se corta con puntos
+   suspensivos a la vista y se lee entero con un lector de pantalla. */
+.train-save { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--space-2); }
+.save-quick { max-width: 11.5em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.save-result { margin: 0; font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
+.train-save .save-result {
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  height: calc(2 * 13px * 1.35 + 24px); overflow: hidden;
+}
+.train-save .save-result-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.train-save-named .save-result-text + .link-button { margin-left: var(--space-1); }
+.link-button {
+  display: inline-flex; align-items: center; min-height: 24px; padding: 0 2px; vertical-align: middle;
+  background: transparent; border: 0; color: var(--color-accent); font-size: inherit; font-weight: 600;
+  text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+}
+.link-button[hidden] { display: none; }
+/* Vista de cerebros: guardar con nombre e importar arriba; la lista se desplaza debajo. */
+.view-pane[data-view="brains"] { height: 100%; }
+.train-brains { display: flex; flex-direction: column; height: 100%; }
+.train-brains .library-zone { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.train-brains .library-zone > * { flex: 0 0 auto; }
+.train-brains .library-list { flex: 1 1 auto; min-height: 120px; overflow-y: auto; padding-right: 2px; }
+.train-save-named { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
+.train-save-named .panel-heading { display: block; margin: 0; }
 .groups { display: grid; }
 /* Vista de ajustes: aviso, grupos y restablecer, uno debajo del otro. */
 .train-settings .groups { border-bottom: 1px solid var(--color-border); }

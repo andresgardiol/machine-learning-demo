@@ -456,3 +456,34 @@ test('orden de la lista: primero los guardados (el más reciente primero) y desp
   library.save(brain({ seed: 2 }), { name: 'Nuevo' });
   assert.deepEqual(library.list().map((e) => [e.origin, e.brain.name]), [['saved', 'Nuevo'], ['saved', 'Viejo'], ['autosave', 'x']]);
 });
+
+// --- panel-de-entrenar-por-vistas D4: deshacer una actualización ------------------------------------
+
+test('deshacer una actualización: "Prudente" vuelve a ser idéntico al de antes, también guardado', () => {
+  const { library, clock, storage } = setup();
+  const p = library.save(brain({ seed: 1, generations: 10 }), { name: 'Prudente' }).brain;
+  library.save(brain({ seed: 2, generations: 4 }), { name: 'Otro' });
+  clock.advance(60000);
+  const before = library.snapshot(p.id);
+  const storedBefore = storage.getItem(STORAGE_KEYS.brains);
+  assert.equal(library.update(p.id, brain({ seed: 9, generations: 15 })).ok, true);
+  assert.notDeepEqual(library.get(p.id).brain, before);
+  const r = library.restore(before);
+  assert.equal(r.ok, true);
+  assert.deepEqual(library.get(p.id).brain, before);
+  assert.deepEqual(library.get(p.id).brain, p);
+  assert.deepEqual(savedNames(library), ['Otro', 'Prudente']);
+  assert.equal(storage.getItem(STORAGE_KEYS.brains), storedBefore);
+});
+
+test('deshacer: la copia tomada antes no cambia aunque cambie el cerebro, y uno eliminado no vuelve', () => {
+  const { library } = setup();
+  const p = library.save(brain({ seed: 1 }), { name: 'Prudente' }).brain;
+  const before = library.snapshot(p.id);
+  library.rename(p.id, 'Audaz');
+  assert.equal(before.name, 'Prudente');
+  assert.equal(library.snapshot('nadie'), null);
+  library.remove(p.id);
+  assert.equal(library.restore(before).ok, false);
+  assert.equal(library.list().length, 0);
+});

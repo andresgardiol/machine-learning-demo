@@ -178,6 +178,12 @@ export function createLibrary({ storage = null, clock, newId, schedule = (fn, ms
     /** Cerebro por identificador, o null. */
     get(id) { return library.list().find((e) => e.brain.id === id) ?? null; },
 
+    /** Copia exacta de un cerebro guardado (con sus fechas), para poder restaurarlo; o null. */
+    snapshot(id) {
+      const b = findSaved(id);
+      return b ? structuredClone(b) : null;
+    },
+
     /** Nombre que se sugeriría al guardar sin escribir uno. */
     suggestName: (baseName) => suggestName(baseName, savedNames()),
 
@@ -195,6 +201,22 @@ export function createLibrary({ storage = null, clock, newId, schedule = (fn, ms
       const result = writeSaved();
       notify();
       return { ok: true, brain: copyBrain(entry), warning: result };
+    },
+
+    /**
+     * Devuelve un cerebro guardado a una versión anterior tal como era (red, datos, nombre y fechas),
+     * para deshacer una actualización (panel-de-entrenar-por-vistas D4). `brain` es la copia que se
+     * tomó con get() antes de actualizar; tiene que seguir en la biblioteca con el mismo identificador.
+     */
+    restore(brain) {
+      if (!brain || !findSaved(brain.id)) return fail('notFound');
+      const problemCode = validateBrain(brain);
+      if (problemCode) return fail(problemCode.code, problemCode.details);
+      const entry = structuredClone(brain);
+      saved = saved.map((b) => (b.id === brain.id ? entry : b));
+      const result = writeSaved();
+      notify();
+      return { ok: true, brain: structuredClone(entry), warning: result };
     },
 
     /** Cambia el nombre de un cerebro guardado con las mismas reglas que al guardar. */

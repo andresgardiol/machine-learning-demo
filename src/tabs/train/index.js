@@ -102,6 +102,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
       session: newSession(),
       missions: createTrainSession({ completed: completedMissions }),
       machineView: false, // ver como la máquina (circuitos-y-paisaje D13): solo cambia lo que se dibuja
+      saveMessage: null, // resultado del último guardado, con su acción (D4)
+      undo: null, // versión anterior del cerebro actualizado, para deshacer (D4)
     };
     library?.beginTraining(state.session);
   }
@@ -146,6 +148,8 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     state.session = newSession();
     library?.beginTraining(state.session);
     state.missions.restart();
+    state.undo = null;
+    setSaveMessage(null); // el mensaje de guardado queda hasta el próximo guardado o un entrenamiento nuevo
     attachTraining();
     chart.update(state.training.history);
     view.followCar();
@@ -229,19 +233,50 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     return state.training.brain({ id: 'champion', name: 'champion', now: new Date().toISOString() });
   }
 
-  function saveChampion({ update = false } = {}) {
+  /**
+   * Guarda el campeón (o el padre elegido) en la biblioteca (D4). `update`: actualiza el cerebro del
+   * que viene el entrenamiento, conservando en memoria la versión anterior para poder deshacerlo;
+   * si no, lo guarda como nuevo con `name` o con el nombre sugerido.
+   */
+  function saveChampion({ update = false, name = '' } = {}) {
     const brain = championBrain();
     if (!brain || !library) return;
-    const source = sourceEntry();
-    const r = update && source
+    const source = update ? sourceEntry() : null;
+    const before = source ? library.snapshot(source.brain.id) : null;
+    const r = source
       ? library.update(source.brain.id, brain)
-      : library.save(brain, { name: nameInput.value, baseName: i18n.t('library.defaultName') });
-    if (!r.ok) { showSaveMessage('library.error.damaged'); return; }
-    if (!update) state.brainSource = r.brain.id; // lo que se siga entrenando se puede actualizar en este cerebro
-    nameInput.value = '';
+      : library.save(brain, { name, baseName: i18n.t('library.defaultName') });
+    state.undo = null; // la versión anterior se conserva solo hasta el próximo guardado
+    if (!r.ok) { setSaveMessage({ key: 'train.saveResult.failed.damaged' }); return; }
+    if (!source) state.brainSource = r.brain.id; // lo que se siga entrenando se puede actualizar en este cerebro
     state.missions.brainSaved();
-    showSaveMessage(r.warning ? `library.status.${r.warning}` : (update ? 'library.updated' : 'library.saved'), { name: r.brain.name });
+    if (r.warning) {
+      // El cerebro quedó en la biblioteca solo hasta cerrar la página: se dice por qué, sin tecnicismos.
+      setSaveMessage({ key: `train.saveResult.failed.${r.warning}`, params: { name: r.brain.name } });
+    } else if (source) {
+      state.undo = before;
+      setSaveMessage({ key: 'train.saveResult.updated', params: { name: r.brain.name }, action: 'undo' });
+    } else {
+      setSaveMessage({ key: 'train.saveResult.saved', params: { name: r.brain.name }, action: 'rename', id: r.brain.id });
+    }
     sync();
+  }
+
+  /** Deshace la última actualización: el cerebro vuelve a ser el que era antes de actualizarlo. */
+  function undoUpdate() {
+    const before = state.undo;
+    if (!before || !library) return;
+    state.undo = null;
+    const r = library.restore(before);
+    if (r.ok) setSaveMessage({ key: 'train.saveResult.undone', params: { name: before.name } });
+    else setSaveMessage({ key: 'train.saveResult.undoFailed', params: { name: before.name } });
+    sync();
+  }
+
+  /** "Renombrar" del mensaje de guardado: pasa a la vista de cerebros con ese cerebro listo para editar. */
+  function renameSaved(id) {
+    views.select('brains');
+    libraryView.startRename(id);
   }
 
   /** Seguir entrenando un cerebro: adopta su red y sus sensores y empieza un entrenamiento desde él. */
@@ -463,40 +498,80 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
         sensorsConfirm.node)),
     el('div', { class: 'settings-reset' }, resetButton), resetConfirm.node);
 
-  // Guardar el campeón, siempre a la vista, con su propia línea de resultado.
+  // Guardar (D4). En la vista de entrenamiento, un solo botón con su resultado en el mismo renglón:
+  // guarda con el nombre sugerido o actualiza el cerebro del entrenamiento. Guardar no suma renglones.
+  const quickSave = el('button', {
+    class: 'tool primary save-quick', attrs: { type: 'button' },
+    on: { click: () => { if (canSave()) saveChampion({ update: Boolean(sourceEntry()) }); } },
+  });
+  /** Resultado de guardar con su acción (Renombrar o Deshacer); queda hasta el próximo guardado. */
+  function saveResult() {
+    const text = el('span', { class: 'save-result-text' });
+    const action = el('button', {
+      class: 'link-button', attrs: { type: 'button' }, dataset: { focus: 'keep' },
+      on: {
+        click: () => {
+          const m = state.saveMessage;
+          if (m?.action === 'undo') undoUpdate();
+          else if (m?.action === 'rename') renameSaved(m.id);
+        },
+      },
+    });
+    const node = el('p', { class: 'save-result', attrs: { role: 'status' } }, text, action);
+    return { node, text, action };
+  }
+  const quickResult = saveResult();
+  const saveBlock = el('section', { class: 'train-save' }, quickSave, quickResult.node);
+
+  // En la vista de cerebros: el nombre y "Guardar como nuevo" siempre; con un cerebro asociado,
+  // además "Actualizar «nombre»". Acá sí hay lugar para dos renglones.
   const nameInput = el('input', {
     class: 'library-name-input', help: 'train.save.name',
     attrs: { type: 'text', maxlength: 40, id: 'train-save-name' },
     i18nAttr: 'aria-label:train.save.name',
-    on: { keydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); if (canSave()) saveChampion(); } } },
+    on: { keydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); saveAsNew(); } } },
   });
+  function saveAsNew() {
+    if (!canSave()) return;
+    saveChampion({ name: nameInput.value });
+    nameInput.value = '';
+  }
   const saveButton = el('button', {
-    class: 'tool primary', attrs: { type: 'button' },
-    on: { click: () => { if (canSave()) saveChampion(); } },
+    class: 'tool primary', i18n: 'train.save.asNew', attrs: { type: 'button' },
+    on: { click: saveAsNew },
   });
   const updateButton = el('button', {
-    class: 'tool', help: 'train.save.update', attrs: { type: 'button' },
+    class: 'tool save-update', help: 'train.save.update', attrs: { type: 'button' },
     on: { click: () => { if (canSave()) saveChampion({ update: true }); } },
   });
   const saveRow = el('div', { class: 'save-row' }, nameInput, saveButton);
   const saveActions = el('div', { class: 'save-actions' }, updateButton);
   saveActions.hidden = true;
-  const saveStatus = el('p', { class: 'save-status', attrs: { role: 'status' } });
-  saveStatus.hidden = true;
+  const libraryResult = saveResult();
   const saveTitle = el('label', { class: 'panel-heading', i18n: 'train.save.title', attrs: { for: 'train-save-name' } });
-  const saveBlock = el('section', { class: 'train-save' },
-    saveTitle,
-    saveRow, saveActions, saveStatus);
+  const brainsSave = el('section', { class: 'train-save-named' }, saveTitle, saveRow, saveActions, libraryResult.node);
 
-  /** Resultado de guardar, junto al botón. */
-  function showSaveMessage(key, params) {
-    saveStatus.hidden = !key;
-    if (key) setText(saveStatus, key, params); else saveStatus.textContent = '';
+  /** Cambia el mensaje de guardado (null lo borra) y lo muestra en las dos vistas. */
+  function setSaveMessage(message) {
+    state.saveMessage = message;
+    showSaveMessage();
+  }
+  function showSaveMessage() {
+    const m = state.saveMessage;
+    for (const r of [quickResult, libraryResult]) {
+      if (!m) { r.text.textContent = ''; r.text.removeAttribute('data-i18n'); r.action.hidden = true; continue; }
+      setText(r.text, m.key, m.params);
+      r.action.hidden = !m.action;
+      if (m.action) setText(r.action, m.action === 'undo' ? 'train.saveResult.undo' : 'library.rename');
+      r.action.dataset.help = m.action === 'undo' ? 'train.saveResult.undo' : 'train.saveResult.rename';
+    }
+    // "Renombrar" lleva a la vista de cerebros: ahí ya está la lista, así que no hace falta.
+    if (m?.action === 'rename') libraryResult.action.hidden = true;
   }
 
   // Vista de cerebros (D2): la biblioteca con todo el alto del panel.
   const libraryZone = el('div', { class: 'library-zone' });
-  const brainsView = el('div', { class: 'train-brains' }, libraryZone);
+  const brainsView = el('div', { class: 'train-brains' }, brainsSave, libraryZone);
 
   // Vistas del panel (D1): entrenamiento, ajustes y cerebros, con la barra fija arriba.
   const trainingView = el('div', { class: 'train-training' }, intro, run, viewSwitches, basic, saveBlock, missions);
@@ -522,7 +597,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
   panel.append(el('h1', { class: 'sr-only', i18n: 'train.title' }), views.bar, views.container);
   const libraryView = library
     ? createLibraryView({ container: libraryZone, library, i18n, onContinue: continueFrom })
-    : { showMessage() {}, cancelConfirms() {}, dispose() {} };
+    : { showMessage() {}, cancelConfirms() {}, startRename() {}, dispose() {} };
 
   /**
    * Al dejar una vista se cancelan sus confirmaciones abiertas, como si se hubiera elegido cancelar:
@@ -654,22 +729,25 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     const hasChampion = canSave();
     const source = sourceEntry();
     setText(saveTitle, parentMode ? 'train.save.title.parent' : 'train.save.title');
+    // Botón de la vista de entrenamiento: guardar con el nombre sugerido o actualizar el cerebro asociado.
+    quickSave.setAttribute('aria-disabled', String(!hasChampion));
+    if (!hasChampion) quickSave.dataset.help = parentMode ? 'train.save.disabled.parent' : 'train.save.disabled';
+    else if (source) quickSave.dataset.help = 'train.save.update';
+    else quickSave.dataset.help = parentMode ? 'train.save.parent' : 'train.save';
+    if (source) setText(quickSave, 'train.save.updateNamed', { name: source.brain.name });
+    else setText(quickSave, parentMode ? 'train.save.parentButton' : 'train.save.champion');
     saveButton.setAttribute('aria-disabled', String(!hasChampion));
     if (parentMode) saveButton.dataset.help = hasChampion ? 'train.save.parent' : 'train.save.disabled.parent';
     else saveButton.dataset.help = hasChampion ? 'train.save' : 'train.save.disabled';
-    setText(saveButton, source ? 'train.save.asNew' : 'train.save');
-    // Al continuar un cerebro guardado, actualizar y guardar como nuevo van en un segundo renglón.
-    const saveParent = source ? saveActions : saveRow;
-    if (saveButton.parentNode !== saveParent) saveParent.append(saveButton);
     saveActions.hidden = !source;
-    updateButton.hidden = !source;
     updateButton.setAttribute('aria-disabled', String(!hasChampion));
-    if (source) {
-      setText(updateButton, 'train.save.updateNamed', { name: source.brain.name });
-      // El botón corta un nombre largo con puntos suspensivos: el tooltip lo dice completo.
-      const params = JSON.stringify({ name: source.brain.name });
-      if (updateButton.getAttribute('data-help-params') !== params) updateButton.setAttribute('data-help-params', params);
+    // Los botones cortan un nombre largo con puntos suspensivos: el tooltip lo dice completo.
+    const helpParams = source ? JSON.stringify({ name: source.brain.name }) : null;
+    for (const b of [quickSave, updateButton]) {
+      if (helpParams === null) b.removeAttribute('data-help-params');
+      else if (b.getAttribute('data-help-params') !== helpParams) b.setAttribute('data-help-params', helpParams);
     }
+    if (source) setText(updateButton, 'train.save.updateNamed', { name: source.brain.name });
     if (nameInput.placeholder !== (library ? library.suggestName(i18n.t('library.defaultName')) : '')) {
       nameInput.placeholder = library ? library.suggestName(i18n.t('library.defaultName')) : '';
     }
@@ -817,6 +895,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
 
   attachTraining();
   chart.update(state.training.history);
+  showSaveMessage();
   sync();
   loop.start();
   focusStage();
@@ -828,6 +907,7 @@ export function mount({ stage, board, panel, i18n, store, library, reportError }
     get paused() { return state.paused; },
     get session() { return state.session; },
     get missions() { return state.missions; },
+    undoUpdate,
     views,
     togglePause, nextGeneration, chooseLeader, undoChoice, restart, newPopulation, setSpeed, applySettings, resetSettings, saveChampion, continueFrom,
     unmount() {
