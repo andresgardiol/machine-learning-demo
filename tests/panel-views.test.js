@@ -7,7 +7,7 @@ import en from '../src/i18n/en.js';
 import { createI18n } from '../src/ui/i18n.js';
 import { viewIndexForKey, initialView, viewTabName } from '../src/ui/panel-views.js';
 import { createConfirmation } from '../src/ui/controls.js';
-import { DEFAULT_SETTINGS, settingsWaiting, trainingConfig } from '../src/tabs/train/settings.js';
+import { DEFAULT_SETTINGS, settingsWaiting, trainingConfig, resetPanelSettings } from '../src/tabs/train/settings.js';
 import { createTraining } from '../src/core/training.js';
 
 const VIEWS = ['training', 'settings', 'brains'];
@@ -45,12 +45,30 @@ test('nombre accesible: la cantidad de cerebros y los cambios pendientes', () =>
     'Settings, changes waiting for the next generation');
 });
 
-test('marca de cambios pendientes: cualquier ajuste salvo el modo de selección', () => {
+test('marca de cambios pendientes: solo población, mutación, enfriamiento y evolución', () => {
   assert.equal(settingsWaiting(null), false);
   assert.equal(settingsWaiting({}), false);
   assert.equal(settingsWaiting({ selectionMode: 'manual' }), false);
-  assert.equal(settingsWaiting({ elite: 3 }), true);
-  assert.equal(settingsWaiting({ selectionMode: 'manual', tracks: ['oval'] }), true);
+  for (const k of ['population', 'mutationStrength', 'mutationCooling', 'elite', 'selection', 'mutationRate', 'crossover',
+    'fitness', 'maxDuration', 'slowRule', 'trafficMode']) assert.equal(settingsWaiting({ [k]: 1 }), true, k);
+  // Lo de la barra de escenario rige en el momento: nunca enciende la marca.
+  for (const k of ['tracks', 'lanes', 'density', 'irregularity', 'maxSpeed']) assert.equal(settingsWaiting({ [k]: 1 }), false, k);
+  assert.equal(settingsWaiting({ selectionMode: 'manual', tracks: ['oval'] }), false);
+});
+
+test('Restablecer ajustes: población, mutación, enfriamiento, red y evolución; la barra y la vista no cambian', () => {
+  const changed = { ...DEFAULT_SETTINGS, population: 200, mutationStrength: 40, mutationCooling: false, fitness: 'distance', elite: 3,
+    hiddenLayers: 2, activation: 'relu', trafficMode: 'same',
+    tracks: ['oval'], density: 80, sensorCount: 9, speed: 4, showSensors: false };
+  const r = resetPanelSettings(changed);
+  for (const k of ['population', 'mutationStrength', 'mutationCooling', 'fitness', 'elite', 'hiddenLayers', 'activation', 'trafficMode']) {
+    assert.deepEqual(r[k], DEFAULT_SETTINGS[k], k);
+  }
+  assert.deepEqual([...r.tracks], ['oval']);
+  assert.equal(r.density, 80);
+  assert.equal(r.sensorCount, 9);
+  assert.equal(r.speed, 4);
+  assert.equal(r.showSensors, false);
 });
 
 test('marca de cambios pendientes: aparece con un cambio y desaparece al empezar la generación siguiente', () => {

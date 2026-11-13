@@ -378,13 +378,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .section > summary { padding: var(--space-2) var(--space-3); cursor: pointer; font-weight: 600; }
 .section > summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 .section-body { padding: 0 var(--space-3) var(--space-3); }
-/* Grupos plegables dentro de una sección. */
-.group { border-top: 1px solid var(--color-border); }
-.group > summary { padding: var(--space-2) 0; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color-text-muted); }
-.group[open] > summary { color: var(--color-text); }
-.group > summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-.group-body { display: grid; gap: var(--space-2); padding-bottom: var(--space-2); }
-.advanced-body { padding: 0 var(--space-3) var(--space-3); display: grid; gap: var(--space-2); }
+/* Bloques de la vista de ajustes de Entrenar (panel-de-entrenar-por-vistas D13): a la vista, sin plegar. */
+.settings-block { display: grid; gap: var(--space-2); padding-bottom: var(--space-3); }
+.settings-block + .settings-block { border-top: 1px solid var(--color-border); padding-top: var(--space-2); }
+.settings-block > .panel-heading { margin: 0; }
 .setting { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-1) var(--space-2); font-size: 14px; }
 .setting input[type="range"] { grid-column: 1 / -1; width: 100%; height: 24px; margin: 0; accent-color: var(--color-accent); } /* 24 px de alto para el cursor (D9) */
 .setting input[type="range"]:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
@@ -537,12 +534,8 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .train-brains .library-list { flex: 1 1 auto; min-height: 120px; overflow-y: auto; padding-right: 2px; align-content: start; }
 .train-save-named { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
 .train-save-named .panel-heading { display: block; margin: 0; }
-.groups { display: grid; }
-/* Vista de ajustes: aviso, grupos y restablecer, uno debajo del otro. */
-.train-settings .groups { border-bottom: 1px solid var(--color-border); }
-.train-settings > .train-pending { margin-top: 0; }
-.train-settings > .train-pending[hidden] + .groups { margin-top: 0; }
-.train-settings .group:first-child { border-top: 0; }
+/* Vista de ajustes: aviso, bloques y restablecer, uno debajo del otro. */
+.train-settings > .train-pending { margin-top: 0; margin-bottom: var(--space-2); }
 .train-pending { margin: var(--space-2) 0 0; padding: var(--space-1) var(--space-2); border-left: 3px solid var(--color-accent); font-size: 13px; color: var(--color-text); background: var(--color-surface-2); border-radius: 0 var(--radius) var(--radius) 0; }
 .train-pending[hidden] { display: none; }
 .generation-badge { font-variant-numeric: tabular-nums; }

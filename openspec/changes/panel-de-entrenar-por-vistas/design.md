@@ -345,7 +345,9 @@ Dos bloques con título, a la vista: la red (nota de entrenamiento nuevo, capas
 ocultas, neuronas de cada capa y activación, con su confirmación) y la
 evolución (función de fitness, élite, selección, probabilidad de mutación,
 cruce, duración máxima, eliminar a los lentos y modo de tráfico), y al final
-"Restablecer ajustes", que restablece esos dos bloques. Se quitan los grupos
+"Restablecer ajustes", que restablece la red, la evolución, la población, la
+mutación y el enfriamiento; lo de la barra de escenario se restablece con su
+propio botón. Se quitan los grupos
 plegables y su estado recordado. Con la red de tres capas la vista puede
 desplazarse; el bloque de la red, que va primero, se ve entero. Reemplaza el
 punto "Ajustes" de D2.

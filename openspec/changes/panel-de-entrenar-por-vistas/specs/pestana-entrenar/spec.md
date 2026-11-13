@@ -269,8 +269,8 @@ panel en su ancho por defecto, en español y en inglés.
 - **THEN** la función rige desde la generación siguiente y los indicadores y la curva pasan a mostrar metros recorridos
 
 #### Scenario: Volver a los valores por defecto
-- **WHEN** la persona cambió la función de fitness, la élite y la irregularidad, apagó el enfriamiento, y presiona restablecer
-- **THEN** vuelven a ventaja, 10 y 0 %, y el enfriamiento se enciende, desde la generación siguiente y sin reiniciar el entrenamiento
+- **WHEN** la persona cambió la función de fitness, la élite y la población, apagó el enfriamiento, y presiona restablecer ajustes
+- **THEN** vuelven a ventaja, 10 y 400 autos, y el enfriamiento se enciende, desde la generación siguiente y sin reiniciar el entrenamiento; la barra de escenario no cambia
 
 ### Requirement: Pistas del entrenamiento
 En esta pestaña se entrena en una sola pista a la vez: la elegida en la barra

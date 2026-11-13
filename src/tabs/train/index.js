@@ -31,7 +31,7 @@ import {
 } from '../../ui/controls.js';
 import {
   DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges, adoptBrain,
-  onlyCircuits, settingsWaiting, barSettings, barPatch, BAR_DEFAULTS, RESTART_GENERATION_KEYS,
+  onlyCircuits, settingsWaiting, resetPanelSettings, barSettings, barPatch, BAR_DEFAULTS, RESTART_GENERATION_KEYS,
 } from './settings.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { setUnavailable } from '../shared/street-advanced.js';
@@ -67,9 +67,6 @@ const FORMATS = Object.freeze({
 let state = null;
 // Misiones cumplidas: siguen marcadas hasta cerrar la aplicación, aunque se reinicie el entrenamiento.
 const completedMissions = new Set();
-// Grupos plegables de la vista de ajustes abiertos: se conservan al salir de la pestaña y volver.
-// El de evolución arranca abierto (panel-de-entrenar-por-vistas D2).
-const open = { evolution: true, scenario: false, network: false, sensors: false };
 // Vista del panel elegida (D1): se conserva al salir de la pestaña y volver, hasta cerrar la aplicación.
 let currentView = 'training';
 /** Vistas del panel, en orden. */
@@ -232,9 +229,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function setSpeed(speed) { setSetting('speed', speed); }
   function restart() { withProgressCheck(toolbarConfirm, 'train.confirm.restart', () => startTraining({ seed: state.seed })); }
   function newPopulation() { withProgressCheck(toolbarConfirm, 'train.confirm.newPopulation', () => startTraining({ seed: state.seed + 1 })); }
+  /** "Restablecer ajustes" (D13): población, mutación, enfriamiento, red y evolución; la barra tiene su propio botón. */
   function resetSettings() {
-    const keep = { speed: state.settings.speed, showSensors: state.settings.showSensors, showNetwork: state.settings.showNetwork, showChart: state.settings.showChart };
-    applySettings({ ...DEFAULT_SETTINGS, ...keep }, resetConfirm);
+    applySettings(resetPanelSettings(state.settings), resetConfirm);
   }
 
   // --- Biblioteca: guardar el campeón y seguir entrenando ----------------------------------------
@@ -463,30 +460,23 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   });
   const viewSwitches = el('div', { class: 'switch-row train-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.view.title' }, sensorsSwitch, machineSwitch);
 
-  /** Sección o grupo plegable que recuerda si quedó abierto (variable de módulo `open`). */
-  function foldable(key, cls, summaryKey, help, ...children) {
-    const d = el('details', { class: cls, attrs: { open: open[key] } },
-      el('summary', { i18n: summaryKey, help }), ...children);
-    d.addEventListener('toggle', () => { open[key] = d.open; });
-    return d;
-  }
-  const group = (key, ...children) => foldable(key, 'group', `train.advanced.${key}`, `train.advanced.${key}`,
-    el('div', { class: 'group-body' }, ...children));
+  /** Bloque de la vista de ajustes (D13): un título y sus ajustes, a la vista, sin plegar. */
+  const block = (key, ...children) => el('section', { class: `settings-block settings-block-${key}`, attrs: { 'aria-labelledby': `train-block-${key}` } },
+    el('h2', { class: 'panel-heading', i18n: `train.advanced.${key}`, attrs: { id: `train-block-${key}` } }), ...children);
 
   const resetButton = button('train.resetSettings', 'train.resetSettings', resetSettings);
-  // Vista de ajustes (D2): el aviso de cambios pendientes, los cuatro grupos a un solo nivel y
-  // restablecer. La función de fitness encabeza el grupo de evolución.
+  // Vista de ajustes (D13): el aviso de cambios pendientes, la red primero y la evolución después, los
+  // dos a la vista y sin plegar, y restablecer al pie. La función de fitness encabeza la evolución.
   const settingsView = el('div', { class: 'train-settings' },
     advancedPending,
-    el('div', { class: 'groups' },
-      group('evolution',
-        choices.fitness.row,
-        row('elite'), row('selection'), row('mutationRate'), el('div', { class: 'switch-row' }, sw('crossover')),
-        row('maxDuration'), el('div', { class: 'switch-row' }, sw('slowRule')), choices.trafficMode.row),
-      group('network',
-        el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
-        row('hiddenLayers'), row('neurons1'), row('neurons2'), row('neurons3'), choices.activation.row,
-        networkConfirm.node)),
+    block('network',
+      el('p', { class: 'caption', i18n: 'train.advanced.networkNote' }),
+      row('hiddenLayers'), row('neurons1'), row('neurons2'), row('neurons3'), choices.activation.row,
+      networkConfirm.node),
+    block('evolution',
+      choices.fitness.row,
+      row('elite'), row('selection'), row('mutationRate'), el('div', { class: 'switch-row' }, sw('crossover')),
+      row('maxDuration'), el('div', { class: 'switch-row' }, sw('slowRule')), choices.trafficMode.row),
     el('div', { class: 'settings-reset' }, resetButton), resetConfirm.node);
 
   // --- Barra de escenario (D11 y D12) ------------------------------------------------------------

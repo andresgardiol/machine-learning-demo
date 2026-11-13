@@ -73,8 +73,8 @@
 
 ## 10. Segunda ronda: vista de ajustes sin plegables
 
-- [ ] 10.1 Dejar la vista de ajustes de Entrenar con dos bloques a la vista, red y evolución, sin grupos plegables (design.md D13). Verificar en el navegador los escenarios de "Avanzado por grupos", incluido "La red, sin desplazarse", y que "Restablecer ajustes" restablece los dos bloques.
-- [ ] 10.2 Hacer que la marca de cambios pendientes cuente solo población, mutación, enfriamiento y evolución. Verificar con una prueba y en el navegador los escenarios de "Cambios pendientes a la vista".
+- [x] 10.1 Dejar la vista de ajustes de Entrenar con dos bloques a la vista, red y evolución, sin grupos plegables (design.md D13). Verificar en el navegador los escenarios de "Avanzado por grupos", incluido "La red, sin desplazarse", y que "Restablecer ajustes" restablece los dos bloques.
+- [x] 10.2 Hacer que la marca de cambios pendientes cuente solo población, mutación, enfriamiento y evolución. Verificar con una prueba y en el navegador los escenarios de "Cambios pendientes a la vista".
 
 ## 11. Segunda ronda: eliminar cualquier cerebro
 

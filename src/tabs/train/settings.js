@@ -159,12 +159,32 @@ export const onlyCircuits = (tracks) => !normalizeTracks(tracks).includes('strai
 export const TRAFFIC_SETTINGS = Object.freeze(['lanes', 'density', 'irregularity', 'trafficMode']);
 
 /**
- * ¿Hay ajustes esperando a la próxima generación que marcar en la pestaña de ajustes
- * (panel-de-entrenar-por-vistas D3)? Todos menos el modo de selección, que se cambia en la vista de
- * entrenamiento y tiene su propio aviso.
+ * Ajustes que esperan a la próxima generación y encienden la marca de la pestaña de ajustes
+ * (panel-de-entrenar-por-vistas D3 y D12): población, mutación, enfriamiento y evolución. El modo de
+ * selección tiene su propio aviso en la vista de entrenamiento, y lo de la barra de escenario rige en
+ * el momento.
+ */
+export const WAITING_KEYS = Object.freeze(['population', 'mutationStrength', 'mutationCooling', 'elite', 'selection', 'mutationRate',
+  'crossover', 'fitness', 'maxDuration', 'slowRule', 'trafficMode']);
+
+/**
+ * ¿Hay ajustes esperando a la próxima generación que marcar en la pestaña de ajustes?
  * @param {object|null} pending cambios pendientes del entrenamiento (`training.pending`)
  */
-export const settingsWaiting = (pending) => Object.keys(pending ?? {}).some((k) => k !== 'selectionMode');
+export const settingsWaiting = (pending) => Object.keys(pending ?? {}).some((k) => WAITING_KEYS.includes(k));
+
+/**
+ * Ajustes que vuelve a sus valores por defecto "Restablecer ajustes": los del panel (población,
+ * mutación, enfriamiento, red y evolución). Lo de la barra de escenario tiene su propio botón, y los
+ * de la vista (velocidad, interruptores) no cambian.
+ */
+export const PANEL_RESET_KEYS = Object.freeze([...WAITING_KEYS, 'hiddenLayers', 'neurons1', 'neurons2', 'neurons3', 'activation']);
+
+/** Ajustes después de "Restablecer ajustes": los del panel por defecto y el resto como estaban. */
+export function resetPanelSettings(settings) {
+  const s = normalizeSettings(settings);
+  return normalizeSettings({ ...s, ...Object.fromEntries(PANEL_RESET_KEYS.map((k) => [k, DEFAULT_SETTINGS[k]])) });
+}
 
 /**
  * Ajustes de escenario que, en esta pestaña, vuelven a empezar la generación en curso en lugar de
