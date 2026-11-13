@@ -203,3 +203,14 @@ test('Competir: guía de hasta 240 caracteres, ayuda de la tabla de hasta 120 y 
   assert.equal(COMPETE_MISSIONS.length, 3);
   for (const m of COMPETE_MISSIONS) assertMax(`compete.mission.${m.id}`, MISSION_MAX, { goal: m.goal });
 });
+
+// Botones de la carrera de Competir (pestana-competir D10, tarea 11.2): el principal, solo en su renglón,
+// con la tecla; reiniciar y otra carrera, debajo y sin la tecla en el nombre (va en el tooltip).
+// Medido en el DOM: a 300 px de panel, "Otra carrera (espacio)" ocupa 194 px de 268 disponibles.
+test('Competir: botones de la carrera que se leen enteros en el ancho mínimo del panel', () => {
+  for (const action of ['start', 'pause', 'resume', 'another']) assertMax(`compete.main.${action}`, 24);
+  for (const key of ['compete.restart', 'compete.another']) {
+    assertMax(key, 14);
+    for (const lang of Object.keys(LANGS)) assert.doesNotMatch(text(lang, key), /\(/, `${lang}:${key} no nombra la tecla`);
+  }
+});

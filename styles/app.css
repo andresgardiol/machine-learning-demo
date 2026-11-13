@@ -773,9 +773,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .compete-panel { display: flex; flex-direction: column; gap: var(--space-2); flex: 1 0 auto; }
 .compete-panel > * { flex: 0 0 auto; margin: 0; }
 .compete-intro { font-size: 14px; line-height: 1.4; }
-.compete-run { display: grid; gap: var(--space-2); }
-.compete-run .run-main .tool { padding-left: var(--space-1); padding-right: var(--space-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.compete-run .run-main .compete-main { flex: 1.4 1 0; }
+/* minmax(0, 1fr): ningún renglón de la carrera ensancha el panel (antes, el de los botones lo llevaba a 389 px). */
+.compete-run { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+.compete-run .run-secondary { flex-wrap: wrap; }
 .compete-speeds { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
 .compete-speeds[hidden], .compete-traffic-block[hidden], .compete-nobody[hidden] { display: none; }
 .compete-traffic { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
@@ -889,7 +889,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   .compete-table-name { font-size: 12px; hyphens: auto; }
 }
 /* Los dos interruptores de vista en un renglón a 360 px, también en español (como en Entrenar). */
-.compete-view { gap: 6px; flex-wrap: nowrap; }
+.compete-view { gap: 6px; }
 .compete-view .switch { padding-left: 5px; padding-right: 5px; font-size: 14px; white-space: nowrap; }
 /* Ventanas bajas (menos de 800 px de alto, consulta 10.1): la lista de competidores no baja de 4 filas. */
 @media (max-height: 799.98px) {

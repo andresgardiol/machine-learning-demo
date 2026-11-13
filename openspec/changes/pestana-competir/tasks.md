@@ -81,3 +81,13 @@ criterio: se informa lo medido y se espera la respuesta.
 - [x] 10.5 Comprobar que las pestañas 1 a 3 no cambiaron: `npm test` completo y un recorrido corto de cada una en el navegador (barra, panel, atajos).
 - [x] 10.6 Correr `openspec validate pestana-competir --strict` y `npm test`. Actualizar `PENDIENTES.md`: marcar la pestaña 4 como hecha en el orden de trabajo y anotar lo que quedó fuera de alcance y lo que quedó sin medir.
 - [x] 10.7 Informe final que separe lo medido, lo observado en el navegador y lo que no se probó (lector de pantalla real, Safari y Firefox).
+
+## 11. Después de la prueba del dueño
+
+- [x] 11.1 Arreglar el desplazamiento lateral del panel de Competir (design.md D10). Reproducirlo primero: con el panel en su ancho mínimo y en 360 px, en español y en inglés, con y sin "Vos", y después de poner el foco en cada control (la captura del dueño muestra el contenido cortado a la izquierda). Informar qué elemento ensanchaba el panel. Verificar en el DOM los escenarios de "Panel sin desplazamiento lateral": `scrollWidth` igual a `clientWidth` y `scrollLeft` en 0 en todos esos casos.
+- [x] 11.2 Hacer que los tres botones de la carrera se lean enteros (design.md D10), sin puntos suspensivos, en el ancho mínimo del panel y en los dos idiomas. Verificar con `tests/copy-length.test.js` y midiendo en el DOM.
+- [x] 11.3 Revisar con la misma medición los paneles de las pestañas 1 a 3 en su ancho mínimo. Informar si alguno se desplaza hacia los costados; arreglarlo solo si es el mismo defecto.
+- [ ] 11.4 Meta elegible en el núcleo (design.md D1b): `createRace({ goal })`, límites y tiempo máximo según la meta. Verificar con pruebas los escenarios nuevos de "Meta de la carrera" y "Fin de la carrera", y que con las metas por defecto los resultados de las pruebas existentes no cambian.
+- [ ] 11.5 Grupo "Meta" en la barra de Competir (design.md D1b y D12): un deslizador en metros o en vueltas según la pista, una meta por pista, otra carrera al soltar, restablecer. Verificar en el navegador los escenarios de "Meta configurable" y de "Grupo propio de una pestaña", incluido que la barra entra en un renglón a 1366 px en los dos idiomas y que las pestañas 1 a 3 no muestran el grupo.
+- [ ] 11.6 Llevar la meta elegida a la línea de meta, el cartel para largar, los indicadores, la descripción en texto del escenario y los ajustes de cada resultado ("con otros ajustes"). Verificar en el navegador con 2000 m en la calle y 3 vueltas en el óvalo con chicana.
+- [ ] 11.7 Tooltip de la meta, textos en los dos idiomas y `mlLab.auditTooltips()` sin problemas. Correr `npm test` y `openspec validate pestana-competir --strict`, y volver a medir el alto del panel y del tablero a 1440×900 (no tienen que cambiar).

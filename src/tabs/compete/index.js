@@ -205,8 +205,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
 
   // --- Panel: carrera ---------------------------------------------------------------------------
   const mainButton = el('button', { class: 'tool primary compete-main', attrs: { type: 'button' }, on: { click: () => main() } });
-  const restartButton = button('compete.restart', 'compete.restart', restart);
-  const anotherButton = button('compete.another', 'compete.another', anotherRace);
+  const restartButton = button('compete.restart', 'compete.restart', restart, 'tool small');
+  const anotherButton = button('compete.another', 'compete.another', anotherRace, 'tool small');
   const speeds = optionGroup({
     labelKey: 'train.speed', labelHelp: 'compete.speed',
     selected: state.speed,
@@ -218,7 +218,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   speeds.row.classList.add('compete-speeds');
   const runSection = el('section', { class: 'compete-run', attrs: { 'aria-labelledby': 'compete-run-title' } },
     el('h2', { class: 'sr-only', i18n: 'compete.run.title', attrs: { id: 'compete-run-title' } }),
-    el('div', { class: 'run-main' }, mainButton, restartButton, anotherButton),
+    // El botón principal solo, en su renglón; reiniciar y otra carrera, más chicos, debajo (D10): así los
+    // tres se leen enteros en el ancho mínimo del panel. Sus teclas están en los tooltips.
+    el('div', { class: 'run-main' }, mainButton),
+    el('div', { class: 'run-secondary' }, restartButton, anotherButton),
     speeds.row);
 
   // --- Panel: tráfico de la carrera (solo en la calle recta) -------------------------------------
