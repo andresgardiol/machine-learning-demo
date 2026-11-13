@@ -781,16 +781,45 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .compete-traffic { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
 .compete-nobody { margin: var(--space-1) 0 0; }
 .compete-penalty input[type="range"] { height: 24px; }
-/* La lista ocupa el alto libre (base 0) y no baja de seis filas; si ni así entra, se desplaza el panel. */
-.compete-list-block { display: flex; flex-direction: column; flex: 1 1 0 !important; min-height: calc(6 * 38px + 34px); }
-.compete-list-head { display: flex; justify-content: space-between; align-items: baseline; }
-.compete-list-head .panel-heading { margin: 0 0 var(--space-1); }
-.compete-list-count { font-size: 13px; font-variant-numeric: tabular-nums; }
+/* La lista muestra solo a los que corren (D10b): de 1 a 6 filas, sin desplazarse por dentro. */
+.compete-list-block { display: flex; flex-direction: column; }
+.compete-list-head { display: flex; align-items: center; gap: var(--space-2); }
+.compete-list-head .panel-heading { margin: 0; }
+.compete-list-count { font-size: 13px; font-variant-numeric: tabular-nums; margin-right: auto; }
 .compete-list {
-  list-style: none; margin: 0; padding: 2px; flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  list-style: none; margin: var(--space-1) 0 0; padding: 2px;
   border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg);
 }
 .compete-item + .compete-item { border-top: 1px solid var(--color-border); }
+.compete-item { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto; align-items: center; column-gap: var(--space-2); min-height: 38px; padding: 2px var(--space-2); }
+.compete-who { display: flex; flex-direction: column; min-width: 0; }
+.compete-row-button {
+  display: inline-grid; place-items: center; min-width: 28px; min-height: 28px; padding: 0 4px;
+  background: transparent; border: 1px solid var(--color-control-border); border-radius: 6px; color: var(--color-text); cursor: pointer; font-size: 13px;
+}
+.compete-row-button[hidden] { display: none; }
+.compete-eye[aria-pressed="false"] { opacity: 0.55; }
+.compete-eye[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-surface-2); }
+.compete-add[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+/* Selector para agregar: flota pegado al botón; no cambia el alto del panel y no sale de la ventana. */
+.compete-picker {
+  position: fixed; z-index: 30; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--color-surface); border: 1px solid var(--color-control-border); border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+}
+.compete-picker[hidden] { display: none; }
+.compete-picker-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--space-1) var(--space-2); }
+.compete-picker-group + .compete-picker-group { margin-top: var(--space-2); }
+.compete-picker-title { margin: var(--space-1) 0 2px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: none; }
+.compete-option {
+  display: flex; flex-direction: column; align-items: flex-start; width: 100%; min-height: 34px; padding: 3px var(--space-2);
+  background: transparent; border: 0; border-radius: 6px; color: var(--color-text); text-align: left; cursor: pointer; font-size: 14px;
+}
+.compete-option:hover, .compete-option:focus-visible { background: var(--color-surface-2); }
+.compete-option[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+.compete-option .compete-name, .compete-option .compete-meta { max-width: 100%; }
+.compete-picker-foot { display: flex; justify-content: flex-end; padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-border); }
+.compete-picker-empty { margin: var(--space-2) 0; }
 .compete-check {
   display: grid; grid-template-columns: 18px 22px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: var(--space-2);
   align-items: center; width: 100%; min-height: 34px; padding: 3px var(--space-2); background: transparent; border: 0; border-radius: 6px;
@@ -895,10 +924,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Los dos interruptores de vista en un renglón a 360 px, también en español (como en Entrenar). */
 .compete-view { gap: 6px; }
 .compete-view .switch { padding-left: 5px; padding-right: 5px; font-size: 14px; white-space: nowrap; }
-/* Ventanas bajas (menos de 800 px de alto, consulta 10.1): la lista de competidores no baja de 4 filas. */
-@media (max-height: 799.98px) {
-  .compete-list-block { min-height: calc(4 * 38px + 34px); }
-}
 /* Cuenta regresiva al largar (D5): en grande, en la franja de arriba del escenario, donde iba el cartel;
    los autos y la salida quedan abajo. */
 .countdown-layer { position: absolute; inset: 0; display: grid; place-items: start center; padding-top: 110px; pointer-events: none; }

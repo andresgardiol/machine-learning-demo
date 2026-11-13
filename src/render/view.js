@@ -386,10 +386,14 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     ctx.stroke();
   }
 
-  function drawRays(rays, px) {
+  /**
+   * Rayos de un auto. Con `color` (una carrera, pestana-competir D10c), con el color del competidor; el
+   * punto donde detectan algo se distingue por la forma: un aro claro con el centro oscuro.
+   */
+  function drawRays(rays, px, color = null) {
     for (const r of rays) {
       const reach = r.hit ?? r.end;
-      ctx.strokeStyle = colors.sensor;
+      ctx.strokeStyle = color ?? colors.sensor;
       ctx.lineWidth = 2 * px;
       ctx.beginPath();
       ctx.moveTo(r.origin.x, r.origin.y);
@@ -405,10 +409,20 @@ export function createStageView({ container, camera = createCamera(), doc = docu
         ctx.lineTo(r.end.x, r.end.y);
         ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle = colors.sensorHit;
-        ctx.beginPath();
-        ctx.arc(r.hit.x, r.hit.y, 3.5 * px, 0, Math.PI * 2);
-        ctx.fill();
+        if (color) {
+          ctx.fillStyle = colors.outline;
+          ctx.beginPath();
+          ctx.arc(r.hit.x, r.hit.y, 4.5 * px, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2 * px;
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = colors.sensorHit;
+          ctx.beginPath();
+          ctx.arc(r.hit.x, r.hit.y, 3.5 * px, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
   }
@@ -686,13 +700,20 @@ export function createStageView({ container, camera = createCamera(), doc = docu
         if (i === focus || !inView(a.car) || !competitors[i]) return;
         entries.push({ car: a.car, look: competitors[i] });
       });
+      const raysOf = (agent, look) => {
+        if (look.state === 'done' || look.state === 'penalized') return;
+        drawRays(agent.rays, px, colors[look.color] || colors.sensor);
+      };
       if (!machineView) {
+        // Los sensores de cada competidor que los tenga encendidos (D10c), se lo siga o no.
+        world.agents.forEach((a, i) => { if (i !== focus && competitors[i]?.sensors && inView(a.car)) raysOf(a, competitors[i]); });
         // Primero los que ya no corren, después los que corren.
         for (const e of entries) if (e.look.state === 'done') drawCompetitor(e.car, e.look, px);
         for (const e of entries) if (e.look.state !== 'done') drawCompetitor(e.car, e.look, px);
       }
       const own = competitors[focus] ?? { color: 'car', number: focus + 1, state: 'racing' };
-      if (showSensors && own.state !== 'done' && own.state !== 'penalized') drawRays(world.agents[focus].rays, px);
+      // El seguido: con sus sensores si los tiene encendidos o si se ve como la máquina.
+      if (own.sensors || (machineView && showSensors)) raysOf(world.agents[focus], own);
       drawCompetitor(car, own, px);
       drawBadges([...(machineView ? [] : entries), { car, look: { ...own, focus: true } }]);
       return;
