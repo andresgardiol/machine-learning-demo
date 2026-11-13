@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import es from '../src/i18n/es.js';
 import en from '../src/i18n/en.js';
 import {
-  listCandidates, buildCompetitor, createSelection, ownProgram, DEFAULT_SELECTION, MAX_COMPETITORS, SEVEN,
+  listCandidates, buildCompetitor, createSelection, ownProgram, pickerGroups, DEFAULT_SELECTION, MAX_COMPETITORS, SEVEN,
 } from '../src/tabs/compete/competitors.js';
 import { createBrain } from '../src/core/brain.js';
 import { createNetwork } from '../src/core/network.js';
@@ -43,10 +43,10 @@ test('la selección por defecto no depende de la biblioteca ni del programa prop
   assert.equal(full.find((c) => c.key === 'program').available, false);
 });
 
-test('candidatos en orden: vos, el programa de ejemplo, tu programa, la biblioteca y los ejemplos', () => {
+test('candidatos en orden: vos, los tres programas de ejemplo, tu programa, la biblioteca y los ejemplos', () => {
   const list = listCandidates({ examples, library: [{ origin: 'saved', brain: brain('a') }, { origin: 'autosave', slot: 'current', brain: brain('b') }], t: tEs });
   assert.deepEqual(list.map((c) => c.key), [
-    'human', 'program:seven', 'program', 'brain:a', 'brain:b',
+    'human', 'program:three', 'program:seven', 'program:twenty', 'program', 'brain:a', 'brain:b',
     'example:street-new', 'example:street-same', 'example:oval', 'example:all-tracks',
   ]);
   assert.equal(list.find((c) => c.key === 'brain:b').origin, 'autosave');
@@ -147,4 +147,48 @@ test('la firma cambia si el cerebro se actualiza o el programa cambia', () => {
   assert.notEqual(sig(a, 'brain:p'), sig(b, 'brain:p'));
   assert.notEqual(sig(a, 'program'), sig(b, 'program'));
   assert.equal(sig(a, 'program:seven'), sig(b, 'program:seven'));
+});
+
+// --- Selector para agregar (D10b) -------------------------------------------------------------------
+
+test('selector: los que no están en la carrera, en grupos y en orden; tu programa primero entre los programas', () => {
+  const list = listCandidates({ examples, library: [{ origin: 'saved', brain: brain('a') }], t: tEs });
+  const groups = pickerGroups(list, createSelection());
+  assert.deepEqual(groups.map((g) => g.id), ['programs', 'brains', 'examples'], 'vos ya está: su grupo no aparece');
+  assert.deepEqual(groups[0].items.map((c) => c.key), ['program', 'program:three', 'program:twenty']);
+  assert.deepEqual(groups[1].items.map((c) => c.key), ['brain:a']);
+  assert.deepEqual(groups[2].items.map((c) => c.key), ['example:street-same', 'example:oval', 'example:all-tracks']);
+  const withoutHuman = createSelection(['program:seven']);
+  assert.equal(pickerGroups(list, withoutHuman)[0].id, 'human');
+});
+
+test('selector: el candidato que no puede correr va deshabilitado con su motivo', () => {
+  const list = listCandidates({ remembered: { program: 'si si', sensors: null }, t: tEs });
+  const own = pickerGroups(list, createSelection()).find((g) => g.id === 'programs').items.find((c) => c.key === 'program');
+  assert.equal(own.available, false);
+  assert.equal(own.reason, 'programErrors');
+});
+
+test('selector: sin candidatos, ningún grupo', () => {
+  const list = listCandidates({ t: tEs }).filter((c) => ['human', 'program:seven', 'program'].includes(c.key));
+  assert.deepEqual(pickerGroups(list, createSelection(['human', 'program:seven', 'program'])), []);
+});
+
+test('los programas de 3 y de 20 sensores corren con sus sensores, en los dos idiomas igual', () => {
+  const list = listCandidates({ t: tEs });
+  for (const [key, count] of [['program:three', 3], ['program:twenty', 20]]) {
+    const c = list.find((x) => x.key === key);
+    assert.equal(c.sensors.count, count);
+    const run = (t) => { const race = createRace({ seed: 3, competitors: [buildCompetitor(c, { t })] }); for (let i = 0; i < 900; i++) race.step(); return JSON.stringify(race.results); };
+    assert.equal(run(tEs), run(tEn), key);
+  }
+});
+
+test('máximo de seis y mínimo de uno, también agregando desde el selector', () => {
+  const s = createSelection();
+  for (const k of ['program:three', 'program:twenty', 'program']) s.toggle(k);
+  assert.equal(s.size, 6);
+  assert.equal(s.whyNotSelect('example:oval'), 'max');
+  const one = createSelection(['human']);
+  assert.equal(one.whyNotUnselect('human'), 'min');
 });

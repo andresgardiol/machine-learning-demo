@@ -50,85 +50,160 @@ pista para mirar en la tabla quién sigue andando donde nunca practicó.
 - **THEN** el texto de inicio ocupa como mucho cinco renglones
 
 ### Requirement: Elegir a los competidores
-El panel SHALL mostrar, siempre a la vista, la lista de competidores posibles
-para marcar los que corren, de uno a seis: vos, tu programa, el programa de
-ejemplo, los cerebros de la biblioteca y los cerebros de ejemplo. Cada competidor marcado SHALL tener
-el número y el color con que se lo ve en el escenario. Cambiar quiénes corren
-MUST empezar una carrera nueva en la misma pista y con el mismo tráfico.
+El panel SHALL mostrar, siempre a la vista, la lista de los competidores de la
+carrera, de uno a seis, y solo ellos. Cada fila tiene el número y el color con
+que se lo ve en el escenario, su nombre, su tipo y un botón para quitarlo.
+Quitar o agregar un competidor MUST empezar una carrera nueva en la misma
+pista y con el mismo tráfico.
 
-#### Scenario: Sumar un cerebro guardado
-- **WHEN** la persona marca su cerebro guardado "Prudente"
-- **THEN** la carrera vuelve a empezar con "Prudente" entre los competidores, con su número y su color
+#### Scenario: Solo los que corren
+- **WHEN** la persona tiene veinte cerebros guardados y abre la pestaña por primera vez
+- **THEN** la lista muestra tres filas, las de los tres competidores por defecto, y dice 3 de 6
 
-#### Scenario: Máximo de seis
-- **WHEN** ya hay seis competidores marcados
-- **THEN** los demás no se pueden marcar y su tooltip explica que el máximo es seis
+#### Scenario: Quitar a uno
+- **WHEN** la persona usa el botón de quitar de un competidor
+- **THEN** ese competidor sale de la lista y de la carrera, que vuelve a empezar, y los demás conservan su número y su color
 
 #### Scenario: Al menos uno
-- **WHEN** queda un solo competidor marcado
-- **THEN** no se puede desmarcar y su tooltip explica que hace falta al menos uno
+- **WHEN** queda un solo competidor
+- **THEN** su fila no ofrece quitarlo
 
-#### Scenario: Lista larga
-- **WHEN** la biblioteca tiene quince cerebros
-- **THEN** la lista se desplaza por dentro y los controles de la carrera siguen a la vista
+#### Scenario: Cerebro eliminado
+- **WHEN** la persona elimina en Entrenar un cerebro que estaba en la carrera y vuelve a Competir
+- **THEN** ese competidor ya no está en la lista ni en la carrera, y sus resultados salen de la tabla
+
+#### Scenario: Seis filas sin desplazarse
+- **WHEN** la carrera tiene seis competidores
+- **THEN** la lista muestra las seis filas enteras, sin desplazarse por dentro
+
+### Requirement: Agregar competidores
+Junto a la lista, el panel SHALL ofrecer un botón "Agregar" que abre un
+selector con todos los que pueden correr y todavía no están en la carrera,
+agrupados: vos, programas, tus cerebros y cerebros de ejemplo. Elegir uno lo
+suma a la carrera. El selector SHALL desplazarse por dentro cuando son muchos
+y MUST poder usarse entero con el teclado.
+
+#### Scenario: Agregar un cerebro guardado
+- **WHEN** la persona abre el selector y elige su cerebro guardado "Prudente"
+- **THEN** "Prudente" pasa a la lista de competidores con su número y su color, y la carrera vuelve a empezar
+
+#### Scenario: Agregar varios
+- **WHEN** la persona elige tres cerebros sin cerrar el selector
+- **THEN** los tres quedan en la carrera y el selector sigue abierto hasta que lo cierra
+
+#### Scenario: Veinte cerebros
+- **WHEN** la biblioteca tiene veinte cerebros
+- **THEN** el selector los muestra todos desplazándose por dentro, sin salirse de la ventana, y el panel no cambia de alto
+
+#### Scenario: Qué es cada uno
+- **WHEN** la persona mira un cerebro en el selector
+- **THEN** ve su nombre y dónde entrenó
+
+#### Scenario: Máximo de seis
+- **WHEN** la carrera ya tiene seis competidores
+- **THEN** "Agregar" está deshabilitado y su tooltip explica que el máximo es seis
 
 #### Scenario: Cerebro guardado después
 - **WHEN** la persona guarda un cerebro en Entrenar y vuelve a Competir
-- **THEN** el cerebro nuevo aparece en la lista, sin marcar
+- **THEN** el cerebro nuevo aparece en el selector, sin estar en la carrera
 
-#### Scenario: Cerebro eliminado
-- **WHEN** la persona elimina en Entrenar un cerebro que estaba marcado y vuelve a Competir
-- **THEN** ese competidor ya no está en la lista ni en la carrera, y sus resultados salen de la tabla
+#### Scenario: Nada para agregar
+- **WHEN** todos los que pueden correr ya están en la carrera
+- **THEN** el selector lo dice y explica que los cerebros se guardan en Entrenar
+
+#### Scenario: Teclado
+- **WHEN** la persona abre el selector con Enter, elige con las flechas y Enter, y presiona Escape
+- **THEN** el competidor queda agregado, el selector se cierra y el foco vuelve al botón "Agregar"
+
+#### Scenario: Lector de pantalla
+- **WHEN** un lector de pantalla llega al botón y abre el selector
+- **THEN** anuncia que el botón abre una lista, cada grupo con su nombre y cada opción con su nombre, su tipo y, en los cerebros, dónde entrenó
+
+### Requirement: Sensores de cada competidor
+Cada competidor que no es la persona SHALL tener en su fila un botón para
+mostrar u ocultar sus sensores en el escenario, apagado por defecto, se lo
+esté siguiendo o no. El auto de la persona MUST NOT mostrar sensores ni tener
+ese botón. Los rayos de cada competidor SHALL verse con su color.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña
+- **THEN** ningún auto muestra sensores
+
+#### Scenario: Mostrar los de uno
+- **WHEN** la persona enciende los sensores del cerebro de ejemplo mientras maneja
+- **THEN** se ven los rayos de ese cerebro, con su color, y no los de los demás ni los de su propio auto
+
+#### Scenario: Varios a la vez
+- **WHEN** la persona enciende los sensores de dos competidores
+- **THEN** se ven los rayos de los dos, cada uno con el color de su competidor
+
+#### Scenario: Vos sin sensores
+- **WHEN** la persona mira la fila de "Vos"
+- **THEN** no tiene botón de sensores
+
+#### Scenario: Elección recordada
+- **WHEN** la persona enciende los sensores de un competidor y empieza otra carrera
+- **THEN** ese competidor sigue mostrando sus sensores
+
+#### Scenario: Botón explicado y accesible
+- **WHEN** la persona pone el foco en el botón de sensores de un competidor
+- **THEN** un tooltip dice qué hace y por qué importa, y un lector de pantalla anuncia de quién son los sensores y si están a la vista
 
 ### Requirement: Tu programa como competidor
-La lista SHALL ofrecer como competidor el programa actual de Reglas a mano,
-con los sensores para los que está escrito, desmarcado por defecto. Si el
+El selector SHALL ofrecer como competidor el programa actual de Reglas a mano,
+con los sensores para los que está escrito; no está en la carrera por defecto. Si el
 programa tiene errores, el competidor MUST verse deshabilitado y explicar por
 qué.
 
 #### Scenario: Programa válido
-- **WHEN** la persona marca "Tu programa" con un programa válido de 5 sensores
+- **WHEN** la persona agrega "Tu programa" con un programa válido de 5 sensores
 - **THEN** corre un auto de 5 sensores manejado por ese programa
 
 #### Scenario: Programa con errores
 - **WHEN** el programa de Reglas a mano tiene un error
-- **THEN** "Tu programa" está deshabilitado y su tooltip dice que hay que corregirlo en Reglas a mano
+- **THEN** en el selector, "Tu programa" está deshabilitado y su tooltip dice que hay que corregirlo en Reglas a mano
 
 #### Scenario: Programa cambiado
 - **WHEN** la persona cambia su programa en Reglas a mano y vuelve a Competir
 - **THEN** la carrera siguiente usa el programa nuevo
 
-### Requirement: Programa de ejemplo como competidor
-La lista SHALL ofrecer como competidor el programa de ejemplo de 7 sensores de
-Reglas a mano, con sus 7 sensores, marcado por defecto. MUST ser siempre el
-mismo, sin importar lo que la persona haya escrito o cargado en Reglas a mano.
+### Requirement: Programas de ejemplo como competidores
+El selector SHALL ofrecer como competidores los tres programas de ejemplo de
+Reglas a mano (3 sensores cortos, 7 sensores y 20 sensores), cada uno con sus
+sensores. El de 7 sensores está en la carrera por defecto. MUST ser siempre
+los mismos, sin importar lo que la persona haya escrito o cargado en Reglas a
+mano.
 
 #### Scenario: En la carrera por defecto
 - **WHEN** se abre la pestaña por primera vez
 - **THEN** uno de los competidores es el programa de 7 sensores, con el nombre que tiene en Reglas a mano
 
+#### Scenario: Los otros ejemplos
+- **WHEN** la persona abre el selector
+- **THEN** en el grupo de programas están el de 3 sensores cortos y el de 20 sensores, además de "Tu programa"
+
 #### Scenario: No depende del programa de la persona
 - **WHEN** la persona borra todo su programa en Reglas a mano y vuelve a Competir
-- **THEN** el programa de ejemplo corre igual que antes
+- **THEN** los programas de ejemplo corren igual que antes
 
-#### Scenario: Los dos programas a la vez
-- **WHEN** la persona marca también "Tu programa"
-- **THEN** corren los dos, cada uno con su número, su color y sus sensores
+#### Scenario: Varios programas a la vez
+- **WHEN** la persona agrega "Tu programa" y el de 20 sensores
+- **THEN** corren los tres programas, cada uno con su número, su color y sus sensores
 
 ### Requirement: Vos como competidor
-La lista SHALL ofrecer como competidor a la persona, que maneja con las
-flechas un auto verde, el del conductor, marcado por defecto. Con "vos"
-marcado, la carrera MUST esperar en la salida hasta que la persona la largue,
+La persona SHALL poder correr como un competidor más, manejando con las
+flechas un auto verde, el del conductor; está en la carrera por defecto. Con
+"vos" en la carrera, la carrera MUST esperar en la salida hasta que la persona la largue,
 y MUST correr a velocidad normal: las velocidades de simulación no se
 muestran.
 
 #### Scenario: Cartel para largar
-- **WHEN** hay una carrera esperando en la salida con "Vos" marcado
+- **WHEN** hay una carrera esperando en la salida con "Vos" en la carrera
 - **THEN** sobre el escenario hay un cartel que dice que se maneja con las flechas y cuál es la meta, con un botón para largar y, con los atajos encendidos, la tecla espacio
 
 #### Scenario: Largar con espacio
 - **WHEN** la persona presiona espacio con los atajos encendidos
-- **THEN** el cartel desaparece y arrancan todos los competidores a la vez
+- **THEN** el cartel desaparece, empieza la cuenta regresiva y, al terminar, arrancan todos los competidores a la vez
 
 #### Scenario: Atajos apagados
 - **WHEN** los atajos de una tecla están apagados
@@ -139,20 +214,59 @@ muestran.
 - **THEN** su auto responde como en El problema y los demás competidores corren a la vez
 
 #### Scenario: Sin velocidades
-- **WHEN** "Vos" está marcado
+- **WHEN** "Vos" está en la carrera
 - **THEN** el panel no muestra las velocidades de simulación
 
 #### Scenario: Cada carrera espera
-- **WHEN** con "Vos" marcado la persona reinicia, larga otra carrera o cambia de pista
+- **WHEN** con "Vos" en la carrera la persona reinicia, larga otra carrera o cambia de pista
 - **THEN** la carrera nueva vuelve a esperar en la salida con el cartel
 
 #### Scenario: Sin vos
-- **WHEN** la persona desmarca "Vos"
+- **WHEN** la persona quita a "Vos" de la carrera
 - **THEN** la carrera larga sola, sin cartel, y el panel muestra las velocidades de simulación
+
+### Requirement: Cuenta regresiva al largar
+Con "vos" en la carrera, largar SHALL mostrar sobre el escenario una cuenta
+regresiva de 3, 2, 1, de un segundo por número, antes de que arranque la
+carrera, para que la persona se prepare. Durante la cuenta los autos MUST
+estar detenidos y el tiempo de la carrera en cero. Sin "vos", la carrera
+arranca sin cuenta.
+
+#### Scenario: Tres, dos, uno
+- **WHEN** la persona larga con "Vos" en la carrera
+- **THEN** se ven en grande, sobre el escenario, el 3, el 2 y el 1, un segundo cada uno, y después arrancan todos a la vez con el tiempo en cero
+
+#### Scenario: Flechas durante la cuenta
+- **WHEN** la persona mantiene apretada la flecha de avanzar durante la cuenta
+- **THEN** su auto no se mueve hasta que termina la cuenta, y arranca en ese momento sin soltar la tecla
+
+#### Scenario: Espacio durante la cuenta
+- **WHEN** la persona vuelve a presionar espacio durante la cuenta
+- **THEN** la cuenta sigue: no se pausa, no se saltea ni vuelve a empezar
+
+#### Scenario: Arrepentirse
+- **WHEN** la persona reinicia durante la cuenta
+- **THEN** la cuenta se corta y la carrera vuelve a esperar en la salida con el cartel
+
+#### Scenario: Salir de la pestaña
+- **WHEN** la persona abre otra pestaña durante la cuenta y vuelve
+- **THEN** la carrera está esperando en la salida con el cartel, sin haber largado
+
+#### Scenario: Sin vos
+- **WHEN** la carrera no tiene a "Vos"
+- **THEN** arranca sin cuenta regresiva
+
+#### Scenario: Lector de pantalla
+- **WHEN** empieza la cuenta
+- **THEN** un lector de pantalla anuncia una vez que la carrera larga en 3 segundos, y no cada número
+
+#### Scenario: Movimiento reducido
+- **WHEN** el sistema pide menos movimiento
+- **THEN** los números cambian sin animación
 
 ### Requirement: Controles de la carrera
 El panel SHALL ofrecer pausar y reanudar, reiniciar la misma carrera, largar
-otra carrera y, sin "vos" marcado, las velocidades de simulación de Entrenar.
+otra carrera y, sin "vos" en la carrera, las velocidades de simulación de Entrenar.
 Reiniciar repite la carrera con el mismo tráfico; otra carrera usa, en la
 calle recta con tráfico nuevo, un tráfico que todavía no se usó desde que se
 abrió la aplicación.
@@ -170,7 +284,7 @@ abrió la aplicación.
 - **THEN** los mismos competidores salen frente a un tráfico distinto de todos los anteriores
 
 #### Scenario: Velocidad máxima
-- **WHEN** la persona elige la velocidad máxima sin "Vos" marcado
+- **WHEN** la persona elige la velocidad máxima sin "Vos" en la carrera
 - **THEN** la carrera termina en pocos segundos y el marcador y la tabla quedan con el resultado
 
 #### Scenario: Fin de la carrera
@@ -261,12 +375,12 @@ SHALL NOT mostrarse.
 - **THEN** el ajuste vuelve a mostrarse, con el tráfico de práctica elegido
 
 #### Scenario: Tráfico de práctica que nadie vio
-- **WHEN** la persona elige el tráfico de práctica y ningún cerebro marcado practicó con los carriles, la densidad y la irregularidad de la barra
+- **WHEN** la persona elige el tráfico de práctica y ningún cerebro de la carrera practicó con los carriles, la densidad y la irregularidad de la barra
 - **THEN** un renglón junto al ajuste avisa que ninguno de los competidores practicó con ese tráfico
 
 ### Requirement: Barra de escenario en Competir
-La pista, el tráfico y la velocidad de la barra de escenario SHALL ser los de
-la carrera, y cambiarlos MUST empezar otra carrera en el momento. El grupo de
+La pista, el tráfico, la meta y la velocidad de la barra de escenario SHALL
+ser los de la carrera, y cambiarlos MUST empezar otra carrera en el momento. El grupo de
 sensores SHALL NOT mostrarse: cada competidor trae los suyos.
 
 #### Scenario: Cambiar de pista
@@ -284,6 +398,58 @@ sensores SHALL NOT mostrarse: cada competidor trae los suyos.
 #### Scenario: Restablecer
 - **WHEN** la persona restablece el escenario
 - **THEN** la carrera vuelve a la calle recta con los valores por defecto
+
+### Requirement: Meta configurable
+La barra de escenario SHALL ofrecer en Competir la meta de la carrera: en la
+calle recta, la distancia, de 500 a 3000 metros de a 100; en un circuito, las
+vueltas, de 1 a 5. Cada pista SHALL recordar su meta. Cambiarla MUST empezar
+otra carrera al soltar el control, y restablecer el escenario la devuelve a
+su valor por defecto.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña
+- **THEN** la meta es de 1000 m en la calle recta, 2 vueltas en el óvalo y 1 en el óvalo con chicana y en el circuito de curvas
+
+#### Scenario: Carrera más larga en la calle
+- **WHEN** la persona pone la meta en 2000 m y suelta el control
+- **THEN** empieza otra carrera a 2000 m, y la línea de meta, el cartel para largar y el indicador dicen 2000 m
+
+#### Scenario: Más vueltas
+- **WHEN** en el óvalo con chicana la persona elige 3 vueltas
+- **THEN** empieza otra carrera a 3 vueltas
+
+#### Scenario: Una meta por pista
+- **WHEN** la persona pone 3 vueltas en el óvalo, pasa a la calle recta y vuelve al óvalo
+- **THEN** el óvalo sigue en 3 vueltas y la calle recta conserva su distancia
+
+#### Scenario: Unidad según la pista
+- **WHEN** la persona pasa de la calle recta a un circuito
+- **THEN** el mismo control pasa de metros a vueltas, con su nombre y su tooltip
+
+#### Scenario: Restablecer
+- **WHEN** la persona restablece el escenario
+- **THEN** la meta de todas las pistas vuelve a su valor por defecto
+
+#### Scenario: Resultados de otra meta
+- **WHEN** una celda de la tabla guarda un resultado corrido con otra meta que la actual
+- **THEN** se ve atenuada y dice que es de una carrera con otros ajustes
+
+### Requirement: Panel sin desplazamiento lateral
+El panel de Competir MUST NOT desplazarse hacia los costados ni mostrar texto
+cortado, con cualquier ancho de panel que la aplicación permita, en español y
+en inglés. Los nombres de los botones MUST leerse enteros.
+
+#### Scenario: Panel en su ancho mínimo
+- **WHEN** la persona achica el panel hasta el mínimo permitido
+- **THEN** el panel no se desplaza hacia los costados y ningún contenido queda fuera de la vista a la izquierda ni a la derecha
+
+#### Scenario: Botones de la carrera
+- **WHEN** el panel mide 360 píxeles de ancho o su mínimo, en español o en inglés
+- **THEN** los botones de largar, reiniciar y otra carrera se leen enteros, sin puntos suspensivos
+
+#### Scenario: Nombre largo
+- **WHEN** un competidor tiene un nombre de 40 caracteres
+- **THEN** la lista lo muestra sin ensanchar el panel
 
 ### Requirement: Indicadores de la carrera
 El tablero SHALL mostrar, actualizados en tiempo real, tres indicadores: el
@@ -342,7 +508,7 @@ Con "vos" en carrera, la cámara SHALL seguir siempre al auto de la persona,
 también cuando choca y reaparece, y MUST NOT poder pasarse a otro mientras
 maneja. Sin "vos", la cámara SHALL seguir al que va primero, y un clic en un
 competidor del marcador SHALL pasar a seguirlo a él, hasta que la persona
-elija otro o empiece otra carrera. El seguido muestra sus sensores.
+elija otro o empiece otra carrera.
 
 #### Scenario: Vos en carrera
 - **WHEN** la persona está manejando en una carrera
@@ -366,7 +532,7 @@ elija otro o empiece otra carrera. El seguido muestra sus sensores.
 
 #### Scenario: Elegir a uno
 - **WHEN** sin "Vos" en carrera la persona hace clic en el tercero del marcador
-- **THEN** la cámara pasa a seguirlo, se ven sus sensores y su fila queda marcada como la seguida
+- **THEN** la cámara pasa a seguirlo y su fila queda marcada como la seguida
 
 #### Scenario: Con el teclado
 - **WHEN** la persona llega con Tab a un competidor del marcador y presiona Enter
@@ -374,7 +540,7 @@ elija otro o empiece otra carrera. El seguido muestra sus sensores.
 
 ### Requirement: Tabla por pista
 El tablero SHALL mostrar, en una tarjeta, una tabla con una fila por
-competidor marcado y una columna por cada pista del catálogo. Cada celda muestra el
+competidor de la carrera y una columna por cada pista del catálogo. Cada celda muestra el
 último resultado de ese competidor en esa pista en una carrera terminada: su
 tiempo si llegó, o qué parte de la carrera hizo si no terminó, y sus choques. La tabla SHALL conservarse al cambiar de
 pestaña, hasta cerrar la aplicación.
@@ -404,15 +570,19 @@ pestaña, hasta cerrar la aplicación.
 - **THEN** la tabla sigue mostrando los resultados de las dos carreras
 
 #### Scenario: Borrar resultados
-- **WHEN** la persona borra los resultados desde el panel
+- **WHEN** la persona usa "Borrar resultados", que está en el encabezado de la tarjeta de la tabla
 - **THEN** la tabla queda vacía y ningún cerebro cambia
+
+#### Scenario: Sin resultados que borrar
+- **WHEN** la tabla todavía no tiene ningún resultado
+- **THEN** "Borrar resultados" no se muestra
 
 #### Scenario: Resultado con otros ajustes
 - **WHEN** una celda guarda un resultado corrido con otra velocidad máxima, otro tráfico u otra penalización que los actuales
 - **THEN** la celda se ve atenuada y dice que es de una carrera con otros ajustes
 
-#### Scenario: Competidor desmarcado
-- **WHEN** la persona desmarca a un competidor con resultados y más tarde lo vuelve a marcar
+#### Scenario: Competidor quitado y vuelto a agregar
+- **WHEN** la persona quita a un competidor con resultados y más tarde lo vuelve a agregar
 - **THEN** su fila sale de la tabla y vuelve con los resultados que tenía
 
 #### Scenario: Cerebro actualizado
@@ -504,10 +674,10 @@ pista. Ningún ajuste MUST quedar en una sección plegable.
 
 #### Scenario: Pantalla de 1440×900
 - **WHEN** se abre la pestaña con la ventana en 1440×900 y la guía activa
-- **THEN** se ven sin desplazar la guía, los controles de la carrera, el tráfico de la carrera, la penalización por choque, al menos seis competidores de la lista y las misiones
+- **THEN** se ven sin desplazar la guía, los controles de la carrera, el tráfico de la carrera, la penalización por choque, los seis competidores de la lista y las misiones
 
 #### Scenario: Sin vos, con las velocidades
-- **WHEN** la persona desmarca "Vos" con la ventana en 1440×900 y la guía activa
+- **WHEN** la persona quita a "Vos" con la ventana en 1440×900 y la guía activa
 - **THEN** el panel suma las velocidades de simulación y sigue sin desplazarse
 
 #### Scenario: Nada deshabilitado por la pestaña

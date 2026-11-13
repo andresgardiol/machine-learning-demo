@@ -6,8 +6,9 @@
 Al mostrar una carrera, la vista SHALL dibujar a cada competidor con un color
 y un número propios, de modo que se los distinga entre sí y del tráfico sin
 depender solo del color. El auto manejado por la persona SHALL conservar el
-verde del auto del conductor. El competidor en foco se dibuja encima, con sus
-sensores. Los que ya no corren, porque llegaron o no terminaron, se ven
+verde del auto del conductor. El competidor en foco se dibuja encima. Se
+dibujan los sensores de los competidores que la pestaña indique, con el color
+de cada uno. Los que ya no corren, porque llegaron o no terminaron, se ven
 atenuados.
 
 #### Scenario: Seis competidores
@@ -17,6 +18,10 @@ atenuados.
 #### Scenario: Autos superpuestos
 - **WHEN** varios competidores están en el mismo lugar, como en la salida
 - **THEN** el competidor en foco se ve encima de los demás
+
+#### Scenario: Sensores de dos competidores
+- **WHEN** la pestaña pide mostrar los sensores de dos competidores
+- **THEN** los rayos de cada uno se ven con su color, y los puntos donde detectan algo se distinguen sin depender solo del color
 
 #### Scenario: Competidor que choca
 - **WHEN** un competidor choca

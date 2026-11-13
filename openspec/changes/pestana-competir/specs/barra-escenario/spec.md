@@ -54,3 +54,21 @@ cada competidor trae los suyos.
 #### Scenario: Restablecer sin sensores
 - **WHEN** la persona restablece el escenario en Competir
 - **THEN** vuelven a sus valores por defecto la pista, el tráfico y la velocidad, y los sensores de las otras pestañas no cambian
+
+### Requirement: Grupo propio de una pestaña
+Una pestaña SHALL poder sumar a la barra un grupo de ajustes propio de su
+escenario, con el mismo aspecto, tooltips y accesibilidad que los demás. En
+Competir es la meta de la carrera, en el lugar que dejan los sensores. Las
+demás pestañas MUST NOT mostrarlo.
+
+#### Scenario: Meta en Competir
+- **WHEN** la persona abre Competir
+- **THEN** la barra muestra, entre el tráfico y la velocidad, el grupo de la meta de la carrera
+
+#### Scenario: Solo en Competir
+- **WHEN** la persona pasa de Competir a Entrenar
+- **THEN** la barra no muestra la meta y vuelve a mostrar los sensores
+
+#### Scenario: Un renglón con la meta
+- **WHEN** la ventana mide 1366 píxeles de ancho o más y la pestaña es Competir, en español o en inglés
+- **THEN** la barra ocupa un solo renglón, sin texto cortado

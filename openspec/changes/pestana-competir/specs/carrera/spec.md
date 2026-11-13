@@ -36,10 +36,11 @@ el mismo tráfico. Los competidores MUST NOT percibirse ni chocarse entre sí.
 - **THEN** recorre exactamente el mismo camino las dos veces
 
 ### Requirement: Meta de la carrera
-Cada pista SHALL tener una meta: una distancia en la calle recta y una
-cantidad de vueltas en cada circuito. Un competidor llega cuando su progreso
-alcanza la meta; la carrera MUST anotar su tiempo de llegada, y ese competidor
-deja de correr.
+Cada carrera SHALL tener una meta: una distancia en la calle recta y una
+cantidad de vueltas en un circuito. La meta SHALL poder elegirse al armar la
+carrera, de 500 a 3000 metros o de 1 a 5 vueltas; sin elegirla, vale la de la
+pista. Un competidor llega cuando su progreso alcanza la meta; la carrera MUST
+anotar su tiempo de llegada, y ese competidor deja de correr.
 
 #### Scenario: Meta de la calle recta
 - **WHEN** un competidor alcanza los 1000 metros en la calle recta a los 52 segundos
@@ -50,8 +51,20 @@ deja de correr.
 - **THEN** queda como que llegó, con el tiempo en que cruzó la línea por segunda vez
 
 #### Scenario: Meta de cada pista
-- **WHEN** se consultan las metas
+- **WHEN** se consultan las metas por defecto
 - **THEN** son 1000 metros en la calle recta, 2 vueltas en el óvalo, 1 en el óvalo con chicana y 1 en el circuito de curvas
+
+#### Scenario: Meta elegida en la calle
+- **WHEN** se arma una carrera en la calle recta a 2000 metros
+- **THEN** nadie llega antes de los 2000 metros
+
+#### Scenario: Meta elegida en un circuito
+- **WHEN** se arma una carrera en el circuito de curvas a 3 vueltas
+- **THEN** un competidor llega al cruzar la línea por tercera vez, y la parte de la carrera que lleva se calcula sobre 3 vueltas
+
+#### Scenario: Meta fuera de rango
+- **WHEN** se pide una meta de 100 metros o de 9 vueltas
+- **THEN** se ajusta al límite más cercano: 500 metros o 5 vueltas
 
 #### Scenario: Después de llegar
 - **WHEN** un competidor llegó y los demás siguen corriendo
@@ -164,8 +177,9 @@ no los demás.
 La carrera SHALL terminar cuando no queda ningún competidor corriendo. Desde
 que llega el primero, los demás tienen 20 segundos para llegar; cumplidos,
 los que siguen corriendo quedan como que no terminaron. Ninguna carrera MUST
-durar más de 180 segundos. Terminada la carrera, avanzar más pasos MUST NOT
-cambiar nada.
+durar más que su tiempo máximo: el triple de lo que lleva recorrer la meta a
+la velocidad máxima, y nunca menos de 180 segundos. Terminada la carrera,
+avanzar más pasos MUST NOT cambiar nada.
 
 #### Scenario: Llegan todos
 - **WHEN** el último competidor llega a la meta
@@ -184,8 +198,12 @@ cambiar nada.
 - **THEN** la carrera termina cuando queda fuera el último
 
 #### Scenario: Tiempo máximo
-- **WHEN** pasan 180 segundos sin que nadie llegue, con competidores avanzando despacio
+- **WHEN** pasan 180 segundos de una carrera a 1000 metros sin que nadie llegue, con competidores avanzando despacio
 - **THEN** la carrera termina y esos competidores quedan como que no terminaron
+
+#### Scenario: Tiempo máximo de una carrera larga
+- **WHEN** la carrera es a 3000 metros con velocidad máxima de 12 m/s
+- **THEN** el tiempo máximo es de 750 segundos, no de 180
 
 #### Scenario: Después del final
 - **WHEN** la carrera ya terminó y se pide avanzar un paso más

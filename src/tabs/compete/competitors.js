@@ -4,7 +4,8 @@
 //
 //   clave            qué es                                   controlador y sensores
 //   human            Vos                                      el teclado, sensores por defecto
-//   program:seven    programa de ejemplo de 7 sensores        sus reglas en el idioma activo, sus 7 sensores
+//   program:three, program:seven, program:twenty
+//                    programas de ejemplo de Reglas a mano    sus reglas en el idioma activo, sus sensores
 //   program          tu programa (el actual de Reglas a mano) el recordado, o el inicial; sus sensores
 //   brain:<id>       cerebros guardados y autoguardados       su red y sus sensores
 //   example:<id>     cerebros de ejemplo                      su red y sus sensores
@@ -19,8 +20,11 @@ export { MAX_COMPETITORS };
 /** Selección por defecto (D4): vos, el programa de 7 sensores y el cerebro de la calle con tráfico nuevo. */
 export const DEFAULT_SELECTION = Object.freeze(['human', 'program:seven', 'example:street-new']);
 
-/** Programa de ejemplo que compite: el de 7 sensores de Reglas a mano. */
+/** Programa de ejemplo de la carrera por defecto: el de 7 sensores de Reglas a mano. */
 export const SEVEN = EXAMPLES.find((p) => p.id === 'seven');
+
+/** Grupos del selector para agregar (D10b), en orden. */
+export const PICKER_GROUPS = Object.freeze(['human', 'programs', 'brains', 'examples']);
 
 const sensorsOf = (s) => ({ count: s.count, range: s.range, spread: s.spread });
 
@@ -52,10 +56,12 @@ export function ownProgram({ program = null, sensors = null } = {}, t) {
 export function listCandidates({ library = [], examples = [], remembered = {}, t }) {
   const out = [];
   out.push({ key: 'human', kind: 'human', available: true, reason: null, sensors: { ...DEFAULT_SENSORS }, signature: 'human' });
-  out.push({
-    key: 'program:seven', kind: 'program', example: true, available: true, reason: null,
-    sensors: sensorsOf(SEVEN.sensors), signature: 'program:seven', nameKey: SEVEN.nameKey,
-  });
+  for (const p of EXAMPLES) {
+    out.push({
+      key: `program:${p.id}`, kind: 'program', example: true, available: true, reason: null,
+      sensors: sensorsOf(p.sensors), signature: `program:${p.id}`, nameKey: p.nameKey, textKey: p.textKey,
+    });
+  }
   const own = ownProgram(remembered, t);
   out.push({
     key: 'program', kind: 'program', example: false, available: own.ok, reason: own.ok ? null : 'programErrors',
@@ -91,13 +97,32 @@ export function buildCompetitor(candidate, { t, keyboard } = {}) {
   const { key } = candidate;
   if (!candidate.available) throw new Error(`competitorUnavailable: ${key}`);
   if (candidate.kind === 'human') return { id: key, controller: keyboard ? keyboard() : { control: () => ({}) }, sensors: { ...DEFAULT_SENSORS } };
-  if (key === 'program:seven') {
-    const parsed = parseProgram(t(SEVEN.textKey), { sensors: SEVEN.sensors.count });
-    return { id: key, controller: createRulesController({ program: parsed.ok ? parsed.program : null }), sensors: sensorsOf(SEVEN.sensors) };
+  if (candidate.kind === 'program' && candidate.example) {
+    const parsed = parseProgram(t(candidate.textKey), { sensors: candidate.sensors.count });
+    return { id: key, controller: createRulesController({ program: parsed.ok ? parsed.program : null }), sensors: { ...candidate.sensors } };
   }
   if (key === 'program') return { id: key, controller: createRulesController({ program: candidate.program }), sensors: { ...candidate.sensors } };
   const car = carForBrain(candidate.brain);
   return { id: key, controller: car.controller, sensors: car.sensors };
+}
+
+/** Grupo del selector al que va un candidato. */
+const groupOf = (c) => (c.kind === 'human' ? 'human' : c.kind === 'program' ? 'programs' : c.kind === 'brain' ? 'brains' : 'examples');
+
+/**
+ * Lo que ofrece el selector para agregar (D10b): los candidatos que no están en la carrera, en sus
+ * grupos y en orden (dentro de "Programas", tu programa primero y después los ejemplos). Los grupos
+ * vacíos no se devuelven. Un candidato que no puede correr va igual, deshabilitado con su motivo.
+ * @param {object[]} candidates de listCandidates
+ * @param {{has:(key:string)=>boolean}} selection
+ * @returns {{id:string, items:object[]}[]}
+ */
+export function pickerGroups(candidates, selection) {
+  const free = candidates.filter((c) => !selection.has(c.key));
+  const order = (c) => (c.key === 'program' ? -1 : 0);
+  return PICKER_GROUPS
+    .map((id) => ({ id, items: free.filter((c) => groupOf(c) === id).sort((a, b) => order(a) - order(b)) }))
+    .filter((g) => g.items.length > 0);
 }
 
 /**

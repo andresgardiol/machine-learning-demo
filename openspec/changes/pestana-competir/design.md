@@ -112,6 +112,28 @@ unos 80 s, la carrera más larga de las cuatro; quedó en 1 vuelta, la más
 corta. El dueño pidió que esa pista no se haga larga. Son cuatro constantes:
 se cambian sin tocar nada más.
 
+**La meta se puede elegir** (pedido del dueño al probar la pestaña, 13 de
+noviembre de 2026). La tabla de arriba son los valores por defecto.
+
+- `createRace({ goal })` acepta `{ meters }` o `{ laps }`; sin eso, el valor
+  por defecto de la pista. Límites: 500 a 3000 m y 1 a 5 vueltas; fuera de
+  rango se ajusta al límite.
+- En la pestaña, la meta es un grupo de la barra de escenario, "Meta", en el
+  lugar que dejan los sensores (D12): un deslizador que en la calle recta va
+  de 500 a 3000 m de a 100 y en un circuito, de 1 a 5 vueltas. Va en la barra
+  y no en el panel porque es parte del escenario de la carrera y porque el
+  panel no tiene lugar: ya entra justo a 1440×900.
+- Cada pista recuerda su meta. "Restablecer" las devuelve todas a su valor
+  por defecto.
+- Cambiarla empieza otra carrera al soltar el control, con la misma semilla.
+- La meta pasa a ser uno de los ajustes con que se corrió un resultado (D8):
+  los tiempos de dos metas distintas no se comparan.
+- Los cerebros de ejemplo se comprueban con las metas por defecto.
+
+**Tiempo máximo.** Con meta variable, 180 s fijos no alcanzan para 3000 m a
+12 m/s. El máximo pasa a ser el triple de lo que lleva recorrer la meta a la
+velocidad máxima de la carrera, y nunca menos de 180 s.
+
 Quien llega deja de correr: su auto se retira del mundo pasando la meta
 (`world.retire`), y su resultado no cambia más.
 
@@ -203,7 +225,8 @@ primero de:
    arranca, al que va para atrás y al que choca siempre en el mismo lugar.
 2. **Se acabó la espera:** pasaron `RACE_WAIT_SECONDS` (20) desde que llegó
    el primero.
-3. **Tiempo máximo:** la carrera llegó a `RACE_MAX_SECONDS` (180). Es el
+3. **Tiempo máximo:** la carrera llegó a su máximo (D1b: el triple de
+   recorrer la meta a la velocidad máxima, y nunca menos de 180 s). Es el
    seguro para el que avanza muy despacio sin que nadie llegue.
 
 La carrera termina cuando no queda nadie en estado `racing`.
@@ -252,7 +275,7 @@ candidatos, en este orden:
 | Clave | Qué es | Controlador y sensores |
 |---|---|---|
 | `human` | Vos | `createKeyboardController()`, sensores por defecto |
-| `program:seven` | Programa de ejemplo "7 sensores" de Reglas a mano | `createRulesController` con el texto del ejemplo `seven` y sus 7 sensores |
+| `program:three`, `program:seven`, `program:twenty` | Los tres programas de ejemplo de Reglas a mano | `createRulesController` con el texto del ejemplo y sus sensores |
 | `program` | Tu programa | `createRulesController` con el programa recordado y sus sensores (`rulesProgram`, `rulesSensors`). Sin programa recordado, el inicial de Reglas a mano |
 | `brain:<id>` | Cerebros guardados y autoguardados | `carForBrain` |
 | `example:<id>` | Cerebros de ejemplo | `carForBrain` |
@@ -290,6 +313,15 @@ eso a que un auto cambie de número a mitad de una explicación.
   marcado (al abrir, al reiniciar, con otra carrera y al cambiar la pista, el
   tráfico o los competidores). El botón del cartel y el botón principal del
   panel hacen lo mismo.
+- **Cuenta regresiva** (pedido del dueño al probar la pestaña): al largar, el
+  cartel se va y se ven en grande el 3, el 2 y el 1, un segundo de reloj cada
+  uno; después arranca la carrera, con el tiempo en cero. Un "¡Ya!" queda
+  medio segundo a la vista sin frenar nada. Durante la cuenta, el botón
+  principal dice "Largando…" y no hace nada, para que un doble toque de
+  espacio no pause ni saltee; "Reiniciar", "Otra carrera" y cualquier cambio
+  de la barra o de los competidores cortan la cuenta y vuelven al cartel. La
+  cuenta es de la pestaña, no del núcleo: la carrera no avanza pasos hasta
+  que termina.
 - **La cámara sigue siempre a la persona mientras maneja**, vaya primero o
   última, y también cuando choca y reaparece: si la cámara se fuera con otro
   auto, chocaría sin verlo. En ese tiempo los nombres del marcador no son
@@ -367,7 +399,8 @@ borde), no solo por el color. El programa y la persona no llevan marca.
 `src/tabs/compete/results.js`, sin DOM. Por cada competidor y pista guarda el
 último resultado de una carrera terminada; en la calle recta, uno por tipo de
 tráfico (nuevo y de práctica). Cada resultado recuerda con qué ajustes se
-corrió (carriles, densidad, irregularidad, velocidad máxima y penalización).
+corrió (carriles, densidad, irregularidad, velocidad máxima, penalización y
+meta).
 
 - Solo anotan las carreras terminadas. Reiniciar, cambiar de pista o de
   competidores a mitad de carrera no anota nada.
@@ -437,13 +470,71 @@ Una sola vista, sin pestañas internas ni secciones plegables, en este orden:
    Solo en la calle recta.
 4. Penalización por choque: un deslizador de 0 a 3 s, de a 0,1 s, con 0,1 por
    defecto. Actúa al soltar y empieza otra carrera.
-5. Interruptores de vista de las otras pestañas: sensores y ver como la
-   máquina.
-6. Competidores: lista con casillas, con el número y el color del que está
-   marcado, el tipo y, en los cerebros, dónde entrenó en una palabra. La lista
-   se desplaza por dentro y muestra al menos seis filas.
+5. Interruptor "Ver como la máquina". Aplica al competidor que se sigue; no
+   se muestra mientras se sigue a "Vos", que no tiene sensores que mirar.
+6. Competidores (D10b).
 7. Misiones (con la guía activa).
-8. "Borrar resultados".
+
+"Borrar resultados" no va en el panel: va en el encabezado de la tarjeta
+"Tabla por pista", al lado de lo que borra, y solo se muestra cuando hay algo
+que borrar.
+
+### D10b. Lista de competidores y selector para agregar
+
+Pedido del dueño al probar la pestaña: con veinte cerebros guardados, una
+lista con todos los candidatos y una casilla cada uno no se puede usar.
+
+**La lista muestra solo a los que corren** (de 1 a 6 filas, sin
+desplazamiento interno). Cada fila:
+
+- la insignia con su número y su color;
+- su nombre y, debajo, su tipo y dónde entrenó;
+- un botón de sensores (un ojo, `aria-pressed`), salvo en "Vos";
+- un botón de quitar, salvo cuando queda uno solo.
+
+El encabezado dice "Competidores", "3 de 6" y lleva el botón **"Agregar"**.
+Con seis, el botón queda deshabilitado y explica el máximo: no es un ajuste
+que no sirve, es una acción en su tope.
+
+**El selector** se abre desde "Agregar", pegado al botón, y no cambia el alto
+del panel. Lista a todos los que pueden correr y no están en la carrera, en
+grupos con su título: Vos, Programas (tu programa y los tres ejemplos), Tus
+cerebros (guardados y autoguardados) y Cerebros de ejemplo.
+
+- Elegir uno lo agrega y deja el selector abierto, para sumar varios de una
+  vez. El elegido sale de la lista del selector.
+- Se cierra con Escape, con un clic afuera o con su botón "Listo", y el foco
+  vuelve a "Agregar".
+- Con muchos candidatos se desplaza por dentro, con un alto máximo que no
+  sale de la ventana.
+- Un candidato que no puede correr (programa con errores) se ve deshabilitado
+  con su motivo.
+- Sin candidatos: "No queda nadie para agregar. Los cerebros se guardan en
+  Entrenar."
+- Roles: el botón lleva `aria-haspopup` y `aria-expanded`; el selector es un
+  diálogo no modal con nombre, y cada grupo, un grupo con su nombre. Flechas
+  para moverse, Enter o espacio para elegir.
+
+*Alternativa descartada:* un campo para buscar por nombre. Con veinte
+cerebros alcanza con desplazarse; queda anotado por si hacen falta más.
+
+Con esto el panel queda más bajo en el caso típico (tres filas en vez de
+seis) y el caso más alto, con seis competidores, mide lo mismo que antes.
+
+### D10c. Sensores por competidor
+
+Pedido del dueño: el auto que maneja la persona no necesita sensores; los de
+los demás se tienen que poder mostrar o no, uno por uno.
+
+- El interruptor general "Sensores" del panel desaparece. Lo reemplaza el
+  botón de cada fila (D10b).
+- Apagados por defecto para todos. La elección se recuerda por competidor
+  hasta cerrar la aplicación.
+- Se dibujan los sensores de todos los que los tengan encendidos, se los
+  siga o no. Los rayos llevan el color del competidor; el punto donde
+  detectan algo se distingue por la forma, no solo por el color.
+- "Vos" nunca muestra sensores y su fila no tiene el botón.
+- No hay atajo de teclado para los sensores (D14).
 
 **Lo que no sirve no se muestra** (pedido del dueño del proyecto): un ajuste
 sin efecto en la situación actual desaparece y la lista de competidores ocupa
@@ -451,6 +542,19 @@ su lugar. Vale para las velocidades con "Vos" marcado, el tráfico de la
 carrera en un circuito, la columna de mejor vuelta en la calle recta y el
 grupo de sensores de la barra (D12). Los valores elegidos se conservan para
 cuando el ajuste vuelve.
+
+**Botones de la carrera.** Los tres tienen que leerse enteros en el ancho
+mínimo del panel. **Medido:** no entran en un renglón ni sin la tecla (194 +
+96 + 122 px contra 268 disponibles en el ancho mínimo). El botón principal va
+solo en su renglón, con la tecla; "Reiniciar" y "Otra carrera" van debajo,
+más chicos y sin la tecla, que queda en el tooltip. Cuesta unos 36 px de
+alto, que se recuperan sacando "Borrar resultados" del panel.
+
+**Sin desplazamiento lateral.** El panel no se desplaza hacia los costados
+con ningún ancho permitido. Al probar la pestaña, el dueño lo encontró
+desplazado, con el contenido cortado a la izquierda y "Otra carrer…"
+truncado. **Causa, medida:** el renglón de los tres botones medía 373 px y
+ensanchaba el contenido del panel a 389 px con el panel en 360.
 
 **Sin medir:** que todo entre en 746 px de alto (lo disponible a 1440×900,
 medido en Entrenar). El caso más alto es la calle recta sin "Vos": la cuenta
@@ -463,7 +567,7 @@ número y su estado (corriendo, penalizado, protegido o ya sin correr).
 
 - Cada competidor se dibuja con su color. El número va en una insignia de
   tamaño fijo en pantalla, junto al auto, para que se lea con cualquier zoom.
-- El seguido se dibuja último, con sus sensores si están encendidos.
+- El seguido se dibuja último. Los sensores se dibujan según D10c.
 - Un auto que chocó muestra la marca de choque mientras dura la penalización
   y después se lo ve en su nuevo lugar. Durante la protección se dibuja como
   un fantasma: translúcido y con el contorno punteado, no solo con un
@@ -494,9 +598,13 @@ número y su estado (corriendo, penalizado, protegido o ya sin correr).
 - `scenarioBar` suma una opción con los grupos que la pestaña no usa. Esos
   grupos no se crean: no quedan ocultos con un hueco ni en el orden del foco.
   Competir no usa los sensores.
-- "Restablecer" en Competir no toca los sensores de ninguna pestaña.
-- `barEffect('compete', clave)` devuelve `newRace` para la pista, el tráfico
-  y la velocidad. Los deslizadores actúan al soltar, no mientras se arrastran.
+- `scenarioBar` ya tiene lugares para que una pestaña sume contenido
+  (`slot`). Competir suma ahí el grupo "Meta" (D1b), con el mismo aspecto,
+  tooltip y roles que los demás grupos, entre el tráfico y la velocidad.
+- "Restablecer" en Competir no toca los sensores de ninguna pestaña y
+  devuelve las metas a su valor por defecto.
+- `barEffect('compete', clave)` devuelve `newRace` para la pista, el tráfico,
+  la meta y la velocidad. Los deslizadores actúan al soltar, no mientras se arrastran.
 - Una carrera nueva por un cambio de la barra usa la misma semilla que la
   carrera en curso si el tráfico es de práctica, y una nueva si no.
 - En un circuito, los ajustes de tráfico de la barra siguen como en las otras

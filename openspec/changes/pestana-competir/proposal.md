@@ -22,8 +22,9 @@ vio se sobreajustó; uno que rinde también donde nunca estuvo, generalizó.**
 - **Carrera de fantasmas con meta:** hasta seis competidores salen a la vez
   de la misma línea, en la pista elegida en la barra, y no se chocan entre
   sí. Así se comparan sus líneas de manejo. Gana el que llega primero a la
-  meta: 1000 metros en la calle recta, 2 vueltas en el óvalo y 1 en el
-  óvalo con chicana y en el circuito de curvas.
+  meta, que se elige en la barra: metros en la calle recta (1000 por
+  defecto) y vueltas en un circuito (2 en el óvalo y 1 en los otros dos por
+  defecto).
 - **Chocar no saca de la carrera:** después de una penalización corta (0,1
   segundos por defecto, configurable), el auto reaparece en el centro, un
   poco más atrás, y sigue corriendo. Por 2 segundos pasa a través del tráfico
@@ -34,13 +35,20 @@ vio se sobreajustó; uno que rinde también donde nunca estuvo, generalizó.**
   segundos para llegar.
 - **Tres tipos de competidor:**
   - **Cerebros** de la biblioteca (guardados y autoguardados) y de ejemplo.
-  - **Programas:** el de ejemplo de 7 sensores de Reglas a mano y **tu
-    programa**, el actual de esa pestaña, con sus sensores.
+  - **Programas:** los tres de ejemplo de Reglas a mano (el de 7 sensores,
+    por defecto) y **tu programa**, el actual de esa pestaña, con sus
+    sensores.
   - **Vos:** un auto manejado con el teclado. Mientras manejás, la cámara te
     sigue siempre.
 - **Carrera por defecto:** vos contra el programa de 7 sensores y un cerebro
   de ejemplo, esperando en la salida con un cartel para largar con un botón o
   con la tecla espacio.
+- **Lista de competidores y "Agregar":** el panel muestra solo a los que
+  corren, con un botón para quitarlos. "Agregar" abre un selector con tus
+  cerebros guardados, los programas y los ejemplos, que sirve igual con tres
+  cerebros que con veinte.
+- **Sensores de cada competidor:** cada uno, menos vos, tiene un botón para
+  mostrar u ocultar sus sensores en el escenario.
 - **Marcador de la carrera** en el tablero: posición, nombre, cuánto lleva
   (metros en la calle, vueltas en un circuito) o su tiempo si llegó, sus
   choques, su mejor vuelta en los circuitos y si sigue en carrera, llegó o no
@@ -99,8 +107,6 @@ vio se sobreajustó; uno que rinde también donde nunca estuvo, generalizó.**
 ### Fuera de alcance
 
 - Que los competidores se choquen entre sí.
-- Elegir la cantidad de vueltas o la distancia de la carrera: cada pista
-  tiene su meta fija.
 - Semáforo de largada, bandera, podio y repetición de la carrera.
 - Configurar los 5 segundos sin avanzar o los 20 de espera.
 - Una biblioteca de programas de Reglas a mano con nombre: compite el
@@ -110,8 +116,7 @@ vio se sobreajustó; uno que rinde también donde nunca estuvo, generalizó.**
 - Editar, renombrar o borrar los cerebros de ejemplo, o usarlos para seguir
   entrenando.
 - Más de seis competidores a la vez.
-- Los otros programas de ejemplo de Reglas a mano (3 y 20 sensores) como
-  competidores.
+- Buscar por nombre en el selector de competidores.
 - Quitar de la barra el tráfico cuando la pista es un circuito: hoy se ve
   deshabilitado en las cuatro pestañas y cambiarlo es de `barra-escenario`.
 - Las pestañas Inspeccionar y Laboratorio.
@@ -133,7 +138,8 @@ vio se sobreajustó; uno que rinde también donde nunca estuvo, generalizó.**
 - `estructura-app`: la pestaña Competir pasa a estar disponible.
 - `vista-escenario`: dibujo de varios competidores distinguibles entre sí.
 - `barra-escenario`: un grupo que no tiene efecto en una pestaña no se
-  muestra en ella (los sensores en Competir).
+  muestra en ella (los sensores en Competir), y una pestaña puede sumar un
+  grupo propio (la meta de la carrera).
 
 ## Impact
 
@@ -146,7 +152,7 @@ vio se sobreajustó; uno que rinde también donde nunca estuvo, generalizó.**
 - **Dibujo:** `src/render/view.js` suma competidores con color y número, la
   línea de meta y el cartel para largar.
 - **Interfaz común:** la barra de escenario admite que una pestaña no muestre
-  un grupo; el tablero suma una tarjeta con tabla.
+  un grupo y que sume uno propio (la meta); el tablero suma una tarjeta con tabla.
 - **Textos y estilos:** `src/i18n/es.js`, `en.js`, `styles/tokens.css`
   (colores de los competidores) y `styles/app.css`.
 - **Pruebas:** nuevas para la carrera, la lógica sin DOM de la pestaña y los
