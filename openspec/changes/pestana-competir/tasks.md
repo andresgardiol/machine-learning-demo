@@ -55,10 +55,10 @@ criterio: se informa lo medido y se espera la respuesta.
 
 ## 7. Tablero
 
-- [ ] 7.1 Indicadores y marcador de la carrera (design.md D9). Verificar en el navegador los escenarios de "Indicadores de la carrera" y "Marcador de la carrera", y que el orden cambia sin que una fila con foco lo pierda.
-- [ ] 7.2 Seguir a un competidor desde el marcador, sin "Vos" en carrera. Verificar los escenarios "Seguir al primero", "Elegir a uno" y "Con el teclado" de "Seguir a un competidor".
-- [ ] 7.3 Tabla por pista con resultados y marcas. Verificar los escenarios de "Tabla por pista", "Dónde entrenó cada cerebro" y "Resultado de la calle con su tráfico".
-- [ ] 7.4 Medir en el DOM el escenario "Tabla angosta" con el tablero a 360 px, seis competidores con nombres de 40 caracteres y los dos resultados en la calle, en los dos idiomas. Si alguna celda se corta o la tabla se desplaza hacia el costado, **detenerse y consultar** con una captura.
+- [x] 7.1 Indicadores y marcador de la carrera (design.md D9). Verificar en el navegador los escenarios de "Indicadores de la carrera" y "Marcador de la carrera", y que el orden cambia sin que una fila con foco lo pierda.
+- [x] 7.2 Seguir a un competidor desde el marcador, sin "Vos" en carrera. Verificar los escenarios "Seguir al primero", "Elegir a uno" y "Con el teclado" de "Seguir a un competidor".
+- [x] 7.3 Tabla por pista con resultados y marcas. Verificar los escenarios de "Tabla por pista", "Dónde entrenó cada cerebro" y "Resultado de la calle con su tráfico".
+- [x] 7.4 Medir en el DOM el escenario "Tabla angosta" con el tablero a 360 px, seis competidores con nombres de 40 caracteres y los dos resultados en la calle, en los dos idiomas. Si alguna celda se corta o la tabla se desplaza hacia el costado, **detenerse y consultar** con una captura.
 
 ## 8. Guía, misiones y textos
 

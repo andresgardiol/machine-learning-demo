@@ -845,15 +845,18 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .compete-cell { line-height: 1.25; }
 .compete-result { display: flex; flex-direction: column; }
 .compete-result + .compete-result { margin-top: 3px; }
-.compete-result-main { font-weight: 600; font-variant-numeric: tabular-nums; }
-.compete-result-crashes { font-size: 12px; color: var(--color-text-muted); }
+.compete-result-main { font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.compete-result-traffic { font-size: 11px; font-style: italic; color: var(--color-text-muted); }
+.compete-result-crashes { font-size: 12px; color: var(--color-text-muted); overflow-wrap: anywhere; }
+/* El nombre del primero (o del ganador) puede ser largo: se parte en vez de ensanchar el tablero. */
+.board-stat[data-stat="leader"] .board-stat-value { white-space: normal; overflow-wrap: anywhere; line-height: 1.2; }
 .compete-result[data-other="true"] { opacity: 0.55; }
 .compete-other { font-size: 11px; font-style: italic; }
 .compete-dash { color: var(--color-text-muted); }
 /* Marcas (D7): se distinguen por el texto y por la forma, no solo por el color. */
 .compete-mark {
-  display: inline-block; margin-top: 3px; padding: 0 5px; border-radius: 999px; font-size: 11px; line-height: 16px; white-space: nowrap;
-  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+  display: inline-block; margin-top: 3px; padding: 0 5px; border-radius: 8px; font-size: 11px; line-height: 15px;
+  max-width: 100%; overflow-wrap: anywhere;
 }
 .compete-mark[data-mark="trained"], .compete-mark[data-mark="trainedSame"] { background: var(--color-surface-2); color: var(--color-text); border: 1px solid var(--color-surface-2); }
 .compete-mark[data-mark="unseen"] { background: transparent; color: var(--color-text-muted); border: 1px dashed var(--color-control-border); }
@@ -873,3 +876,13 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .start-card-key[hidden] { display: none; }
 .wait-badge { border-color: var(--color-competitor-3); font-variant-numeric: tabular-nums; }
 .compete-score-who [hidden] { display: none !important; }
+/* Tablero angosto (D9, "Tabla angosta"): columnas más justas, para que las marcas y los tiempos entren sin partirse. */
+@container board (max-width: 420px) {
+  .compete-tracks th, .compete-tracks td { padding: 3px 2px; }
+  .compete-tracks thead th:first-child { width: 26%; }
+  .compete-tracks thead th { font-size: 11px; }
+  .compete-mark { padding: 0 3px; font-size: 10.5px; }
+  .compete-result-main { font-size: 12px; }
+  .compete-result-crashes { font-size: 11px; }
+  .compete-table-name { font-size: 12px; hyphens: auto; }
+}

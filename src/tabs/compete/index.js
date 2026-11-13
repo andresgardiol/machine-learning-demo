@@ -503,12 +503,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
         for (const g of got) {
           const line = el('div', { class: 'compete-result', dataset: { other: String(g.other) } });
           const res = g.result;
-          const prefix = g.traffic ? `${t(`compete.cell.traffic.${g.traffic}`)} ` : '';
+
           const main = res.arrived
             ? t('compete.value.time', { value: formatFixed(res.time, 1, i18n.language) })
             : t('compete.cell.unfinished', { value: Math.round(res.share * 100) });
           const crashes = res.crashes === 0 ? t('compete.cell.crashes.zero') : t('compete.cell.crashes', { value: res.crashes });
-          line.append(el('span', { class: 'compete-result-main' }, prefix + main), el('span', { class: 'compete-result-crashes' }, crashes));
+          // En la calle recta, el tráfico con que se corrió va en su propio renglón, adelante (D9).
+          if (g.traffic) line.append(el('span', { class: 'compete-result-traffic' }, t(`compete.cell.traffic.${g.traffic}`)));
+          line.append(el('span', { class: 'compete-result-main' }, main), el('span', { class: 'compete-result-crashes' }, crashes));
           if (g.other) line.append(el('span', { class: 'compete-other', i18n: 'compete.cell.other' }));
           td.append(line);
         }
