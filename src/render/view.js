@@ -16,6 +16,16 @@ import {
 } from './camera.js';
 import { createSceneryPainter } from './scenery.js';
 import { keyAllowed } from '../input/keyboard.js';
+import { rangeMeters } from '../core/sensors.js';
+
+/** Escena chica (pestana-inspeccionar D10): el auto en el centro y lo que alcanzan sus rayos, con este margen. */
+export const SMALL_FIT = Object.freeze({ anchor: Object.freeze({ x: 0.5, y: 0.5 }), fill: 0.92 });
+
+/** Acercamiento de la escena chica: el alcance de los sensores (más un auto) entra en el lado más corto. */
+export function smallZoom(sensors, viewport) {
+  const reach = rangeMeters(sensors) + CAR_LENGTH;
+  return (SMALL_FIT.fill * Math.min(viewport.width, viewport.height)) / 2 / reach;
+}
 
 const COLOR_VARS = {
   background: '--color-bg',
@@ -52,7 +62,39 @@ const COLOR_VARS = {
   competitor6: '--color-competitor-6',
   finishA: '--color-road-edge',
   finishB: '--color-bg',
+  // Rayos con el peso de una neurona (pestana-inspeccionar D9): la convención de signo del diagrama.
+  weightPositive: '--color-weight-positive',
+  weightNegative: '--color-weight-negative',
+  handle: '--color-network-manual',
+  highlight: '--color-accent',
 };
+
+/** Manijas de los rayos (pestana-inspeccionar D9): radio dibujado y distancia para agarrarlas (px). */
+export const HANDLE = Object.freeze({ radius: 6, grab: 12 });
+
+/** Fracción [0, 1] del rayo a–b más cercana al punto p (todo en píxeles de pantalla). */
+export function projectOnRay(p, a, b) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len2 = dx * dx + dy * dy;
+  if (len2 === 0) return 0;
+  return Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2));
+}
+
+/** Lectura de un sensor según dónde está su manija: 1 junto al auto, 0 en la punta (no detecta nada). */
+export const readingAt = (fraction) => Math.round((1 - fraction) * 100) / 100;
+
+/** Índice de la manija más cercana a p dentro de `grab` px, o null. */
+export function nearestHandle(points, p, grab = HANDLE.grab) {
+  let best = null;
+  let bestD = Infinity;
+  points.forEach((q, i) => {
+    if (!q) return;
+    const d = Math.hypot(q.x - p.x, q.y - p.y);
+    if (d <= grab && d < bestD) { best = i; bestD = d; }
+  });
+  return best;
+}
 
 // Opacidad de los autos de la población que no están en foco.
 const RACING_ALPHA = 0.4;
@@ -77,11 +119,15 @@ const isTypingTarget = (t) => Boolean(t) && (t.isContentEditable
   || (t.tagName === 'INPUT' && !['button', 'checkbox', 'radio', 'range', 'reset', 'submit'].includes(t.type)));
 
 /**
- * @param {{container: HTMLElement, camera?: object, doc?: Document, store?: object}} spec
+ * @param {{container: HTMLElement, camera?: object, doc?: Document, store?: object, small?: boolean}} spec
  *   store: almacén de la app; si está, la vista ofrece junto a los controles de cámara el interruptor
  *   del paisaje, que lee y cambia `scenery` (el mismo para todas las pestañas).
+ *   small: escena chica (pestana-inspeccionar D10), para una pestaña donde el auto no es lo principal:
+ *   sigue al auto, encuadra lo que alcanzan sus sensores y no muestra controles de cámara ni responde
+ *   a sus gestos (ni a la tecla V). El paisaje sigue la preferencia de la app.
  */
-export function createStageView({ container, camera = createCamera(), doc = document, store = null }) {
+export function createStageView({ container, camera: givenCamera = null, doc = document, store = null, small = false }) {
+  const camera = givenCamera ?? createCamera(small ? { minZoom: 0.2, maxZoom: 400 } : {});
   const win = doc.defaultView;
   const canvas = doc.createElement('canvas');
   canvas.className = 'stage-canvas';
@@ -114,7 +160,9 @@ export function createStageView({ container, camera = createCamera(), doc = docu
   const unsubscribeScenery = store ? store.subscribe((state, prev) => { if (state.scenery !== prev.scenery) syncScenery(); }) : () => {};
   controls.append(...(sceneryButton ? [sceneryButton] : []), zoomInButton, zoomOutButton, resetButton);
 
-  container.append(canvas, controls);
+  container.append(canvas);
+  if (!small) container.append(controls);
+  if (small) canvas.classList.add('stage-canvas-small');
 
   // Esquina superior izquierda, en el segundo renglón (el primero es para los controles de cámara y
   // el paisaje): los mensajes que cada pestaña agrega, uno debajo del otro (panel-de-entrenar-por-vistas D11).
@@ -212,12 +260,49 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     resetView();
   }
 
-  canvas.addEventListener('wheel', onWheel, { passive: false });
-  canvas.addEventListener('pointerdown', onPointerDown);
-  canvas.addEventListener('pointermove', onPointerMove);
-  canvas.addEventListener('pointerup', onPointerUp);
-  canvas.addEventListener('pointercancel', onPointerUp);
-  win.addEventListener('keydown', onKeyDown);
+  // Manijas de los rayos (escena chica, en pausa): se arrastran a lo largo de su rayo (D9).
+  let handleState = null; // { onDrag, rays: [{a, b, h}] } del último dibujo, en píxeles de pantalla
+  let grabbed = null;
+  function handleAt(e) {
+    if (!handleState) return null;
+    return nearestHandle(handleState.rays.map((r) => r.h), { x: e.offsetX, y: e.offsetY });
+  }
+  function onHandleDown(e) {
+    if (e.button !== 0) return;
+    const i = handleAt(e);
+    if (i === null) return;
+    e.preventDefault();
+    grabbed = { id: e.pointerId, index: i };
+    try { canvas.setPointerCapture(e.pointerId); } catch { /* sin puntero activo: sigue sin capturar */ }
+    canvas.classList.add('dragging');
+  }
+  function onHandleMove(e) {
+    if (grabbed && e.pointerId === grabbed.id && handleState) {
+      const r = handleState.rays[grabbed.index];
+      if (r) handleState.onDrag(grabbed.index, readingAt(projectOnRay({ x: e.offsetX, y: e.offsetY }, r.a, r.b)));
+      return;
+    }
+    canvas.style.cursor = handleAt(e) !== null ? 'grab' : '';
+  }
+  function onHandleUp(e) {
+    if (!grabbed || e.pointerId !== grabbed.id) return;
+    grabbed = null;
+    canvas.classList.remove('dragging');
+  }
+  if (small) {
+    canvas.addEventListener('pointerdown', onHandleDown);
+    canvas.addEventListener('pointermove', onHandleMove);
+    canvas.addEventListener('pointerup', onHandleUp);
+    canvas.addEventListener('pointercancel', onHandleUp);
+  }
+  if (!small) {
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerUp);
+    win.addEventListener('keydown', onKeyDown);
+  }
   syncFollowIndicator();
 
   // --- Dibujo ------------------------------------------------------------------
@@ -594,6 +679,89 @@ export function createStageView({ container, camera = createCamera(), doc = docu
     ctx.setTransform(m);
   }
 
+  /**
+   * Rayos indicados por la pestaña (pestana-inspeccionar D9): cada uno con el color (signo) y el grosor
+   * (magnitud) de un peso, apagado (atenuado y tachado) o destacado; y, en pausa, una manija por rayo
+   * donde detecta algo (en la punta si no detecta nada) o en la lectura puesta a mano.
+   * @param {{looks?:({sign:string, level:number, dashed:boolean, off?:boolean}|null)[]|null, off?:boolean[],
+   *   highlight?:number|null, handles?:{readings:number[], onDrag:(i:number, reading:number)=>void}|null}} spec
+   */
+  function drawCustomRays(rays, px, spec) {
+    const looks = spec.looks ?? null;
+    rays.forEach((r, i) => {
+      const look = looks?.[i] ?? null;
+      const off = Boolean(spec.off?.[i] || look?.off);
+      const reach = r.hit ?? r.end;
+      ctx.globalAlpha = off ? 0.3 : 1;
+      if (look && look.level > 0) {
+        ctx.strokeStyle = look.sign === 'negative' ? colors.weightNegative : colors.weightPositive;
+        ctx.lineWidth = (0.8 + look.level * 0.9) * px;
+        ctx.setLineDash(look.dashed ? [4 * px, 3 * px] : []);
+      } else {
+        ctx.strokeStyle = colors.sensor;
+        ctx.lineWidth = (look ? 0.8 : 2) * px;
+        ctx.setLineDash([]);
+      }
+      if (spec.highlight === i) { ctx.strokeStyle = colors.highlight; ctx.lineWidth = 4 * px; ctx.setLineDash([]); }
+      ctx.beginPath();
+      ctx.moveTo(r.origin.x, r.origin.y);
+      ctx.lineTo(reach.x, reach.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      if (r.hit) {
+        ctx.strokeStyle = colors.sensorHit;
+        ctx.lineWidth = 1.5 * px;
+        ctx.setLineDash([4 * px, 3 * px]);
+        ctx.beginPath();
+        ctx.moveTo(r.hit.x, r.hit.y);
+        ctx.lineTo(r.end.x, r.end.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = colors.sensorHit;
+        ctx.beginPath();
+        ctx.arc(r.hit.x, r.hit.y, 3 * px, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      if (off) {
+        // Tachado: una cruz en el medio del rayo.
+        const m = { x: (r.origin.x + r.end.x) / 2, y: (r.origin.y + r.end.y) / 2 };
+        const k = 5 * px;
+        ctx.globalAlpha = 0.9;
+        ctx.strokeStyle = colors.roadEdge;
+        ctx.lineWidth = 2 * px;
+        ctx.beginPath();
+        ctx.moveTo(m.x - k, m.y - k); ctx.lineTo(m.x + k, m.y + k);
+        ctx.moveTo(m.x + k, m.y - k); ctx.lineTo(m.x - k, m.y + k);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    });
+    // Manijas, en píxeles de pantalla para poder agarrarlas.
+    if (!spec.handles) { handleState = null; return; }
+    const m = ctx.getTransform();
+    const k = 1 / dpr;
+    const toScreen = (p) => ({ x: (m.a * p.x + m.c * p.y + m.e) * k, y: (m.b * p.x + m.d * p.y + m.f) * k });
+    const list = rays.map((r, i) => {
+      const a = toScreen(r.origin);
+      const b = toScreen(r.end);
+      const reading = spec.handles.readings[i] ?? r.reading;
+      const f = 1 - Math.max(0, Math.min(1, reading));
+      return { a, b, h: { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f } };
+    });
+    handleState = { onDrag: spec.handles.onDrag, rays: list };
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    for (const r of list) {
+      ctx.beginPath();
+      ctx.arc(r.h.x, r.h.y, HANDLE.radius, 0, Math.PI * 2);
+      ctx.fillStyle = colors.handle;
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = colors.outline;
+      ctx.stroke();
+    }
+    ctx.setTransform(m);
+  }
+
   /** Objetivo de la cámara con un foco que puede cambiar (design.md D11). */
   function focusTarget(world, focus) {
     const now = win.performance.now();
@@ -628,18 +796,25 @@ export function createStageView({ container, camera = createCamera(), doc = docu
    */
   function render(world, {
     showSensors = true, machineView = false, scenery: showScenery = sceneryOn(), focus, elite = [], competitors = null, goal = null,
+    rays: raySpec = null,
   } = {}) {
     resize();
     const population = Number.isInteger(focus) && world.agents?.[focus] !== undefined;
     const car = population ? world.agents[focus].car : world.car;
     const target = population ? focusTarget(world, focus) : car.position;
     lastTarget = target;
-    const orientation = orientationFor(world.track);
+    const orientation = small ? { ...orientationFor(world.track), anchor: SMALL_FIT.anchor } : orientationFor(world.track);
     camera.setOrientation(orientation);
+    if (small) {
+      // Escena chica: el auto en el centro y el alcance de sus sensores a la vista, siempre igual.
+      const z = smallZoom(car.sensors, viewport);
+      if (Math.abs(camera.zoom - z) > 1e-9) camera.zoomBy(z / camera.zoom, viewport, target);
+      if (!camera.following) camera.follow();
+    }
     // Zoom mínimo de un circuito: lo necesario para verlo entero en este escenario (D7). Se recalcula
     // solo si cambia la pista o el tamaño del escenario.
     const fitKey = `${viewport.width}x${viewport.height}`;
-    if (world.track !== fitTrackRef || fitKey !== fitViewport) {
+    if (!small && (world.track !== fitTrackRef || fitKey !== fitViewport)) {
       fitTrackRef = world.track;
       fitViewport = fitKey;
       camera.setFit(world.track.closed ? fitTrack(world.track, viewport, orientation.rotation) : null);
@@ -746,6 +921,11 @@ export function createStageView({ container, camera = createCamera(), doc = docu
       drawCar(car, px);
       return;
     }
+    if (raySpec) {
+      drawCar(car, px);
+      if (showSensors) drawCustomRays(world.rays, px, raySpec);
+      return;
+    }
     if (showSensors) drawRays(world.rays, px);
     drawCar(car, px);
   }
@@ -766,6 +946,7 @@ export function createStageView({ container, camera = createCamera(), doc = docu
       observer.disconnect();
       unsubscribeScenery();
       canvas.removeEventListener('wheel', onWheel);
+      canvas.removeEventListener('pointerdown', onHandleDown);
       win.removeEventListener('keydown', onKeyDown);
       canvas.remove();
       controls.remove();

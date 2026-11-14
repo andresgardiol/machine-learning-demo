@@ -13,7 +13,7 @@ import { weightStyle, levelLook, activity } from './network-view.js';
 import { layoutInspector, hitNeuron, INSPECTOR_LAYOUT } from './inspector-layout.js';
 import { createCamera, panStarts } from './camera.js';
 import { OPERATIONS } from '../core/pass-cursor.js';
-import { formatFixed } from '../ui/i18n.js';
+import { formatValue } from '../ui/i18n.js';
 
 /** Acercamiento del diagrama: 1 es la red entera. */
 export const INSPECTOR_CAMERA = Object.freeze({ zoom: 1, minZoom: 1, maxZoom: 6, step: 1.25, anchor: Object.freeze({ x: 0.5, y: 0.5 }) });
@@ -68,7 +68,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
   container.append(canvas, overlay);
   const ctx = canvas.getContext('2d');
   const camera = createCamera(INSPECTOR_CAMERA);
-  const fmt = (v) => formatFixed(Math.abs(v) < 0.005 ? 0 : v, 2, i18n.language);
+  const fmt = (v) => formatValue(v, i18n.language);
 
   let colors = readColors();
   let viewport = { width: 0, height: 0 };

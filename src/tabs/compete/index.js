@@ -37,6 +37,7 @@ import { createCompeteMissions } from './missions.js';
 import { createSeedSeries, seedFor } from './seeds.js';
 import { shortcutFor, mainAction } from './shortcuts.js';
 import { createCountdown, COUNTDOWN_FROM } from './countdown.js';
+import { createPicker } from '../../ui/picker.js';
 
 /** Valores de la barra al abrir y al restablecer (D3): los del entrenamiento. */
 export const BAR_DEFAULTS = Object.freeze({
@@ -364,110 +365,36 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     const full = state.selection.size >= MAX_COMPETITORS;
     addButton.setAttribute('aria-disabled', String(full));
     addButton.dataset.help = full ? 'compete.add.max' : 'compete.add';
-    if (full && picker.open) closePicker();
-    if (picker.open) renderPicker();
+    if (full && picker.isOpen) closePicker();
+    if (picker.isOpen) renderPicker();
   }
 
-  // --- Selector para agregar (D10b): un diálogo no modal pegado al botón, que no cambia el alto del panel.
-  const pickerBody = el('div', { class: 'compete-picker-body' });
-  const pickerDone = el('button', { class: 'tool small compete-picker-done', i18n: 'compete.picker.done', help: 'compete.picker.done', attrs: { type: 'button' }, on: { click: () => closePicker() } });
-  const pickerNode = el('div', {
-    class: 'compete-picker',
-    attrs: { id: 'compete-picker', role: 'dialog', 'aria-modal': 'false' },
-    on: { keydown: (e) => onPickerKey(e) },
-  }, pickerBody, el('div', { class: 'compete-picker-foot' }, pickerDone));
-  pickerNode.hidden = true;
-  const picker = { open: false };
-
-  function pickerOptions() { return [...pickerBody.querySelectorAll('.compete-option')]; }
-  function renderPicker() {
-    const focusedKey = document.activeElement?.closest?.('.compete-option')?.dataset.key ?? null;
-    const before = pickerOptions().map((o) => o.dataset.key);
-    const groups = pickerGroups(candidates, state.selection);
-    pickerBody.replaceChildren();
-    if (groups.length === 0) pickerBody.append(el('p', { class: 'compete-picker-empty caption' }, t('compete.picker.empty')));
-    for (const g of groups) {
-      const titleId = `compete-picker-${g.id}`;
-      pickerBody.append(el('div', { class: 'compete-picker-group', attrs: { role: 'group', 'aria-labelledby': titleId } },
-        el('h3', { class: 'compete-picker-title', attrs: { id: titleId } }, t(`compete.picker.group.${g.id}`)),
-        ...g.items.map((c) => {
-          const meta = [kindText(c), whereText(c)].filter(Boolean).join(' · ');
-          const why = c.available ? null : (c.reason === 'programErrors' ? 'compete.check.programErrors' : 'compete.check.invalidBrain');
-          return el('button', {
-            class: 'compete-option', help: why ?? (c.kind === 'example' ? 'compete.check.example' : `compete.check.${c.kind}`),
-            attrs: { type: 'button', 'aria-disabled': String(Boolean(why)), 'aria-label': `${nameOf(c)}. ${meta}` },
-            dataset: { key: c.key, focus: 'keep' },
-            on: { click: () => { if (!why) pick(c.key); } },
-          }, el('span', { class: 'compete-name' }, nameOf(c)), el('span', { class: 'compete-meta' }, meta));
-        })));
-    }
-    // El foco sigue en el selector: en la misma opción o, si se eligió, en la que ocupa su lugar.
-    if (focusedKey !== null || pickerNode.contains(document.activeElement)) {
-      const opts = pickerOptions();
-      const same = opts.find((o) => o.dataset.key === focusedKey);
-      const index = Math.min(Math.max(0, before.indexOf(focusedKey)), opts.length - 1);
-      (same ?? opts[index] ?? pickerDone).focus({ preventScroll: false });
-    }
-    placePicker();
-  }
-  function placePicker() {
-    // Pegado al botón, sin salirse de la ventana: se desplaza por dentro si son muchos.
-    const r = addButton.getBoundingClientRect();
-    const margin = 8;
-    const width = Math.min(320, window.innerWidth - 2 * margin);
-    const left = Math.max(margin, Math.min(r.right - width, window.innerWidth - width - margin));
-    const below = window.innerHeight - r.bottom - 2 * margin;
-    const above = r.top - 2 * margin;
-    const up = below < 240 && above > below;
-    pickerNode.style.left = `${left}px`;
-    pickerNode.style.width = `${width}px`;
-    pickerNode.style.maxHeight = `${Math.max(160, up ? above : below)}px`;
-    pickerNode.style.top = up ? '' : `${r.bottom + 4}px`;
-    pickerNode.style.bottom = up ? `${window.innerHeight - r.top + 4}px` : '';
-  }
+  // --- Selector para agregar (D10b): un diálogo no modal pegado al botón, que no cambia el alto del panel
+  // (el selector común de src/ui/picker.js).
+  const picker = createPicker({
+    id: 'compete-picker', anchor: addButton, t,
+    titleKey: 'compete.picker.title', doneKey: 'compete.picker.done', doneHelp: 'compete.picker.done', emptyKey: 'compete.picker.empty',
+    canOpen: () => addButton.getAttribute('aria-disabled') !== 'true',
+    groups: () => pickerGroups(candidates, state.selection).map((g) => ({
+      id: g.id,
+      title: t(`compete.picker.group.${g.id}`),
+      items: g.items.map((c) => {
+        const why = c.available ? null : (c.reason === 'programErrors' ? 'compete.check.programErrors' : 'compete.check.invalidBrain');
+        return {
+          key: c.key, name: nameOf(c), meta: [kindText(c), whereText(c)].filter(Boolean).join(' · '),
+          help: why ?? (c.kind === 'example' ? 'compete.check.example' : `compete.check.${c.kind}`), disabled: Boolean(why),
+        };
+      }),
+    })),
+    onPick: (key) => pick(key),
+  });
+  const renderPicker = () => picker.render();
+  const closePicker = (opts) => picker.close(opts);
+  const togglePicker = () => picker.toggle();
   function pick(key) {
     toggleCompetitor(key);
     if (state.selection.size >= MAX_COMPETITORS) closePicker();
   }
-  function openPicker() {
-    if (addButton.getAttribute('aria-disabled') === 'true') return;
-    picker.open = true;
-    pickerNode.hidden = false;
-    pickerNode.setAttribute('aria-label', t('compete.picker.title'));
-    pickerDone.textContent = t('compete.picker.done');
-    addButton.setAttribute('aria-expanded', 'true');
-    renderPicker();
-    (pickerOptions().find((o) => o.getAttribute('aria-disabled') !== 'true') ?? pickerDone).focus();
-  }
-  function closePicker({ focus = true } = {}) {
-    if (!picker.open) return;
-    picker.open = false;
-    pickerNode.hidden = true;
-    addButton.setAttribute('aria-expanded', 'false');
-    if (focus) addButton.focus();
-  }
-  const togglePicker = () => (picker.open ? closePicker() : openPicker());
-  function onPickerKey(e) {
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closePicker(); return; }
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return;
-    // Las flechas se mueven entre las opciones y no manejan el auto.
-    e.preventDefault();
-    e.stopPropagation();
-    const opts = [...pickerOptions(), pickerDone];
-    const at = opts.indexOf(document.activeElement);
-    const to = e.key === 'Home' ? 0 : e.key === 'End' ? opts.length - 1
-      : (at + (e.key === 'ArrowDown' ? 1 : -1) + opts.length) % opts.length;
-    opts[to].focus();
-  }
-  // Clic afuera: se cierra sin llevarse el foco.
-  const onOutside = (e) => {
-    if (!picker.open) return;
-    if (pickerNode.contains(e.target) || addButton.contains(e.target)) return;
-    closePicker({ focus: false });
-  };
-  document.addEventListener('pointerdown', onOutside);
-  const onResize = () => { if (picker.open) placePicker(); };
-  window.addEventListener('resize', onResize);
 
   // --- Panel: misiones y borrar resultados -------------------------------------------------------
   const missionRows = state.missions.missions.map((m) => {
@@ -486,9 +413,6 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
 
   panel.append(el('h1', { class: 'sr-only', i18n: 'compete.title' }),
     el('div', { class: 'compete-panel' }, intro, runSection, trafficSection, penalty.row, viewSwitches, listSection, missions));
-  // El selector cuelga del documento: dentro del panel, que contiene su disposición, `fixed` quedaría
-  // relativo al panel y podría salirse de la ventana.
-  document.body.append(pickerNode);
 
   // --- Barra de escenario (D12): pista, tráfico y velocidad; sin sensores ---------------------
   // Grupo propio de Competir en la barra (D1b y D12): la meta, entre el tráfico y la velocidad, en el
@@ -968,9 +892,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
       offLanguage();
       offLibrary();
       window.removeEventListener('keydown', onKeyDown);
-      document.removeEventListener('pointerdown', onOutside);
-      window.removeEventListener('resize', onResize);
-      pickerNode.remove();
+      picker.dispose();
       window.removeEventListener('keyup', onKeyUp);
       panel.removeEventListener('click', onClick);
       stage.removeEventListener('click', onClick);

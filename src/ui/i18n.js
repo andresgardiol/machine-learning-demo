@@ -138,3 +138,12 @@ export function createI18n({ dictionaries, language = 'es' }) {
     get dictionaries() { return dictionaries; },
   };
 }
+
+/**
+ * Un valor de la red con dos decimales y el signo menos tipográfico (−0,21): lo que muestra
+ * Inspeccionar. Lo que se redondea a 0,00 se escribe sin signo.
+ */
+export function formatValue(value, language) {
+  const v = Math.abs(value) < 0.005 ? 0 : value;
+  return formatFixed(v, 2, language).replace('-', '−');
+}

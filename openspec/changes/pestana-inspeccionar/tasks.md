@@ -20,10 +20,10 @@ que se puede usar; se puede cortar al final de cualquiera.
 ## 3. La pestaña: mirar
 
 - [ ] 3.1 Crear `src/tabs/inspect/index.js` con `mount` / `unmount` y estado conservado, registrarlo en `src/main.js` y reemplazar los textos de "próximamente". Montar la red en la zona izquierda y la escena en el tablero (design.md D1). Verificar los escenarios "Abrir Inspeccionar", "Explicación de Inspeccionar" y "Disposición de Inspeccionar" de `estructura-app`, y que las pestañas 1 a 4 conservan su disposición.
-- [ ] 3.2 Modo chico de la vista del escenario (design.md D10). Verificar en el navegador los escenarios de "Escena chica" de `vista-escenario` y los de "Escena del auto en segundo plano", incluido el reintento tras un choque.
-- [ ] 3.3 Qué cerebro se mira (design.md D11): orden al abrir, copia de trabajo, panel con nombre, dónde entrenó y forma de la red. Verificar los escenarios de "Lista para mirar al abrir" con y sin entrenamiento previo.
-- [ ] 3.4 Selector de cerebro, reutilizando el de Competir (sacarlo a un módulo común si hace falta, sin cambiar cómo se ve ni cómo se usa en Competir). Verificar los escenarios de "Elegir el cerebro" y que el selector de Competir sigue pasando sus pruebas.
-- [ ] 3.5 Barra de escenario sin sensores, que pasa al escenario donde entrenó el cerebro elegido. Verificar los escenarios "Cambiar de pista" y "Restablecer el escenario".
+- [x] 3.2 Modo chico de la vista del escenario (design.md D10). Verificar en el navegador los escenarios de "Escena chica" de `vista-escenario` y los de "Escena del auto en segundo plano", incluido el reintento tras un choque.
+- [x] 3.3 Qué cerebro se mira (design.md D11): orden al abrir, copia de trabajo, panel con nombre, dónde entrenó y forma de la red. Verificar los escenarios de "Lista para mirar al abrir" con y sin entrenamiento previo.
+- [x] 3.4 Selector de cerebro, reutilizando el de Competir (sacarlo a un módulo común si hace falta, sin cambiar cómo se ve ni cómo se usa en Competir). Verificar los escenarios de "Elegir el cerebro" y que el selector de Competir sigue pasando sus pruebas.
+- [x] 3.5 Barra de escenario sin sensores, que pasa al escenario donde entrenó el cerebro elegido. Verificar los escenarios "Cambiar de pista" y "Restablecer el escenario".
 - [ ] 3.6 Medir en el DOM el escenario "Pantalla de 1440×900" de "La red en el centro": escena y decisión en el tablero, y guía, cerebro y lugar para la tarjeta en el panel, en español y en inglés. Si no entran, **detenerse y consultar** con las medidas de cada bloque.
 
 ## 4. Reproducción y paso a paso

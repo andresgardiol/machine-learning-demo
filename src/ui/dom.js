@@ -25,3 +25,12 @@ export function el(tag, props = {}, ...children) {
   }
   return node;
 }
+
+/**
+ * Escribe un dato (data-*) solo si cambió: en lo que se actualiza en cada cuadro, escribir el mismo
+ * valor igual invalida los estilos y obliga al navegador a recalcularlos.
+ */
+export function setData(node, key, value) {
+  const v = String(value);
+  if (node.dataset[key] !== v) node.dataset[key] = v;
+}

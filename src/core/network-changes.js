@@ -121,3 +121,24 @@ export function createChanges(net, initial = []) {
   version = 0;
   return changes;
 }
+
+/**
+ * Conexiones más importantes de cada neurona (pestana-inspeccionar D6b): para cada capa l ≥ 1 y cada
+ * neurona j, el conjunto de las `n` entradas de mayor peso sin el signo, con los pesos cambiados. Un
+ * empate lo gana la entrada de más arriba (la de índice menor), siempre la misma. Con menos entradas
+ * que `n`, entran todas. Con n = 'all' (o null), devuelve null: no se filtra nada.
+ * Es solo qué se destaca: no toca la cuenta.
+ * @returns {(Set<number>[]|null)[]|null} top[l][j]; top[0] es null
+ */
+export function topConnections(net, changes = null, n = 'all') {
+  if (n === 'all' || n === null || n === undefined) return null;
+  const network = changes && changes.count > 0 ? changes.applied().network : net;
+  const out = [null];
+  for (let l = 0; l < network.layers.length; l++) {
+    out.push(network.layers[l].weights.map((row) => {
+      const order = row.map((w, i) => ({ i, a: Math.abs(w) })).sort((x, y) => (y.a - x.a) || (x.i - y.i));
+      return new Set(order.slice(0, n).map((o) => o.i));
+    }));
+  }
+  return out;
+}
