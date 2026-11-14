@@ -153,3 +153,34 @@ test('sobreajuste: aviso cuando los apartados suben 10 épocas seguidas más de 
   assert.equal(flat.warning, false);
   assert.equal(OVERFIT_RULE.run, 10);
 });
+
+test('sobreajuste: el margen absoluto evita avisar por el vaivén de un error ya chico', () => {
+  // Apartados en ~0,05 que oscilan un 20 % (más del 10 %, pero menos de 0,1 de diferencia).
+  const held = Array.from({ length: 60 }, (_, k) => (k < 15 ? 0.5 - k * 0.03 : 0.06 + (k % 2) * 0.012));
+  assert.equal(overfitting(hist(held)).warning, false);
+});
+
+test('aviso no fijo: sigue mientras el error de los apartados esté sobre su mínimo y se retira con un mínimo nuevo', async () => {
+  const { trackWarning } = await import('../src/core/overfitting.js');
+  // Baja hasta la época 20, sube (aviso), baja un poco sin llegar al mínimo, y después marca uno nuevo.
+  const held = Array.from({ length: 70 }, (_, k) => {
+    if (k < 20) return 1 - k * 0.02; // mínimo 0,62 en la época 20
+    if (k < 40) return 0.62 + (k - 19) * 0.02; // sube hasta 1,02
+    if (k < 50) return 0.75; // baja un poco: dentro del margen o no, el aviso sigue
+    return 0.5; // mínimo nuevo en la época 51
+  });
+  const h = hist(held);
+  let state = null;
+  const events = [];
+  for (let e = 1; e <= h.length; e++) {
+    const r = trackWarning(state, h.slice(0, e));
+    state = r.state;
+    if (r.appeared) events.push(['in', e]);
+    if (r.retired) events.push(['out', e, r.bestEpoch]);
+  }
+  assert.equal(events[0][0], 'in');
+  assert.ok(events[0][1] > 20 && events[0][1] <= 40);
+  assert.deepEqual(events[1], ['out', 51, 51]);
+  assert.equal(events.length, 2);
+  assert.equal(state.appearances, 1);
+});

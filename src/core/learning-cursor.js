@@ -20,7 +20,7 @@ import {
 } from './backprop.js';
 import { copyNetwork } from './network.js';
 import { randomFor } from './random.js';
-import { overfitting } from './overfitting.js';
+import { trackWarning } from './overfitting.js';
 
 export const PHASES = Object.freeze(['forward', 'error', 'backward', 'update']);
 export const LEARNING_STEP_SIZES = Object.freeze(['epoch', 'example', 'phase', 'layer', 'neuron']);
@@ -120,7 +120,8 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
   let nextIndex = 0; // próximo ejemplo del orden a empezar
   let active = null; // { index, example, detail, cursor, done, original }
   const history = [];
-  let warning = null; // { epoch } desde que aparece el aviso de sobreajuste (se queda)
+  let warn = { active: false, since: null, appearances: 0 }; // aviso de sobreajuste (no es fijo)
+  const events = []; // { epoch, kind: 'appeared' | 'retired' }
   const size = practice.length;
 
   const ensureOrder = () => { if (!order) order = shuffledOrder(size, randomFor(seed, epoch + 1)); };
@@ -130,7 +131,10 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
     const p = evaluate(net, practice);
     const h = evaluate(net, heldOut);
     history.push({ epoch, practice: p, heldOut: h });
-    if (!warning && overfitting(history).warning) warning = { epoch };
+    const w = trackWarning(warn, history);
+    warn = w.state;
+    if (w.appeared) events.push({ epoch, kind: 'appeared' });
+    if (w.retired) events.push({ epoch, kind: 'retired' });
     order = null;
     nextIndex = 0;
   }
@@ -217,7 +221,12 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
     get exampleInEpoch() { return nextIndex; },
     get size() { return size; },
     get history() { return history; },
-    get warning() { return warning; },
+    /** El aviso de sobreajuste a la vista ({ epoch: desde cuándo }), o null. */
+    get warning() { return warn.active ? { epoch: warn.since } : null; },
+    /** Cuántas veces apareció el aviso desde que empezó el aprendizaje. */
+    get warningAppearances() { return warn.appearances; },
+    /** Apariciones y retiros del aviso, en orden. */
+    get warningEvents() { return events; },
     get rate() { return currentRate; },
     /** La tasa se aplica desde el ejemplo siguiente: el que está a medio hacer termina con la suya. */
     set rate(v) { currentRate = v; },

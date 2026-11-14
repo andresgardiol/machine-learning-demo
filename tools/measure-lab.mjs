@@ -5,6 +5,7 @@
 //   node tools/measure-lab.mjs overfit     2.3: sobreajuste con la receta de D9 y dos variantes
 //   node tools/measure-lab.mjs imitation   2.5: aprender a manejar imitando a street-new en la calle recta
 //   node tools/measure-lab.mjs oval        2.6: lo mismo con el maestro del óvalo en el óvalo
+//   node tools/measure-lab.mjs oval-wide   2.6 ampliada: redes 8, 8+8 y 8+8+8, tasas 0,03 y 0,1, 500 y 1000 épocas
 //
 // Protocolo común: los puntos se generan con la semilla 1 y se apartan con la semilla 1; cada
 // "semilla de pesos" s da la red inicial (createNetwork con createRandom(s)) y el orden de las
@@ -108,7 +109,7 @@ function raceAgainst({ student, teacherBrain, track, seed, density, lanes = 3 })
   return Object.fromEntries(race.results.map((r) => [r.id, r]));
 }
 
-function imitation({ teacherId, track, density }) {
+function imitation({ teacherId, track, density, shapes = [[8], [8, 8]], checkpoints = [50, 100, 200] }) {
   const teacherBrain = EXAMPLE_BRAINS.find((b) => b.id === teacherId);
   const t = carForBrain(teacherBrain);
   const t0 = process.hrtime.bigint();
@@ -119,22 +120,25 @@ function imitation({ teacherId, track, density }) {
   console.log(`Parte con cada control: avanzar ${(shares[0] * 100).toFixed(1)} %, izquierda ${(shares[1] * 100).toFixed(1)} %, derecha ${(shares[2] * 100).toFixed(1)} %, retroceder ${(shares[3] * 100).toFixed(1)} %.\n`);
   const raceSeeds = [2001, 2002, 2003, 2004, 2005];
   const rates = (process.argv[3] ?? '0.1').split(',').map(Number);
-  console.log('| red | tasa | épocas | aciertos apartados | aciertos apartados al doblar | carreras: llegó / tiempo / choques (alumno vs. maestro) |');
-  console.log('|---|---|---|---|---|---|');
-  for (const hidden of [[8], [8, 8]]) {
+  console.log('| red | tasa | épocas | entrenar (s, núcleo) | aciertos apartados | aciertos apartados al doblar | carreras: llegó / tiempo / choques (alumno vs. maestro) |');
+  console.log('|---|---|---|---|---|---|---|');
+  for (const hidden of shapes) {
     for (const rate of rates) {
       const { split, run } = learner({ data, hidden, rate, seed: 1 });
       const turning = split.heldOut.filter((e) => e.targets[1] === 1 || e.targets[2] === 1);
       let done = 0;
-      for (const epochs of [50, 100, 200]) {
+      let trainMs = 0;
+      for (const epochs of checkpoints) {
+        const t1 = process.hrtime.bigint();
         run.runEpochs(epochs - done);
+        trainMs += Number(process.hrtime.bigint() - t1) / 1e6;
         done = epochs;
         const all = evaluate(run.network, split.heldOut);
         const turn = evaluate(run.network, turning);
         const races = raceSeeds.map((seed) => raceAgainst({ student: run.network, teacherBrain, track, seed, density }));
         const arrived = races.filter((r) => r.student.state === 'arrived').length;
         const cell = races.map((r) => `${r.student.state === 'arrived' ? 'sí' : 'no'} ${r.student.time === null ? `(${Math.round(r.student.share * 100)} %)` : `${r.student.time.toFixed(1)} s`} ${r.student.crashes}ch vs ${r.teacher.time === null ? 'no' : `${r.teacher.time.toFixed(1)} s`} ${r.teacher.crashes}ch`).join('; ');
-        console.log(`| ${hidden.join('+')} | ${rate} | ${epochs} | ${(all.accuracy * 100).toFixed(1)} % | ${turning.length ? `${(turn.accuracy * 100).toFixed(1)} % de ${turning.length}` : '—'} | llegó ${arrived}/5: ${cell} |`);
+        console.log(`| ${hidden.join('+')} | ${rate} | ${epochs} | ${(trainMs / 1000).toFixed(1)} | ${(all.accuracy * 100).toFixed(1)} % | ${turning.length ? `${(turn.accuracy * 100).toFixed(1)} % de ${turning.length}` : '—'} | llegó ${arrived}/5: ${cell} |`);
       }
     }
   }
@@ -147,6 +151,11 @@ if (mode === 'imitation') {
 if (mode === 'oval') {
   console.log('## 2.6 Imitación: maestro oval, 60 s en el óvalo (sin tráfico, velocidad 20)\n');
   imitation({ teacherId: 'oval', track: 'oval', density: 50 });
+}
+
+if (mode === 'oval-wide') {
+  console.log('## 2.6 ampliada: maestro oval, 60 s en el óvalo (velocidad 20)\n');
+  imitation({ teacherId: 'oval', track: 'oval', density: 50, shapes: [[8], [8, 8], [8, 8, 8]], checkpoints: [500, 1000] });
 }
 
 export { STEP, softOutputs };

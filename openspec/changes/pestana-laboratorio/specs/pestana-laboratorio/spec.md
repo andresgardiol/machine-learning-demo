@@ -257,13 +257,17 @@ decir con palabras que la red está memorizando y marcar en el gráfico la
 - **WHEN** la persona pone pocos puntos, mucho ruido y una red grande, y deja correr
 - **THEN** la curva de práctica sigue bajando, la de los apartados empieza a subir, aparece el aviso de que la red está memorizando y el gráfico marca la mejor época
 
-#### Scenario: El aviso se queda
-- **WHEN** el aviso apareció y el aprendizaje sigue
-- **THEN** el aviso sigue a la vista hasta que el aprendizaje empieza de nuevo
+#### Scenario: El aviso sigue mientras sea cierto
+- **WHEN** el aviso apareció y el error de los apartados sigue por encima de su mínimo
+- **THEN** el aviso sigue a la vista, aunque ese error baje un poco
+
+#### Scenario: La red vuelve a mejorar
+- **WHEN** después del aviso el error de los apartados marca un mínimo nuevo
+- **THEN** el aviso desaparece y la marca de la mejor época pasa a esa época
 
 #### Scenario: Aviso anunciado
 - **WHEN** aparece el aviso
-- **THEN** un lector de pantalla lo anuncia una vez
+- **THEN** un lector de pantalla lo anuncia una vez por cada aparición
 
 #### Scenario: Cambiar la parte apartada
 - **WHEN** la persona cambia la parte apartada

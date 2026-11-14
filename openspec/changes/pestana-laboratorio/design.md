@@ -179,8 +179,9 @@ Sin vistas ni secciones plegables, en orden:
 Qué empieza de nuevo: la forma de la red, la activación, los datos y la
 parte apartada arman todo de cero. La tasa se aplica en marcha.
 
-Valores por defecto: una capa de 4 con tanh. La tasa por defecto la fija la
-medición de la tarea 2.4; el diseño parte de 0,1.
+Valores por defecto: una capa de 4 con tanh y tasa 0,1 (medido en la tarea
+2.1: el círculo llega al 90 % de los apartados en 5 a 46 épocas en las cinco
+semillas).
 
 ### D7. Tablero
 
@@ -228,14 +229,29 @@ medición de la tarea 2.4; el diseño parte de 0,1.
 ### D9. Sobreajuste
 
 Aviso cuando, después de la época 20, el error de los apartados lleva 10
-épocas seguidas más de un 10 % por encima de su mínimo y el de práctica está
-por debajo del que tenía en ese mínimo. Lógica pura
-(`overfitting(history)`), con pruebas. El gráfico marca la época del mínimo
-("mejor momento") y el aviso dice: "La red está memorizando: mejora en lo que
-practica y empeora en lo que nunca vio."
+épocas seguidas más de un 10 % **y más de 0,1** por encima de su mínimo, y el
+de práctica está por debajo del que tenía en ese mínimo. Lógica pura
+(`overfitting(history)` y `trackWarning`, en `src/core/overfitting.js`), con
+pruebas. El margen absoluto salió de la consulta 2.3: sin él, con los valores
+por defecto el error de los apartados ronda 0,05 y su vaivén normal disparaba
+el aviso (5 de 5 semillas, épocas 51 a 135). Medido con el margen: por defecto
+0 de 5 semillas en 1000 épocas; con la receta, 5 de 5 entre las épocas 60 y 275.
 
-Receta que tiene que mostrarlo (misión 2), a confirmar midiendo: 40 puntos,
-ruido 30 %, tres capas de 8.
+El aviso no es fijo: sigue a la vista mientras el error de los apartados esté
+por encima de su mínimo (aunque baje un poco); si marca un mínimo nuevo, el
+aviso se retira y la marca de la mejor época pasa a esa época, y puede volver
+a aparecer contra el mínimo nuevo. Con pocos apartados la curva es ruidosa y
+la red puede volver a mejorar después de un aviso: decir "está memorizando"
+con la red marcando mínimos nuevos sería falso. Empezar de nuevo lo quita. El
+lector de pantalla lo anuncia una vez por aparición. La misión 2 se cumple la
+primera vez que aparece.
+
+El gráfico marca la época del mínimo ("mejor momento") y el aviso dice: "La
+red está memorizando: mejora en lo que practica y empeora en lo que nunca
+vio."
+
+Receta que lo muestra (misión 2), medida: 40 puntos, ruido 30 %, tres capas
+de 8, tasa 0,1. En 600 épocas el aviso aparece de 1 a 3 veces por semilla.
 
 ### D10. La vista de la red en el Laboratorio
 
