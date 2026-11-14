@@ -13,8 +13,8 @@ que se puede usar; se puede cortar al final de cualquiera.
 
 ## 2. La red en grande: diagrama
 
-- [ ] 2.1 Crear `src/render/network-inspector.js` con el diagrama (design.md D6): disposición reutilizada de `network-view.js`, actividad, neurona elegida con sus conexiones destacadas y detección de lo que está bajo el cursor. Verificar con pruebas la detección y la disposición, y que `tests/network-view.test.js` sigue pasando sin tocar el diagrama de Entrenar.
-- [ ] 2.2 Acercar, alejar, mover y restablecer la vista con la cámara y los controles del escenario. Verificar en el navegador los escenarios de "Acercar y moverse".
+- [x] 2.1 Crear `src/render/network-inspector.js` con el diagrama (design.md D6): disposición reutilizada de `network-view.js`, actividad, neurona elegida con sus conexiones destacadas y detección de lo que está bajo el cursor. Verificar con pruebas la detección y la disposición, y que `tests/network-view.test.js` sigue pasando sin tocar el diagrama de Entrenar.
+- [x] 2.2 Acercar, alejar, mover y restablecer la vista con la cámara y los controles del escenario. Verificar en el navegador los escenarios de "Acercar y moverse".
 - [ ] 2.3 Medir la fluidez del escenario "Red más grande, diagrama": 20 sensores, tres capas de 16, manejando en tiempo real. Si no llega a 55 cuadros por segundo, **detenerse y consultar** con lo medido (si el navegador de la sesión está oculto, informar el tiempo de dibujo por cuadro como sustituto y dejar la medición sin marcar).
 
 ## 3. La pestaña: mirar

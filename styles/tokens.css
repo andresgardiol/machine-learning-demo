@@ -27,6 +27,12 @@
   --color-weight-negative: #ff6fb5; /* pesos y sesgos negativos: línea punteada */
   --color-neuron-active: #f5f7fa; /* relleno de una neurona activa */
   --color-neuron: #5b6677; /* contorno de una neurona sin sesgo (entradas) */
+  /* Inspector de la red (pestana-inspeccionar D6): la neurona que se calcula en el paso a paso, lo
+     cambiado a mano y las entradas a mano. Todos van además con una forma propia (anillo punteado,
+     rombo, marca cuadrada), no solo con el color. */
+  --color-network-current: #f4e04d;
+  --color-network-changed: #ff9f6b;
+  --color-network-manual: #b49cff;
   /* Curva de fitness (las series también se distinguen por trazo y marca) */
   --color-chart-best: #eef1f5; /* mejor: línea continua con círculos */
   --color-chart-average: #8b95a5; /* promedio: línea punteada con cuadrados */
