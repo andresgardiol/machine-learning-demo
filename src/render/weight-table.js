@@ -155,7 +155,11 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
             const look = cellLook(w);
             const changed = marks?.changedWeights.has(`${l}:${j}:${i}`) ?? false;
             const off = Boolean(n.offConnections?.[i]);
-            write(td, `${fmt(w)}${changed ? ' ◆' : ''}${off ? ' ×' : ''}`);
+            // Laboratorio: cuánto cambió con la corrección del ejemplo (▲ sube, ▼ baja).
+            const d = state.learning?.change(l, j, i);
+            const delta = d === null || d === undefined || Math.abs(d) < 5e-3 ? '' : ` ${d > 0 ? '▲' : '▼'}${fmt(Math.abs(d))}`;
+            write(td, `${fmt(w)}${changed ? ' ◆' : ''}${off ? ' ×' : ''}${delta}`);
+            setData(td, 'learned', String(delta !== ''));
             td.style.setProperty('--wt-alpha', String(look.alpha));
             setData(td, 'sign', look.sign);
             setData(td, 'changed', String(changed));
@@ -164,7 +168,10 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
           });
           const bl = cellLook(n.bias);
           const bChanged = marks?.changedBiases.has(`${l}:${j}`) ?? false;
-          write(r.bias, `${fmt(n.bias)}${bChanged ? ' ◆' : ''}`);
+          const db = state.learning?.change(l, j, 'bias');
+          const bDelta = db === null || db === undefined || Math.abs(db) < 5e-3 ? '' : ` ${db > 0 ? '▲' : '▼'}${fmt(Math.abs(db))}`;
+          write(r.bias, `${fmt(n.bias)}${bChanged ? ' ◆' : ''}${bDelta}`);
+          setData(r.bias, 'learned', String(bDelta !== ''));
           r.bias.style.setProperty('--wt-alpha', String(bl.alpha));
           setData(r.bias, 'sign', bl.sign);
           setData(r.bias, 'changed', String(bChanged));
@@ -175,6 +182,8 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
         const h = `${Math.round((computed ? activity(n.output) : 0) * 100)}%`;
         if (r.valueFill.style.width !== h) r.valueFill.style.width = h;
         setData(r.tr, 'state', cursor ? cursor.stateOf(l, j) : 'done');
+        const blame = state.learning?.blame(l, j);
+        setData(r.tr, 'blame', blame === null || blame === undefined ? 'none' : blame < 0 ? 'negative' : 'positive');
         setData(r.tr, 'off', String(Boolean(n.off)));
         setData(r.tr, 'selected', String(Boolean(selected && selected.layer === l && selected.neuron === j)));
         r.nameButton.setAttribute('aria-pressed', r.tr.dataset.selected);

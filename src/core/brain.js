@@ -12,6 +12,14 @@
 //                              selectionMode?, mutationCooling? },   // opcionales; sin el dato, selección automática y sin enfriamiento
 //                 scenarios: [{ track, lanes, density, irregularity, trafficMode, generations }] } }
 //
+// Bloque opcional `imitation` (pestana-laboratorio D8), en un cerebro que aprendió imitando ejemplos
+// de manejo en el Laboratorio en vez de por evolución (training.generations es 0):
+//
+//   imitation: { examples, epochs, teacher, track, lanes, density, irregularity }
+//
+// `teacher` es el nombre del maestro o 'person'. Las versiones que no lo conocen lo ignoran: el
+// cerebro sigue siendo válido.
+//
 // `track` es un id del catálogo de pistas (circuits.js) o varios unidos con '+' cuando las
 // generaciones alternaron pistas (circuitos-y-paisaje D5). Los cerebros de antes dicen 'straight'.
 //
@@ -62,8 +70,8 @@ export function copyTraining(t) {
  * @param {{id:string, name:string, now:string, network:object, sensors:object, training:object, createdAt?:string}} spec
  *   now: fecha en ISO 8601 (la pone la interfaz); createdAt, si se conserva la de un cerebro anterior.
  */
-export function createBrain({ id, name, now, createdAt = now, network, sensors, training }) {
-  return {
+export function createBrain({ id, name, now, createdAt = now, network, sensors, training, imitation = null }) {
+  const brain = {
     format: BRAIN_FORMAT,
     version: BRAIN_VERSION,
     id,
@@ -76,11 +84,36 @@ export function createBrain({ id, name, now, createdAt = now, network, sensors, 
     outputs: [...BRAIN_OUTPUTS],
     training: copyTraining(training),
   };
+  if (imitation) brain.imitation = copyImitation(imitation);
+  return brain;
+}
+
+/** Copia del bloque de imitación. */
+export const copyImitation = (m) => ({
+  examples: m.examples, epochs: m.epochs, teacher: m.teacher, track: m.track, lanes: m.lanes, density: m.density, irregularity: m.irregularity,
+});
+
+/** ¿El cerebro aprendió imitando (y su bloque tiene sentido)? */
+export function learnedByImitation(brain) {
+  const m = brain?.imitation;
+  return isObject(m) && Number.isInteger(m.examples) && Number.isInteger(m.epochs) && typeof m.teacher === 'string' && isTrackId(m.track);
+}
+
+/**
+ * Pistas donde practicó un cerebro: las de sus escenarios con generaciones y, si aprendió imitando,
+ * la de sus ejemplos (pestana-laboratorio D8). Sin repetir, en el orden en que aparecen.
+ */
+export function practicedTracks(brain) {
+  const ids = (brain?.training?.scenarios ?? []).filter((s) => Number.isInteger(s.generations) && s.generations > 0).flatMap((s) => scenarioTracks(s.track));
+  if (learnedByImitation(brain)) ids.push(brain.imitation.track);
+  return [...new Set(ids)];
 }
 
 /** Copia independiente de un cerebro. */
 export function copyBrain(brain) {
-  return { ...brain, network: copyNetwork(brain.network), sensors: { ...brain.sensors }, inputs: [...brain.inputs], outputs: [...brain.outputs], training: copyTraining(brain.training) };
+  const out = { ...brain, network: copyNetwork(brain.network), sensors: { ...brain.sensors }, inputs: [...brain.inputs], outputs: [...brain.outputs], training: copyTraining(brain.training) };
+  if (brain.imitation) out.imitation = isObject(brain.imitation) ? { ...brain.imitation } : brain.imitation;
+  return out;
 }
 
 function validSensors(s) {

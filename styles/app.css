@@ -1117,3 +1117,87 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-mission .mission-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inspect-output-rule { margin: var(--space-1) 0 0; font-size: 12px; }
 .inspect-output-rule[hidden] { display: none; }
+
+/* ---- Laboratorio (pestana-laboratorio) -----------------------------------------------------------
+   La disposición de Inspeccionar (D1): la red a la izquierda con la operación en curso y la barra de
+   reproducción; el tablero con los datos, el ejemplo en curso y las curvas; el panel, sin
+   desplazarse. Las clases de puntos se distinguen por la forma; la vuelta, por rombos y anillos. */
+.lab-op { flex: 0 0 auto; padding: var(--space-1) var(--space-2) 2px; border-top: 1px solid var(--color-border); }
+.lab-op[hidden] { display: none; }
+.lab-op-text { margin: 0; min-height: calc(2 * 1.35em); font-size: 13px; line-height: 1.35; font-variant-numeric: tabular-nums; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.lab-op-note { margin: 0; font-size: 11px; line-height: 1.3; }
+.lab-board { display: flex; flex-direction: column; gap: var(--space-2); min-height: 0; height: 100%; }
+.lab-data { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.lab-plane { position: relative; flex: 1 1 auto; min-height: 160px; max-height: 340px; }
+.lab-plane[hidden], .lab-scene[hidden], .lab-summary[hidden] { display: none; }
+.plane-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.lab-scene { flex: 0 0 auto; }
+.lab-summary { margin: 0; font-size: 12px; }
+.lab-example { flex: 0 0 auto; }
+.lab-example[hidden] { display: none; }
+.lab-example .panel-heading { display: inline-flex; align-items: center; min-height: 24px; margin: 0; }
+.lab-example-body { display: flex; gap: var(--space-2); align-items: flex-start; }
+.lab-example-main { flex: 1 1 auto; min-width: 0; }
+.lab-example-text { margin: 0 0 2px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.lab-fan { flex: 0 0 72px; height: 44px; }
+.lab-fan[hidden], .lab-actions[hidden] { display: none; }
+.lab-fan svg { width: 72px; height: 44px; display: block; }
+.lab-ray-free { stroke: var(--color-neuron); stroke-width: 1; stroke-dasharray: 2 2; }
+.lab-ray { stroke: var(--color-text); stroke-width: 2; }
+.lab-ray-hit { fill: var(--color-car-crashed); }
+.lab-fan-car { fill: var(--color-car); }
+.lab-actions { display: grid; gap: 2px; }
+.lab-actions-row { display: flex; align-items: center; gap: var(--space-1); }
+.lab-actions-name { flex: 0 0 5.5em; font-size: 12px; color: var(--color-text-muted); }
+.lab-actions .action-keys { gap: 3px; }
+.lab-actions .action-key { padding: 1px 4px; font-size: 11px; min-height: 0; }
+.lab-actions .action-key[data-mismatch="true"] { outline: 2px dashed var(--color-network-blame); outline-offset: 1px; }
+.lab-actions .action-key[data-mismatch="true"]::after { content: " ≠"; font-weight: 700; }
+.lab-actions .action-keys[data-undecided="true"] .action-key { border-style: dashed; opacity: 0.6; }
+.lab-curves { flex: 0 0 auto; display: flex; flex-direction: column; }
+.lab-curves .panel-heading { display: inline-flex; align-items: center; min-height: 24px; margin: 0; }
+.lab-chart { height: 150px; display: flex; flex-direction: column; }
+.lab-chart .chart-plot { flex: 1 1 auto; min-height: 0; }
+.lab-chart .chart-readout, .lab-chart .chart-legend { margin: 0; font-size: 12px; }
+.lab-chart .fitness-chart:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.chart-marker { stroke: var(--color-network-current); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.chart-marker-head { fill: var(--color-network-current); }
+.legend-series.marker { display: inline-block; width: 14px; border-top: 2px dashed var(--color-network-current); vertical-align: middle; }
+.lab-stats { margin: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+.lab-warning { margin: 2px 0 0; padding: 4px 6px; font-size: 13px; border: 1px solid var(--color-network-blame); border-left-width: 4px; border-radius: var(--radius); }
+.lab-warning::before { content: "⚠ "; }
+.lab-warning[hidden] { display: none; }
+.lab-shape .lab-shape-thumb { display: block; }
+.lab-dot-a { fill: var(--color-class-a); }
+.lab-dot-b { fill: var(--color-class-b); }
+.lab-panel { gap: var(--space-2); overflow: hidden; }
+.lab-section { flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px; }
+.lab-section[hidden], .lab-save[hidden], .lab-save-message[hidden], .lab-record-notice[hidden] { display: none; }
+.lab-section .panel-heading { margin: 0; }
+.lab-field { display: flex; align-items: center; flex-wrap: wrap; gap: 4px var(--space-2); }
+.lab-field-name { font-size: 13px; color: var(--color-text-muted); flex: 0 0 auto; }
+.lab-field .segment { min-width: 28px; min-height: 26px; padding: 2px 8px; font-size: 13px; }
+.lab-neuron-rows { display: flex; flex-direction: column; gap: 2px; }
+.lab-slider { display: flex; flex-direction: column; gap: 0; }
+.lab-slider-label { display: flex; justify-content: space-between; gap: var(--space-2); font-size: 13px; }
+.lab-slider input[type="range"] { width: 100%; height: 24px; margin: 0; accent-color: var(--color-accent); }
+.lab-value { font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
+.lab-actions-panel { display: flex; flex-wrap: wrap; gap: 4px; }
+.lab-actions-panel .tool { min-height: 26px; }
+.lab-actions-panel [hidden] { display: none; }
+.lab-save[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
+.lab-save-message, .lab-record-notice { margin: 0; }
+.lab-teacher-row { display: flex; align-items: center; gap: var(--space-2); }
+.lab-teacher-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+.lab-teacher-row [hidden] { display: none; }
+.lab-record-badge { pointer-events: auto; display: inline-flex; align-items: center; gap: var(--space-2); border-color: var(--color-car-crashed); }
+.lab-record-badge[hidden] { display: none; }
+.lab-record-text::before { content: "● "; color: var(--color-car-crashed); }
+.lab-record[aria-pressed="true"] { border-color: var(--color-car-crashed); }
+.weight-table .wt-cell[data-learned="true"] { box-shadow: inset 0 -3px 0 var(--color-network-blame); }
+.weight-table tr[data-blame="positive"] > th { box-shadow: inset -4px 0 0 var(--color-network-blame); }
+.weight-table tr[data-blame="negative"] > th { box-shadow: inset -4px 0 0 transparent; outline: 2px dotted var(--color-network-blame); outline-offset: -2px; }
+.lab-bar .bar-group-lab-points .bar-control { min-width: 0; }
+/* En el ejemplo en curso entran las cuatro flechas; los nombres quedan para los lectores de pantalla. */
+.lab-actions .action-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lab-actions .action-key { min-width: 26px; justify-content: center; }

@@ -5,7 +5,7 @@
 //   clave            qué es
 //   brain:<id>       un cerebro guardado o un autoguardado (entrenamiento en curso o anterior)
 //   example:<id>     un cerebro de ejemplo
-import { validateBrain, scenarioTracks, copyBrain } from '../../core/brain.js';
+import { validateBrain, scenarioTracks, copyBrain, practicedTracks, learnedByImitation } from '../../core/brain.js';
 import { TRACK_IDS } from '../../core/circuits.js';
 import { DEFAULT_LANES } from '../../core/constants.js';
 import { DEFAULT_TRAFFIC } from '../../core/traffic.js';
@@ -63,6 +63,11 @@ export function resolveChoice(candidates, { key = null, signature = null } = {})
 
 /** Escenario donde más generaciones entrenó un cerebro: { track, lanes, density, irregularity }. */
 export function trainedScenario(brain) {
+  // Un cerebro que aprendió imitando maneja donde se tomaron sus ejemplos (pestana-laboratorio D8).
+  if (learnedByImitation(brain) && (brain.training?.scenarios ?? []).every((s) => !(s.generations > 0))) {
+    const m = brain.imitation;
+    return { track: m.track, lanes: m.lanes ?? DEFAULT_LANES, density: m.density ?? DEFAULT_TRAFFIC.density, irregularity: m.irregularity ?? 0 };
+  }
   const scenarios = (brain?.training?.scenarios ?? []).filter((s) => s.generations > 0);
   if (scenarios.length === 0) return { track: 'straight', lanes: DEFAULT_LANES, density: DEFAULT_TRAFFIC.density, irregularity: 0 };
   let best = scenarios[0];
@@ -73,7 +78,7 @@ export function trainedScenario(brain) {
 
 /** Pistas donde entrenó un cerebro, en el orden del catálogo. */
 export function trainedTracks(brain) {
-  const ids = new Set((brain?.training?.scenarios ?? []).filter((s) => s.generations > 0).flatMap((s) => scenarioTracks(s.track)));
+  const ids = new Set(practicedTracks(brain));
   return TRACK_IDS.filter((id) => ids.has(id));
 }
 

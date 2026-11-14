@@ -109,12 +109,23 @@ export function nearestIndex(points, x) {
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
+/** Textos del gráfico de Entrenar. Otra pestaña (el Laboratorio) puede pasar los suyos. */
+export const TRAIN_CHART_KEYS = Object.freeze({
+  empty: 'train.chart.empty', restarted: 'train.chart.restarted', aria: 'train.chart.aria', best: 'train.chart.best',
+  average: 'train.chart.average', tick: 'train.chart.tick', xAxis: 'train.chart.xAxis', yAxis: 'train.chart.yAxis',
+  readout: 'train.chart.readout', marker: null,
+});
+
 /**
  * Curva de fitness.
- * @param {{container: HTMLElement, i18n: object, doc?: Document}} spec
- * @returns {{update:(history:object[])=>void, refresh:()=>void, dispose:()=>void, element:SVGElement}}
+ * @param {{container: HTMLElement, i18n: object, doc?: Document, keys?: object, value?: (v:number)=>number|string,
+ *   focusable?: {help:string}}} spec
+ *   keys: textos (TRAIN_CHART_KEYS); value: cómo se escribe un valor en la lectura (un decimal por
+ *   defecto); focusable: el gráfico recibe el foco y las flechas señalan otro punto (pestana-laboratorio).
+ * @returns {{update:(history:object[], extra?:{marker?:number|null})=>void, refresh:()=>void, dispose:()=>void, element:SVGElement}}
  */
-export function createFitnessChart({ container, i18n, doc = document }) {
+export function createFitnessChart({ container, i18n, doc = document, keys = TRAIN_CHART_KEYS, value = null, focusable = null }) {
+  const K = { ...TRAIN_CHART_KEYS, ...keys };
   // Medidas vigentes: las de la zona del gráfico (se observa su tamaño).
   let L = CHART_LAYOUT;
   const svg = doc.createElementNS(SVG_NS, 'svg');
@@ -137,6 +148,7 @@ export function createFitnessChart({ container, i18n, doc = document }) {
   let history = [];
   let model = chartModel(history);
   let selected = null; // índice del punto señalado
+  let marker = null; // generación (época) marcada, o null
 
   const node = (tag, attrs = {}, text) => {
     const n = doc.createElementNS(SVG_NS, tag);
@@ -144,7 +156,7 @@ export function createFitnessChart({ container, i18n, doc = document }) {
     if (text !== undefined) n.textContent = text;
     return n;
   };
-  const number = (v) => Math.round(v * 10) / 10;
+  const number = value ?? ((v) => Math.round(v * 10) / 10);
   const unitText = () => (model.unit ? i18n.t(`train.chart.unit.${model.unit}`) : '');
 
   /** Toma las medidas de la zona; si no se ve (tamaño 0), conserva las anteriores. */
@@ -161,15 +173,16 @@ export function createFitnessChart({ container, i18n, doc = document }) {
     svg.replaceChildren();
     const { plot } = model;
     empty.hidden = !model.empty;
-    empty.textContent = i18n.t('train.chart.empty');
+    empty.textContent = i18n.t(K.empty);
     svg.style.display = model.empty ? 'none' : '';
     legend.hidden = model.empty;
     note.hidden = !model.restarted;
-    note.textContent = model.restarted ? i18n.t('train.chart.restarted') : '';
-    svg.setAttribute('aria-label', i18n.t('train.chart.aria'));
+    note.textContent = model.restarted ? i18n.t(K.restarted) : '';
+    svg.setAttribute('aria-label', i18n.t(K.aria));
     legend.replaceChildren(
-      legendItem('best', i18n.t('train.chart.best')),
-      legendItem('average', i18n.t('train.chart.average')));
+      legendItem('best', i18n.t(K.best)),
+      legendItem('average', i18n.t(K.average)),
+      ...(K.marker && marker !== null ? [legendItem('marker', i18n.t(K.marker))] : []));
     if (model.empty) { readout.textContent = ''; return; }
 
     // Ejes y marcas
@@ -177,13 +190,13 @@ export function createFitnessChart({ container, i18n, doc = document }) {
     svg.append(node('line', { class: 'chart-axis', x1: plot.x0, y1: plot.y0, x2: plot.x0, y2: plot.y1 }));
     for (const t of model.yTicks) {
       svg.append(node('line', { class: 'chart-grid', x1: plot.x0, y1: t.y, x2: plot.x1, y2: t.y }));
-      svg.append(node('text', { class: 'chart-tick', x: plot.x0 - 4, y: t.y, 'text-anchor': 'end', 'dominant-baseline': 'middle' }, i18n.t('train.chart.tick', { value: t.value })));
+      svg.append(node('text', { class: 'chart-tick', x: plot.x0 - 4, y: t.y, 'text-anchor': 'end', 'dominant-baseline': 'middle' }, i18n.t(K.tick, { value: t.value })));
     }
     for (const t of model.xTicks) {
-      svg.append(node('text', { class: 'chart-tick', x: t.x, y: plot.y0 + 12, 'text-anchor': 'middle' }, i18n.t('train.chart.tick', { value: t.generation })));
+      svg.append(node('text', { class: 'chart-tick', x: t.x, y: plot.y0 + 12, 'text-anchor': 'middle' }, i18n.t(K.tick, { value: t.generation })));
     }
-    svg.append(node('text', { class: 'chart-label', x: (plot.x0 + plot.x1) / 2, y: L.height - 2, 'text-anchor': 'middle' }, i18n.t('train.chart.xAxis')));
-    svg.append(node('text', { class: 'chart-label', x: 10, y: (plot.y0 + plot.y1) / 2, 'text-anchor': 'middle', transform: `rotate(-90 10 ${(plot.y0 + plot.y1) / 2})` }, i18n.t('train.chart.yAxis', { unit: unitText() })));
+    svg.append(node('text', { class: 'chart-label', x: (plot.x0 + plot.x1) / 2, y: L.height - 2, 'text-anchor': 'middle' }, i18n.t(K.xAxis)));
+    svg.append(node('text', { class: 'chart-label', x: 10, y: (plot.y0 + plot.y1) / 2, 'text-anchor': 'middle', transform: `rotate(-90 10 ${(plot.y0 + plot.y1) / 2})` }, i18n.t(K.yAxis, { unit: unitText() })));
 
     // Series: promedio punteado con cuadrados, mejor continua con círculos.
     for (const [key, pts] of [['average', model.average], ['best', model.best]]) {
@@ -193,12 +206,18 @@ export function createFitnessChart({ container, i18n, doc = document }) {
         else svg.append(node('rect', { class: 'chart-mark chart-average', x: p.x - 2.2, y: p.y - 2.2, width: 4.4, height: 4.4 }));
       }
     }
+    // Generación marcada (la mejor época, en el Laboratorio): una línea vertical punteada con su rótulo.
+    const mark = marker === null ? null : model.best.find((p) => p.generation === marker);
+    if (mark) {
+      svg.append(node('line', { class: 'chart-marker', x1: mark.x, y1: plot.y0, x2: mark.x, y2: plot.y1 }));
+      svg.append(node('polygon', { class: 'chart-marker-head', points: `${mark.x - 4},${plot.y1} ${mark.x + 4},${plot.y1} ${mark.x},${plot.y1 + 6}` }));
+    }
     // Generación señalada
     const index = selected === null ? model.best.length - 1 : Math.min(selected, model.best.length - 1);
     const b = model.best[index];
     const a = model.average[index];
     svg.append(node('line', { class: 'chart-cursor', x1: b.x, y1: plot.y0, x2: b.x, y2: plot.y1 }));
-    readout.textContent = i18n.t('train.chart.readout', { generation: b.generation, best: number(b.value), average: number(a.value), unit: unitText() });
+    readout.textContent = i18n.t(K.readout, { generation: b.generation, best: number(b.value), average: number(a.value), unit: unitText() });
   }
 
   function legendItem(key, text) {
@@ -222,6 +241,25 @@ export function createFitnessChart({ container, i18n, doc = document }) {
   function onLeave() { selected = null; draw(); }
   svg.addEventListener('pointermove', onMove);
   svg.addEventListener('pointerleave', onLeave);
+  // Con el foco (pestana-laboratorio): las flechas señalan otro punto; Inicio y Fin, el primero y el último.
+  function onKey(e) {
+    if (model.empty) return;
+    const last = model.best.length - 1;
+    const cur = selected === null ? last : selected;
+    const to = { ArrowLeft: cur - 1, ArrowRight: cur + 1, Home: 0, End: last }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    e.stopPropagation();
+    selected = Math.max(0, Math.min(last, to));
+    draw();
+  }
+  if (focusable) {
+    svg.setAttribute('tabindex', '0');
+    svg.setAttribute('data-help', focusable.help);
+    svg.setAttribute('data-shortcuts', 'pass');
+    svg.addEventListener('keydown', onKey);
+    svg.addEventListener('blur', onLeave);
+  }
 
   // Al cambiar el tamaño de la zona se redibuja con las medidas nuevas (nunca por cuadro).
   let lastSize = '';
@@ -236,12 +274,16 @@ export function createFitnessChart({ container, i18n, doc = document }) {
   draw();
   return {
     element: svg,
-    update(next) { history = next.slice(); draw(); },
+    update(next, extra = {}) { history = next.slice(); marker = extra.marker ?? null; if (selected !== null && selected >= history.length) selected = null; draw(); },
+    /** La lectura del punto señalado (o del último). */
+    get readout() { return readout.textContent; },
     refresh: draw,
     get model() { return model; },
     dispose() {
       svg.removeEventListener('pointermove', onMove);
       svg.removeEventListener('pointerleave', onLeave);
+      svg.removeEventListener('keydown', onKey);
+      svg.removeEventListener('blur', onLeave);
       observer.disconnect();
       plotZone.remove(); legend.remove(); readout.remove(); note.remove(); empty.remove();
     },

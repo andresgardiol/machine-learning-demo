@@ -1,14 +1,18 @@
 // Lo que un cerebro sabe de cada pista (pestana-competir, design.md D7), sin DOM: si entrenó en ella,
 // si en la calle recta entrenó siempre con el mismo tráfico, y si practicó con el tráfico de
 // práctica de la barra (D2). El programa y la persona no llevan marca.
-import { scenarioTracks } from '../../core/brain.js';
+import { scenarioTracks, learnedByImitation } from '../../core/brain.js';
 
 const scenariosOf = (brain) => (Array.isArray(brain?.training?.scenarios) ? brain.training.scenarios : []);
 const trained = (s) => Number.isInteger(s.generations) && s.generations > 0;
 const onStreet = (s) => scenarioTracks(s.track).includes('straight');
 
-/** ¿Algún escenario con generaciones incluye esa pista? */
+/**
+ * ¿Algún escenario con generaciones incluye esa pista? Un cerebro que aprendió imitando practicó en
+ * la pista de sus ejemplos (pestana-laboratorio D8).
+ */
 export function trainedOn(brain, trackId) {
+  if (learnedByImitation(brain) && brain.imitation.track === trackId) return true;
   return scenariosOf(brain).some((s) => trained(s) && scenarioTracks(s.track).includes(trackId));
 }
 

@@ -10,7 +10,7 @@ import { button, createTextSetter, inlineConfirm } from './controls.js';
 import { exportFileName } from './library.js';
 import { downloadText, readText } from './files.js';
 import { FITNESS_UNITS } from '../core/evolution.js';
-import { scenarioTracks } from '../core/brain.js';
+import { scenarioTracks, learnedByImitation } from '../core/brain.js';
 
 /** Mejor fitness con su unidad, listo para mostrar. */
 function bestText(fitness) {
@@ -39,6 +39,8 @@ export function brainSummary(entry) {
     best: bestText(brain.training.fitness),
     editable: entry.origin === 'saved',
   };
+  // Aprendió imitando en el Laboratorio: sus datos dicen eso y la pista, en lugar de las generaciones.
+  if (learnedByImitation(brain)) summary.imitation = { track: brain.imitation.track, epochs: brain.imitation.epochs };
   if (entry.origin === 'autosave') summary.nameKey = entry.slot === 'previous' ? 'library.autosave.previous' : 'library.autosave.current';
   return summary;
 }
@@ -167,7 +169,9 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
         : el('span', { class: 'library-name', text: s.name });
     const origin = el('span', { class: `library-origin origin-${entry.origin}`, i18n: `library.origin.${s.origin}` });
     const meta = el('p', { class: 'library-meta' },
-      el('span', { i18n: 'library.value.generations', params: { value: s.generations } }), ' · ',
+      s.imitation
+        ? el('span', { i18n: 'library.value.imitated', params: { track: i18n.t(`track.short.${s.imitation.track}`) } })
+        : el('span', { i18n: 'library.value.generations', params: { value: s.generations } }), ' · ',
       el('span', { i18n: 'drive.value.rays', params: { value: s.sensors } }), ' · ',
       el('span', { text: s.shape }), ' · ',
       el('span', { i18n: s.best.key, params: s.best.params }));

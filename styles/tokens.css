@@ -33,6 +33,11 @@
   --color-network-current: #f4e04d;
   --color-network-changed: #ff9f6b;
   --color-network-manual: #b49cff;
+  /* Laboratorio (pestana-laboratorio D7 y D10): las dos clases de puntos (además con forma: círculo y
+     cuadrado) y la culpa de la vuelta (además con rombos y anillo propio). */
+  --color-class-a: #ffb347; /* clase 1 (círculos) */
+  --color-class-b: #5aa9ff; /* clase 0 (cuadrados) */
+  --color-network-blame: #ff8a5c;
   /* Curva de fitness (las series también se distinguen por trazo y marca) */
   --color-chart-best: #eef1f5; /* mejor: línea continua con círculos */
   --color-chart-average: #8b95a5; /* promedio: línea punteada con cuadrados */

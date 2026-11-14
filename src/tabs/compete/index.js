@@ -15,7 +15,7 @@ import { TRACK_IDS, isCircuit } from '../../core/circuits.js';
 import { MAX_SPEED } from '../../core/constants.js';
 import { DEFAULT_TRAFFIC } from '../../core/traffic.js';
 import { TRAINING_IRREGULARITY } from '../../core/training.js';
-import { scenarioTracks } from '../../core/brain.js';
+import { scenarioTracks, practicedTracks } from '../../core/brain.js';
 import { DEFAULT_LANES } from '../../core/constants.js';
 import { createKeyboardController } from '../../input/keyboard.js';
 import { createStageView } from '../../render/view.js';
@@ -119,7 +119,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   /** Dónde entrenó un cerebro, en una palabra (D10). */
   function whereText(c) {
     if (!c.brain) return '';
-    const ids = [...new Set((c.brain.training?.scenarios ?? []).filter((s) => s.generations > 0).flatMap((s) => scenarioTracks(s.track)))];
+    const ids = practicedTracks(c.brain);
     const ordered = TRACK_IDS.filter((id) => ids.includes(id));
     if (ordered.length === 0) return t('compete.where.none');
     if (ordered.length === TRACK_IDS.length) return t('compete.where.all');

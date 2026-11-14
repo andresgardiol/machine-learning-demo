@@ -33,6 +33,7 @@ const COLOR_VARS = {
   current: '--color-network-current',
   changed: '--color-network-changed',
   manual: '--color-network-manual',
+  blame: '--color-network-blame',
   bg: '--color-bg',
 };
 
@@ -241,6 +242,12 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
    * @param {boolean[]} [state.manual] entradas a mano
    * @param {{items:{layer:number, neuron:number, op:string, p:number}[]}|null} [state.animation]
    * @param {boolean} [state.visible] falso: no se dibuja (la vista es la tabla)
+   * @param {{input:(i:number)=>string, output:(j:number)=>string, neuron?:(t:{layer:number, neuron:number})=>string}} [state.labels]
+   *   nombres de las entradas y salidas (pestana-laboratorio: x, y y "Color"); sin ellos, los del auto
+   * @param {object} [state.learning] la vuelta de un aprendizaje (inspector-de-red, "La vuelta en la
+   *   red"); sin ella, la red se ve como en Inspeccionar:
+   *   blame(l, j) → culpa a la vista o null · change(l, j, i) → cambio del peso a la vista o null ·
+   *   errors: [{ neuron, output, target }] · flows: [{ from:{layer,neuron}, to:{layer,neuron}, value, p }]
    */
   function render(state) {
     lastState = state;
@@ -402,24 +409,105 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     ctx.fillStyle = colors.label;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'right';
+    const labels = state.labels ?? null;
     for (const lab of layout.inputLabels) {
       const p = P[0][lab.index];
-      ctx.fillText(inputName(lab.index, sizes[0]), p.x - r - 8, p.y);
+      ctx.fillText(labels ? labels.input(lab.index) : inputName(lab.index, sizes[0]), p.x - r - 8, p.y);
     }
     ctx.textAlign = 'left';
     for (const lab of layout.outputLabels) {
       const p = P[C - 1][lab.index];
-      ctx.fillText(i18n.t(`network.output.${lab.key}`), p.x + r + 8, p.y);
+      ctx.fillText(labels ? labels.output(lab.index) : i18n.t(`network.output.${lab.key}`), p.x + r + 8, p.y);
     }
+    if (state.learning) drawLearning(state.learning, P, r, C, layout, z);
     // Lo que está bajo el cursor: nombre y valor.
     if (hover && trace.layers[hover.layer]?.neurons[hover.neuron]) {
       const p = P[hover.layer][hover.neuron];
       const n = trace.layers[hover.layer].neurons[hover.neuron];
       const ops = cursor ? cursor.opsDone(hover.layer, hover.neuron) : 4;
       const value = hover.layer === 0 || ops === 4 ? fmt(n.output) : '–';
-      labelBox(`${neuronName(hover, sizes)} · ${value}`, { x: p.x, y: p.y + r + 14 });
+      const name = labels?.neuron ? labels.neuron(hover) : neuronName(hover, sizes);
+      const blame = state.learning?.blame(hover.layer, hover.neuron);
+      const extra = blame === null || blame === undefined ? '' : ` · ${i18n.t('lab.term.blame')} ${fmt(blame)}`;
+      labelBox(`${name} · ${value}${extra}`, { x: p.x, y: p.y + r + 14 });
     }
     return layout;
+  }
+
+  /**
+   * La vuelta (pestana-laboratorio D10), como capas sobre el diagrama: flechas en los pesos que
+   * cambian, un anillo con la culpa de cada neurona (grosor según el tamaño, trazo según el signo),
+   * la respuesta correcta junto a cada salida y rombos que viajan hacia atrás.
+   */
+  function drawLearning(learning, P, r, C, layout, z) {
+    // Pesos que cambian: una flecha chica hacia arriba o hacia abajo en el medio de la conexión.
+    for (let l = 1; l < C; l++) {
+      if (layout.columns[l - 1].collapsed || layout.columns[l].collapsed) continue;
+      for (let j = 0; j < P[l].length; j++) {
+        for (let i = 0; i < P[l - 1].length; i++) {
+          const d = learning.change(l, j, i);
+          if (d === null || d === undefined || Math.abs(d) < 1e-4) continue;
+          const a = P[l - 1][i];
+          const b = P[l][j];
+          const m = { x: a.x + (b.x - a.x) * 0.62, y: a.y + (b.y - a.y) * 0.62 };
+          const size = 3 + Math.min(4, Math.sqrt(Math.abs(d)) * 14) * Math.min(1.6, Math.sqrt(z));
+          arrow(m, size, d > 0);
+        }
+      }
+    }
+    // Culpa: un anillo propio, sin tapar la actividad (que sigue en el relleno).
+    for (let l = 1; l < C; l++) {
+      const col = layout.columns[l];
+      for (let j = 0; j < P[l].length; j++) {
+        const b = learning.blame(l, j);
+        if (b === null || b === undefined) continue;
+        const p = P[l][j];
+        const w = 1.2 + Math.min(5, Math.abs(b) * 8);
+        ctx.strokeStyle = colors.blame;
+        ctx.lineWidth = w;
+        ctx.setLineDash(b < 0 ? [2, 3] : []);
+        ctx.beginPath();
+        if (col.collapsed) {
+          const h = (col.side * z) / 2 + 3 + w / 2;
+          ctx.rect(p.x - h, p.y - h, 2 * h, 2 * h);
+        } else {
+          ctx.arc(p.x, p.y, r + 3 + w / 2, 0, Math.PI * 2);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+    // La respuesta correcta junto a cada salida, durante el error.
+    for (const e of learning.errors ?? []) {
+      const p = P[C - 1][e.neuron];
+      if (!p) continue;
+      labelBox(i18n.t('lab.diagram.target', { target: Number.isInteger(e.target) ? String(e.target) : fmt(e.target), error: fmt(e.output - e.target) }), { x: p.x - r - 70, y: p.y - r - 12 });
+    }
+    // La culpa que viaja hacia atrás: rombos (la ida usa círculos), de la neurona siguiente a la anterior.
+    for (const f of learning.flows ?? []) {
+      const a = P[f.from.layer]?.[f.from.neuron];
+      const b = P[f.to.layer]?.[f.to.neuron];
+      if (!a || !b) continue;
+      const at = { x: a.x + (b.x - a.x) * f.p, y: a.y + (b.y - a.y) * f.p };
+      const size = 2.5 + Math.min(5, Math.sqrt(Math.abs(f.value)) * 6);
+      ctx.globalAlpha = 0.95;
+      diamond(at, size, colors.blame);
+      if (f.value < 0) { ctx.strokeStyle = colors.text; ctx.lineWidth = 1; ctx.stroke(); }
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  /** Flecha chica: hacia arriba si el peso sube, hacia abajo si baja. */
+  function arrow(p, size, up) {
+    ctx.beginPath();
+    if (up) { ctx.moveTo(p.x, p.y - size); ctx.lineTo(p.x + size * 0.8, p.y + size * 0.6); ctx.lineTo(p.x - size * 0.8, p.y + size * 0.6); }
+    else { ctx.moveTo(p.x, p.y + size); ctx.lineTo(p.x + size * 0.8, p.y - size * 0.6); ctx.lineTo(p.x - size * 0.8, p.y - size * 0.6); }
+    ctx.closePath();
+    ctx.fillStyle = colors.blame;
+    ctx.fill();
+    ctx.strokeStyle = colors.bg;
+    ctx.lineWidth = 1;
+    ctx.stroke();
   }
 
   function labelBox(text, p) {
