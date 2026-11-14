@@ -4,7 +4,7 @@
 // Composición: mundo del núcleo + controlador de teclado + vista + bucle; el tablero con los
 // indicadores del intento, lo que perciben los sensores y lo que se acciona (design.md D10); y el
 // panel con guía, marcha, vista y misiones; y la barra de escenario, común a las tres pestañas
-// (panel-de-entrenar-por-vistas D11), con la pista, el tráfico, los sensores y la velocidad. La lógica que se puede probar
+// (panel-de-entrenar-por-vistas D11), con la pista, el tráfico y la velocidad (sin sensores). La lógica que se puede probar
 // sin DOM vive en session.js (indicadores, misiones y lecturas), settings.js y shortcuts.js. Las
 // barras de percepción, los cuatro controles y la barra de escenario son piezas compartidas con la
 // pestaña Reglas a mano (tabs/shared/, design.md D5).
@@ -153,8 +153,8 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
 
   board.append(strip.node, perceptionCard.node, actionCard.node);
 
-  // Barra de escenario (D11): velocidad, densidad e irregularidad se aplican en marcha; la pista, los
-  // carriles y los sensores reinician el intento. Un arrastre de deslizador cuenta un solo intento.
+  // Barra de escenario (D11): velocidad, densidad e irregularidad se aplican en marcha; la pista y los
+  // carriles reinician el intento. Un arrastre de deslizador cuenta un solo intento.
   function applySettings(next, { countAttempt = true } = {}) {
     const before = settings;
     settings = normalizeSettings(next);
@@ -170,8 +170,9 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
     }
     sync();
   }
+  // Sin el grupo de sensores (conducir-sin-ajustes-de-sensores D1): acá maneja una persona.
   const scenario = scenarioBar({
-    i18n, settings, idPrefix: 'drive',
+    i18n, settings, idPrefix: 'drive', omit: ['sensors'], resetHelp: 'drive.resetScenario',
     onChange: (key, value, { first }) => {
       if (settings[key] !== value) applySettings({ ...settings, [key]: value }, { countAttempt: first });
     },

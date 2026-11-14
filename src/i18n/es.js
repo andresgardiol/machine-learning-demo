@@ -1290,4 +1290,7 @@ export default {
   'inspect.announce.released': 'Entradas soltadas: la red recibe lo que ve el auto.',
   'inspect.card.neuron': 'Neurona {n}',
   'inspect.card.outputRule': 'Dice sí a {action} cuando el total es mayor que 0; si no, dice no.',
+  // El problema sin ajustes de sensores (conducir-sin-ajustes-de-sensores)
+  'help.drive.resetScenario.what': 'Devuelve la pista, el auto y el tráfico a sus valores iniciales: la calle recta, velocidad máxima de 20 m/s, 3 carriles y 50 % de densidad e irregularidad.',
+  'help.drive.resetScenario.why': 'Si un ajuste dejó el problema irreconocible, así volvés a un punto de partida conocido.',
 };

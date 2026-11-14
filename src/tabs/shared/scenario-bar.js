@@ -43,7 +43,7 @@ const LIVE_KEYS = Object.freeze(['maxSpeed', 'density', 'irregularity']);
  *   'restartGeneration' vuelve a empezar la generación en curso con la misma población (Entrenar)
  *   'newTraining'       empieza un entrenamiento nuevo, con confirmación si hay progreso (Entrenar)
  *   'newRace'           empieza otra carrera con los mismos competidores (Competir, pestana-competir D12)
- * Competir no usa los sensores: para ellos, null.
+ * Competir y El problema no usan los sensores: para ellos, null.
  * @param {'drive'|'rules'|'train'|'compete'} tab
  * @returns {string|null} null si la clave no es de la barra
  */
@@ -52,6 +52,8 @@ export function barEffect(tab, key) {
   if (key === 'goal') return tab === 'compete' ? 'newRace' : null;
   if (!BAR_KEYS.includes(key)) return null;
   if (tab === 'compete') return SENSOR_KEYS.includes(key) ? null : 'newRace';
+  // El problema no muestra los sensores (conducir-sin-ajustes-de-sensores D1).
+  if (tab === 'drive' && SENSOR_KEYS.includes(key)) return null;
   if (tab === 'train') return SENSOR_KEYS.includes(key) ? 'newTraining' : 'restartGeneration';
   return LIVE_KEYS.includes(key) ? 'live' : 'restartAttempt';
 }

@@ -1290,4 +1290,7 @@ export default {
   'inspect.announce.released': 'Inputs released: the network gets what the car sees.',
   'inspect.card.neuron': 'Neuron {n}',
   'inspect.card.outputRule': 'It says yes to {action} when the total is greater than 0; otherwise, no.',
+  // El problema sin ajustes de sensores (conducir-sin-ajustes-de-sensores)
+  'help.drive.resetScenario.what': 'Returns the track, the car and the traffic to their starting values: the straight street, top speed of 20 m/s, 3 lanes and 50 % density and irregularity.',
+  'help.drive.resetScenario.why': 'If a setting made the problem unrecognizable, this gets you back to a known starting point.',
 };

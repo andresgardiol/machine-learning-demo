@@ -13,10 +13,14 @@ test('orden: pista, tráfico, sensores y auto, con sus ajustes', () => {
   assert.deepEqual(BAR_KEYS, ['track', 'lanes', 'density', 'irregularity', 'sensorCount', 'sensorRange', 'sensorSpread', 'maxSpeed']);
 });
 
-test('El problema y Reglas a mano: velocidad, densidad e irregularidad en marcha; pista, carriles y sensores reinician el intento', () => {
+test('El problema y Reglas a mano: velocidad, densidad e irregularidad en marcha; pista y carriles reinician el intento; sensores, solo en Reglas a mano', () => {
   for (const tab of ['drive', 'rules']) {
     for (const k of ['maxSpeed', 'density', 'irregularity']) assert.equal(barEffect(tab, k), 'live', `${tab} ${k}`);
-    for (const k of ['track', 'lanes', 'sensorCount', 'sensorRange', 'sensorSpread']) assert.equal(barEffect(tab, k), 'restartAttempt', `${tab} ${k}`);
+    for (const k of ['track', 'lanes']) assert.equal(barEffect(tab, k), 'restartAttempt', `${tab} ${k}`);
+  }
+  for (const k of ['sensorCount', 'sensorRange', 'sensorSpread']) {
+    assert.equal(barEffect('rules', k), 'restartAttempt', `rules ${k}`);
+    assert.equal(barEffect('drive', k), null, `El problema no muestra ${k}`);
   }
   assert.equal(barEffect('drive', 'population'), null);
 });

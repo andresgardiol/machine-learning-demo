@@ -4,17 +4,17 @@ import { DEFAULT_SETTINGS, SLIDERS, needsRestart, normalizeSettings, worldSpec }
 import { shortcutFor, isKeyboardFocusedControl } from '../src/tabs/drive/shortcuts.js';
 import { createWorld } from '../src/core/world.js';
 
-test('valores por defecto de la configuración avanzada: 3 carriles, 50 % y 50 %, 5 rayos, 3 largos, 90 grados', () => {
+test('valores por defecto de la configuración avanzada: 3 carriles, 50 % y 50 %, sin ajustes de sensores', () => {
   assert.deepEqual(DEFAULT_SETTINGS, {
-    track: 'straight', maxSpeed: 20, lanes: 3, density: 50, irregularity: 50, sensorCount: 5, sensorRange: 3, sensorSpread: 90,
+    track: 'straight', maxSpeed: 20, lanes: 3, density: 50, irregularity: 50,
   });
 });
 
 test('restablecer: el mundo creado con los valores por defecto tiene 3 carriles, tráfico al 50 % y sensores 5/3/90', () => {
-  const changed = normalizeSettings({ maxSpeed: 32, lanes: 4, density: 90, irregularity: 0, sensorCount: 9, sensorRange: 7, sensorSpread: 200 });
+  const changed = normalizeSettings({ maxSpeed: 32, lanes: 4, density: 90, irregularity: 0 });
   const before = createWorld(worldSpec(changed, 1));
   assert.equal(before.track.lanes, 4);
-  assert.equal(before.perception.sensors.length, 9);
+  assert.equal(before.perception.sensors.length, 5);
   assert.equal(before.car.maxSpeed, 32);
   const w = createWorld(worldSpec({ ...DEFAULT_SETTINGS }, 1));
   assert.equal(w.car.maxSpeed, 20);
@@ -35,15 +35,17 @@ test('cambiar los carriles a cuatro da una calle de cuatro carriles', () => {
   assert.equal(w.track.lanes, 4);
 });
 
-test('cambiar la cantidad de sensores a nueve da nueve lecturas', () => {
-  const w = createWorld(worldSpec({ ...DEFAULT_SETTINGS, sensorCount: 9 }, 1));
-  assert.equal(w.rays.length, 9);
-  assert.equal(w.perception.sensors.length, 9);
+test('cambiar los sensores: El problema no los ofrece y el auto tiene siempre 5 rayos de 3 largos en 90 grados', () => {
+  // Aunque lleguen ajustes de sensores (por ejemplo, de otra pestaña), no se usan.
+  const w = createWorld(worldSpec({ ...DEFAULT_SETTINGS, sensorCount: 9, sensorRange: 7, sensorSpread: 200 }, 1));
+  assert.equal(w.rays.length, 5);
+  assert.deepEqual(w.car.sensors, { count: 5, range: 3, spread: 90 });
+  assert.deepEqual(Object.keys(normalizeSettings({ sensorCount: 9 })).filter((k) => k.startsWith('sensor')), []);
 });
 
 test('ajustes fuera de rango se ajustan al límite y los carriles no admitidos vuelven a 3', () => {
-  assert.deepEqual(normalizeSettings({ maxSpeed: 99, lanes: 7, density: 140, irregularity: -5, sensorCount: 150, sensorRange: 0, sensorSpread: 400 }), {
-    track: 'straight', lanes: 3, maxSpeed: 40, density: 100, irregularity: 0, sensorCount: 100, sensorRange: 1, sensorSpread: 360,
+  assert.deepEqual(normalizeSettings({ maxSpeed: 99, lanes: 7, density: 140, irregularity: -5 }), {
+    track: 'straight', lanes: 3, maxSpeed: 40, density: 100, irregularity: 0,
   });
   assert.equal(normalizeSettings({ maxSpeed: 3 }).maxSpeed, 12);
 });
@@ -51,7 +53,7 @@ test('ajustes fuera de rango se ajustan al límite y los carriles no admitidos v
 test('los deslizadores cubren los rangos de la spec', () => {
   const byKey = Object.fromEntries(SLIDERS.map((s) => [s.key, [s.min, s.max]]));
   assert.deepEqual(byKey, {
-    maxSpeed: [12, 40], density: [0, 100], irregularity: [0, 100], sensorCount: [1, 100], sensorRange: [1, 25], sensorSpread: [10, 360],
+    maxSpeed: [12, 40], density: [0, 100], irregularity: [0, 100],
   });
 });
 
@@ -96,15 +98,15 @@ test('atajos: se ignoran al escribir en un campo de texto y dentro de un diálog
   assert.equal(shortcutFor(ev('KeyR', fakeElement({ tag: 'SECTION', inDialog: true }))), null);
 });
 
-test('velocidad, densidad e irregularidad se aplican en marcha; carriles y sensores reinician el intento', () => {
+test('velocidad, densidad e irregularidad se aplican en marcha; carriles reinician el intento', () => {
   const base = { ...DEFAULT_SETTINGS };
   for (const [key, value] of [['maxSpeed', 30], ['density', 90], ['irregularity', 0]]) {
     assert.equal(needsRestart(base, { ...base, [key]: value }), false, key);
   }
-  for (const [key, value] of [['lanes', 4], ['sensorCount', 9], ['sensorRange', 6], ['sensorSpread', 180]]) {
+  for (const [key, value] of [['lanes', 4], ['track', 'oval']]) {
     assert.equal(needsRestart(base, { ...base, [key]: value }), true, key);
   }
-  // restablecer solo reinicia si cambian carriles o sensores
+  // restablecer solo reinicia si cambian la pista o los carriles
   assert.equal(needsRestart({ ...base, maxSpeed: 30, density: 10 }, DEFAULT_SETTINGS), false);
   assert.equal(needsRestart({ ...base, lanes: 2 }, DEFAULT_SETTINGS), true);
 });

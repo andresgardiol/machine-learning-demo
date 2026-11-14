@@ -8,7 +8,7 @@ import en from '../src/i18n/en.js';
 import { parseProgram, runProgram, createRulesController } from '../src/core/rules.js';
 import { createWorld } from '../src/core/world.js';
 import { createRandom } from '../src/core/random.js';
-import { DEFAULT_SETTINGS, worldSpec } from '../src/tabs/drive/settings.js';
+import { DEFAULT_SETTINGS, worldSpec } from '../src/tabs/shared/street-settings.js';
 import { createDriveSession } from '../src/tabs/drive/session.js';
 import { DEFAULT_SEED, INITIAL_PROGRAM, EXAMPLES, PROGRAMS, sensorSettings } from '../src/tabs/rules/examples.js';
 
