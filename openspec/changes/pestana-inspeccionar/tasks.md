@@ -28,13 +28,13 @@ que se puede usar; se puede cortar al final de cualquiera.
 
 ## 4. Reproducción y paso a paso
 
-- [ ] 4.1 Barra de reproducción debajo de la red (design.md D7): reproducir o pausar, paso, de a cuánto, ritmo y dónde va. Lógica del ritmo y del avance sin DOM, con pruebas. Verificar en el navegador los escenarios de "Barra de reproducción junto a la red" y "Ritmo de la reproducción".
-- [ ] 4.2 Avance paso a paso conectado al cursor y al mundo. Verificar los escenarios de "Avance paso a paso", y con una prueba que reproducir de a operaciones deja al auto exactamente donde lo deja reproducir de a cuadros después de la misma cantidad de cuadros.
-- [ ] 4.3 Mostrar en el diagrama lo calculado, lo que se calcula y lo que falta. Verificar los escenarios de "Actividad en el momento".
-- [ ] 4.4 Paso animado (design.md D7b): productos, suma, sesgo y activación, y sus encadenados por neurona, capa y cuadro, con los valores reales. La línea de tiempo de cada animación es una función pura con pruebas (duraciones, completar al instante, tope del 80 % del intervalo). Verificar en el navegador los escenarios de "Paso animado", incluidos "No frena a la persona", "Al ritmo elegido" y "Menos movimiento".
-- [ ] 4.5 Operación en curso (design.md D7c): `describeStep` con pruebas en los dos idiomas y la franja entre la red y la reproducción. Verificar los escenarios de "Operación en curso", con 4 y con 21 entradas.
+- [x] 4.1 Barra de reproducción debajo de la red (design.md D7): reproducir o pausar, paso, de a cuánto, ritmo y dónde va. Lógica del ritmo y del avance sin DOM, con pruebas. Verificar en el navegador los escenarios de "Barra de reproducción junto a la red" y "Ritmo de la reproducción".
+- [x] 4.2 Avance paso a paso conectado al cursor y al mundo. Verificar los escenarios de "Avance paso a paso", y con una prueba que reproducir de a operaciones deja al auto exactamente donde lo deja reproducir de a cuadros después de la misma cantidad de cuadros.
+- [x] 4.3 Mostrar en el diagrama lo calculado, lo que se calcula y lo que falta. Verificar los escenarios de "Actividad en el momento".
+- [x] 4.4 Paso animado (design.md D7b): productos, suma, sesgo y activación, y sus encadenados por neurona, capa y cuadro, con los valores reales. La línea de tiempo de cada animación es una función pura con pruebas (duraciones, completar al instante, tope del 80 % del intervalo). Verificar en el navegador los escenarios de "Paso animado", incluidos "No frena a la persona", "Al ritmo elegido" y "Menos movimiento".
+- [x] 4.5 Operación en curso (design.md D7c): `describeStep` con pruebas en los dos idiomas y la franja entre la red y la reproducción. Verificar los escenarios de "Operación en curso", con 4 y con 21 entradas.
 - [ ] 4.6 Medir la fluidez durante una ola de una capa con la red más grande, reproduciendo de a capas a 10 pasos por segundo. Si baja de 55 cuadros por segundo, **detenerse y consultar** con lo medido.
-- [ ] 4.7 Atajos (design.md D13), con su prueba. Verificar los escenarios de "Atajos de la pestaña".
+- [x] 4.7 Atajos (design.md D13), con su prueba. Verificar los escenarios de "Atajos de la pestaña".
 - [ ] 4.8 Medir la barra de reproducción con la zona de la red a 520 px y a su ancho por defecto, en los dos idiomas (escenario "Barra de reproducción angosta").
 
 ## 5. La cuenta de una neurona
