@@ -1243,7 +1243,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Tarjeta compacta de la neurona (pestana-laboratorio D15): al final del panel, con lo que quede de
    alto; la lista de pesos se desplaza por dentro y el panel no. */
 .lab-card { flex: 1 1 auto; min-height: 0; }
-.lab-card[hidden] { display: none; }
+.lab-card[hidden], .lab-intro[hidden], .lab-panel .inspect-missions[hidden] { display: none; }
 .lab-card .inspect-card-head { padding: 4px var(--space-2); }
 .lab-card-close { min-width: 26px; font-size: 16px; line-height: 1; }
 .lab-card [hidden] { display: none; }

@@ -594,8 +594,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       buildOverlay();
     }
     buildNeuronSliders();
-    // El aprendizaje empezó de nuevo: no quedan cambios a mano (todo encendido).
-    state.manual.clear();
+    // El aprendizaje empezó de nuevo: no quedan cambios a mano (todo encendido). Al volver a la pestaña
+    // con el mismo aprendizaje, los cambios se conservan.
+    if (state.runVersion !== session.version) { state.manual.clear(); state.runVersion = session.version; }
     // Datos o red nuevos: ninguna fila elegida y la tabla vuelve arriba.
     state.selectedRow = null;
     dataKey = '';
@@ -849,6 +850,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     setAttr(resetChangesButton, 'aria-disabled', String(count === 0));
     setData(resetChangesButton, 'help', count === 0 ? 'lab.resetChanges.none' : 'lab.resetChanges');
     show(card.node, Boolean(state.selected));
+    // Con la tarjeta abierta, la guía y las misiones no se muestran (consulta 13.6): siempre, en cualquier
+    // tamaño. Las misiones siguen contando y vuelven con su progreso al cerrarla.
+    show(intro, !state.selected);
+    show(missions, !state.selected);
     // Reproducción
     setText(playButton, playback.playing ? 'inspect.pause' : 'inspect.play');
     setData(playButton, 'help', playback.playing ? 'lab.pause' : 'lab.play');

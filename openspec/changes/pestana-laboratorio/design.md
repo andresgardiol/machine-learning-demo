@@ -393,8 +393,17 @@ tab 5". Estaba fuera de alcance; entra.
   por conexión (nombre, deslizador, campo, apagar), el sesgo y el botón de
   apagar. Sin "Entrada a mano" ni el dibujo de la activación. Inspeccionar
   tiene que verse igual que antes.
-- **Dónde va.** Al final del panel, debajo de las misiones, para que elegir
-  una neurona no mueva de lugar ningún ajuste. Medido en el navegador a
+- **Dónde va.** Al final del panel y, mientras está abierta, ocupa también el
+  lugar del texto de guía y de las misiones, que no se muestran hasta cerrarla
+  (las misiones siguen contando y vuelven con su progreso). Vale siempre que
+  hay una tarjeta abierta, en cualquier tamaño y con cualquier clase de datos:
+  el mismo gesto da siempre el mismo resultado. Con la guía encendida, al
+  elegir una neurona los ajustes suben lo que mide el texto de guía y bajan al
+  cerrar; el clic es en la zona de la red, así que nada se mueve bajo el
+  cursor. Por qué (consulta 13.6): debajo de las misiones, con tu manejo, a
+  1366×768 a la tarjeta le quedaban 41 px y no se veía ningún peso, y a
+  1440×900 la lista de pesos quedaba en 91 de 196 px. La guía y las misiones
+  ocupan unos 153 px. Medido en el navegador a
   1440×900 con puntos: el contenido del panel termina a los 565 px y el
   panel llega a los 884; quedan 319. A 1366×768 quedarían unos 190
   (estimado, no medido). [Sin medir] el alto de la tarjeta compacta y cuánto

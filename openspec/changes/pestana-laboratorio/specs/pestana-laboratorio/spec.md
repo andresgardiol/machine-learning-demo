@@ -52,7 +52,7 @@ mismos anchos que Inspeccionar.
 
 #### Scenario: Con una neurona elegida
 - **WHEN** la ventana está en 1440×900, los datos son puntos, la red es la por defecto y la persona elige una neurona oculta
-- **THEN** la tarjeta de la neurona se ve entera en el panel, sin desplazarlo y sin mover de lugar los ajustes de la red y del aprendizaje
+- **THEN** la tarjeta de la neurona se ve entera en el panel, sin desplazarlo, y todos los ajustes de la red y del aprendizaje siguen a la vista
 
 #### Scenario: Con la tabla de datos
 - **WHEN** la persona pasa a la tabla de datos
@@ -542,7 +542,7 @@ neurona elegida, la tarjeta no se muestra.
 
 #### Scenario: Elegir una neurona
 - **WHEN** la persona hace clic en una neurona oculta
-- **THEN** al final del panel aparece su tarjeta, con su nombre y su capa, una fila por conexión de entrada con el peso de ahora, y su sesgo
+- **THEN** al final del panel aparece su tarjeta, con su nombre y su capa, una fila por conexión de entrada con el peso de ahora, y su sesgo, y el texto de guía y las misiones dejan de mostrarse mientras la tarjeta está abierta
 
 #### Scenario: Cambiar un peso en pausa
 - **WHEN** en pausa la persona mueve el deslizador de un peso
@@ -602,7 +602,7 @@ neurona elegida, la tarjeta no se muestra.
 
 #### Scenario: Dejar de elegir
 - **WHEN** la persona cierra la tarjeta o hace clic otra vez en la neurona elegida
-- **THEN** ninguna neurona queda elegida, la tarjeta desaparece y el panel queda como al abrir
+- **THEN** ninguna neurona queda elegida, la tarjeta desaparece y el panel queda como al abrir, con el texto de guía y las misiones de vuelta y el progreso que tenían
 
 #### Scenario: La neurona deja de existir
 - **WHEN** la persona arma una red sin la neurona que estaba elegida
@@ -681,6 +681,10 @@ que aprendió a manejar imitando. Las misiones MUST NOT bloquear nada.
 #### Scenario: Misión de manejar
 - **WHEN** la persona guarda un cerebro desde el Laboratorio
 - **THEN** la tercera misión queda cumplida
+
+#### Scenario: Misión cumplida con la tarjeta abierta
+- **WHEN** una misión se cumple mientras la tarjeta de una neurona está abierta
+- **THEN** al cerrar la tarjeta la misión se ve cumplida
 
 #### Scenario: Términos con su nombre
 - **WHEN** la persona posa el cursor sobre "época", "tasa de aprendizaje", "culpa" o "sobreajuste"
