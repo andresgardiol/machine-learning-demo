@@ -243,7 +243,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Operación en curso y reproducción (D11)
   const opText = el('p', { class: 'lab-op-text' });
   const opNote = el('p', { class: 'lab-op-note muted', i18n: 'inspect.card.rounding' });
-  const opStrip = el('div', { class: 'lab-op', attrs: { 'aria-hidden': 'true' } }, opText, opNote);
+  // Leyenda de la vuelta (D10): cada marca con su forma, y los términos con su tooltip.
+  const legend = el('p', { class: 'lab-legend muted' },
+    el('span', { class: 'lab-legend-item lg-blame', i18n: 'lab.legend.blame', help: 'lab.term.blame' }),
+    el('span', { class: 'lab-legend-item', i18n: 'lab.legend.slope', help: 'lab.term.slope' }),
+    el('span', { class: 'lab-legend-item', i18n: 'lab.legend.change' }),
+    el('span', { class: 'lab-legend-item', i18n: 'lab.legend.back' }));
+  const opStrip = el('div', { class: 'lab-op' }, el('div', { attrs: { 'aria-hidden': 'true' } }, opText, opNote), legend);
   const playButton = el('button', { class: 'tool primary inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
   const stepButton = el('button', { class: 'tool inspect-step', i18n: 'inspect.step', help: 'lab.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
   const sizeButtons = LEARNING_STEP_SIZES.map((s) => el('button', {
@@ -308,8 +314,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       tick: 'train.chart.tick', xAxis: 'lab.chart.xAxis', yAxis: 'lab.chart.yAxis', readout: 'lab.chart.readout', marker: 'lab.chart.best',
     },
   });
-  const stats = el('p', { class: 'lab-stats' });
-  const warning = el('p', { class: 'lab-warning', attrs: { role: 'status' } });
+  const stats = el('p', { class: 'lab-stats', help: 'lab.term.epoch' });
+  // El aviso se anuncia una vez por aparición con el anunciador (afterLearning), no con un rol propio.
+  const warning = el('p', { class: 'lab-warning', help: 'lab.term.overfitting' });
   const chartText = el('p', { class: 'sr-only', attrs: { id: 'lab-chart-description' } });
   const curves = el('section', { class: 'lab-curves', attrs: { 'aria-labelledby': 'lab-curves-title' } },
     el('h2', { class: 'panel-heading', i18n: 'lab.chart.title', help: 'lab.chart.title', attrs: { id: 'lab-curves-title', tabindex: '0' } }),

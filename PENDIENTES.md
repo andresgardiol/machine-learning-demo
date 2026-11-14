@@ -20,7 +20,11 @@ Decidido por el dueño el 12 de noviembre de 2026:
    cambio `pestana-inspeccionar`: la red de un cerebro en grande, en vivo, con
    diagrama y tabla de pesos, capas resumidas, filtro de conexiones, paso a
    paso animado con la operación en curso, tarjeta de la neurona, entradas a
-   mano, apagar y cambiar pesos, deshacer y restablecer. Falta Laboratorio.
+   mano, apagar y cambiar pesos, deshacer y restablecer. ~~Laboratorio~~ hecho
+   en el cambio `pestana-laboratorio` (sin archivar todavía): backpropagation
+   paso a paso con puntos o con ejemplos de manejo, curvas de práctica y
+   apartados con aviso de sobreajuste, armar la red, grabar el propio manejo y
+   guardar lo aprendido como cerebro. Las seis pestañas están hechas.
 4. **Al final, los dos arreglos de Reglas a mano** anotados más abajo (los
    ejemplos solo valen con la velocidad por defecto; el programa recordado no
    recuerda los sensores). Esa pestaña es corta y es la que menos importa.
@@ -69,6 +73,28 @@ El resto de las notas de este archivo no tiene orden fijo.
     quitar neuronas, seguir en vivo un entrenamiento y una tercera vista con
     los pesos sobre el abanico de sensores.
   - Sin probar: lector de pantalla real, Safari y Firefox.
+
+- **Laboratorio: lo que quedó sin medir, sin probar o fuera de alcance.** Del
+  cambio `pestana-laboratorio` (14 de noviembre de 2026):
+  - Fluidez sin medir en cuadros por segundo (tarea 10.2): el panel del
+    navegador estuvo oculto. Sustituto medido, tick y dibujo por cuadro: con
+    500 puntos y tres capas de 8 a 10 épocas/s, mediana 0,5 ms y máximo
+    9,3 ms; a 60 épocas/s, mediana 2,3 ms; con tu manejo, máximo 8,3 ms.
+  - Imitar en el óvalo no anda con los valores por defecto (tasa 0,1): no
+    llega en ninguna carrera, con 34 a 39 choques. Con una capa de 8 y tasa
+    0,03 llega sin choques a las 500 y a las 1000 épocas. Que la pista elegida
+    cambie la tasa o la red por defecto queda para que decida el dueño.
+  - La espiral no se aprende con la red y la tasa por defecto; pide dos capas
+    de 8 y tasa 0,03 (622 a 1055 épocas en cinco semillas). El tooltip lo dice.
+  - Con pocos apartados (receta de la misión 2: 12 puntos), el error de los
+    apartados es ruidoso: el aviso de sobreajuste aparece y se retira de 1 a 3
+    veces en 600 épocas, según la semilla. Ninguna pasó de tres.
+  - Menos movimiento: verificado por código, no emulado en el navegador.
+  - Sin probar: lector de pantalla real, Safari y Firefox.
+  - Fuera de alcance: lotes, momento y otros optimizadores, regularización,
+    dibujar puntos a mano, aprender con recompensas en vez de ejemplos (el
+    aprendizaje por refuerzo con backpropagation), guardar o cargar los
+    ejemplos grabados, y la mejora de la vista de la red (anotada arriba).
 
 - **Fluidez con paisaje y circuitos sin medir.** La tarea 10.1 de
   `circuitos-y-paisaje` quedó sin hacer porque el panel del navegador estuvo

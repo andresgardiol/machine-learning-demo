@@ -1201,3 +1201,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* En el ejemplo en curso entran las cuatro flechas; los nombres quedan para los lectores de pantalla. */
 .lab-actions .action-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .lab-actions .action-key { min-width: 26px; justify-content: center; }
+.lab-legend { margin: 2px 0 0; display: flex; flex-wrap: wrap; gap: 0 var(--space-3); font-size: 11px; line-height: 1.4; }
+.lab-legend-item { white-space: nowrap; }
+.lg-blame { color: var(--color-network-blame); }
