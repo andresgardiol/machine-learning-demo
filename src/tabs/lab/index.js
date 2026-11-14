@@ -13,9 +13,9 @@
 // mientras la pestaña no está a la vista (D12).
 import { createWorld } from '../../core/world.js';
 import { computeNetwork, copyNetwork } from '../../core/network.js';
-import { forwardSoft } from '../../core/backprop.js';
+import { forwardSoft, bakeOff } from '../../core/backprop.js';
 import { overfitting } from '../../core/overfitting.js';
-import { createRecorder, DRIVING_OUTPUTS, summary, POINT_SHAPES, POINT_LIMITS, HOLDOUT_LIMITS } from '../../core/datasets.js';
+import { createRecorder, DRIVING_OUTPUTS, summary, POINT_SHAPES, POINT_LIMITS, HOLDOUT_LIMITS, evaluatedRows, filterRows } from '../../core/datasets.js';
 import { createBrain } from '../../core/brain.js';
 import { DEFAULT_SENSORS } from '../../core/sensors.js';
 import { LEARNING_STEP_SIZES } from '../../core/learning-cursor.js';
@@ -46,13 +46,16 @@ import { describeLearningStep, whereText, layerName, neuronName } from './descri
 import { createLabMissions } from './missions.js';
 import { shortcutFor } from './shortcuts.js';
 import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS } from './defaults.js';
+import { createDataTable } from './data-table.js';
 
 /** Semilla del tráfico de la escena (con tu manejo). */
 export const SEED = 1;
 /** Cuadros que se ve el choque antes de volver a salir. */
 export const RETRY_TICKS = 60;
 export const FILTERS = Object.freeze(['all', 5, 3, 1]);
-export const VIEWS = Object.freeze(['diagram', 'table']);
+export const VIEWS = Object.freeze(['diagram', 'table', 'data']);
+/** Con la tabla de datos abierta y el aprendizaje corriendo, se recalcula como mucho 5 veces por segundo (D14). */
+export const DATA_TABLE_INTERVAL_MS = 200;
 /** Mismos anchos que Inspeccionar (D1): la misma preferencia, así la red mide lo mismo en las dos. */
 export const ZONES = Object.freeze({ stageMin: 600, stageDefault: 'rest', preference: 'inspectStageWidth' });
 /** El fondo del plano se recalcula como mucho 15 veces por segundo (plane-view.js). */
@@ -94,6 +97,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       firstTime: true,
       saveNotice: null,
       lastPoints: null,
+      dataFilter: { failing: false, group: 'all' },
+      selectedRow: null,
     };
   }
   const session = state.session;
@@ -121,7 +126,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // ==================================================================================================
   const netTitle = el('h2', { class: 'inspect-net-title', attrs: { id: 'lab-net-title' } });
   const viewButtons = VIEWS.map((v) => el('button', {
-    class: 'segment', i18n: `inspect.view.${v}`, help: `inspect.view.${v}`,
+    class: 'segment', i18n: v === 'data' ? 'lab.view.data' : `inspect.view.${v}`, help: v === 'data' ? 'lab.view.data' : `inspect.view.${v}`,
     attrs: { type: 'button', 'aria-pressed': 'false' }, dataset: { view: v },
     on: { click: () => { state.view = v; layoutKey = ''; sync(); } },
   }));
@@ -148,7 +153,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const area = el('div', { class: 'inspect-area', attrs: { role: 'group', 'aria-labelledby': 'lab-net-title' } });
   const diagram = el('div', { class: 'inspect-diagram' });
   const tableZone = el('div', { class: 'inspect-table-zone' });
-  area.append(diagram, tableZone);
+  const dataZone = el('div', { class: 'inspect-table-zone lab-data-zone' });
+  area.append(diagram, tableZone, dataZone);
+  const dataTable = createDataTable({
+    container: dataZone, i18n,
+    onSelect: (index) => { state.selectedRow = index; dataKey = ''; },
+    onFilter: (f) => { state.dataFilter = { ...state.dataFilter, ...f }; dataKey = ''; dataTable.resetScroll(); sync(); },
+  });
   const inspector = createNetworkInspector({
     container: diagram, i18n,
     onSelect: (target) => { select(target); focusNeuron(target, { focus: false }); },
@@ -545,6 +556,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       buildOverlay();
     }
     buildNeuronSliders();
+    // Datos o red nuevos: ninguna fila elegida y la tabla vuelve arriba.
+    state.selectedRow = null;
+    dataKey = '';
+    dataTable.resetScroll();
     if (!isPoints()) ensureWorld(true);
     planeForce = true;
     chartKey = '';
@@ -600,9 +615,16 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Tu manejo: la escena con la red manejando, grabar y guardar (D8)
   // ==================================================================================================
   const input = [];
+  // La red que maneja en la escena: la de ahora, con lo apagado hecho pesos en cero (decide igual).
+  let liveCache = { net: null, off: null, baked: null };
+  const liveNetwork = () => {
+    const r = run();
+    if (liveCache.net !== r.network || liveCache.off !== r.off) liveCache = { net: r.network, off: r.off, baked: r.off ? bakeOff(r.network, r.off) : r.network };
+    return liveCache.baked;
+  };
   const liveController = {
     control(perception) {
-      const net = run().network;
+      const net = liveNetwork();
       const count = perception.sensors.length;
       if (net.sizes[0] !== count + 1) return { forward: false, left: false, right: false, reverse: false };
       for (let i = 0; i < count; i++) input[i] = perception.sensors[i];
@@ -698,7 +720,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     try {
       brain = createBrain({
         id: 'lab', name: 'lab', now: new Date().toISOString(),
-        network: copyNetwork(run().network), sensors: session.sensors,
+        network: bakeOff(run().network, run().off), sensors: session.sensors,
         training: { generations: 0, seed: session.settings.weightSeed, maxSpeed: d.maxSpeed, fitness: { kind: 'imitation', best: null }, evolution: {}, scenarios: [] },
         imitation: { examples: session.data.examples.length, epochs: run().epoch, teacher: teacherId(), track: d.track, lanes: d.lanes, density: d.density, irregularity: d.irregularity },
       });
@@ -735,9 +757,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const all = state.collapsed.every(Boolean);
     setText(collapseAll, all ? 'inspect.openAll' : 'inspect.collapseAll');
     setData(collapseAll, 'help', all ? 'inspect.openAll' : 'inspect.collapseAll');
+    // En la tabla de datos no sirven el filtro de conexiones, acercar ni resumir: no se muestran (D14).
     zoomGroup.hidden = state.view !== 'diagram';
+    filterGroup.hidden = state.view === 'data';
+    collapseAll.hidden = state.view === 'data';
     diagram.hidden = state.view !== 'diagram';
     tableZone.hidden = state.view !== 'table';
+    dataZone.hidden = state.view !== 'data';
     // Reproducción
     setText(playButton, playback.playing ? 'inspect.pause' : 'inspect.play');
     setData(playButton, 'help', playback.playing ? 'lab.pause' : 'lab.play');
@@ -895,7 +921,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       cursor = learningCursor(a, anim);
     } else {
       const ref = isPoints() ? session.data.examples[0].inputs : (world?.perception ? [...world.perception.sensors, world.perception.speed] : session.data.examples[0].inputs);
-      trace = forwardSoft(r.network, ref.length === sizes[0] ? ref : session.data.examples[0].inputs).trace;
+      trace = forwardSoft(r.network, ref.length === sizes[0] ? ref : session.data.examples[0].inputs, r.off).trace;
     }
     displayed.cursor = cursor;
     displayed.trace = trace;
@@ -920,7 +946,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const highlight = a ? a.index : null;
     if (isPoints()) {
       const indexInData = highlight === null ? null : session.data.examples.indexOf(session.split.practice[highlight]);
-      plane.render({ network: r.network, version: `${session.version}:${r.epoch}:${r.exampleInEpoch}:${a?.done ?? ''}`, examples: session.data.examples, held: session.split.held, highlight: indexInData, force: planeForce });
+      plane.render({ network: r.network, off: r.off, version: `${session.version}:${changesVersion}`, examples: session.data.examples, held: session.split.held, highlight: indexInData, selected: state.selectedRow, force: planeForce });
       planeForce = false;
     } else {
       const sensorsCount = (recording ? DEFAULT_SENSORS : session.sensors).count;
@@ -933,9 +959,30 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
     drawExample(a);
     drawCurves();
+    drawDataTable(now, a);
     if (++descTick % 30 === 1) describeBoard();
   }
   let descTick = 0;
+
+  /** La tabla de datos, si está a la vista (D14): corriendo, como mucho 5 veces por segundo; en pausa, ya. */
+  function drawDataTable(now, a) {
+    if (state.view !== 'data') return;
+    const r = run();
+    const key = `${session.version}|${changesVersion}|${JSON.stringify(state.dataFilter)}|${state.selectedRow}|${i18n.language}`;
+    if (key === dataKey) return;
+    if (playback.playing && now - dataAt < DATA_TABLE_INTERVAL_MS) return;
+    dataKey = key;
+    dataAt = now;
+    const { rows, summary: sum } = evaluatedRows(r.network, session.data.examples, session.split.held, r.off);
+    const current = a && !a.done ? session.data.examples.indexOf(a.example) : null;
+    dataTable.render({
+      rows: filterRows(rows, state.dataFilter), summary: sum, kind: session.kind, filter: state.dataFilter,
+      inputNames: Array.from({ length: r.network.sizes[0] }, (_, i) => nameOf(0, i)),
+      current, selected: state.selectedRow, version: key,
+    });
+  }
+  let dataKey = '';
+  let dataAt = -Infinity;
 
   function drawExample(a) {
     const visible = playback.size !== 'epoch' && Boolean(a);
@@ -1143,6 +1190,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       sceneDescription.dispose();
       inspector.dispose();
       table.dispose();
+      dataTable.dispose();
       plane.dispose();
       chart.dispose();
       sceneView.dispose();

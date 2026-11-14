@@ -11,13 +11,13 @@ export const PLANE_GRID = 50;
 export const PLANE_FPS = 15;
 
 /** Respuesta de la red (0 a 1) en el centro de cada celda de una grilla de n × n sobre [−1, 1]². Fila 0 arriba. */
-export function planeGrid(net, n = PLANE_GRID) {
+export function planeGrid(net, n = PLANE_GRID, off = null) {
   const out = new Float32Array(n * n);
   for (let r = 0; r < n; r++) {
     const y = 1 - ((r + 0.5) / n) * 2;
     for (let c = 0; c < n; c++) {
       const x = ((c + 0.5) / n) * 2 - 1;
-      out[r * n + c] = softOutputs(net, [x, y])[0];
+      out[r * n + c] = softOutputs(net, [x, y], off)[0];
     }
   }
   return out;
@@ -72,8 +72,8 @@ export function createPlaneView({ container, doc = document, now = () => perform
   observer.observe(container);
   resize();
 
-  function paintGrid(net) {
-    const values = planeGrid(net);
+  function paintGrid(net, off) {
+    const values = planeGrid(net, PLANE_GRID, off);
     const A = hexToRgb(colors.a);
     const B = hexToRgb(colors.b);
     const BG = hexToRgb(colors.bg);
@@ -97,13 +97,14 @@ export function createPlaneView({ container, doc = document, now = () => perform
    * @param {boolean[]} state.held cuáles están apartados
    * @param {number|null} [state.highlight] índice del ejemplo en curso
    * @param {boolean} [state.force] repintar el fondo ya
+   * @param {number|null} [state.selected] índice del punto elegido en la tabla de datos (anillo continuo)
    */
   function render(state) {
     if (size.w <= 1) resize();
     const t = now();
     const key = state.version;
     if (state.force || (key !== gridKey && t - lastGrid >= 1000 / PLANE_FPS)) {
-      paintGrid(state.network);
+      paintGrid(state.network, state.off ?? null);
       gridKey = key;
       lastGrid = t;
     }
@@ -144,6 +145,15 @@ export function createPlaneView({ container, doc = document, now = () => perform
         ctx.stroke();
       }
     });
+    if (state.selected !== null && state.selected !== undefined && state.examples[state.selected]) {
+      const ex = state.examples[state.selected];
+      const p = toPx(ex.inputs[0], ex.inputs[1]);
+      ctx.strokeStyle = colors.text;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     if (state.highlight !== null && state.highlight !== undefined && state.examples[state.highlight]) {
       const ex = state.examples[state.highlight];
       const p = toPx(ex.inputs[0], ex.inputs[1]);
