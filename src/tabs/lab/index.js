@@ -47,6 +47,8 @@ import { createLabMissions } from './missions.js';
 import { shortcutFor } from './shortcuts.js';
 import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS } from './defaults.js';
 import { createDataTable } from './data-table.js';
+import { createManualChanges } from './manual-changes.js';
+import { createCompactNeuronCard } from '../shared/neuron-card.js';
 
 /** Semilla del tráfico de la escena (con tu manejo). */
 export const SEED = 1;
@@ -90,7 +92,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       filter: 'all',
       collapsed: [],
       shapeKey: '',
-      selected: { layer: 1, neuron: 0 },
+      selected: null, // el Laboratorio abre sin neurona elegida (D15)
+      manual: createManualChanges(),
       missions: createLabMissions({ completed: completedMissions }),
       recorder: createRecorder({ sensors: DEFAULT_SENSORS }),
       wasPlaying: true,
@@ -142,13 +145,17 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('span', { class: 'inspect-label', i18n: 'inspect.filter.label', help: 'inspect.filter', attrs: { id: 'lab-filter-label' } }),
     el('div', { class: 'segments' }, filterButtons));
   const collapseAll = el('button', { class: 'tool small inspect-collapse-all', attrs: { type: 'button' }, on: { click: () => toggleAll() } });
+  // Cambios a mano (D15 y D16): el contador, "Deshacer" y "Restablecer la red", en el lugar de Inspeccionar.
+  const changesCount = el('span', { class: 'inspect-changes', attrs: { role: 'status' } });
+  const undoButton = el('button', { class: 'tool small inspect-undo', i18n: 'inspect.undo', attrs: { type: 'button' }, on: { click: () => undoManual() } });
+  const resetChangesButton = el('button', { class: 'tool small inspect-reset', i18n: 'inspect.resetNetwork', attrs: { type: 'button' }, on: { click: () => resetManual() } });
   const zoomOut = el('button', { class: 'tool small inspect-zoom', i18n: 'camera.zoomOut', help: 'inspect.zoomOut', i18nAttr: 'aria-label:camera.zoomOut.label', attrs: { type: 'button' }, on: { click: () => inspector.zoomOut() } });
   const zoomIn = el('button', { class: 'tool small inspect-zoom', i18n: 'camera.zoomIn', help: 'inspect.zoomIn', i18nAttr: 'aria-label:camera.zoomIn.label', attrs: { type: 'button' }, on: { click: () => inspector.zoomIn() } });
   const zoomReset = el('button', { class: 'tool small inspect-zoom-reset', i18n: 'inspect.zoomReset', help: 'inspect.zoomReset', attrs: { type: 'button' }, on: { click: () => inspector.resetView() } });
   const zoomGroup = el('div', { class: 'inspect-zoom-group', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.zoom.label' }, zoomOut, zoomIn, zoomReset);
   const controls = el('div', { class: 'inspect-controls' },
     el('div', { class: 'inspect-row' }, netTitle, viewGroup, filterGroup),
-    el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }), zoomGroup));
+    el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetChangesButton), zoomGroup));
 
   const area = el('div', { class: 'inspect-area', attrs: { role: 'group', 'aria-labelledby': 'lab-net-title' } });
   const diagram = el('div', { class: 'inspect-diagram' });
@@ -207,7 +214,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       return b;
     }));
     layoutKey = '';
-    focusNeuron(state.selected, { focus: false });
+    focusNeuron(state.selected ?? { layer: 1, neuron: 0 }, { focus: false });
   }
   function toggleLayer(l) { state.collapsed = state.collapsed.map((v, i) => (i === l ? !v : v)); layoutKey = ''; sync(); }
   function toggleAll() { const all = state.collapsed.every(Boolean); state.collapsed = state.collapsed.map(() => !all); layoutKey = ''; sync(); }
@@ -233,11 +240,20 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     e.stopPropagation();
     focusNeuron(to);
   }
+  /** Elegir una neurona abre su tarjeta; elegir la misma otra vez la cierra (D15). */
   function select(target) {
     if (!target) return;
-    state.selected = { layer: target.layer, neuron: target.neuron };
-    focusNeuron(state.selected, { focus: false });
+    const same = state.selected && state.selected.layer === target.layer && state.selected.neuron === target.neuron;
+    state.selected = same ? null : { layer: target.layer, neuron: target.neuron };
+    focusNeuron(target, { focus: false });
+    neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
     sync();
+  }
+  function deselect() {
+    const was = state.selected;
+    state.selected = null;
+    sync();
+    if (was) neuronButtons[was.layer]?.[was.neuron]?.focus({ preventScroll: true });
   }
   function labelNeuron(b, l, j) {
     const shown = displayed.trace;
@@ -245,10 +261,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const c = displayed.cursor;
     const value = !n ? '–' : l === 0 || !c || c.opsDone(l, j) === 4 ? fmt(n.output) : t('inspect.aria.pending');
     const blame = displayed.learning?.blame(l, j);
-    const extra = blame === null || blame === undefined ? '' : `. ${t('lab.aria.blame', { value: fmt(blame) })}`;
+    const extra = (blame === null || blame === undefined ? '' : `. ${t('lab.aria.blame', { value: fmt(blame) })}`)
+      + (run().isOff(l, j) ? `. ${t('inspect.aria.off').replace(/^./, (c) => c.toUpperCase())}` : '');
     const label = t('inspect.aria.neuron', { layer: layerName(t, l, run().network.sizes.length), name: nameOf(l, j), value }) + extra;
     if (b.getAttribute('aria-label') !== label) b.setAttribute('aria-label', label);
-    b.setAttribute('aria-pressed', String(state.selected.layer === l && state.selected.neuron === j));
+    b.setAttribute('aria-pressed', String(Boolean(state.selected) && state.selected.layer === l && state.selected.neuron === j));
   }
 
   // Operación en curso y reproducción (D11)
@@ -430,8 +447,28 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const missions = el('section', { class: 'guide inspect-missions' },
     el('h2', { class: 'sr-only', i18n: 'lab.missions.title' }),
     el('ol', { class: 'mission-list inspect-mission-list' }, missionRows.map((r) => r.row)));
+  const card = createCompactNeuronCard({
+    i18n,
+    names: (l, j) => nameOf(l, j),
+    layerNames: (l) => layerName(t, l, run().network.sizes.length),
+    onWeight: (i, v, info) => manualChange(() => run().setWeight(state.selected.layer, state.selected.neuron, i, v), info.gesture),
+    onBias: (v, info) => manualChange(() => run().setBias(state.selected.layer, state.selected.neuron, v), info.gesture),
+    onGestureEnd: () => state.manual.end(),
+    onToggleNeuron: () => {
+      const { layer, neuron } = state.selected;
+      const off = !run().isOff(layer, neuron);
+      manualChange(() => run().setOff({ kind: 'neuron', layer, neuron }, off), null);
+      announce(t(off ? 'inspect.announce.off' : 'inspect.announce.on', { name: nameOf(layer, neuron) }));
+    },
+    onToggleConnection: (i) => {
+      const { layer, neuron } = state.selected;
+      manualChange(() => run().setOff({ kind: 'connection', layer, neuron, input: i }, !run().isOff(layer, neuron, i)), null);
+    },
+    onClose: () => deselect(),
+  });
+  // Al final del panel, debajo de las misiones: elegir una neurona no mueve ningún ajuste (D15).
   panel.append(el('h1', { class: 'sr-only', i18n: 'lab.title' }),
-    el('div', { class: 'inspect-panel lab-panel' }, intro, netSection, learnSection, actions, saveMessage, teacherSection, missions));
+    el('div', { class: 'inspect-panel lab-panel' }, intro, netSection, learnSection, actions, saveMessage, teacherSection, missions, card.node));
 
   const picker = createPicker({
     id: 'lab-picker', anchor: changeTeacher, t,
@@ -552,10 +589,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (shapeKey !== state.shapeKey) {
       state.shapeKey = shapeKey;
       state.collapsed = run().network.sizes.map(() => false);
-      if (state.selected.layer >= run().network.sizes.length || state.selected.neuron >= run().network.sizes[state.selected.layer]) state.selected = { layer: 1, neuron: 0 };
+      // La neurona elegida que deja de existir cierra la tarjeta.
+      if (state.selected && (state.selected.layer >= run().network.sizes.length || state.selected.neuron >= run().network.sizes[state.selected.layer])) state.selected = null;
       buildOverlay();
     }
     buildNeuronSliders();
+    // El aprendizaje empezó de nuevo: no quedan cambios a mano (todo encendido).
+    state.manual.clear();
     // Datos o red nuevos: ninguna fila elegida y la tabla vuelve arriba.
     state.selectedRow = null;
     dataKey = '';
@@ -564,10 +604,46 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     planeForce = true;
     chartKey = '';
   }
+  /**
+   * Un cambio a mano: se guarda la copia de antes (un arrastre entero es un cambio) y se aplica a la red
+   * que aprende. Si había un ejemplo a medio recorrer, vuelve a la ida (lo hace el recorrido).
+   */
+  function manualChange(apply, gesture) {
+    const snap = run().snapshot();
+    const wasMid = Boolean(run().active && !run().active.done && run().active.cursor.started);
+    if (!apply()) return;
+    state.manual.record(snap, { gesture });
+    afterManual(wasMid);
+  }
+  function afterManual(wasMid = false) {
+    if (animation) { animation.finish(); animation = null; }
+    changesVersion += 1;
+    planeForce = true;
+    chartKey = '';
+    if (wasMid) { lastStep = null; restartedNote = true; }
+    sync();
+  }
+  let restartedNote = false;
+  function undoManual() {
+    const snap = state.manual.undo();
+    if (!snap) return;
+    run().restore(snap);
+    afterManual();
+    announce(t('inspect.announce.undone', { count: state.manual.count }));
+  }
+  function resetManual() {
+    const snap = state.manual.reset();
+    if (!snap) return;
+    run().restore(snap);
+    afterManual();
+    announce(t('inspect.announce.reset'));
+  }
+
   function resetWeights() { session.resetWeights(); restarted(); announce(t('lab.announce.reset')); }
 
   /** Un paso del tamaño `size`. */
   function advance(size, { auto }) {
+    restartedNote = false;
     if (animation) { animation.finish(); animation = null; }
     const r = run().advance(size);
     const a = run().active;
@@ -764,6 +840,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     diagram.hidden = state.view !== 'diagram';
     tableZone.hidden = state.view !== 'table';
     dataZone.hidden = state.view !== 'data';
+    // Cambios a mano: siempre a la vista; sin cambios, sin acción y con su explicación (D16).
+    const count = state.manual.count;
+    setText(changesCount, count === 0 ? 'inspect.changes.none' : 'inspect.changes.count', { value: count });
+    setData(changesCount, 'changed', String(count > 0));
+    setAttr(undoButton, 'aria-disabled', String(!state.manual.canUndo));
+    setData(undoButton, 'help', state.manual.canUndo ? 'lab.undo' : 'lab.undo.none');
+    setAttr(resetChangesButton, 'aria-disabled', String(count === 0));
+    setData(resetChangesButton, 'help', count === 0 ? 'lab.resetChanges.none' : 'lab.resetChanges');
+    show(card.node, Boolean(state.selected));
     // Reproducción
     setText(playButton, playback.playing ? 'inspect.pause' : 'inspect.play');
     setData(playButton, 'help', playback.playing ? 'lab.pause' : 'lab.play');
@@ -937,10 +1022,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const showOp = !(playback.playing && isRunning(playback.size));
     show(opStrip, showOp);
     if (showOp) {
-      const text = lastStep && r.active ? describeLearningStep({ t, fmt, last: lastStep.units[lastStep.units.length - 1], detail: lastStep.detail, ctx: ctx() }) : t('lab.op.idle');
+      const text = lastStep && r.active ? describeLearningStep({ t, fmt, last: lastStep.units[lastStep.units.length - 1], detail: lastStep.detail, ctx: ctx() })
+        : restartedNote && r.active && !r.active.done && !r.active.cursor.started ? t('lab.op.restarted') : t('lab.op.idle');
       write(opText, text);
     }
     write(where, whereText({ t, run: r, ctx: ctx(), running }));
+    if (state.selected) card.sync({ target: state.selected, sizes, network: a ? r.shownNetwork() : r.network, isOff: (l, j, i = null) => r.isOff(l, j, i) });
 
     // Tablero
     const highlight = a ? a.index : null;
