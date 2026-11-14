@@ -54,10 +54,10 @@ export const FILTERS = Object.freeze(['all', 5, 3, 1]);
 export const VIEWS = Object.freeze(['diagram', 'table']);
 /**
  * Anchos propios (D1): por defecto la red toma todo lo que dejan el tablero en 360 px y el panel; no
- * baja de 600 px; si no hay lugar, el tablero cede primero (hasta 240 px, un mínimo propio de esta
- * pestaña); y su ancho se recuerda aparte del de las demás pestañas.
+ * baja de 600 px; y su ancho se recuerda aparte del de las demás pestañas. Los límites del tablero y
+ * del panel son los de siempre.
  */
-export const ZONES = Object.freeze({ stageMin: 600, stageDefault: 'rest', boardMin: 240, preference: 'inspectStageWidth' });
+export const ZONES = Object.freeze({ stageMin: 600, stageDefault: 'rest', preference: 'inspectStageWidth' });
 
 // --- Estado conservado entre montajes ------------------------------------------------------------
 let state = null;
