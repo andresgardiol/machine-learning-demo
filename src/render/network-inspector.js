@@ -89,8 +89,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     if (w === viewport.width && h === viewport.height && ratio === dpr) return false;
     viewport = { width: w, height: h };
     dpr = ratio;
-    canvas.style.width = `${w}px`;
-    canvas.style.height = `${h}px`;
+    // El tamaño en pantalla lo da el CSS (100 % de la zona): así un tamaño viejo nunca ensancha la zona.
     canvas.width = Math.round(w * ratio);
     canvas.height = Math.round(h * ratio);
     return true;

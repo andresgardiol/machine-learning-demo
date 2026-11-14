@@ -81,9 +81,9 @@ que se puede usar; se puede cortar al final de cualquiera.
 
 ## 11. Verificación integral
 
-- [ ] 11.1 Medir en el DOM los escenarios de "Pestaña a la vista sin desplazarse" a 1440×900 y a 1366×768, con el panel en su mínimo, en 360 y en 400 px, en los dos idiomas. Si a 1440×900 algo se desplaza, **detenerse y consultar** con las medidas.
-- [ ] 11.2 Verificar "Estado conservado" saliendo y volviendo con cada cosa cambiada.
-- [ ] 11.3 Recorrer el filtro de entrada de la propuesta, fila por fila, en el navegador. Informar lo que no se cumpla.
-- [ ] 11.4 Comprobar que las pestañas 1 a 4 no cambiaron: `npm test` completo y un recorrido corto de cada una.
-- [ ] 11.5 Correr `openspec validate pestana-inspeccionar --strict` y `npm test`. Actualizar `PENDIENTES.md`: la pestaña 5 hecha en el orden de trabajo, lo que quedó fuera de alcance y lo que quedó sin medir.
+- [x] 11.1 Medir en el DOM los escenarios de "Pestaña a la vista sin desplazarse" a 1440×900 y a 1366×768, con el panel en su mínimo, en 360 y en 400 px, en los dos idiomas. Si a 1440×900 algo se desplaza, **detenerse y consultar** con las medidas.
+- [x] 11.2 Verificar "Estado conservado" saliendo y volviendo con cada cosa cambiada.
+- [x] 11.3 Recorrer el filtro de entrada de la propuesta, fila por fila, en el navegador. Informar lo que no se cumpla.
+- [x] 11.4 Comprobar que las pestañas 1 a 4 no cambiaron: `npm test` completo y un recorrido corto de cada una.
+- [x] 11.5 Correr `openspec validate pestana-inspeccionar --strict` y `npm test`. Actualizar `PENDIENTES.md`: la pestaña 5 hecha en el orden de trabajo, lo que quedó fuera de alcance y lo que quedó sin medir.
 - [ ] 11.6 Informe final que separe lo medido, lo observado en el navegador y lo que no se probó.

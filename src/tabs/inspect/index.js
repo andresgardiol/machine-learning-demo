@@ -146,7 +146,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
 
   function buildWorld() {
     const s = state.settings;
-    controller = createTraceController(net, brain.sensors.count, () => changes);
+    // El controlador lee los cambios vigentes del estado conservado: sigue valiendo al volver a la pestaña.
+    controller = createTraceController(net, brain.sensors.count, () => state.live?.changes ?? null);
     world = createWorld({
       seed: SEED, track: s.track, lanes: s.lanes, density: s.density, irregularity: s.irregularity,
       cars: [{ controller, sensors: { ...brain.sensors }, maxSpeed: s.maxSpeed }],
@@ -157,6 +158,16 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     crashTicks = 0;
     lastStep = null;
     state.missions.newFrame();
+    keepLive();
+  }
+
+  /** Lo que se conserva al salir: el mundo en el cuadro en que quedó, el cursor y los cambios (D13). */
+  function keepLive() {
+    state.live = { signature: state.choice.signature, brain, net, changes, world, cursor, controller };
+  }
+  /** Al volver con el mismo cerebro y los mismos ajustes: todo como quedó. */
+  function restoreLive() {
+    ({ brain, net, changes, world, cursor, controller } = state.live);
   }
 
   // --- Cuenta ------------------------------------------------------------------------------------
@@ -844,8 +855,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const sameBrain = !firstTime && !resolved.updated && !resolved.removed && resolved.key === state.choice.key;
   const carSpeed = store?.get().carSpeed;
   const keptSettings = sameBrain ? { ...state.settings, ...(carSpeed ? { maxSpeed: carSpeed } : {}) } : null;
-  load(resolved.key, { settings: keptSettings });
-  if (firstTime) playback.play();
+  const sameSpeed = !carSpeed || carSpeed === state.settings?.maxSpeed;
+  if (sameBrain && sameSpeed && state.live && state.live.signature === state.choice.signature) restoreLive();
+  else load(resolved.key, { settings: keptSettings });
+  // La primera vez arranca reproduciendo; al volver, como se dejó (sin avanzar mientras no estaba a la vista).
+  if (firstTime || state.wasPlaying) playback.play();
   buildOverlay();
   focusNeuron(state.selected, { focus: false });
   sync();
@@ -869,6 +883,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     play, pause, stepOnce, restart, setSize, select, choose, undo, resetNetwork, toggleNeuron, setWeight, setBias, setManual, toggleLayer, toggleAll,
     unmount() {
       keepChanges();
+      state.wasPlaying = playback.playing;
       playback.pause();
       if (playback.size === 'frame') cursor.complete();
       loop.dispose();

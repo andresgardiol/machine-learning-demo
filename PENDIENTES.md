@@ -16,7 +16,11 @@ Decidido por el dueño el 12 de noviembre de 2026:
    de fantasmas con meta entre cerebros, programas y la persona, chocar y
    reaparecer protegido, cuatro cerebros de ejemplo y tabla por pista con dónde
    entrenó cada cerebro.
-3. **Pestañas 5 y 6,** Inspeccionar y Laboratorio.
+3. **Pestañas 5 y 6,** Inspeccionar y Laboratorio. ~~Inspeccionar~~ hecha en el
+   cambio `pestana-inspeccionar`: la red de un cerebro en grande, en vivo, con
+   diagrama y tabla de pesos, capas resumidas, filtro de conexiones, paso a
+   paso animado con la operación en curso, tarjeta de la neurona, entradas a
+   mano, apagar y cambiar pesos, deshacer y restablecer. Falta Laboratorio.
 4. **Al final, los dos arreglos de Reglas a mano** anotados más abajo (los
    ejemplos solo valen con la velocidad por defecto; el programa recordado no
    recuerda los sensores). Esa pestaña es corta y es la que menos importa.
@@ -24,6 +28,29 @@ Decidido por el dueño el 12 de noviembre de 2026:
 El resto de las notas de este archivo no tiene orden fijo.
 
 ## Próximo
+
+- **Inspeccionar: lo que quedó sin medir o consultado.** Del cambio
+  `pestana-inspeccionar`:
+  - Fluidez sin medir en cuadros por segundo (tareas 2.3, 4.6 y 6.6): el panel
+    del navegador estuvo oculto. Como sustituto se midió el tiempo de dibujo
+    por cuadro con la red más grande (20 sensores, tres capas de 16): diagrama
+    1,1 a 1,3 ms de mediana, tabla 0,7 ms, ola de una capa a 10 pasos por
+    segundo 1,1 ms (p95 2,3 ms). Falta medir diez segundos de cuadros por
+    segundo en cada caso (mínimo 55).
+  - Consultados al dueño, sin respuesta al cerrar el cambio: el ancho de las
+    zonas (con los anchos de siempre la red tiene 400 px y el tablero 668), los
+    controles de arriba de la red (cuatro renglones entre 400 y 520 px de zona,
+    seis o siete en 260) y el redondeo de la tarjeta (sumar a mano lo que se ve
+    da el total mostrado en el 42 % de los casos).
+  - Con 20 sensores en la escena chica de 340 × 220, las manijas vecinas quedan
+    a 6 px: se agarra la más cercana, pero no miden 24 px sin encimarse.
+  - A 1366 × 768, con el panel en 300 o 360 px, el tablero se desplaza en
+    vertical (escena, decisión y leyenda no entran con el tablero ancho).
+  - Fuera de alcance, para Laboratorio o más adelante: guardar una red
+    modificada como cerebro, comparar dos redes, mapas de respuesta, agregar o
+    quitar neuronas, seguir en vivo un entrenamiento y una tercera vista con
+    los pesos sobre el abanico de sensores.
+  - Sin probar: lector de pantalla real, Safari y Firefox.
 
 - **Fluidez con paisaje y circuitos sin medir.** La tarea 10.1 de
   `circuitos-y-paisaje` quedó sin hacer porque el panel del navegador estuvo
