@@ -12,8 +12,8 @@ demás.
 ### Requirement: Pestañas del recorrido
 La aplicación SHALL mostrar una barra con las seis pestañas del recorrido, en
 este orden: El problema, Reglas a mano, Entrenar, Competir, Inspeccionar y
-Laboratorio. Las pestañas El problema, Reglas a mano y Entrenar SHALL estar
-disponibles. Las pestañas aún no disponibles MUST verse como no disponibles y
+Laboratorio. Las pestañas El problema, Reglas a mano, Entrenar y Competir
+SHALL estar disponibles. Las pestañas aún no disponibles MUST verse como no disponibles y
 no poder abrirse.
 
 #### Scenario: Recorrido visible
@@ -43,6 +43,14 @@ no poder abrirse.
 #### Scenario: Explicación de Reglas a mano
 - **WHEN** la persona posa el cursor sobre la pestaña Reglas a mano
 - **THEN** un tooltip indica que ahí se programa el auto con reglas escritas a mano y por qué eso deja de alcanzar, sin decir que llegará próximamente
+
+#### Scenario: Abrir Competir
+- **WHEN** la persona elige la pestaña Competir
+- **THEN** Competir pasa a ser la pestaña activa y muestra su barra de escenario, su escenario, su tablero y su panel
+
+#### Scenario: Explicación de Competir
+- **WHEN** la persona posa el cursor sobre la pestaña Competir
+- **THEN** un tooltip indica que ahí se comparan cerebros, reglas y personas en pistas vistas y no vistas, y por qué eso muestra si algo generaliza, sin decir que llegará próximamente
 
 ### Requirement: Lista para usar al abrir
 La aplicación SHALL abrir directamente en la primera pestaña, con su escenario
