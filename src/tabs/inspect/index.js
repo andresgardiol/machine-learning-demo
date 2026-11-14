@@ -284,7 +284,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function setManual(input, value) {
     if (playback.playing) return; // solo en pausa
     const v = Math.max(input === net.sizes[0] - 1 ? -1 : 0, Math.min(1, Math.round(value * 100) / 100));
-    if (!state.manual) state.manual = net.sizes.map(() => null);
+    if (!state.manual) state.manual = Array.from({ length: net.sizes[0] }, () => null);
     state.manual[input] = v;
     const real = traceNetwork(net, inputsOf(world.perception), changes).outputs;
     state.missions.manualDecision({ manual: true, outputs: traceNow().outputs, real });

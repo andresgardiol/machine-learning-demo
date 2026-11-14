@@ -56,8 +56,8 @@ que se puede usar; se puede cortar al final de cualquiera.
 
 ## 7. Entradas a mano
 
-- [ ] 7.1 Manijas sobre los rayos en la escena chica (design.md D9). Verificar los escenarios de `vista-escenario` "Rayos que se mueven a mano", con 5 y con 20 sensores.
-- [ ] 7.2 Entradas a mano en pausa: manijas, deslizador en la tarjeta de la entrada, velocidad, aviso con "Soltar" y soltar al reproducir. Verificar los escenarios de "Entradas a mano".
+- [x] 7.1 Manijas sobre los rayos en la escena chica (design.md D9). Verificar los escenarios de `vista-escenario` "Rayos que se mueven a mano", con 5 y con 20 sensores.
+- [x] 7.2 Entradas a mano en pausa: manijas, deslizador en la tarjeta de la entrada, velocidad, aviso con "Soltar" y soltar al reproducir. Verificar los escenarios de "Entradas a mano".
 
 ## 8. Apagar y cambiar pesos
 
