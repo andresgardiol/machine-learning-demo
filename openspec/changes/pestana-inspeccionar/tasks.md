@@ -61,10 +61,10 @@ que se puede usar; se puede cortar al final de cualquiera.
 
 ## 8. Apagar y cambiar pesos
 
-- [ ] 8.1 Apagar y encender la neurona elegida y sus conexiones, con efecto en el auto que maneja. Verificar los escenarios de "Apagar una parte de la red".
-- [ ] 8.2 Deslizadores de pesos y de sesgo en la tarjeta. Verificar los escenarios de "Cambiar pesos y sesgos", con el auto manejando y en pausa.
-- [ ] 8.3 Marcas en el diagrama y en la tabla. Verificar los escenarios de "Marcas de lo apagado y lo cambiado".
-- [ ] 8.4 "Deshacer" y "Restablecer la red" siempre a la vista sobre la red, con el contador de cambios, y cambios por cerebro. Verificar los escenarios de "Deshacer y restablecer la red", incluido que el cerebro guardado no cambia (comparándolo antes y después).
+- [x] 8.1 Apagar y encender la neurona elegida y sus conexiones, con efecto en el auto que maneja. Verificar los escenarios de "Apagar una parte de la red".
+- [x] 8.2 Deslizadores de pesos y de sesgo en la tarjeta. Verificar los escenarios de "Cambiar pesos y sesgos", con el auto manejando y en pausa.
+- [x] 8.3 Marcas en el diagrama y en la tabla. Verificar los escenarios de "Marcas de lo apagado y lo cambiado".
+- [x] 8.4 "Deshacer" y "Restablecer la red" siempre a la vista sobre la red, con el contador de cambios, y cambios por cerebro. Verificar los escenarios de "Deshacer y restablecer la red", incluido que el cerebro guardado no cambia (comparándolo antes y después).
 
 ## 9. Guía, misiones y textos
 
