@@ -363,7 +363,7 @@ export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onB
   const titleId = `${idPrefix}-title`;
   const title = el('h2', { class: 'panel-heading inspect-card-title', attrs: { id: titleId } });
   const subtitle = el('span', { class: 'inspect-card-sub muted' });
-  const offButton = el('button', { class: 'tool small inspect-off', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => onToggleNeuron() } });
+  const offButton = el('button', { class: 'tool small inspect-off', help: 'lab.card.turnOff', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => onToggleNeuron() } });
   const closeButton = el('button', {
     class: 'tool small lab-card-close', help: 'lab.card.close', i18nAttr: 'aria-label:lab.card.close.label',
     attrs: { type: 'button' }, on: { click: () => onClose() },

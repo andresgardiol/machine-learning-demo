@@ -90,6 +90,11 @@ El resto de las notas de este archivo no tiene orden fijo.
     apartados es ruidoso: el aviso de sobreajuste aparece y se retira de 1 a 3
     veces en 600 épocas, según la semilla. Ninguna pasó de tres.
   - Menos movimiento: verificado por código, no emulado en el navegador.
+  - Con tu manejo, en español, las acciones del panel ("Reiniciar pesos",
+    "Red de siempre", "Guardar como cerebro") se parten en dos renglones
+    (56 px contra 26 en inglés). No se desplaza nada; queda para decidir.
+  - Tabla de datos y cambios a mano: no se probaron con un lector de pantalla
+    real.
   - Sin probar: lector de pantalla real, Safari y Firefox.
   - Fuera de alcance: lotes, momento y otros optimizadores, regularización,
     dibujar puntos a mano, aprender con recompensas en vez de ejemplos (el
@@ -253,24 +258,16 @@ El resto de las notas de este archivo no tiene orden fijo.
     y volver a abrir (artículo 6), textos en español e inglés (artículo 11) y
     ninguna dependencia nueva.
 
-- **Los tooltips ayudan al principio y después molestan.** Aparecen en cada
-  control a los 0,4 s de posar el cursor. Al empezar sirven; cuando ya se
-  conoce la interfaz, tapan lo que se quiere tocar. Le pasó al dueño también
-  en la demo original, donde lo resolvió con más demora (13 de noviembre de
-  2026). Ideas para evaluar, sin decidir:
-  - Más demora (por ejemplo 1 s) y, una vez abierto uno, los siguientes
-    aparecen enseguida por unos segundos, como en los sistemas operativos.
-  - Atarlos al interruptor "Guía": con la guía activa, como hoy; con la guía
-    apagada, solo al pedirlos.
-  - Pedirlos a mano: una tecla que se mantiene apretada o un modo "¿qué es
-    esto?" que se enciende y se apaga.
-  - Que se cansen solos: cada control muestra su tooltip rápido las primeras
-    veces y después pide posar el cursor más tiempo.
-  - Dos tamaños: primero un renglón con qué hace; el "por qué importa", si el
-    cursor se queda o con una tecla.
-  - A tener en cuenta: con el foco del teclado tienen que seguir apareciendo,
-    cerrarse con Escape y poder alcanzarse con el cursor; y cada control tiene
-    que seguir teniendo su explicación a mano.
+- **Tooltips: lo que quedó del cambio `tooltips-con-calma`** (14 de noviembre de
+  2026). Ya no aparecen al apretar ni al arrastrar, esperan 0,7 s y la guía
+  apagada los calla al posar el cursor (con Tab siguen apareciendo).
+  - Sin medir: que 0,7 s sea la espera que deja de molestar. Es una constante
+    (`SHOW_DELAY_MS`); el dueño la prueba.
+  - Fuera de alcance: un interruptor propio para los tooltips separado de
+    "Guía" (la alternativa de su design.md), tooltips que se cansan solos,
+    tooltips en dos tamaños y una tecla o un modo "¿qué es esto?".
+  - Sin probar: con un lector de pantalla real; el arrastre de dos segundos se
+    probó con eventos de puntero simulados, no con el mouse.
 
 - **Lo que quedó fuera de `pestana-competir`** (noviembre de 2026), cada cosa con
   su propia propuesta: que los competidores se choquen entre sí; elegir la
