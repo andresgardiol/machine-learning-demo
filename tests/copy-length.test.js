@@ -221,3 +221,9 @@ test('Laboratorio: guías de hasta 240 caracteres y nombres de misiones de hasta
   for (const id of ['follow', 'memorize', 'save']) assertMax(`lab.mission.${id}`, MISSION_MAX);
   for (const key of ['lab.warning', 'lab.record.few', 'lab.op.idle']) assertMax(key, HINT_MAX);
 });
+
+test('Laboratorio: renglones nuevos de la tabla de datos y de la tarjeta de hasta 120 caracteres', () => {
+  for (const key of ['lab.op.restarted', 'lab.dt.empty.allRight', 'lab.dt.empty.allRight.heldOut', 'lab.dt.empty.none']) assertMax(key, HINT_MAX);
+  assertMax('lab.dt.summary', HINT_MAX, { correct: 3600, count: 3600, pc: 2520, pn: 2520, hc: 1080, hn: 1080 });
+  assertMax('lab.card.notANumber', HINT_MAX, { text: '0,5,3' });
+});
