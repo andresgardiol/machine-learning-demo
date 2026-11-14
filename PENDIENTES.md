@@ -29,6 +29,30 @@ El resto de las notas de este archivo no tiene orden fijo.
 
 ## Próximo
 
+- **Inspeccionar: la vista de la red tiene que mejorar mucho.** Dicho por el
+  dueño al probar la pestaña (14 de noviembre de 2026): "la visualización
+  está correcta, pero podría mejorar mucho"; "hoy se siente incompleta y
+  tosca"; la quiere "súper completa e intuitiva, con todas las features
+  posibles". Lo que señaló:
+  - Hay conexiones que directamente no se muestran.
+  - No se puede deseleccionar una neurona.
+  - Las neuronas se ven chicas por defecto y no aprovechan el espacio.
+  - Resumir una capa tendría que dejar ver las otras más grandes, y hoy casi
+    no cambia nada.
+  - El esquema de colores no lo convence (él mismo lo marca como más
+    subjetivo).
+  Para investigar al proponerlo, sin verificar todavía:
+  - Si las conexiones que no se ven son las de peso chico (el grosor y la
+    opacidad dependen de la magnitud) o las que el filtro atenúa.
+  - La spec pide que siempre haya una neurona elegida, para que la tarjeta no
+    quede vacía: eso es lo que impide deseleccionar, y hay que rediseñarlo.
+  - El radio de las neuronas tiene un tope heredado del diagrama chico de
+    Entrenar; con la zona grande sobra lugar.
+  - El ancho que libera una capa resumida no se reparte entre las demás.
+  Conviene hacerlo con una crítica de diseño sobre capturas reales y con
+  bocetos antes de escribir la spec. La vista se reutiliza en Laboratorio,
+  así que lo que se mejore sirve a las dos pestañas.
+
 - **Inspeccionar: lo que quedó sin medir o consultado.** Del cambio
   `pestana-inspeccionar`:
   - Fluidez sin medir en cuadros por segundo (tareas 2.3, 4.6 y 6.6): el panel
