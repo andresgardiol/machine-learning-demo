@@ -1288,4 +1288,6 @@ export default {
   'inspect.announce.undone': 'Cambio deshecho. Quedan {count}.',
   'inspect.announce.reset': 'Red restablecida: es la del cerebro.',
   'inspect.announce.released': 'Entradas soltadas: la red recibe lo que ve el auto.',
+  'inspect.card.neuron': 'Neurona {n}',
+  'inspect.card.outputRule': 'Dice sí a {action} cuando el total es mayor que 0; si no, dice no.',
 };

@@ -137,7 +137,8 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
       el('dt', { i18n: 'inspect.op.activation', help: 'inspect.term.activation' }),
       el('dd', { class: 'inspect-act' }, actName, graph, actValue)),
     el('div', { class: 'inspect-foot-row inspect-foot-out', dataset: { op: 'output' } }, el('dt', { i18n: 'inspect.card.output', help: 'inspect.card.output' }), outValue));
-  const footBlock = el('div', { class: 'inspect-foot-block' }, foot, roundNote);
+  const outputRule = el('p', { class: 'caption inspect-output-rule' });
+  const footBlock = el('div', { class: 'inspect-foot-block' }, foot, outputRule, roundNote);
 
   const node = el('section', { class: 'inspect-card', attrs: { 'aria-labelledby': 'inspect-card-title' } }, head, inputBlock, scroller, footBlock);
 
@@ -204,6 +205,8 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
     const key = `${sizes.join('-')}|${target.layer}:${target.neuron}`;
     const isInput = target.layer === 0;
     const isOutput = target.layer === sizes.length - 1;
+    if (outputRule.hidden === isOutput) outputRule.hidden = !isOutput;
+    if (isOutput) write(outputRule, t('inspect.card.outputRule', { action: t(`network.output.${OUTPUT_KEYS[target.neuron]}`) }));
     const n = trace.layers[target.layer].neurons[target.neuron];
     if (key !== current.key) {
       current = { key, target };
@@ -213,7 +216,8 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
     current.target = target;
 
     // Título
-    write(title, neuronLabel(t, sizes, target.layer, target.neuron));
+    const hiddenNeuron = !isInput && !isOutput;
+    write(title, hiddenNeuron ? t('inspect.card.neuron', { n: target.neuron + 1 }) : neuronLabel(t, sizes, target.layer, target.neuron));
     const sub = isInput ? layerName(t, 0, sizes.length)
       : isOutput ? t('inspect.card.outputOf', { action: t(`network.output.${OUTPUT_KEYS[target.neuron]}`) })
         : layerName(t, target.layer, sizes.length);

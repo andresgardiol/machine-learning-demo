@@ -39,11 +39,11 @@ que se puede usar; se puede cortar al final de cualquiera.
 
 ## 5. La cuenta de una neurona
 
-- [ ] 5.1 Decisión de la red en el tablero, con el estado "sin decidir". Verificar los escenarios de "Decisión de la red".
+- [x] 5.1 Decisión de la red en el tablero, con el estado "sin decidir". Verificar los escenarios de "Decisión de la red".
 - [ ] 5.2 Tarjeta de la neurona en el panel (design.md D8 y D12): filas por entrada, suma, sesgo, activación con su gráfico y salida, para neuronas ocultas, de salida y de entrada. Verificar los escenarios de "Tarjeta de la neurona", incluido "Cuenta que se puede comprobar" con una prueba sobre los números mostrados.
-- [ ] 5.3 La tarjeta en el paso a paso y siguiendo al cursor. Verificar los escenarios "En el paso a paso" y "La tarjeta sigue a la cuenta".
-- [ ] 5.4 Rayos de la escena con el peso de la neurona elegida (design.md D9). Verificar el escenario "Qué mira la neurona" y los de `vista-escenario` "Rayos con el peso de una neurona".
-- [ ] 5.5 Medir la tarjeta con 21 entradas y con 4, a 1440×900 y con el panel en su ancho mínimo, en 360 y en 400 px (escenario "Red grande"). Si el pie con la suma, el sesgo, la activación y la salida no queda a la vista, o si el panel se desplaza, **detenerse y consultar** con las medidas.
+- [x] 5.3 La tarjeta en el paso a paso y siguiendo al cursor. Verificar los escenarios "En el paso a paso" y "La tarjeta sigue a la cuenta".
+- [x] 5.4 Rayos de la escena con el peso de la neurona elegida (design.md D9). Verificar el escenario "Qué mira la neurona" y los de `vista-escenario` "Rayos con el peso de una neurona".
+- [x] 5.5 Medir la tarjeta con 21 entradas y con 4, a 1440×900 y con el panel en su ancho mínimo, en 360 y en 400 px (escenario "Red grande"). Si el pie con la suma, el sesgo, la activación y la salida no queda a la vista, o si el panel se desplaza, **detenerse y consultar** con las medidas.
 
 ## 6. Tabla de pesos y capas resumidas
 

@@ -1288,4 +1288,6 @@ export default {
   'inspect.announce.undone': 'Change undone. {count} left.',
   'inspect.announce.reset': 'Network reset: it is the brain’s own.',
   'inspect.announce.released': 'Inputs released: the network gets what the car sees.',
+  'inspect.card.neuron': 'Neuron {n}',
+  'inspect.card.outputRule': 'It says yes to {action} when the total is greater than 0; otherwise, no.',
 };

@@ -1115,3 +1115,5 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-mission-list { gap: 2px; }
 .inspect-mission { font-size: 13px; }
 .inspect-mission .mission-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inspect-output-rule { margin: var(--space-1) 0 0; font-size: 12px; }
+.inspect-output-rule[hidden] { display: none; }
