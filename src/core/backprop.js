@@ -15,6 +15,11 @@
 // aprendida acá decide igual al manejar. La medida del error es la entropía cruzada sumada sobre las
 // salidas: con sigmoide, la culpa de una salida es exactamente su respuesta menos la correcta.
 //
+// Partes apagadas (pestana-laboratorio D15): cada función acepta un `off` opcional con la forma de
+// applyChanges (network-changes.js): { offNeurons[col][j], offConnections[col][j][i] }. Una neurona
+// apagada vale cero y no recibe culpa; una conexión apagada no aporta a la suma ni lleva culpa; lo
+// apagado no se corrige. Las salidas no se pueden apagar. Sin `off`, la cuenta es la de siempre.
+//
 // Lo que se aprende de corrido (learnExample) y lo que se recorre paso a paso (corrections +
 // applyCorrections) hacen las mismas operaciones en el mismo orden: dan la misma red bit a bit.
 import { activationFunction, copyNetwork, NetworkError } from './network.js';
@@ -36,6 +41,13 @@ export function slopeOf(activation, value, total) {
   if (activation === 'sigmoid') return value * (1 - value);
   if (activation === 'relu') return total > 0 ? 1 : 0;
   throw new NetworkError('noSlope', { activation, allowed: [...LEARNING_ACTIVATIONS] });
+}
+
+/** Lanza un error si `off` apaga una salida: con una salida apagada el error no está definido. */
+export function assertOff(net, off) {
+  if (!off) return;
+  const L = net.sizes.length - 1;
+  if (off.offNeurons?.[L]?.some(Boolean)) throw new NetworkError('outputOff', { layer: L });
 }
 
 /** Lanza un error que lo explica si la red no puede aprender (el escalón no tiene pendiente). */
@@ -63,8 +75,10 @@ export function outputLoss(y, target) {
  * La ida: los valores de cada capa, con sigmoide en la salida. Devuelve además una cuenta con la
  * forma de traceNetwork (para dibujarla con el inspector), con la salida en 'sigmoid'.
  */
-export function forwardSoft(net, inputs) {
+export function forwardSoft(net, inputs, off = null) {
   assertLearnable(net);
+  assertOff(net, off);
+  if (off) return forwardSoftOff(net, inputs, off);
   const expected = net.sizes[0];
   if (!Array.isArray(inputs) || inputs.length !== expected) {
     throw new NetworkError('inputCount', { expected, received: Array.isArray(inputs) ? inputs.length : null });
@@ -108,6 +122,55 @@ export function forwardSoft(net, inputs) {
   return { trace: { layers, inputs: inputs.slice(), outputs: current }, outputs: current, values, totals };
 }
 
+function forwardSoftOff(net, inputs, off) {
+  const expected = net.sizes[0];
+  if (!Array.isArray(inputs) || inputs.length !== expected) {
+    throw new NetworkError('inputCount', { expected, received: Array.isArray(inputs) ? inputs.length : null });
+  }
+  const { offNeurons: offN, offConnections: offC } = off;
+  const hiddenFn = activationFunction(net.activation);
+  const first = inputs.map((v, i) => (offN?.[0]?.[i] ? 0 : v));
+  const values = [first];
+  const totals = [null];
+  const layers = [{ neurons: inputs.map((v, i) => ({ input: true, raw: v, output: first[i], off: Boolean(offN?.[0]?.[i]) })) }];
+  let current = first;
+  const last = net.layers.length - 1;
+  for (let l = 0; l <= last; l++) {
+    const { weights, biases } = net.layers[l];
+    const col = l + 1;
+    const isOutput = l === last;
+    const fn = isOutput ? sigmoid : hiddenFn;
+    const layerTotals = new Array(biases.length);
+    const next = new Array(biases.length);
+    const neurons = new Array(biases.length);
+    for (let j = 0; j < biases.length; j++) {
+      const row = weights[j];
+      const offRow = offC?.[col]?.[j] ?? null;
+      const products = new Array(row.length);
+      let total = biases[j];
+      let sum = 0;
+      for (let i = 0; i < row.length; i++) {
+        const p = offRow && offRow[i] ? 0 : row[i] * current[i];
+        products[i] = p === 0 ? 0 : p;
+        total += p;
+        sum += p;
+      }
+      const isOff = Boolean(offN?.[col]?.[j]);
+      layerTotals[j] = total;
+      next[j] = isOff ? 0 : fn(total);
+      neurons[j] = {
+        from: current, weights: row, products, sum, bias: biases[j], total,
+        activation: isOutput ? 'sigmoid' : net.activation, output: next[j], off: isOff, offConnections: offRow,
+      };
+    }
+    totals.push(layerTotals);
+    values.push(next);
+    layers.push({ neurons });
+    current = next;
+  }
+  return { trace: { layers, inputs: inputs.slice(), outputs: current }, outputs: current, values, totals, off };
+}
+
 /** El error de un ejemplo: por salida, la respuesta menos la correcta; y la medida del error, sumada. */
 export function exampleError(outputs, targets) {
   const errors = outputs.map((y, k) => y - targets[k]);
@@ -122,8 +185,11 @@ export function exampleError(outputs, targets) {
  * `terms[l][j]` informa cada término: en una salida { error, delta }; en una oculta
  * { parts: [{ to, blame, weight, product }], sum, slope, value, delta }.
  */
-export function backward(net, forward, targets) {
+export function backward(net, forward, targets, off = forward.off ?? null) {
   assertLearnable(net);
+  assertOff(net, off);
+  const offN = off?.offNeurons ?? null;
+  const offC = off?.offConnections ?? null;
   const { values, totals } = forward;
   const L = net.sizes.length - 1;
   const deltas = new Array(L + 1).fill(null);
@@ -141,13 +207,17 @@ export function backward(net, forward, targets) {
       let sum = 0;
       const parts = new Array(nextD.length);
       for (let k = 0; k < nextD.length; k++) {
-        const product = nextD[k] * nextW[k][j];
-        parts[k] = { to: k, blame: nextD[k], weight: nextW[k][j], product };
+        // Una conexión apagada no lleva culpa hacia atrás.
+        const cut = offC && offC[l + 1][k][j];
+        const product = cut ? 0 : nextD[k] * nextW[k][j];
+        parts[k] = cut ? { to: k, blame: nextD[k], weight: nextW[k][j], product, off: true } : { to: k, blame: nextD[k], weight: nextW[k][j], product };
         sum += product;
       }
       const value = values[l][j];
-      const slope = slopeOf(net.activation, value, totals[l][j]);
-      const delta = sum * slope;
+      // Una neurona apagada no recibe culpa.
+      const isOff = Boolean(offN && offN[l][j]);
+      const slope = isOff ? 0 : slopeOf(net.activation, value, totals[l][j]);
+      const delta = isOff ? 0 : sum * slope;
       layerD[j] = delta;
       layerT[j] = { parts, sum, slope, value, delta };
     }
@@ -161,7 +231,9 @@ export function backward(net, forward, targets) {
  * La corrección de cada peso y sesgo, sin aplicarla. `weights[l][j][i]` y `biases[l][j]` son
  * { before, change, after } (y en los pesos, `input`: lo que traía la conexión).
  */
-export function corrections(net, forward, deltas, rate) {
+export function corrections(net, forward, deltas, rate, off = forward.off ?? null) {
+  const offC = off?.offConnections ?? null;
+  const offN = off?.offNeurons ?? null;
   const { values } = forward;
   const L = net.sizes.length - 1;
   const weights = new Array(L + 1).fill(null);
@@ -170,10 +242,13 @@ export function corrections(net, forward, deltas, rate) {
     const layer = net.layers[l - 1];
     const prev = values[l - 1];
     weights[l] = layer.weights.map((row, j) => row.map((w, i) => {
+      // Lo apagado no se corrige: la conexión apagada y los pesos que entran a una neurona apagada.
+      if (off && ((offC && offC[l][j][i]) || (offN && offN[l][j]))) return { before: w, change: 0, after: w, input: prev[i], off: true };
       const change = weightChange(rate, deltas[l][j], prev[i]);
       return { before: w, change, after: w + change, input: prev[i] };
     }));
     biases[l] = layer.biases.map((b, j) => {
+      if (off && offN && offN[l][j]) return { before: b, change: 0, after: b, off: true };
       const change = biasChange(rate, deltas[l][j]);
       return { before: b, change, after: b + change };
     });
@@ -200,7 +275,8 @@ export function applyCorrections(net, corr) {
  * operaciones que forwardSoft + backward + corrections + applyCorrections. Es lo que se usa de corrido.
  * Devuelve la medida del error del ejemplo antes de corregir.
  */
-export function learnExample(net, inputs, targets, rate) {
+export function learnExample(net, inputs, targets, rate, off = null) {
+  if (off) return learnExampleOff(net, inputs, targets, rate, off);
   const fwd = forwardValues(net, inputs);
   const { values, totals } = fwd;
   const L = net.sizes.length - 1;
@@ -235,8 +311,26 @@ export function learnExample(net, inputs, targets, rate) {
   return loss;
 }
 
+/** learnExample con partes apagadas: las mismas operaciones que el camino desglosado con `off`. */
+function learnExampleOff(net, inputs, targets, rate, off) {
+  assertOff(net, off);
+  const f = forwardSoftOff(net, inputs, off);
+  const back = backward(net, f, targets, off);
+  const corr = corrections(net, f, back.deltas, rate, off);
+  for (let l = 1; l < net.sizes.length; l++) {
+    const layer = net.layers[l - 1];
+    for (let j = 0; j < layer.biases.length; j++) {
+      const row = layer.weights[j];
+      for (let i = 0; i < row.length; i++) row[i] = corr.weights[l][j][i].after;
+      layer.biases[j] = corr.biases[l][j].after;
+    }
+  }
+  return exampleError(f.outputs, targets).loss;
+}
+
 /** Solo los valores y los totales de la ida (sin la cuenta desglosada), con sigmoide en la salida. */
-export function forwardValues(net, inputs) {
+export function forwardValues(net, inputs, off = null) {
+  if (off) { const f = forwardSoftOff(net, inputs, off); return { values: f.values, totals: f.totals, outputs: f.outputs }; }
   const hiddenFn = activationFunction(net.activation);
   const values = [inputs];
   const totals = [null];
@@ -262,7 +356,7 @@ export function forwardValues(net, inputs) {
 }
 
 /** Respuesta suave de la red (solo las salidas). */
-export const softOutputs = (net, inputs) => forwardValues(net, inputs).outputs;
+export const softOutputs = (net, inputs, off = null) => forwardValues(net, inputs, off).outputs;
 
 /** ¿Todas las salidas quedan del lado correcto de 0,5? */
 export function isCorrect(outputs, targets) {
@@ -274,12 +368,12 @@ export function isCorrect(outputs, targets) {
  * Error medio y aciertos de la red sobre unos ejemplos ({ inputs, targets }).
  * @returns {{loss:number|null, accuracy:number|null, correct:number, count:number}}
  */
-export function evaluate(net, examples) {
+export function evaluate(net, examples, off = null) {
   if (examples.length === 0) return { loss: null, accuracy: null, correct: 0, count: 0 };
   let loss = 0;
   let correct = 0;
   for (const ex of examples) {
-    const out = forwardValues(net, ex.inputs).outputs;
+    const out = forwardValues(net, ex.inputs, off).outputs;
     for (let k = 0; k < out.length; k++) loss += outputLoss(out[k], ex.targets[k]);
     if (isCorrect(out, ex.targets)) correct += 1;
   }
@@ -304,9 +398,29 @@ export function shuffledOrder(count, random) {
  * Una época de corrido: corrige una copia de la red una vez con cada ejemplo de práctica, en el
  * orden dado. Devuelve la red nueva; la original no cambia.
  */
-export function trainEpoch(net, practice, order, rate) {
+export function trainEpoch(net, practice, order, rate, off = null) {
   assertLearnable(net);
   const work = copyNetwork(net);
-  for (const idx of order) learnExample(work, practice[idx].inputs, practice[idx].targets, rate);
+  for (const idx of order) learnExample(work, practice[idx].inputs, practice[idx].targets, rate, off);
   return work;
+}
+
+/**
+ * Red para guardar como cerebro con lo apagado hecho pesos en cero (pestana-laboratorio D15): los que
+ * salen de una neurona apagada (o de una entrada apagada) y el de cada conexión apagada. Una oculta
+ * apagada que vale cero hacia adelante es lo mismo que una cuyos pesos de salida son cero. Devuelve
+ * otra red; la original no cambia.
+ */
+export function bakeOff(net, off) {
+  const out = copyNetwork(net);
+  if (!off) return out;
+  for (let l = 1; l < net.sizes.length; l++) {
+    const layer = out.layers[l - 1];
+    for (let j = 0; j < layer.weights.length; j++) {
+      for (let i = 0; i < layer.weights[j].length; i++) {
+        if (off.offConnections?.[l]?.[j]?.[i] || off.offNeurons?.[l - 1]?.[i]) layer.weights[j][i] = 0;
+      }
+    }
+  }
+  return out;
 }

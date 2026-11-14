@@ -139,3 +139,63 @@ saberse en todo momento qué está hecho.
 #### Scenario: Sin navegador
 - **WHEN** se entrena y se recorre paso a paso en un entorno sin DOM
 - **THEN** funciona y da los mismos resultados
+
+### Requirement: Aprender con partes apagadas
+La cuenta de aprender SHALL aceptar neuronas de entrada u ocultas y conexiones
+apagadas. Una neurona apagada vale cero y no recibe culpa; una conexión
+apagada no aporta a la suma ni lleva culpa hacia atrás. Lo apagado MUST NOT
+corregirse: los pesos que entran a una neurona apagada, su sesgo y el peso de
+una conexión apagada quedan como estaban. Sin nada apagado, el resultado MUST
+ser idéntico al de la cuenta sin esta opción.
+
+#### Scenario: Neurona oculta apagada
+- **WHEN** una neurona oculta está apagada y la red aprende de un ejemplo
+- **THEN** su valor es cero, su culpa es cero, y no cambian sus pesos de entrada, su sesgo ni los pesos que salen de ella
+
+#### Scenario: Entrada apagada
+- **WHEN** una entrada está apagada
+- **THEN** la red calcula como si esa entrada valiera cero y los pesos que salen de ella no cambian
+
+#### Scenario: Conexión apagada
+- **WHEN** una conexión está apagada
+- **THEN** no aporta a la suma de su neurona, no lleva culpa hacia atrás y su peso no cambia
+
+#### Scenario: La corrección sigue achicando el error
+- **WHEN** se compara, con partes apagadas, la pendiente calculada de cada peso no apagado con la medida por diferencias finitas
+- **THEN** coinciden con la misma tolerancia que sin nada apagado
+
+#### Scenario: Sin nada apagado
+- **WHEN** no hay nada apagado
+- **THEN** cada valor, cada culpa y cada corrección es idéntico al de la cuenta de antes
+
+#### Scenario: Salida apagada
+- **WHEN** se pide apagar una neurona de salida
+- **THEN** la cuenta lo rechaza con un error que lo dice
+
+### Requirement: Cambios a mano durante el aprendizaje
+El recorrido del aprendizaje SHALL permitir, en cualquier momento, cambiar un
+peso o un sesgo y apagar o encender una neurona o una conexión. Si hay un
+ejemplo a medio recorrer, ese ejemplo MUST volver a empezar desde la ida con
+la red cambiada. El recorrido SHALL poder entregar una copia de la red con lo
+apagado y volver a ella después, sin cambiar la época ni la historia de
+errores.
+
+#### Scenario: Cambio entre dos ejemplos
+- **WHEN** se cambia un peso entre un ejemplo y el siguiente
+- **THEN** el ejemplo siguiente se calcula y se corrige con el peso nuevo
+
+#### Scenario: Cambio a mitad de un ejemplo
+- **WHEN** se cambia un peso con un ejemplo en la fase de la vuelta
+- **THEN** ese mismo ejemplo vuelve a la ida, calculado con el peso nuevo, y ninguna corrección del recorrido anterior se aplica
+
+#### Scenario: Volver a una copia
+- **WHEN** se guarda una copia, se hacen cambios, se aprenden diez épocas y se vuelve a la copia
+- **THEN** los pesos, los sesgos y lo apagado son los de la copia, y la época y la historia de errores siguen donde estaban
+
+#### Scenario: Valor que no es un número
+- **WHEN** se pide poner en un peso un valor que no es un número finito
+- **THEN** el recorrido lo rechaza y la red no cambia
+
+#### Scenario: Mismo resultado
+- **WHEN** se repiten los mismos cambios en los mismos momentos sobre la misma red, los mismos datos y la misma semilla
+- **THEN** la red y la historia de errores terminan idénticas

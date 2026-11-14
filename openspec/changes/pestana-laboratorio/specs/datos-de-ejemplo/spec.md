@@ -108,3 +108,31 @@ cada color.
 #### Scenario: Sin navegador
 - **WHEN** se generan, se separan y se resumen datos en un entorno sin DOM
 - **THEN** funciona
+
+### Requirement: Ejemplos evaluados
+Para una red y un conjunto de ejemplos SHALL poder obtenerse, por cada
+ejemplo, sus entradas, la respuesta correcta, la respuesta de la red, si
+acierta y si es de práctica o apartado, y un resumen con los aciertos de cada
+grupo. Acertar MUST contarse igual que en las curvas. La lista SHALL poder
+filtrarse por grupo y por los que fallan. Sin DOM: con la misma red y los
+mismos datos, el resultado es el mismo.
+
+#### Scenario: Punto acertado
+- **WHEN** la red contesta más de 0,5 para un punto cuya respuesta correcta es 1
+- **THEN** ese ejemplo figura como acertado
+
+#### Scenario: Ejemplo de manejo
+- **WHEN** la red coincide con el maestro en tres de los cuatro controles de un ejemplo
+- **THEN** ese ejemplo figura como fallado, y se informa qué control no coincide
+
+#### Scenario: Resumen igual al de las curvas
+- **WHEN** se evalúan todos los ejemplos al terminar una época
+- **THEN** los aciertos de práctica y de apartados del resumen son los mismos que esa época anota en la historia
+
+#### Scenario: Solo los que fallan
+- **WHEN** se filtra por los que fallan y por apartados
+- **THEN** la lista trae solo los ejemplos apartados que la red falla, con su número de ejemplo original
+
+#### Scenario: Con partes apagadas
+- **WHEN** la red tiene una neurona apagada
+- **THEN** la respuesta de cada ejemplo se calcula con esa neurona apagada

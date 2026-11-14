@@ -86,3 +86,41 @@ cumplen, antes de construir la interfaz.
 - [x] 10.5 Comprobar que las pestañas 1 a 5 no cambiaron: `npm test` completo y un recorrido corto de cada una. *`npm test` completo y las seis pestañas abiertas en el navegador sin errores en la consola.*
 - [x] 10.6 Correr `openspec validate pestana-laboratorio --strict` y `npm test`. Actualizar `PENDIENTES.md`: las seis pestañas hechas, lo que quedó fuera de alcance y lo que quedó sin medir.
 - [x] 10.7 Informe final que separe lo medido, lo observado en el navegador y lo que no se probó. *Entregado en `laboratorio-informe-final.md`, en la carpeta de notas de la sesión.*
+
+## 11. Núcleo: partes apagadas, cambios a mano y ejemplos evaluados
+
+- [x] 11.1 `off` opcional en la ida, la culpa y la corrección de `src/core/backprop.js`, con la forma de `applyChanges`. Pruebas de los escenarios de "Aprender con partes apagadas", incluida la comprobación por diferencias finitas con una neurona oculta, una entrada y una conexión apagadas, y que sin `off` los resultados son idénticos bit a bit a los de antes. *`tests/lab-manual.test.js`: diferencias finitas con una entrada, una oculta y una conexión apagadas en las tres activaciones y de 0 a 3 capas (más de 150 parámetros, diferencia relativa < 1e-3); sin `off`, valores, culpas, correcciones y `learnExample` idénticos bit a bit.*
+- [x] 11.2 `setWeight`, `setBias`, `setOff`, `snapshot` y `restore` en el recorrido de `src/core/learning-cursor.js`. Pruebas de los escenarios de "Cambios a mano durante el aprendizaje".
+- [x] 11.3 `evaluatedRows` y `filterRows`, sin DOM. Pruebas de los escenarios de "Ejemplos evaluados", incluido que el resumen coincide con la historia al terminar una época. *`evaluatedRows(net, examples, held, off)`: recibe todos los ejemplos y la marca de apartados en vez de práctica y apartados por separado, para conservar el número original de cada fila.*
+- [x] 11.4 Pila de cambios a mano (`src/tabs/lab/manual-changes.js`), lógica pura: un arrastre es un cambio, deshacer, restablecer, vaciar y el tope de 50. Con pruebas.
+- [x] 11.5 Guardar como cerebro con partes apagadas: pesos en cero. Prueba: el cerebro guardado decide igual que la red del Laboratorio en todos los ejemplos. *`bakeOff`: 500 entradas al azar por activación, mismas decisiones.*
+
+## 12. Tabla de datos
+
+- [ ] 12.1 Tercera vista "Tabla de datos" en la zona de la red, con lo que no sirve oculto en esa vista. Verificar los escenarios "Estado por defecto", "Lo que no sirve no se muestra" y "Volver al diagrama".
+- [ ] 12.2 La tabla con puntos y con tu manejo: columnas, resumen y solo las filas a la vista en el DOM. Verificar "Tabla con puntos", "Tabla con tu manejo", "Resumen", "Muchos ejemplos" y "Muchas entradas".
+- [ ] 12.3 Actualización: como mucho 5 veces por segundo corriendo, en el momento en pausa, nunca con la vista cerrada. Verificar "Se actualiza mientras aprende" y "En pausa".
+- [ ] 12.4 Los dos filtros y el texto de cuando no queda ninguna fila. Verificar "Solo los que falla", "Por grupo" y "Nada que mostrar".
+- [ ] 12.5 Fila del ejemplo en curso marcada y a la vista; fila elegida marcada en el plano. Verificar "Ejemplo en curso", "Elegir una fila" y "Cambiar los datos".
+- [ ] 12.6 Medir en el DOM la barra de arriba de la red con las tres vistas, con la zona en 600 px, en los dos idiomas, con puntos y con tu manejo. Si se parte en dos renglones o algo queda cortado, **detenerse y consultar** con las medidas.
+- [ ] 12.7 Medir el tiempo por cuadro (tick + dibujo, 120 cuadros) con la tabla abierta y 3600 ejemplos de manejo, a 10 y a 60 épocas por segundo, y compararlo con el de la tabla cerrada. Si el p95 pasa de 8 ms, **detenerse y consultar** con lo medido.
+- [ ] 12.8 Teclado, lector de pantalla y sin color. Verificar "Sin depender del color" y "Con el teclado".
+
+## 13. Cambiar la red a mano
+
+- [ ] 13.1 La tarjeta de la neurona pasa a `src/tabs/shared/` con opciones. Verificar que Inspeccionar se ve y funciona igual: sus pruebas pasan y su tarjeta mide lo mismo en el navegador.
+- [ ] 13.2 El Laboratorio abre sin neurona elegida; se elige con un clic y se deja de elegir con cerrar o con otro clic. El inspector acepta que no haya ninguna. Verificar "Sin neurona elegida" (delta de `inspector-de-red`), "Estado por defecto", "Elegir una neurona", "Dejar de elegir" y "La neurona deja de existir".
+- [ ] 13.3 Cambiar pesos y sesgo desde la tarjeta, con deslizador, campo y teclado. Verificar "Cambiar un peso en pausa", "Cambiar un peso mientras aprende", "El aprendizaje lo corrige", "Rango de un peso", "Escribir un valor", "Con el teclado" y "A mitad de un ejemplo".
+- [ ] 13.4 Apagar y encender neuronas y conexiones, con las marcas de Inspeccionar. Verificar "Apagar una neurona oculta", "Apagar una entrada", "Apagar una conexión", "Volver a encender", "Neurona de salida" y "Neurona de entrada".
+- [ ] 13.5 Contador, "Deshacer" y "Restablecer la red" sobre la red; el botón del panel pasa a llamarse "Red de siempre". Verificar los escenarios de "Deshacer y restablecer los cambios a mano", "Volver a la red de siempre" y "Dos botones con nombres distintos".
+- [ ] 13.6 Medir en el DOM a 1440×900 y a 1366×768, en los dos idiomas, el alto de la tarjeta y lo que queda del panel, con puntos y la red por defecto, con tres capas de 8, y con tu manejo. Verificar "Con una neurona elegida" y "Muchas entradas". Si con puntos y la red por defecto a 1440×900 la tarjeta no entra entera, o si con tu manejo quedan menos de 120 px para ella, **detenerse y consultar** con las medidas.
+- [ ] 13.7 Guardar con partes apagadas y estado conservado. Verificar "Guardar con partes apagadas" y "Cambios a mano conservados".
+
+## 14. Textos y verificación de lo agregado
+
+- [ ] 14.1 Textos de la tabla, la tarjeta y los botones en los dos idiomas, y un tooltip "qué hace / por qué importa" en cada control nuevo. Verificar "Tooltips de la tabla y de la tarjeta", `tests/i18n.test.js`, `tests/copy-length.test.js` y que `mlLab.auditTooltips()` no informa nada con la tabla abierta y con una neurona elegida.
+- [ ] 14.2 Repetir la medición de 10.1 (1440×900 y 1366×768, panel en mínimo, 360 y 400 px, dos idiomas, puntos y tu manejo), ahora también con la tabla de datos abierta y con una neurona elegida. Si a 1440×900 algo se desplaza, **detenerse y consultar**.
+- [ ] 14.3 Recorrer las dos filas nuevas del filtro de entrada en el navegador. Informar lo que no se cumpla.
+- [ ] 14.4 Comprobar que Inspeccionar no cambió: `npm test` completo y un recorrido corto con una neurona elegida, un peso cambiado y algo apagado.
+- [ ] 14.5 Correr `openspec validate pestana-laboratorio --strict` y `npm test`. Sumar al informe final lo medido, lo observado y lo que no se probó de estos grupos.
+

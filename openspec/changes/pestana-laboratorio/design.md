@@ -310,6 +310,113 @@ corrige."
 | Grupos | Práctica / Apartados | Practice / Held out |
 | Acciones | Reiniciar pesos, Guardar como cerebro, Grabar, Terminar | Reset weights, Save as brain, Record, Finish |
 
+### D14. Tabla de datos
+
+Pedido del dueño después de probar la pestaña: en su demo original había una
+tabla con los datos y, para la red del momento, qué filas se cumplían. "No
+sería algo prioritario de mostrar."
+
+- **Dónde:** tercera vista de la zona de la red, "Diagrama | Tabla de pesos |
+  Tabla de datos". Razones: no ocupa lugar si no se la pide; es la zona más
+  ancha (600 px o más), y con tu manejo hay una columna por sensor; y deja a
+  la vista, al lado, el plano y las curvas, que son la otra mitad de la
+  explicación. Descartado: el tablero (360 px no alcanzan para el manejo) y
+  una sección nueva del panel (ya está lleno).
+- **Lo que no sirve en esa vista se oculta:** filtro de conexiones, acercar
+  y "Resumir todas". Los cambios a mano (D15) siguen a la vista: valen para
+  la red en cualquier vista.
+- **Columnas con puntos:** n.º, x, y, correcto (marca de la clase y nombre),
+  la red dice (marca y número de 0 a 1), resultado (✓ o ✗), grupo.
+- **Columnas con tu manejo:** n.º, una por entrada (dos decimales), maestro y
+  red (las flechas de los controles apretados, como en "Ejemplo en curso"),
+  resultado, grupo. Si no entran, las entradas se desplazan con el n.º y el
+  resultado fijos.
+- **Arriba:** el resumen ("Acierta 187 de 200 · práctica 136 de 140 ·
+  apartados 51 de 60") y dos filtros de segmentos: "Todos | Los que falla" y
+  "Todos | Práctica | Apartados".
+- **Núcleo:** `evaluatedRows(net, practice, heldOut, off)` y
+  `filterRows(rows, { failing, group })`, sin DOM, en `src/core/datasets.js`
+  o un módulo vecino. Acertar usa `isCorrect`, la misma función de las
+  curvas.
+- **Dibujo:** una tabla de verdad (`<table>`, encabezados con `scope`), con
+  solo las filas a la vista en el DOM (filas de alto fijo y un relleno arriba
+  y abajo) y `aria-rowcount` / `aria-rowindex`.
+- **Cuándo se recalcula:** con la vista abierta, como mucho 5 veces por
+  segundo mientras corre; en el momento en pausa, tras un paso que corrige o
+  un cambio a mano. Con la vista cerrada, nunca.
+- **Rendimiento:** evaluar 3600 ejemplos es una pasada de ida por ejemplo
+  con una red chica; las curvas ya lo hacen una vez por época. [Sin medir]
+  que entre en el cuadro junto con el aprendizaje a 60 épocas por segundo.
+- **Fila elegida:** con puntos, un anillo en el plano (`plane-view` recibe
+  el índice). Con tu manejo no hay dónde marcarla: elegir no hace nada más
+  que marcar la fila.
+
+### D15. Cambiar la red a mano
+
+Pedido del dueño: "también podías modificar la red a mano, al igual que la
+tab 5". Estaba fuera de alcance; entra.
+
+- **Qué es un cambio acá.** En Inspeccionar los cambios son una capa de
+  prueba sobre un cerebro que no cambia. Acá no hay cerebro debajo: el cambio
+  va a la red que aprende, y el aprendizaje lo mueve desde ahí. Es el
+  experimento que vale: romper un peso y ver al error subir y volver a bajar.
+- **Apagar** es un estado que dura: la neurona vale cero, no recibe culpa y
+  no se corrige; al encenderla vuelve con los pesos que tenía. Vale para
+  entradas, ocultas y conexiones. No para salidas: con una salida apagada el
+  error no está definido, y el botón no se muestra.
+- **Núcleo.** Las funciones de `backprop.js` aceptan un `off` opcional con la
+  forma que ya usa `applyChanges` (`offNeurons[col][j]`,
+  `offConnections[l][j][i]`); sin él, el camino de antes, idéntico. El
+  recorrido suma `setWeight`, `setBias`, `setOff`, `snapshot()` y
+  `restore(snapshot)`. La comprobación por diferencias finitas se repite con
+  partes apagadas.
+- **Deshacer.** Una pila de copias (pesos y apagados) tomadas justo antes de
+  cada cambio, en `src/tabs/lab/manual-changes.js`, lógica pura con pruebas.
+  Un arrastre entero es una copia. Tope de 50; la copia de antes del primer
+  cambio se guarda aparte para "Restablecer la red". Deshacer no devuelve la
+  época ni las curvas: la curva muestra el salto, que es lo que pasó.
+  Descartado: volver también la época y las curvas (hay que guardar y
+  restaurar el orden de los ejemplos y el seguimiento del aviso, y la curva
+  dejaría de contar lo que la persona hizo).
+- **Sin marca de "cambiado a mano".** En Inspeccionar es un rombo; acá el
+  rombo es la culpa que viaja, y un peso cambiado deja de ser "el que
+  pusiste" en cuanto la red aprende. Lo apagado sí se marca, como en
+  Inspeccionar. El contador de arriba dice que hay cambios.
+- **Tarjeta.** La de Inspeccionar (`src/tabs/inspect/card.js`) pasa a
+  `src/tabs/shared/` con opciones, y el Laboratorio la usa compacta: una fila
+  por conexión (nombre, deslizador, campo, apagar), el sesgo y el botón de
+  apagar. Sin "Entrada a mano" ni el dibujo de la activación. Inspeccionar
+  tiene que verse igual que antes.
+- **Dónde va.** Al final del panel, debajo de las misiones, para que elegir
+  una neurona no mueva de lugar ningún ajuste. Medido en el navegador a
+  1440×900 con puntos: el contenido del panel termina a los 565 px y el
+  panel llega a los 884; quedan 319. A 1366×768 quedarían unos 190
+  (estimado, no medido). [Sin medir] el alto de la tarjeta compacta y cuánto
+  queda con tu manejo. Si no entra, la lista de pesos se desplaza dentro de la tarjeta.
+- **Elegir y dejar de elegir.** Hoy el Laboratorio abre con una neurona
+  elegida que no hace nada; pasa a abrir sin ninguna. Se deja de elegir con
+  el botón de cerrar de la tarjeta o con un clic en la misma neurona. El
+  clic en un lugar vacío sigue sin hacer nada, como dice `inspector-de-red`.
+- **Rango del deslizador:** −3 a 3 (en Inspeccionar es −1 a 1, porque esos
+  pesos vienen de la evolución; los de backpropagation pasan de 1 seguido).
+- **Guardar como cerebro** con partes apagadas: se guardan como pesos en
+  cero (los que salen de una neurona apagada, o el de la conexión apagada).
+
+### D16. Tres botones de volver atrás, tres nombres
+
+Con los cambios a mano, la pestaña tiene cuatro formas de volver atrás, y dos
+se llamaban igual. Quedan así:
+
+| Dónde | Botón | Qué hace |
+|---|---|---|
+| Barra de arriba | Restablecer | Los datos, a sus valores por defecto |
+| Panel | Reiniciar pesos (R) | Pesos al azar; vacía curvas y cambios a mano |
+| Panel | **Red de siempre** (antes "Restablecer la red") | Forma y tasa por defecto |
+| Sobre la red | Deshacer · Restablecer la red | Los cambios a mano, igual que en Inspeccionar |
+
+"Restablecer la red" queda con un solo significado en toda la aplicación:
+quitar los cambios hechos a mano.
+
 ## Risks / Trade-offs
 
 - **[Sin medir] Los valores por defecto.** Que una red de 4 neuronas aprenda
@@ -339,6 +446,20 @@ corrige."
 - **La palabra "culpa".** No es el término de los libros. → Es llana y dice
   lo que es; el tooltip nombra el término técnico. Si no convence, es un
   texto.
+
+- **[Sin medir] La tarjeta en el panel.** Quedan 319 px a 1440×900 con
+  puntos; no se sabe cuánto mide la tarjeta compacta ni cuánto queda con tu
+  manejo. → Se mide en la tarea 13.6; si con puntos y la red por defecto no
+  entra entera, se consulta.
+- **[Sin medir] Tres vistas en la barra de la red a 600 px.** Hoy con dos ya
+  está justa. → Se mide en la 12.6; si se parte en dos renglones, se
+  consulta con las medidas.
+- **[Sin medir] La tabla con 3600 ejemplos mientras aprende.** → Se mide el
+  tiempo por cuadro en la 12.7; el criterio está en la tarea.
+- **Deshacer pierde lo aprendido después del cambio.** Es lo que significa
+  volver a antes, pero puede sorprender. → El tooltip lo dice.
+- **Apagar no es el "abandono de neuronas" de los libros,** que apaga al
+  azar en cada ejemplo. → El tooltip no usa ese nombre.
 
 ## Migration Plan
 

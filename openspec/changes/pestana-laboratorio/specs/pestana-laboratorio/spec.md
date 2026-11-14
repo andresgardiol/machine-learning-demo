@@ -50,6 +50,14 @@ mismos anchos que Inspeccionar.
 - **WHEN** la persona busca cualquier ajuste del Laboratorio
 - **THEN** lo encuentra a la vista en la barra, sobre la red o en el panel, sin desplegar nada
 
+#### Scenario: Con una neurona elegida
+- **WHEN** la ventana está en 1440×900, los datos son puntos, la red es la por defecto y la persona elige una neurona oculta
+- **THEN** la tarjeta de la neurona se ve entera en el panel, sin desplazarlo y sin mover de lugar los ajustes de la red y del aprendizaje
+
+#### Scenario: Con la tabla de datos
+- **WHEN** la persona pasa a la tabla de datos
+- **THEN** la reproducción y la operación en curso siguen debajo, y el tablero y el panel no cambian
+
 ### Requirement: Elegir los datos
 La barra de arriba SHALL empezar por la clase de datos, puntos o tu manejo,
 y mostrar solo los ajustes de la clase elegida. Cambiar la clase o cualquier
@@ -300,9 +308,13 @@ zona grande.
 - **WHEN** la persona posa el cursor sobre la activación
 - **THEN** un tooltip explica qué es y que acá no está el escalón porque no tiene pendiente y el error no puede viajar hacia atrás
 
-#### Scenario: Restablecer la red
-- **WHEN** la persona restablece la red desde el panel
+#### Scenario: Volver a la red de siempre
+- **WHEN** la persona elige "Red de siempre" en el panel
 - **THEN** vuelve a una capa de 4 con tanh y la tasa por defecto
+
+#### Scenario: Dos botones con nombres distintos
+- **WHEN** la persona lee los botones del panel y los de arriba de la red
+- **THEN** "Red de siempre" vuelve a la forma por defecto y "Restablecer la red" quita los cambios a mano, y ningún otro botón lleva esos nombres
 
 ### Requirement: Tasa de aprendizaje
 El panel SHALL permitir cambiar la tasa de aprendizaje, cuánto se corrige cada
@@ -429,9 +441,219 @@ aprendió imitando. Guardar MUST NOT detener el aprendizaje.
 - **WHEN** los datos son puntos
 - **THEN** guardar como cerebro no se muestra
 
+#### Scenario: Guardar con partes apagadas
+- **WHEN** la persona guarda la red con una neurona o una conexión apagada
+- **THEN** el cerebro guardado decide igual que la red del Laboratorio en cada ejemplo, porque lo apagado se guarda como pesos en cero
+
 #### Scenario: No se pudo guardar
 - **WHEN** el almacenamiento del navegador falla
 - **THEN** un mensaje lo explica con palabras y el aprendizaje sigue
+
+### Requirement: Tabla de datos
+La zona de la red SHALL ofrecer una tercera vista, "Tabla de datos", junto a
+"Diagrama" y "Tabla de pesos": una fila por ejemplo con sus entradas, la
+respuesta correcta, lo que la red contesta ahora, si acierta y si es de
+práctica o apartado, y arriba cuántos acierta. La tabla MUST reflejar la red
+del momento. No es la vista por defecto.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña
+- **THEN** la zona grande muestra el diagrama, y "Tabla de datos" está a un clic junto a las otras dos vistas
+
+#### Scenario: Tabla con puntos
+- **WHEN** los datos son puntos y la persona abre la tabla de datos
+- **THEN** cada fila muestra el número del ejemplo, x, y, el color correcto, el color que dice la red con su número, si acierta y si es de práctica o apartado
+
+#### Scenario: Tabla con tu manejo
+- **WHEN** los datos son de manejo
+- **THEN** cada fila muestra una columna por sensor y la velocidad, los controles del maestro y los de la red con flechas, y acierta solo si coinciden los cuatro
+
+#### Scenario: Resumen
+- **WHEN** la tabla está a la vista
+- **THEN** arriba se lee cuántos ejemplos acierta la red del total, y cuántos de práctica y de apartados, con los mismos números que la línea de aciertos de las curvas
+
+#### Scenario: Se actualiza mientras aprende
+- **WHEN** el aprendizaje corre con la tabla a la vista
+- **THEN** las filas y el resumen cambian solos, al menos dos veces por segundo
+
+#### Scenario: En pausa
+- **WHEN** en pausa la persona avanza un paso que corrige pesos, o cambia la red a mano
+- **THEN** la tabla refleja la red nueva en el momento
+
+#### Scenario: Solo los que falla
+- **WHEN** la persona elige ver solo los que falla
+- **THEN** quedan las filas que la red no acierta ahora, y una fila sale de la lista cuando la red aprende a acertarla
+
+#### Scenario: Por grupo
+- **WHEN** la persona elige ver solo los apartados
+- **THEN** quedan las filas de los ejemplos de los que la red no aprende
+
+#### Scenario: Nada que mostrar
+- **WHEN** el filtro no deja ninguna fila
+- **THEN** en lugar de filas un texto dice por qué, por ejemplo que la red acierta todos los ejemplos
+
+#### Scenario: Ejemplo en curso
+- **WHEN** el aprendizaje avanza de a un ejemplo o menos
+- **THEN** la fila del ejemplo en curso está marcada, no solo con color, y la tabla la deja a la vista si el filtro la incluye
+
+#### Scenario: Elegir una fila
+- **WHEN** los datos son puntos y la persona elige una fila
+- **THEN** ese punto queda marcado en el plano, y elegirla de nuevo le quita la marca
+
+#### Scenario: Muchos ejemplos
+- **WHEN** hay 3600 ejemplos de manejo
+- **THEN** la tabla se desplaza por dentro con los encabezados fijos, y ninguna otra zona se desplaza
+
+#### Scenario: Muchas entradas
+- **WHEN** las columnas no entran en el ancho de la zona
+- **THEN** las columnas de entradas se desplazan hacia los costados dentro de la tabla, y el número del ejemplo y el resultado quedan fijos
+
+#### Scenario: Lo que no sirve no se muestra
+- **WHEN** la vista es la tabla de datos
+- **THEN** no se muestran el filtro de conexiones, los controles para acercar ni "Resumir todas", y vuelven al pasar al diagrama
+
+#### Scenario: Sin depender del color
+- **WHEN** la persona mira si una fila acierta o falla
+- **THEN** lo distingue por un signo, y un lector de pantalla lo lee con palabras
+
+#### Scenario: Con el teclado
+- **WHEN** la persona llega a la tabla con Tab y usa las flechas
+- **THEN** recorre las filas, puede elegir una, y un lector de pantalla lee cada valor con su encabezado
+
+#### Scenario: Volver al diagrama
+- **WHEN** la persona vuelve al diagrama
+- **THEN** lo encuentra como lo dejó, con el mismo acercamiento y las mismas capas resumidas
+
+#### Scenario: Cambiar los datos
+- **WHEN** la persona cambia la forma de los puntos con la tabla a la vista
+- **THEN** la tabla muestra los datos nuevos, conserva el filtro y ninguna fila queda elegida
+
+### Requirement: Cambiar la red a mano
+Al elegir una neurona, el panel SHALL mostrar su tarjeta: el peso de cada
+conexión de entrada y el sesgo, para cambiar con un deslizador o escribiendo,
+y apagar o encender la neurona y cada conexión. El cambio MUST aplicarse a la
+red que aprende y verse en el momento, y el aprendizaje sigue desde ahí. Sin
+neurona elegida, la tarjeta no se muestra.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña
+- **THEN** no hay ninguna neurona elegida y el panel muestra solo los ajustes de siempre
+
+#### Scenario: Elegir una neurona
+- **WHEN** la persona hace clic en una neurona oculta
+- **THEN** al final del panel aparece su tarjeta, con su nombre y su capa, una fila por conexión de entrada con el peso de ahora, y su sesgo
+
+#### Scenario: Cambiar un peso en pausa
+- **WHEN** en pausa la persona mueve el deslizador de un peso
+- **THEN** mientras lo mueve cambian el fondo del plano, los valores de la red, la tabla de datos y la línea de aciertos, y las curvas no suman ningún punto
+
+#### Scenario: Cambiar un peso mientras aprende
+- **WHEN** la persona cambia un peso con el aprendizaje corriendo
+- **THEN** la red sigue aprendiendo desde ese valor, y la tarjeta muestra cómo el aprendizaje lo sigue moviendo
+
+#### Scenario: El aprendizaje lo corrige
+- **WHEN** la persona lleva un peso de una red ya aprendida a un extremo y deja correr
+- **THEN** el error sube en la curva y, con las épocas, vuelve a bajar
+
+#### Scenario: Rango de un peso
+- **WHEN** la persona lleva el deslizador a un extremo
+- **THEN** el peso queda en −3 o en 3, salvo que su valor estuviera más lejos, y en ese caso el rango llega hasta ahí
+
+#### Scenario: Escribir un valor
+- **WHEN** la persona escribe un número en el campo de un peso
+- **THEN** el peso toma ese valor; si lo escrito no es un número, el peso queda como estaba y un texto lo dice
+
+#### Scenario: Con el teclado
+- **WHEN** la persona pone el foco en el deslizador de un peso y usa las flechas
+- **THEN** el peso cambia de a 0,01 y el efecto se ve igual
+
+#### Scenario: Apagar una neurona oculta
+- **WHEN** la persona apaga una neurona oculta
+- **THEN** se ve apagada como en Inspeccionar, vale cero, el plano cambia en el momento y el aprendizaje sigue sin corregirla
+
+#### Scenario: Apagar una entrada
+- **WHEN** los datos son puntos y la persona apaga la entrada x
+- **THEN** el fondo del plano pasa a depender solo de y: se ve en franjas horizontales
+
+#### Scenario: Apagar una conexión
+- **WHEN** la persona apaga una conexión desde su fila de la tarjeta
+- **THEN** la fila y la conexión se ven apagadas y el aprendizaje deja de corregir ese peso
+
+#### Scenario: Volver a encender
+- **WHEN** la persona vuelve a encender lo que apagó
+- **THEN** vuelve con los pesos que tenía al apagarlo y el aprendizaje los corrige otra vez
+
+#### Scenario: Neurona de salida
+- **WHEN** la persona elige una neurona de salida
+- **THEN** puede cambiar sus pesos y su sesgo, y apagarla no se ofrece
+
+#### Scenario: Neurona de entrada
+- **WHEN** la persona elige una neurona de entrada
+- **THEN** la tarjeta ofrece apagarla o encenderla y dice que una entrada no tiene pesos propios
+
+#### Scenario: A mitad de un ejemplo
+- **WHEN** la persona cambia un peso con un ejemplo a medio recorrer paso a paso
+- **THEN** ese ejemplo vuelve a empezar desde la ida y la operación en curso lo dice
+
+#### Scenario: Muchas entradas
+- **WHEN** la neurona elegida tiene más conexiones de las que entran en lo que queda del panel
+- **THEN** la lista de pesos se desplaza dentro de la tarjeta y el panel no se desplaza
+
+#### Scenario: Dejar de elegir
+- **WHEN** la persona cierra la tarjeta o hace clic otra vez en la neurona elegida
+- **THEN** ninguna neurona queda elegida, la tarjeta desaparece y el panel queda como al abrir
+
+#### Scenario: La neurona deja de existir
+- **WHEN** la persona arma una red sin la neurona que estaba elegida
+- **THEN** la tarjeta se cierra
+
+### Requirement: Deshacer y restablecer los cambios a mano
+Sobre la red SHALL haber, siempre a la vista y en el lugar que tienen en
+Inspeccionar, cuántos cambios a mano hay, "Deshacer" y "Restablecer la red".
+Deshacer MUST devolver la red a los pesos y a lo apagado que tenía justo antes
+del último cambio a mano; restablecer, a los de antes del primero. La época y
+las curvas no vuelven atrás. Sin cambios, los dos se ven sin acción y lo
+explican.
+
+#### Scenario: Sin cambios
+- **WHEN** la persona no cambió nada a mano
+- **THEN** se lee "Sin cambios", y "Deshacer" y "Restablecer la red" están a la vista, sin acción, con un tooltip que dice que no hay cambios a mano
+
+#### Scenario: Contar los cambios
+- **WHEN** la persona apaga una neurona y cambia dos pesos
+- **THEN** sobre la red se lee que hay 3 cambios a mano y los dos botones quedan habilitados
+
+#### Scenario: Un arrastre es un cambio
+- **WHEN** la persona arrastra el deslizador de un peso de una punta a la otra y lo suelta
+- **THEN** cuenta como un solo cambio
+
+#### Scenario: Deshacer en pausa
+- **WHEN** en pausa la persona cambia un peso y deshace
+- **THEN** el peso vuelve al valor exacto que tenía, y el plano y la tabla vuelven a verse como antes
+
+#### Scenario: Deshacer después de aprender
+- **WHEN** la persona cambia un peso, deja aprender veinte épocas y deshace
+- **THEN** la red vuelve a los pesos de justo antes del cambio, se pierde lo aprendido desde entonces, y la época y las curvas siguen desde donde estaban
+
+#### Scenario: Deshacer lo avisa
+- **WHEN** la persona posa el cursor sobre "Deshacer" con cambios hechos
+- **THEN** el tooltip dice que la red vuelve a como estaba antes del último cambio a mano y que lo aprendido después se pierde
+
+#### Scenario: Deshacer varias veces
+- **WHEN** la persona hizo cuatro cambios y deshace cuatro veces
+- **THEN** la red queda como estaba antes del primero y se lee "Sin cambios"
+
+#### Scenario: Restablecer
+- **WHEN** la persona restablece la red
+- **THEN** los pesos y lo apagado vuelven a los de antes del primer cambio a mano, sin pedir confirmación, y se lee "Sin cambios"
+
+#### Scenario: Empezar de nuevo vacía los cambios
+- **WHEN** la persona reinicia los pesos, arma otra red o cambia los datos
+- **THEN** todo vuelve a estar encendido y se lee "Sin cambios"
+
+#### Scenario: Muchos cambios
+- **WHEN** la persona hace más de 50 cambios a mano
+- **THEN** se pueden deshacer los últimos 50, y restablecer sigue volviendo a antes del primero
 
 ### Requirement: Guía y misiones del Laboratorio
 Con la guía activa, el panel SHALL empezar con un texto breve que diga qué se
@@ -465,8 +687,9 @@ que aprendió a manejar imitando. Las misiones MUST NOT bloquear nada.
 
 ### Requirement: Estado conservado en el Laboratorio
 Al salir de la pestaña y volver, la pestaña SHALL conservar los datos, la red
-con lo aprendido, las curvas, los ajustes, el ritmo y los ejemplos grabados,
-hasta cerrar la aplicación. El aprendizaje MUST quedar en pausa mientras la
+con lo aprendido y sus cambios a mano, las curvas, los ajustes, el ritmo, la
+vista elegida con sus filtros y los ejemplos grabados, hasta cerrar la
+aplicación. El aprendizaje MUST quedar en pausa mientras la
 pestaña no está a la vista.
 
 #### Scenario: Volver a la pestaña
@@ -476,6 +699,10 @@ pestaña no está a la vista.
 #### Scenario: Pausa al salir
 - **WHEN** la persona abre otra pestaña con el aprendizaje en marcha
 - **THEN** el aprendizaje no avanza hasta que vuelve
+
+#### Scenario: Cambios a mano conservados
+- **WHEN** la persona apaga una neurona, pasa a la tabla de datos filtrada por los que falla, abre Competir y vuelve
+- **THEN** encuentra la neurona apagada, el contador de cambios, la tabla de datos y su filtro como los dejó
 
 ### Requirement: Atajos del Laboratorio
 La pestaña SHALL usar los atajos de las demás con el mismo significado:
@@ -511,6 +738,10 @@ con el teclado. Los avisos que cambian solos MUST anunciarse una vez.
 #### Scenario: Pestaña en inglés
 - **WHEN** la aplicación está en inglés
 - **THEN** la guía, la barra, la reproducción, la operación en curso, los avisos y las misiones se muestran en inglés
+
+#### Scenario: Tooltips de la tabla y de la tarjeta
+- **WHEN** la persona posa el cursor sobre "Tabla de datos", sobre sus filtros o sobre un control de la tarjeta de la neurona
+- **THEN** un tooltip dice qué hace y por qué importa, en español o en inglés
 
 #### Scenario: Auditoría de tooltips
 - **WHEN** se corre la auditoría de tooltips con puntos y con tu manejo, en pausa, reproduciendo y grabando

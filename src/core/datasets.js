@@ -12,6 +12,7 @@ import { createRandom, deriveSeed } from './random.js';
 import { createWorld } from './world.js';
 import { sensorConfig, DEFAULT_SENSORS } from './sensors.js';
 import { STEP } from './constants.js';
+import { forwardValues, isCorrect } from './backprop.js';
 
 export const POINT_SHAPES = Object.freeze(['blobs', 'circle', 'xor', 'spiral']);
 export const POINT_LIMITS = Object.freeze({
@@ -263,4 +264,41 @@ export function summary(data, split = null) {
   };
   if (data.kind === 'driving') out.controls = Object.fromEntries(DRIVING_OUTPUTS.map((k, i) => [k, shares[i]]));
   return out;
+}
+
+// --- Ejemplos evaluados (pestana-laboratorio D14) ---------------------------------------------------
+
+/**
+ * Cada ejemplo con lo que contesta la red: { index, inputs, targets, outputs, correct, mismatched,
+ * group }. `index` es su número en los datos (desde 0); `mismatched`, las salidas que quedan del lado
+ * equivocado de 0,5; `group`, 'practice' o 'heldOut'. Acertar se cuenta con isCorrect, como en las
+ * curvas. Devuelve también el resumen: { correct, count, practice: {correct, count}, heldOut: {…} }.
+ * @param {object} net
+ * @param {{inputs:number[], targets:number[]}[]} examples todos los ejemplos, en su orden
+ * @param {boolean[]} held cuáles están apartados
+ * @param {object|null} [off] lo apagado (ver backprop.js)
+ */
+export function evaluatedRows(net, examples, held, off = null) {
+  const rows = new Array(examples.length);
+  const summary = { correct: 0, count: examples.length, practice: { correct: 0, count: 0 }, heldOut: { correct: 0, count: 0 } };
+  for (let i = 0; i < examples.length; i++) {
+    const ex = examples[i];
+    const outputs = forwardValues(net, ex.inputs, off).outputs;
+    const correct = isCorrect(outputs, ex.targets);
+    const mismatched = [];
+    for (let k = 0; k < outputs.length; k++) if ((outputs[k] > 0.5) !== (ex.targets[k] >= 0.5)) mismatched.push(k);
+    const group = held[i] ? 'heldOut' : 'practice';
+    rows[i] = { index: i, inputs: ex.inputs, targets: ex.targets, outputs, correct, mismatched, group };
+    summary[group].count += 1;
+    if (correct) { summary.correct += 1; summary[group].correct += 1; }
+  }
+  return { rows, summary };
+}
+
+/**
+ * Filas que pasan el filtro: `failing` deja solo las que la red falla; `group` ('all', 'practice' o
+ * 'heldOut') deja las de ese grupo. Las filas conservan su número original.
+ */
+export function filterRows(rows, { failing = false, group = 'all' } = {}) {
+  return rows.filter((r) => (!failing || !r.correct) && (group === 'all' || r.group === group));
 }

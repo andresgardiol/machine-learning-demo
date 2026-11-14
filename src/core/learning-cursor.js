@@ -94,11 +94,11 @@ export function createExampleCursor(shape) {
 }
 
 /** La cuenta entera de un ejemplo: ida, error, vuelta y corrección (sin aplicarla). */
-export function exampleDetail(net, example, rate) {
-  const forward = forwardSoft(net, example.inputs);
+export function exampleDetail(net, example, rate, off = null) {
+  const forward = forwardSoft(net, example.inputs, off);
   const error = exampleError(forward.outputs, example.targets);
-  const back = backward(net, forward, example.targets);
-  const corr = corrections(net, forward, back.deltas, rate);
+  const back = backward(net, forward, example.targets, off);
+  const corr = corrections(net, forward, back.deltas, rate, off);
   return { forward, error, backward: back, corrections: corr, rate };
 }
 
@@ -123,13 +123,23 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
   let warn = { active: false, since: null, appearances: 0 }; // aviso de sobreajuste (no es fijo)
   const events = []; // { epoch, kind: 'appeared' | 'retired' }
   const size = practice.length;
+  // Lo apagado a mano (pestana-laboratorio D15), con la forma de applyChanges.
+  const emptyOff = () => ({
+    offNeurons: net.sizes.map((n) => new Array(n).fill(false)),
+    offConnections: net.sizes.map((n, l) => (l === 0 ? [] : Array.from({ length: n }, () => new Array(net.sizes[l - 1]).fill(false)))),
+  });
+  let offState = emptyOff();
+  const copyOff = (o) => ({ offNeurons: o.offNeurons.map((r) => r.slice()), offConnections: o.offConnections.map((L) => L.map((r) => r.slice())) });
+  const anyOff = () => offState.offNeurons.some((r) => r.some(Boolean)) || offState.offConnections.some((L) => L.some((r) => r.some(Boolean)));
+  /** Lo apagado para la cuenta, o null si no hay nada (así la cuenta es exactamente la de siempre). */
+  const offArg = () => (anyOff() ? offState : null);
 
   const ensureOrder = () => { if (!order) order = shuffledOrder(size, randomFor(seed, epoch + 1)); };
 
   function finishEpoch() {
     epoch += 1;
-    const p = evaluate(net, practice);
-    const h = evaluate(net, heldOut);
+    const p = evaluate(net, practice, offArg());
+    const h = evaluate(net, heldOut, offArg());
     history.push({ epoch, practice: p, heldOut: h });
     const w = trackWarning(warn, history);
     warn = w.state;
@@ -152,23 +162,93 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
     const index = order[nextIndex];
     nextIndex += 1;
     const example = practice[index];
-    active = { index, order: nextIndex - 1, epoch: epoch + 1, example, detail: exampleDetail(net, example, currentRate), cursor: createExampleCursor(net.sizes), done: false, original: net };
+    active = { index, order: nextIndex - 1, epoch: epoch + 1, example, detail: exampleDetail(net, example, currentRate, offArg()), cursor: createExampleCursor(net.sizes), done: false, original: net };
   }
 
   /** De corrido: aprende con los ejemplos que faltan de la época, en el lugar (sin la cuenta desglosada). */
   function runRestOfEpoch() {
     ensureOrder();
     const work = copyNetwork(net);
+    const off = offArg();
     for (let k = nextIndex; k < size; k++) {
       const ex = practice[order[k]];
-      learnExample(work, ex.inputs, ex.targets, currentRate);
+      learnExample(work, ex.inputs, ex.targets, currentRate, off);
     }
     net = work;
     nextIndex = size;
     finishEpoch();
   }
 
+  /** Después de un cambio a mano: el ejemplo a medio recorrer vuelve a empezar desde la ida. */
+  function changed() {
+    if (active && !active.done) {
+      active.original = net;
+      active.detail = exampleDetail(net, active.example, active.detail.rate, offArg());
+      active.cursor.reset();
+      active.restarted = true;
+    } else if (active && active.done) {
+      active = null; // el ejemplo terminado ya no corresponde a la red cambiada
+    }
+  }
+  const finite = (v) => typeof v === 'number' && Number.isFinite(v);
+  const inRange = (l, j) => Number.isInteger(l) && l >= 0 && l < net.sizes.length && Number.isInteger(j) && j >= 0 && j < net.sizes[l];
+
   const run = {
+    /** Cambia a mano el peso de la conexión i → j de la columna l. Devuelve false si no cambia nada. */
+    setWeight(l, j, i, value) {
+      if (!finite(value) || l < 1 || !inRange(l, j) || !(i >= 0 && i < net.sizes[l - 1])) return false;
+      if (net.layers[l - 1].weights[j][i] === value) return false;
+      const next = copyNetwork(net);
+      next.layers[l - 1].weights[j][i] = value;
+      net = next;
+      changed();
+      return true;
+    },
+    /** Cambia a mano el sesgo de la neurona j de la columna l. */
+    setBias(l, j, value) {
+      if (!finite(value) || l < 1 || !inRange(l, j)) return false;
+      if (net.layers[l - 1].biases[j] === value) return false;
+      const next = copyNetwork(net);
+      next.layers[l - 1].biases[j] = value;
+      net = next;
+      changed();
+      return true;
+    },
+    /**
+     * Apaga o enciende: { kind: 'neuron', layer, neuron } o { kind: 'connection', layer, neuron, input }.
+     * Las salidas no se apagan. Encender devuelve los pesos de siempre: apagar no los toca.
+     */
+    setOff({ kind, layer, neuron, input }, value) {
+      const v = Boolean(value);
+      if (kind === 'neuron') {
+        if (!inRange(layer, neuron)) return false;
+        if (layer === net.sizes.length - 1) throw new Error('outputOff');
+        if (offState.offNeurons[layer][neuron] === v) return false;
+        offState = copyOff(offState);
+        offState.offNeurons[layer][neuron] = v;
+      } else if (kind === 'connection') {
+        if (layer < 1 || !inRange(layer, neuron) || !(input >= 0 && input < net.sizes[layer - 1])) return false;
+        if (offState.offConnections[layer][neuron][input] === v) return false;
+        offState = copyOff(offState);
+        offState.offConnections[layer][neuron][input] = v;
+      } else return false;
+      changed();
+      return true;
+    },
+    /** ¿Está apagada esa neurona (o esa conexión, con `input`)? */
+    isOff(layer, neuron, input = null) {
+      return input === null ? Boolean(offState.offNeurons[layer]?.[neuron]) : Boolean(offState.offConnections[layer]?.[neuron]?.[input]);
+    },
+    /** Lo apagado ahora, o null si no hay nada apagado. */
+    get off() { return offArg(); },
+    /** Copia de la red y de lo apagado, para volver a ella (deshacer). */
+    snapshot() { return { network: copyNetwork(net), off: copyOff(offState) }; },
+    /** Vuelve a una copia: los pesos y lo apagado; la época y la historia siguen donde estaban. */
+    restore(snap) {
+      net = copyNetwork(snap.network);
+      offState = copyOff(snap.off);
+      changed();
+    },
     /**
      * Avanza un paso del tamaño `size`. Devuelve { size, units: [{phase, layer, neuron}] hechas en
      * este paso, exampleDone, epochDone }.

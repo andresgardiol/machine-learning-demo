@@ -51,3 +51,16 @@ movimiento.
 #### Scenario: Menos movimiento
 - **WHEN** el sistema pide menos movimiento
 - **THEN** nada viaja: cada paso se marca con un cambio de estado
+
+### Requirement: Sin neurona elegida
+El inspector SHALL poder mostrar la red sin ninguna neurona elegida cuando la
+pestaña que lo usa se lo pide: ninguna conexión se destaca ni se atenúa por
+elección. En Inspeccionar MUST seguir habiendo siempre una elegida, como hoy.
+
+#### Scenario: Nada elegido
+- **WHEN** la pestaña le pasa al inspector que no hay neurona elegida
+- **THEN** todas las conexiones se ven con su grosor y su trazo de siempre, y ninguna neurona lleva la marca de elegida
+
+#### Scenario: Inspeccionar no cambia
+- **WHEN** se abre Inspeccionar
+- **THEN** hay una neurona elegida y su tarjeta está a la vista, como antes
