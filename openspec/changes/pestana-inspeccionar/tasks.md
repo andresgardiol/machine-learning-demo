@@ -68,9 +68,9 @@ que se puede usar; se puede cortar al final de cualquiera.
 
 ## 9. Guía, misiones y textos
 
-- [ ] 9.1 Guía en el panel, leyenda en el tablero y misiones en tres renglones (design.md D12 y D14), con la lógica de las misiones probada sin DOM. Verificar los escenarios de "Guía, leyenda y misiones" cumpliendo las tres de verdad, y medir que las misiones ocupan tres renglones a 360 px en los dos idiomas.
-- [ ] 9.2 Textos de design.md D15 y todos los demás en los dos idiomas. Verificar `tests/copy-length.test.js`, `tests/i18n.test.js` y el escenario "Pestaña en inglés".
-- [ ] 9.3 Tooltips "qué hace / por qué importa" de cada control, con las definiciones de sesgo, activación y tabla de pesos. Verificar los escenarios de tooltip y que `mlLab.auditTooltips()` no informa nada en pausa y reproduciendo, con y sin cambios.
+- [x] 9.1 Guía en el panel, leyenda en el tablero y misiones en tres renglones (design.md D12 y D14), con la lógica de las misiones probada sin DOM. Verificar los escenarios de "Guía, leyenda y misiones" cumpliendo las tres de verdad, y medir que las misiones ocupan tres renglones a 360 px en los dos idiomas.
+- [x] 9.2 Textos de design.md D15 y todos los demás en los dos idiomas. Verificar `tests/copy-length.test.js`, `tests/i18n.test.js` y el escenario "Pestaña en inglés".
+- [x] 9.3 Tooltips "qué hace / por qué importa" de cada control, con las definiciones de sesgo, activación y tabla de pesos. Verificar los escenarios de tooltip y que `mlLab.auditTooltips()` no informa nada en pausa y reproduciendo, con y sin cambios.
 
 ## 10. Accesibilidad
 
