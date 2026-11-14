@@ -251,7 +251,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     const { sizes, trace } = state;
     const cursor = state.cursor ?? null;
     const collapsed = state.collapsed ?? [];
-    layout = layoutInspector({ sizes, width: viewport.width, height: viewport.height, collapsed });
+    layout = layoutInspector({ sizes, width: viewport.width, height: viewport.height, collapsed, headerRows: state.headerRows ?? 1 });
     camera.update(target(), viewport);
     const z = camera.zoom;
     const r = Math.min(40, layout.radius * z);

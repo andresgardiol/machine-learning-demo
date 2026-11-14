@@ -947,9 +947,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); min-width: 0; }
 .inspect-net-title { flex: 1 1 140px; min-width: 0; margin: 0; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inspect-label { font-size: 13px; color: var(--color-text-muted); margin-right: var(--space-1); white-space: nowrap; }
-.inspect-filter, .inspect-size { display: inline-flex; align-items: center; }
+.inspect-filter, .inspect-size { display: inline-flex; flex-wrap: wrap; align-items: center; }
 .inspect-controls .segment, .inspect-playbar .segment { min-width: 28px; min-height: 26px; padding: 2px 6px; font-size: 13px; white-space: nowrap; }
-.inspect-edits { display: inline-flex; align-items: center; gap: var(--space-1); flex: 1 1 auto; min-width: 0; }
+.inspect-edits { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); flex: 1 1 auto; min-width: 0; }
 .inspect-changes { font-size: 13px; color: var(--color-text-muted); white-space: nowrap; }
 .inspect-changes[data-changed="true"] { color: var(--color-network-changed); font-weight: 700; }
 .inspect-changes[data-changed="true"]::before { content: "◆ "; }

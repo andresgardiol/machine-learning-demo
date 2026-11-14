@@ -35,7 +35,7 @@ que se puede usar; se puede cortar al final de cualquiera.
 - [x] 4.5 Operación en curso (design.md D7c): `describeStep` con pruebas en los dos idiomas y la franja entre la red y la reproducción. Verificar los escenarios de "Operación en curso", con 4 y con 21 entradas.
 - [ ] 4.6 Medir la fluidez durante una ola de una capa con la red más grande, reproduciendo de a capas a 10 pasos por segundo. Si baja de 55 cuadros por segundo, **detenerse y consultar** con lo medido.
 - [x] 4.7 Atajos (design.md D13), con su prueba. Verificar los escenarios de "Atajos de la pestaña".
-- [ ] 4.8 Medir la barra de reproducción con la zona de la red a 520 px y a su ancho por defecto, en los dos idiomas (escenario "Barra de reproducción angosta").
+- [ ] 4.8 Medir la barra de reproducción con la zona de la red a 600 px y a su ancho por defecto, en los dos idiomas (escenario "Barra de reproducción angosta").
 
 ## 5. La cuenta de una neurona
 
@@ -47,10 +47,10 @@ que se puede usar; se puede cortar al final de cualquiera.
 
 ## 6. Tabla de pesos y capas resumidas
 
-- [ ] 6.1 Tabla de pesos (design.md D6) y elección de vista sobre la red. Verificar los escenarios de "Dos vistas de la misma red" y "Vista de la red a la vista".
-- [ ] 6.2 Actividad, elección y paso a paso en la tabla. Verificar los escenarios "Elegir en la tabla" y los de "Actividad en el momento" con la tabla a la vista.
-- [ ] 6.3 Encabezado arriba de cada capa, en la red misma, que la resume o la abre; capas resumidas como cuadritos, para entradas, ocultas y salidas; y "Resumir todas" / "Abrir todas", en las dos vistas. Verificar los escenarios de "Capas resumidas", con la red más grande y con la más chica, y que los encabezados siguen a su capa al acercar y mover la vista.
-- [ ] 6.4 Filtro de conexiones (design.md D6b): función pura en el núcleo con sus pruebas (incluidos el empate, menos entradas que el filtro y un peso cambiado), control sobre la red, y efecto en el diagrama, la tabla y la tarjeta. Verificar los escenarios de "Conexiones más importantes" y "Con el filtro de conexiones".
+- [x] 6.1 Tabla de pesos (design.md D6) y elección de vista sobre la red. Verificar los escenarios de "Dos vistas de la misma red" y "Vista de la red a la vista".
+- [x] 6.2 Actividad, elección y paso a paso en la tabla. Verificar los escenarios "Elegir en la tabla" y los de "Actividad en el momento" con la tabla a la vista.
+- [x] 6.3 Encabezado arriba de cada capa, en la red misma, que la resume o la abre; capas resumidas como cuadritos, para entradas, ocultas y salidas; y "Resumir todas" / "Abrir todas", en las dos vistas. Verificar los escenarios de "Capas resumidas", con la red más grande y con la más chica, y que los encabezados siguen a su capa al acercar y mover la vista.
+- [x] 6.4 Filtro de conexiones (design.md D6b): función pura en el núcleo con sus pruebas (incluidos el empate, menos entradas que el filtro y un peso cambiado), control sobre la red, y efecto en el diagrama, la tabla y la tarjeta. Verificar los escenarios de "Conexiones más importantes" y "Con el filtro de conexiones".
 - [ ] 6.5 Medir los controles de arriba de la red con la zona en su ancho mínimo y en su ancho por defecto, en los dos idiomas. Si pasan de dos renglones o algún texto se corta, **detenerse y consultar** con una captura.
 - [ ] 6.6 Medir la fluidez del escenario "Red más grande, tabla". Si no llega a 55 cuadros por segundo, **detenerse y consultar** con lo medido.
 

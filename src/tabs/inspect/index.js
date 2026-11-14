@@ -417,7 +417,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     focusNeuron(to);
   }
   function labelNeuron(b, l, j) {
-    const trace = traceNow();
+    const trace = displayed.trace ?? traceNow();
     const n = trace.layers[l].neurons[j];
     const c = displayed.cursor;
     const value = l === 0 || !c || c.opsDone(l, j) === 4 ? fmt(n.output) : t('inspect.aria.pending');
@@ -574,6 +574,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Sincronizar y dibujar
   // ==================================================================================================
   const displayed = { cursor: null, trace: null };
+  let labelTick = 0;
+  let headerRows = 1; // encabezados de capa en uno o dos renglones (escalonados si no entran)
   let layoutKey = '';
   const write = (n, text) => { if (n.textContent !== text) n.textContent = text; };
   const show = (n, visible) => { if (n.hidden === Boolean(visible)) n.hidden = !visible; };
@@ -646,9 +648,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       sizes: net.sizes, trace, cursor: shownCursor, selected: state.selected, collapsed: state.collapsed, top, marks,
       manual: state.manual ? state.manual.map((v) => v !== null) : null,
     };
-    inspector.render({ ...common, animation: anim, visible: state.view === 'diagram' });
+    inspector.render({ ...common, animation: anim, visible: state.view === 'diagram', headerRows });
     table.render({ ...common, visible: state.view === 'table', changesVersion: changes.version, filter: state.filter });
     placeOverlay();
+    // Nombres accesibles de las neuronas (capa, nombre, valor y estado): dos veces por segundo.
+    if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
 
     // Operación en curso: en pausa y al reproducir de a capas, neuronas u operaciones (D7c).
     show(opStrip, !realTime);
@@ -705,11 +709,6 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
 
   /** Encabezados de capa y botones de neuronas sobre el diagrama, en su lugar. */
   function placeOverlay() {
-    const layout = inspector.layout;
-    if (!layout || layout.columns.length !== net.sizes.length) return; // todavía con la red anterior
-    const vp = inspector.viewport;
-    const cam = inspector.camera;
-    const key = `${vp.width}x${vp.height}|${cam.zoom}|${cam.center.x},${cam.center.y}|${state.collapsed.join()}|${state.view}|${i18n.language}`;
     // Encabezados (también en la tabla): nombre, cuántas neuronas y si está abierta o resumida.
     net.sizes.forEach((count, l) => {
       const collapsed = Boolean(state.collapsed[l]);
@@ -719,19 +718,29 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         write(h.querySelector('.inspect-layer-name'), name);
         write(h.querySelector('.inspect-layer-mark'), collapsed ? '▸' : '▾');
         setAttr(h, 'aria-expanded', String(!collapsed));
-        setAttr(h, 'aria-label', t(collapsed ? 'inspect.layer.head.collapsed' : 'inspect.layer.head.open', { name, value: count }));
-        setData(h, 'collapsed', String(collapsed));
+        setAttr(h, 'aria-label', t(collapsed ? 'inspect.layer.head.collapsed' : 'inspect.layer.head.open', { name: layerName(t, l, net.sizes.length), value: count }));
+        setData(h, 'collapsed', collapsed);
       }
     });
+    const layout = inspector.layout;
+    if (!layout || layout.columns.length !== net.sizes.length) return; // todavía con la red anterior
+    const vp = inspector.viewport;
+    const cam = inspector.camera;
+    const key = `${vp.width}x${vp.height}|${cam.zoom}|${cam.center.x},${cam.center.y}|${state.collapsed.join()}|${state.view}|${i18n.language}`;
     if (key === layoutKey || state.view !== 'diagram') return;
     layoutKey = key;
+    // Sigue a su columna y queda a la vista, pegado al borde de arriba. Si dos vecinos no entran en
+    // un renglón, van escalonados en dos (y la red baja un renglón).
+    const xs = net.sizes.map((_, l) => inspector.columnScreenX(l));
+    const ws = headerButtons.map((h) => h.offsetWidth || 80);
+    const lefts = xs.map((x, l) => Math.max(2, Math.min(vp.width - ws[l] - 2, x - ws[l] / 2)));
+    const crowded = lefts.some((x, l) => l > 0 && x < lefts[l - 1] + ws[l - 1] + 4);
+    const rows = crowded ? 2 : 1;
+    if (rows !== headerRows) { headerRows = rows; layoutKey = ''; }
     net.sizes.forEach((_, l) => {
-      const h = headerButtons[l];
-      const x = inspector.columnScreenX(l);
-      const w = h.offsetWidth || 80;
-      // Sigue a su columna y queda a la vista, pegado al borde de arriba.
-      const left = Math.max(2, Math.min(vp.width - w - 2, x - w / 2));
-      h.style.transform = `translate(${Math.round(left)}px, 4px)`;
+      const left = lefts[l];
+      const top = rows === 2 && l % 2 === 1 ? 32 : 4;
+      headerButtons[l].style.transform = `translate(${Math.round(left)}px, ${top}px)`;
     });
     const r = inspector.radius;
     neuronButtons.forEach((row, l) => row.forEach((b, j) => {

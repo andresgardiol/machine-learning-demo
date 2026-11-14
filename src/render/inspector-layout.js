@@ -10,6 +10,7 @@ import { LAYOUT, OUTPUT_KEYS } from './network-view.js';
 
 export const INSPECTOR_LAYOUT = Object.freeze({
   header: 34, // alto reservado arriba para los encabezados de capa
+  headerRow: 28, // alto de un segundo renglón de encabezados, si no entran en uno
   maxRadius: 16,
   minRadius: 2,
   square: 14, // lado máximo de un cuadrito de una capa resumida
@@ -21,13 +22,15 @@ export const INSPECTOR_LAYOUT = Object.freeze({
 });
 
 /**
- * @param {{sizes:number[], width:number, height:number, collapsed?:boolean[]}} spec
+ * @param {{sizes:number[], width:number, height:number, collapsed?:boolean[], headerRows?:1|2}} spec
+ *   headerRows: con encabezados en dos renglones (escalonados, si no entran en uno), la red baja un renglón.
  * @returns {{columns:{x:number, collapsed:boolean, side:number, nodes:{x:number,y:number}[]}[],
  *   radius:number, inputLabels:object[], outputLabels:object[], width:number, height:number, top:number, bottom:number}}
  */
-export function layoutInspector({ sizes, width, height, collapsed = [] }) {
+export function layoutInspector({ sizes, width, height, collapsed = [], headerRows = 1 }) {
   const { padding, minLabelGap } = LAYOUT;
-  const { header, maxRadius, minRadius, square, collapsedWidth, collapsedGapWeight, labelLeft, labelRight } = INSPECTOR_LAYOUT;
+  const header = INSPECTOR_LAYOUT.header + (headerRows > 1 ? INSPECTOR_LAYOUT.headerRow : 0);
+  const { maxRadius, minRadius, square, collapsedWidth, collapsedGapWeight, labelLeft, labelRight } = INSPECTOR_LAYOUT;
   const isCollapsed = (c) => Boolean(collapsed[c]);
   const left = isCollapsed(0) ? collapsedWidth + padding : labelLeft;
   const right = Math.max(left + 1, width - (isCollapsed(sizes.length - 1) ? collapsedWidth + padding : labelRight));
