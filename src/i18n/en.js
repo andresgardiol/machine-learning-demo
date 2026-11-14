@@ -1029,8 +1029,8 @@ export default {
   'inspect.view.diagram': 'Diagram',
   'help.inspect.view.diagram.what': 'Shows the network as a layered diagram: each circle is a neuron and each line, a connection with its weight.',
   'help.inspect.view.diagram.why': 'You see at a glance how information flows, from the sensors to the controls.',
-  'inspect.view.table': 'Weight table',
-  'help.inspect.view.table.what': 'Shows the same weights as numbers: one table per layer, with a row per neuron and a column per input. Its technical name is weight matrix.',
+  'inspect.view.table': 'Weights',
+  'help.inspect.view.table.what': 'Shows the weight table: the same weights as numbers, one table per layer, with a row per neuron and a column per input. Its technical name is weight matrix.',
   'help.inspect.view.table.why': 'With a large network it reads better: the drawing and the table are the same thing, numbers arranged by layers.',
   'inspect.filter.label': 'Connections',
   'help.inspect.filter.what': 'Chooses which connections stand out: all of them, or just the 5, the 3 or the single most important one of each neuron. The rest look very faint.',
@@ -1530,8 +1530,8 @@ export default {
   'lab.mission.save': 'Save an imitating brain',
 
   // Laboratorio: tabla de datos (pestana-laboratorio D14)
-  'lab.view.data': 'Data table',
-  'help.lab.view.data.what': 'Shows the examples in a table: inputs, right answer, what the network answers now and whether it is right.',
+  'lab.view.data': 'Data',
+  'help.lab.view.data.what': 'Shows the data table: inputs, right answer, what the network answers now and whether it is right.',
   'help.lab.view.data.why': 'You see example by example what the network learned and which ones it still gets wrong.',
   'lab.dt.caption': 'Examples with the network’s answer',
   'help.lab.dt.table.what': 'The list of examples. Use the arrows to move through the rows; Enter selects one.',

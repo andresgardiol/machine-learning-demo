@@ -246,3 +246,13 @@ test('plano: el fondo sigue a la red; al aprender cada punto queda sobre el fond
   assert.equal(cellShade(g[0]).cls, 'b');
   assert.ok(cellShade(0.99).alpha > 0.9 && cellShade(0.5).alpha < 0.01);
 });
+
+test('curvas: con miles de épocas se dibujan como mucho unos 300 puntos, con la última y la marcada', async () => {
+  const { chartPoints, CHART_MAX_POINTS } = await import('../src/tabs/lab/index.js');
+  const h = Array.from({ length: 5000 }, (_, k) => ({ epoch: k + 1 }));
+  const p = chartPoints(h, 4321);
+  assert.ok(p.length <= CHART_MAX_POINTS + 2);
+  assert.equal(p.at(-1).epoch, 5000);
+  assert.ok(p.some((e) => e.epoch === 4321));
+  assert.equal(chartPoints(h.slice(0, 50)).length, 50);
+});

@@ -1047,7 +1047,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const key = `${session.version}:${h.length}:${Boolean(warn)}:${i18n.language}`;
     if (key !== chartKey) {
       chartKey = key;
-      chart.update(h.map((e) => ({ generation: e.epoch, best: e.practice.loss, average: e.heldOut.loss ?? 0, fitness: 'loss' })), { marker: warn ? o.bestEpoch : null });
+      chart.update(chartPoints(h, warn ? o.bestEpoch : null).map((e) => ({ generation: e.epoch, best: e.practice.loss, average: e.heldOut.loss ?? 0, fitness: 'loss' })), { marker: warn ? o.bestEpoch : null });
       const last = h[h.length - 1];
       write(stats, last ? t('lab.stats', { epoch: last.epoch, practice: pct(last.practice.accuracy), heldOut: pct(last.heldOut.accuracy) }) : t('lab.stats.none'));
       show(warning, Boolean(warn));
@@ -1197,6 +1197,20 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       stage.classList.remove('inspect-stage', 'lab-stage');
     },
   };
+}
+
+/** Puntos que dibuja el gráfico de curvas (como mucho). Con más épocas, se toma una de cada tantas. */
+export const CHART_MAX_POINTS = 300;
+
+/**
+ * Épocas que se dibujan: todas si son pocas; si no, una de cada `ceil(n / CHART_MAX_POINTS)`, más la
+ * última y la marcada (la mejor época). Así el gráfico cuesta lo mismo a la época 50 que a la 5000:
+ * con miles de épocas, dibujarlas todas bajaba la pestaña a 12 cuadros por segundo (medido).
+ */
+export function chartPoints(history, marker = null, max = CHART_MAX_POINTS) {
+  if (history.length <= max) return history;
+  const stride = Math.ceil(history.length / max);
+  return history.filter((e, k) => k % stride === 0 || k === history.length - 1 || e.epoch === marker);
 }
 
 /** Miniatura de una forma de puntos (para la barra): unos puntos de cada clase. */

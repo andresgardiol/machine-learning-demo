@@ -1221,7 +1221,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .lab-dt-table thead th { position: sticky; top: 0; z-index: 2; background: var(--color-surface-2); color: var(--color-text-muted); font-weight: 600; }
 .lab-dt-table .lab-dt-n { position: sticky; left: 0; z-index: 1; background: var(--color-surface); text-align: right; font-weight: 400; }
 .lab-dt-table thead .lab-dt-n, .lab-dt-table thead .lab-dt-result { z-index: 3; background: var(--color-surface-2); }
-.lab-dt-table .lab-dt-result { position: sticky; right: 0; z-index: 1; background: var(--color-surface); text-align: center; font-weight: 700; }
+.lab-dt-table .lab-dt-group { position: sticky; right: 0; z-index: 1; width: 64px; min-width: 64px; max-width: 64px; background: var(--color-surface); overflow: hidden; text-overflow: ellipsis; }
+.lab-dt-table .lab-dt-result { position: sticky; right: 64px; z-index: 1; width: 52px; min-width: 52px; background: var(--color-surface); text-align: center; font-weight: 700; }
+.lab-dt-table thead .lab-dt-group { z-index: 3; background: var(--color-surface-2); }
 .lab-dt-pad td { padding: 0; border: 0; height: auto; }
 .lab-dt-row { cursor: pointer; }
 .lab-dt-row[data-correct="false"] .lab-dt-result { color: var(--color-car-crashed); }

@@ -316,8 +316,14 @@ Pedido del dueño después de probar la pestaña: en su demo original había una
 tabla con los datos y, para la red del momento, qué filas se cumplían. "No
 sería algo prioritario de mostrar."
 
-- **Dónde:** tercera vista de la zona de la red, "Diagrama | Tabla de pesos |
-  Tabla de datos". Razones: no ocupa lugar si no se la pide; es la zona más
+- **Dónde:** tercera vista de la zona de la red, "Diagrama | Pesos | Datos"
+  ("Diagram | Weights | Data"). Los rótulos son cortos, en las dos pestañas
+  (Inspeccionar pasa a "Diagrama | Pesos"), por lo medido en la tarea 12.6: con
+  los nombres largos las tres vistas miden 281 px y, junto al título y al
+  filtro de conexiones, no entran en los 584 px de la fila con la zona en 600
+  px. Es la misma vista de la misma red en las dos pestañas, así que se llama
+  igual. Los tooltips conservan el nombre completo y el término: "tabla de
+  pesos" (matriz de pesos) y "tabla de datos". Razones de la ubicación: no ocupa lugar si no se la pide; es la zona más
   ancha (600 px o más), y con tu manejo hay una columna por sensor; y deja a
   la vista, al lado, el plano y las curvas, que son la otra mitad de la
   explicación. Descartado: el tablero (360 px no alcanzan para el manejo) y

@@ -450,15 +450,16 @@ aprendió imitando. Guardar MUST NOT detener el aprendizaje.
 - **THEN** un mensaje lo explica con palabras y el aprendizaje sigue
 
 ### Requirement: Tabla de datos
-La zona de la red SHALL ofrecer una tercera vista, "Tabla de datos", junto a
-"Diagrama" y "Tabla de pesos": una fila por ejemplo con sus entradas, la
+La zona de la red SHALL ofrecer una tercera vista, la tabla de datos, con el
+rótulo "Datos", junto a "Diagrama" y "Pesos" (la tabla de pesos); sus tooltips
+nombran "tabla de datos" y "tabla de pesos": una fila por ejemplo con sus entradas, la
 respuesta correcta, lo que la red contesta ahora, si acierta y si es de
 práctica o apartado, y arriba cuántos acierta. La tabla MUST reflejar la red
 del momento. No es la vista por defecto.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña
-- **THEN** la zona grande muestra el diagrama, y "Tabla de datos" está a un clic junto a las otras dos vistas
+- **THEN** la zona grande muestra el diagrama, y "Datos" está a un clic junto a "Diagrama" y "Pesos"
 
 #### Scenario: Tabla con puntos
 - **WHEN** los datos son puntos y la persona abre la tabla de datos
@@ -740,7 +741,7 @@ con el teclado. Los avisos que cambian solos MUST anunciarse una vez.
 - **THEN** la guía, la barra, la reproducción, la operación en curso, los avisos y las misiones se muestran en inglés
 
 #### Scenario: Tooltips de la tabla y de la tarjeta
-- **WHEN** la persona posa el cursor sobre "Tabla de datos", sobre sus filtros o sobre un control de la tarjeta de la neurona
+- **WHEN** la persona posa el cursor sobre "Datos", sobre los filtros de la tabla de datos o sobre un control de la tarjeta de la neurona
 - **THEN** un tooltip dice qué hace y por qué importa, en español o en inglés
 
 #### Scenario: Auditoría de tooltips

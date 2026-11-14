@@ -1029,8 +1029,8 @@ export default {
   'inspect.view.diagram': 'Diagrama',
   'help.inspect.view.diagram.what': 'Muestra la red como un diagrama por capas: cada círculo es una neurona y cada línea, una conexión con su peso.',
   'help.inspect.view.diagram.why': 'Se ve de un vistazo por dónde pasa la información, de los sensores a los controles.',
-  'inspect.view.table': 'Tabla de pesos',
-  'help.inspect.view.table.what': 'Muestra los mismos pesos como números: una tabla por capa, con una fila por neurona y una columna por entrada. Su nombre técnico es matriz de pesos.',
+  'inspect.view.table': 'Pesos',
+  'help.inspect.view.table.what': 'Muestra la tabla de pesos: los mismos pesos como números, una tabla por capa, con una fila por neurona y una columna por entrada. Su nombre técnico es matriz de pesos.',
   'help.inspect.view.table.why': 'Con una red grande se lee mejor: el dibujo y la tabla son lo mismo, números ordenados por capas.',
   'inspect.filter.label': 'Conexiones',
   'help.inspect.filter.what': 'Elige qué conexiones se destacan: todas, o solo las 5, las 3 o la más importante de cada neurona. Las demás se ven muy tenues.',
@@ -1530,8 +1530,8 @@ export default {
   'lab.mission.save': 'Guardá un cerebro imitador',
 
   // Laboratorio: tabla de datos (pestana-laboratorio D14)
-  'lab.view.data': 'Tabla de datos',
-  'help.lab.view.data.what': 'Muestra los ejemplos en una tabla: entradas, respuesta correcta, lo que contesta la red ahora y si acierta.',
+  'lab.view.data': 'Datos',
+  'help.lab.view.data.what': 'Muestra la tabla de datos: entradas, respuesta correcta, lo que contesta la red ahora y si acierta.',
   'help.lab.view.data.why': 'Se ve ejemplo por ejemplo qué aprendió la red y cuáles todavía falla.',
   'lab.dt.caption': 'Ejemplos con la respuesta de la red',
   'help.lab.dt.table.what': 'La lista de ejemplos. Con las flechas se recorren las filas; Enter elige una.',
