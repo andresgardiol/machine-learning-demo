@@ -74,3 +74,34 @@ test('Salir del tooltip: sin volver al control, se cierra ya; volviendo al contr
   assert.equal(pointerLeaveAction({ from: 'tooltip', toControl: false, toTooltip: false }), 'now');
   assert.equal(pointerLeaveAction({ from: 'tooltip', toControl: true, toTooltip: false }), 'keep');
 });
+
+// --- tooltips-con-calma -----------------------------------------------------------------------------
+import { SHOW_DELAY_MS, pressAction } from '../src/ui/tooltips.js';
+
+test('con calma: la espera al posar el cursor es de 0,7 s', () => {
+  assert.equal(SHOW_DELAY_MS, 700);
+});
+
+test('con calma: apretado (callado) o con un botón del mouse apretado, no aparece al posar el cursor', () => {
+  const base = { cause: 'hover', writingArea: false, keyboard: false };
+  assert.equal(opensTooltip({ ...base, silenced: true }), false);
+  assert.equal(opensTooltip({ ...base, buttonDown: true }), false);
+  assert.equal(opensTooltip({ ...base }), true);
+});
+
+test('guía apagada: no aparece al posar el cursor, salvo el interruptor de guía y un control sin acción', () => {
+  const base = { cause: 'hover', writingArea: false, keyboard: false, guide: false };
+  assert.equal(opensTooltip(base), false);
+  assert.equal(opensTooltip({ ...base, guideSwitch: true }), true);
+  assert.equal(opensTooltip({ ...base, unavailable: true }), true);
+  assert.equal(opensTooltip({ ...base, guide: true }), true);
+});
+
+test('guía apagada: con Tab sigue apareciendo', () => {
+  assert.equal(opensTooltip({ cause: 'focus', writingArea: false, keyboard: true, focusVisible: true, guide: false }), true);
+});
+
+test('apretar un control sin acción lo explica; apretar cualquier otro lo calla', () => {
+  assert.equal(pressAction({ unavailable: true }), 'explain');
+  assert.equal(pressAction({ unavailable: false }), 'silence');
+});

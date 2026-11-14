@@ -2,13 +2,13 @@
 
 ## 1. Lógica
 
-- [ ] 1.1 Ampliar las funciones puras de `src/ui/tooltips.js` para decidir con la guía, el control sin acción, el interruptor de guía y "recién apretado". Pruebas en `tests/tooltips.test.js` de cada escenario de "Aparición y cierre del tooltip", "Tooltips con la guía apagada" y "Apretar un control sin acción lo explica". Las pruebas existentes pasan sin tocarlas, salvo la constante de la espera.
-- [ ] 1.2 `pointerdown` cierra o cancela el tooltip del control y lo deja callado hasta que el cursor salga; con un botón del mouse apretado no se arma ninguno; `pointerdown` en un control sin acción lo muestra en el momento.
-- [ ] 1.3 Espera de 700 ms. `installTooltips` recibe el estado de la guía desde `src/ui/app.js` y lo consulta en cada decisión, sin recargar.
+- [x] 1.1 Ampliar las funciones puras de `src/ui/tooltips.js` para decidir con la guía, el control sin acción, el interruptor de guía y "recién apretado". Pruebas en `tests/tooltips.test.js` de cada escenario de "Aparición y cierre del tooltip", "Tooltips con la guía apagada" y "Apretar un control sin acción lo explica". Las pruebas existentes pasan sin tocarlas, salvo la constante de la espera. *`opensTooltip` suma `guide`, `unavailable`, `guideSwitch`, `silenced` y `buttonDown` con valores por defecto que dan lo de antes; `pressAction`. Las pruebas existentes pasan sin tocarlas; 5 pruebas nuevas.*
+- [x] 1.2 `pointerdown` cierra o cancela el tooltip del control y lo deja callado hasta que el cursor salga; con un botón del mouse apretado no se arma ninguno; `pointerdown` en un control sin acción lo muestra en el momento.
+- [x] 1.3 Espera de 700 ms. `installTooltips` recibe el estado de la guía desde `src/ui/app.js` y lo consulta en cada decisión, sin recargar. *`installTooltips({ guideOn })`; `src/main.js` le pasa la guía del estado de la app, que se consulta en cada decisión.*
 
 ## 2. Textos
 
-- [ ] 2.1 Tooltip del interruptor "Guía" en español y en inglés, con lo que dice design.md D3. Verificar `tests/i18n.test.js` y `tests/copy-length.test.js`.
+- [x] 2.1 Tooltip del interruptor "Guía" en español y en inglés, con lo que dice design.md D3. Verificar `tests/i18n.test.js` y `tests/copy-length.test.js`.
 
 ## 3. Verificación en el navegador
 

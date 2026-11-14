@@ -38,8 +38,11 @@ i18n.onChange((lang) => {
   document.title = i18n.t('app.title');
   i18n.translateTree(document.body);
 });
-const tooltips = installTooltips({ doc: document, i18n });
-const app = createApp({ root: document.getElementById('app'), tabs: TABS, i18n, preferences });
+// La guía gobierna también los tooltips al posar el cursor (tooltips-con-calma D3): se consulta en cada
+// decisión, así encenderla o apagarla vale en el momento.
+let app = null;
+const tooltips = installTooltips({ doc: document, i18n, guideOn: () => (app ? app.store.get().guide !== false : true) });
+app = createApp({ root: document.getElementById('app'), tabs: TABS, i18n, preferences });
 
 // Ayudas para la verificación manual desde la consola del navegador.
 window.mlLab = {
