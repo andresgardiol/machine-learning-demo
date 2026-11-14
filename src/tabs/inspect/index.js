@@ -52,6 +52,12 @@ export const RETRY_TICKS = 60;
 export const FILTERS = Object.freeze(['all', 5, 3, 1]);
 /** Vistas de la red. */
 export const VIEWS = Object.freeze(['diagram', 'table']);
+/**
+ * Anchos propios (D1): por defecto la red toma todo lo que dejan el tablero en 360 px y el panel; no
+ * baja de 600 px; si no hay lugar, el tablero cede primero (hasta 240 px, un mínimo propio de esta
+ * pestaña); y su ancho se recuerda aparte del de las demás pestañas.
+ */
+export const ZONES = Object.freeze({ stageMin: 600, stageDefault: 'rest', boardMin: 240, preference: 'inspectStageWidth' });
 
 // --- Estado conservado entre montajes ------------------------------------------------------------
 let state = null;
@@ -138,6 +144,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     state.connection = null;
     state.manual = null;
     state.settings = settings ?? barDefaults();
+    displayed.trace = null; // la cuenta mostrada era de la red anterior
     buildWorld();
   }
 
@@ -450,7 +457,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     focusNeuron(to);
   }
   function labelNeuron(b, l, j) {
-    const trace = displayed.trace ?? traceNow();
+    // La cuenta del último cuadro, si es de esta red (después de cambiar de cerebro, todavía no).
+    const last = displayed.trace;
+    const trace = last && last.layers.length === net.sizes.length && last.layers.every((L, k) => L.neurons.length === net.sizes[k]) ? last : traceNow();
     const n = trace.layers[l].neurons[j];
     const c = displayed.cursor;
     const value = l === 0 || !c || c.opsDone(l, j) === 4 ? fmt(n.output) : t('inspect.aria.pending');

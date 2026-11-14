@@ -37,15 +37,9 @@ El resto de las notas de este archivo no tiene orden fijo.
     1,1 a 1,3 ms de mediana, tabla 0,7 ms, ola de una capa a 10 pasos por
     segundo 1,1 ms (p95 2,3 ms). Falta medir diez segundos de cuadros por
     segundo en cada caso (mínimo 55).
-  - Consultados al dueño, sin respuesta al cerrar el cambio: el ancho de las
-    zonas (con los anchos de siempre la red tiene 400 px y el tablero 668), los
-    controles de arriba de la red (cuatro renglones entre 400 y 520 px de zona,
-    seis o siete en 260) y el redondeo de la tarjeta (sumar a mano lo que se ve
-    da el total mostrado en el 42 % de los casos).
   - Con 20 sensores en la escena chica de 340 × 220, las manijas vecinas quedan
-    a 6 px: se agarra la más cercana, pero no miden 24 px sin encimarse.
-  - A 1366 × 768, con el panel en 300 o 360 px, el tablero se desplaza en
-    vertical (escena, decisión y leyenda no entran con el tablero ancho).
+    a 6 px: se agarra la más cercana, pero no miden 24 px sin encimarse (el
+    deslizador de la tarjeta de la entrada es la alternativa).
   - Fuera de alcance, para Laboratorio o más adelante: guardar una red
     modificada como cerebro, comparar dos redes, mapas de respuesta, agregar o
     quitar neuronas, seguir en vivo un entrenamiento y una tercera vista con

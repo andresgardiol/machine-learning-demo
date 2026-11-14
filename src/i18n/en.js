@@ -1236,7 +1236,7 @@ export default {
   'help.inspect.term.bias.why': 'With the same input total, two neurons with different biases decide differently.',
   'help.inspect.term.activation.what': 'The activation function turns the total into what the neuron gives: step (0 or 1), sigmoid, tanh or ReLU. The chart shows where it lands.',
   'help.inspect.term.activation.why': 'It is the part that decides how much the neuron lights up; without it, the network would only add.',
-  'inspect.card.rounding': 'Numbers with two decimals; totals use the full numbers.',
+  'inspect.card.rounding': 'Numbers rounded to two decimals.',
   'help.inspect.card.rounding.what': 'Each number shows two decimals, but the sum and the total are computed with the full numbers and rounded at the end.',
   'help.inspect.card.rounding.why': 'If you add up what you see by hand, it may differ in the last decimal: it is the rounding, not a mistake.',
   'inspect.card.others': 'Other {count}',

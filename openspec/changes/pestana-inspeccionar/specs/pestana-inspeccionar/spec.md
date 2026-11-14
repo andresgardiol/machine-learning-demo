@@ -50,6 +50,10 @@ conservan los divisores para cambiarles el ancho.
 - **WHEN** la persona mueve el divisor para agrandar la zona de la red
 - **THEN** la red crece y la escena conserva su proporción
 
+#### Scenario: La red no se achica de más
+- **WHEN** la persona mueve el divisor para achicar la zona de la red
+- **THEN** la red no baja de 600 píxeles de ancho, y sus controles de arriba siguen en dos renglones
+
 #### Scenario: Anchos propios
 - **WHEN** la persona cambia el ancho de la red en Inspeccionar y pasa a otra pestaña
 - **THEN** la otra pestaña conserva sus anchos, e Inspeccionar recuerda el suyo al volver
@@ -242,8 +246,12 @@ actualizarse en el momento. Nunca MUST quedar vacía.
 - **THEN** la tarjeta muestra seis filas, una por sensor y una por la velocidad, y al pie la suma, el sesgo, la activación con su nombre y la salida
 
 #### Scenario: Cuenta que se puede comprobar
-- **WHEN** la persona suma a mano los productos de la tarjeta y le agrega el sesgo
-- **THEN** obtiene el total que muestra la tarjeta, con los decimales que se ven
+- **WHEN** la persona suma a mano los productos de la tarjeta, con los dos decimales que se ven, y le agrega el sesgo
+- **THEN** obtiene el total que muestra la tarjeta o un número que difiere solo por el redondeo de cada término, y la tarjeta dice a la vista que los números están redondeados a dos decimales
+
+#### Scenario: El total es el de verdad
+- **WHEN** se compara el total que muestra la tarjeta con el que usa la red para decidir
+- **THEN** es el mismo número, redondeado recién al mostrarlo
 
 #### Scenario: Neurona de salida
 - **WHEN** la persona elige la salida de doblar a la izquierda
@@ -497,9 +505,9 @@ que la aplicación permita.
 - **WHEN** se abre la pestaña con la ventana en 1440×900, en español o en inglés
 - **THEN** se ven sin desplazar la red con sus controles, la barra de reproducción, la escena, la decisión y el panel entero, con la tarjeta de la neurona adentro
 
-#### Scenario: Barra de reproducción angosta
-- **WHEN** la zona de la red mide 520 píxeles de ancho
-- **THEN** la barra de reproducción pasa a dos renglones, con todos sus controles enteros
+#### Scenario: Zona de la red en su mínimo
+- **WHEN** la zona de la red mide 600 píxeles de ancho, en español o en inglés
+- **THEN** los controles de arriba ocupan dos renglones y la barra de reproducción otros dos, con todo entero
 
 #### Scenario: Panel en su ancho mínimo
 - **WHEN** el panel está en su ancho mínimo

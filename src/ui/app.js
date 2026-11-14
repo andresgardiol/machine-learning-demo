@@ -171,6 +171,10 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   };
   const shown = { stage: chosen.stage, panel: chosen.panel };
   let hasBoard = false; // la pestaña montada puso contenido en el tablero
+  // Zona izquierda propia de la pestaña montada (pestana-inspeccionar D1): { stageMin, stageDefault,
+  // preference } que la pestaña declara en su módulo como ZONES; null para las que usan los anchos comunes.
+  let zoneSpec = null;
+  const commonStage = () => preferences.stageWidth ?? ZONES.stage.default;
   // Ancho de la app (el de la ventana): se lee del elemento observado para no depender del orden de los avisos.
   const windowWidth = () => shell.clientWidth || window.innerWidth;
   const mode = () => layoutMode(windowWidth(), hasBoard);
@@ -184,9 +188,9 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
 
   /** Límites del panel según la disposición: con tablero a lo ancho, también cuida al tablero y al escenario. */
   const panelRange = () => (mode() === 'wide'
-    ? panelLimits(shown.stage, windowWidth())
+    ? panelLimits(shown.stage, windowWidth(), zoneSpec ?? {})
     : { min: PANEL_WIDTH.min, max: maxPanelWidth(windowWidth()) });
-  const stageRange = () => stageLimits(shown.panel, windowWidth());
+  const stageRange = () => stageLimits(shown.panel, windowWidth(), zoneSpec ?? {});
 
   function refreshAria() {
     setAria(splitter, shown.panel, panelRange());
@@ -201,7 +205,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     shell.dataset.board = hasBoard ? 'on' : 'off';
     shell.dataset.layout = layoutMode(W, true);
     if (m === 'wide') {
-      const z = fitZones(chosen, W);
+      const z = fitZones(chosen, W, zoneSpec ?? {});
       shown.stage = z.stage;
       shown.panel = z.panel;
       setVar('--stage-width', shown.stage);
@@ -223,8 +227,9 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
    * doble clic (ancho inicial). `grows` es el lado hacia el que la zona crece: 'right' para el
    * escenario y 'left' para el panel. El ancho se guarda solo al soltar o al usar el teclado.
    */
-  function makeSplitter({ node, read, limits, apply, save, defaultWidth, grows }) {
+  function makeSplitter({ node, read, limits, apply, save, defaultWidth: givenDefault, grows }) {
     const sign = grows === 'right' ? 1 : -1;
+    const defaultWidth = () => (typeof givenDefault === 'function' ? givenDefault() : givenDefault);
     const set = (width, { persist = false } = {}) => {
       apply(clampTo(width, limits()));
       refreshAria();
@@ -256,7 +261,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
         ArrowLeft: read() - sign * ZONES.step,
         Home: min,
         End: max,
-        Enter: defaultWidth,
+        Enter: defaultWidth(),
       };
       if (!(e.key in by)) return;
       e.preventDefault();
@@ -266,7 +271,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     node.addEventListener('pointermove', onMove);
     node.addEventListener('pointerup', onUp);
     node.addEventListener('pointercancel', onUp);
-    node.addEventListener('dblclick', () => set(defaultWidth, { persist: true }));
+    node.addEventListener('dblclick', () => set(defaultWidth(), { persist: true }));
     node.addEventListener('keydown', onKey);
   }
 
@@ -275,8 +280,13 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     read: () => shown.stage,
     limits: stageRange,
     apply: (w) => { shown.stage = w; setVar('--stage-width', w); },
-    save: (w) => { chosen.stage = w; preferences.stageWidth = w; },
-    defaultWidth: ZONES.stage.default,
+    save: (w) => {
+      chosen.stage = w;
+      if (zoneSpec) preferences[zoneSpec.preference] = w;
+      else preferences.stageWidth = w;
+    },
+    // Enter y doble clic: el ancho inicial de la pestaña (en Inspeccionar, todo lo que sobra).
+    defaultWidth: () => (zoneSpec ? fitZones({ stage: null, panel: shown.panel }, windowWidth(), zoneSpec).stage : ZONES.stage.default),
     grows: 'right',
   });
   makeSplitter({
@@ -332,6 +342,8 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     board.replaceChildren();
     panel.replaceChildren();
     barZone.replaceChildren();
+    zoneSpec = tab.module.ZONES ?? null;
+    chosen.stage = zoneSpec ? (preferences[zoneSpec.preference] ?? null) : commonStage();
     const instance = tab.module.mount(ctxFor());
     active = { id, instance };
     layout();
@@ -348,6 +360,8 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     board.replaceChildren();
     panel.replaceChildren();
     barZone.replaceChildren();
+    zoneSpec = null;
+    chosen.stage = commonStage();
     layout();
   }
 

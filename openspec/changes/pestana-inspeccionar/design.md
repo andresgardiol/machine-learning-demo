@@ -78,6 +78,11 @@ izquierda, aparte del de las demás pestañas, que no cambian. Los divisores
 funcionan igual. (El primer borrador daba por hecho que la zona izquierda
 era la más ancha; lo midió la sub-sesión.)
 
+En Inspeccionar la zona de la red tiene su propio mínimo, 600 px, y el
+tablero cede primero. **Medido:** con 708 px los controles de arriba ocupan
+dos renglones (69 px); con 520 o 400 px, cuatro; con 260 px, el mínimo de las
+otras pestañas, seis o siete, y la red queda casi sin lugar.
+
 - **Zona izquierda, la red:** arriba, dos renglones de controles que no
   dependen del tamaño de la red: el nombre del cerebro, la vista, el filtro
   de conexiones, "Resumir todas", el contador de cambios con "Deshacer" y
@@ -361,8 +366,12 @@ Contenido:
   y una más, "Otras N", con la suma de sus productos. El total no cambia.
 - En una neurona de entrada: qué sensor es, su lectura, y en pausa su
   deslizador (D9). Sin filas de pesos.
-- Los números van con dos decimales; los totales se calculan con los números
-  enteros y se redondean al final, y un tooltip lo dice.
+- Los números van con dos decimales. Los totales se calculan con los números
+  enteros y se redondean recién al mostrarlos: lo que se ve es el número que
+  usa la red. Al pie de la tabla, un renglón chico y siempre visible lo
+  dice: "Números redondeados a dos decimales". **Medido:** sumar a mano lo
+  que se ve da exactamente el total mostrado en el 42 % de los casos; en el
+  resto difiere en 0,01 o 0,02.
 - En el paso a paso, lo que todavía no se hizo muestra una raya.
 - Al avanzar de a neuronas o de a operaciones, la neurona elegida pasa a ser
   la del cursor.
@@ -498,9 +507,11 @@ vez que aparecen, con su nombre técnico.
   barra de escenario, el panel a la derecha y los divisores no cambian. Lo
   eligió el dueño.
 - **Redondeo a la vista.** Con dos decimales, la suma de los productos
-  mostrados puede no coincidir en el último dígito con el total mostrado. →
-  El tooltip lo explica; el escenario "Cuenta que se puede comprobar" fija
-  hasta dónde tiene que coincidir.
+  mostrados no coincide con el total mostrado en más de la mitad de los casos
+  (medido), por 0,01 o 0,02. → Se muestra el total de verdad y un renglón
+  visible avisa del redondeo. La alternativa, que la cuenta a la vista cierre
+  siempre, mostraría un total que no es el que usa la red, y a veces una
+  salida que no le corresponde.
 - **Una red rota maneja mal y choca enseguida.** → El intento vuelve a
   empezar solo, y "Restablecer la red" está siempre a la vista cuando hay
   cambios.

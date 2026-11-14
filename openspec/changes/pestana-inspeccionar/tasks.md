@@ -19,12 +19,12 @@ que se puede usar; se puede cortar al final de cualquiera.
 
 ## 3. La pestaña: mirar
 
-- [ ] 3.1 Crear `src/tabs/inspect/index.js` con `mount` / `unmount` y estado conservado, registrarlo en `src/main.js` y reemplazar los textos de "próximamente". Montar la red en la zona izquierda y la escena en el tablero (design.md D1). Verificar los escenarios "Abrir Inspeccionar", "Explicación de Inspeccionar" y "Disposición de Inspeccionar" de `estructura-app`, y que las pestañas 1 a 4 conservan su disposición.
+- [x] 3.1 Crear `src/tabs/inspect/index.js` con `mount` / `unmount` y estado conservado, registrarlo en `src/main.js` y reemplazar los textos de "próximamente". Montar la red en la zona izquierda y la escena en el tablero (design.md D1). Verificar los escenarios "Abrir Inspeccionar", "Explicación de Inspeccionar" y "Disposición de Inspeccionar" de `estructura-app`, y que las pestañas 1 a 4 conservan su disposición.
 - [x] 3.2 Modo chico de la vista del escenario (design.md D10). Verificar en el navegador los escenarios de "Escena chica" de `vista-escenario` y los de "Escena del auto en segundo plano", incluido el reintento tras un choque.
 - [x] 3.3 Qué cerebro se mira (design.md D11): orden al abrir, copia de trabajo, panel con nombre, dónde entrenó y forma de la red. Verificar los escenarios de "Lista para mirar al abrir" con y sin entrenamiento previo.
 - [x] 3.4 Selector de cerebro, reutilizando el de Competir (sacarlo a un módulo común si hace falta, sin cambiar cómo se ve ni cómo se usa en Competir). Verificar los escenarios de "Elegir el cerebro" y que el selector de Competir sigue pasando sus pruebas.
 - [x] 3.5 Barra de escenario sin sensores, que pasa al escenario donde entrenó el cerebro elegido. Verificar los escenarios "Cambiar de pista" y "Restablecer el escenario".
-- [ ] 3.6 Medir en el DOM el escenario "Pantalla de 1440×900" de "La red en el centro": escena y decisión en el tablero, y guía, cerebro y lugar para la tarjeta en el panel, en español y en inglés. Si no entran, **detenerse y consultar** con las medidas de cada bloque.
+- [x] 3.6 Medir en el DOM el escenario "Pantalla de 1440×900" de "La red en el centro": escena y decisión en el tablero, y guía, cerebro y lugar para la tarjeta en el panel, en español y en inglés. Si no entran, **detenerse y consultar** con las medidas de cada bloque.
 
 ## 4. Reproducción y paso a paso
 
@@ -35,12 +35,12 @@ que se puede usar; se puede cortar al final de cualquiera.
 - [x] 4.5 Operación en curso (design.md D7c): `describeStep` con pruebas en los dos idiomas y la franja entre la red y la reproducción. Verificar los escenarios de "Operación en curso", con 4 y con 21 entradas.
 - [ ] 4.6 Medir la fluidez durante una ola de una capa con la red más grande, reproduciendo de a capas a 10 pasos por segundo. Si baja de 55 cuadros por segundo, **detenerse y consultar** con lo medido.
 - [x] 4.7 Atajos (design.md D13), con su prueba. Verificar los escenarios de "Atajos de la pestaña".
-- [ ] 4.8 Medir la barra de reproducción con la zona de la red a 600 px y a su ancho por defecto, en los dos idiomas (escenario "Barra de reproducción angosta").
+- [x] 4.8 Medir la barra de reproducción con la zona de la red a 600 px y a su ancho por defecto, en los dos idiomas (escenario "Barra de reproducción angosta").
 
 ## 5. La cuenta de una neurona
 
 - [x] 5.1 Decisión de la red en el tablero, con el estado "sin decidir". Verificar los escenarios de "Decisión de la red".
-- [ ] 5.2 Tarjeta de la neurona en el panel (design.md D8 y D12): filas por entrada, suma, sesgo, activación con su gráfico y salida, para neuronas ocultas, de salida y de entrada. Verificar los escenarios de "Tarjeta de la neurona", incluido "Cuenta que se puede comprobar" con una prueba sobre los números mostrados.
+- [x] 5.2 Tarjeta de la neurona en el panel (design.md D8 y D12): filas por entrada, suma, sesgo, activación con su gráfico y salida, para neuronas ocultas, de salida y de entrada. Verificar los escenarios de "Tarjeta de la neurona", incluido "Cuenta que se puede comprobar" con una prueba sobre los números mostrados.
 - [x] 5.3 La tarjeta en el paso a paso y siguiendo al cursor. Verificar los escenarios "En el paso a paso" y "La tarjeta sigue a la cuenta".
 - [x] 5.4 Rayos de la escena con el peso de la neurona elegida (design.md D9). Verificar el escenario "Qué mira la neurona" y los de `vista-escenario` "Rayos con el peso de una neurona".
 - [x] 5.5 Medir la tarjeta con 21 entradas y con 4, a 1440×900 y con el panel en su ancho mínimo, en 360 y en 400 px (escenario "Red grande"). Si el pie con la suma, el sesgo, la activación y la salida no queda a la vista, o si el panel se desplaza, **detenerse y consultar** con las medidas.
@@ -51,7 +51,7 @@ que se puede usar; se puede cortar al final de cualquiera.
 - [x] 6.2 Actividad, elección y paso a paso en la tabla. Verificar los escenarios "Elegir en la tabla" y los de "Actividad en el momento" con la tabla a la vista.
 - [x] 6.3 Encabezado arriba de cada capa, en la red misma, que la resume o la abre; capas resumidas como cuadritos, para entradas, ocultas y salidas; y "Resumir todas" / "Abrir todas", en las dos vistas. Verificar los escenarios de "Capas resumidas", con la red más grande y con la más chica, y que los encabezados siguen a su capa al acercar y mover la vista.
 - [x] 6.4 Filtro de conexiones (design.md D6b): función pura en el núcleo con sus pruebas (incluidos el empate, menos entradas que el filtro y un peso cambiado), control sobre la red, y efecto en el diagrama, la tabla y la tarjeta. Verificar los escenarios de "Conexiones más importantes" y "Con el filtro de conexiones".
-- [ ] 6.5 Medir los controles de arriba de la red con la zona en su ancho mínimo y en su ancho por defecto, en los dos idiomas. Si pasan de dos renglones o algún texto se corta, **detenerse y consultar** con una captura.
+- [x] 6.5 Medir los controles de arriba de la red con la zona en su ancho mínimo y en su ancho por defecto, en los dos idiomas. Si pasan de dos renglones o algún texto se corta, **detenerse y consultar** con una captura.
 - [ ] 6.6 Medir la fluidez del escenario "Red más grande, tabla". Si no llega a 55 cuadros por segundo, **detenerse y consultar** con lo medido.
 
 ## 7. Entradas a mano

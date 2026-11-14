@@ -1236,7 +1236,7 @@ export default {
   'help.inspect.term.bias.why': 'Con el mismo total de entradas, dos neuronas con distinto sesgo deciden distinto.',
   'help.inspect.term.activation.what': 'La función de activación convierte el total en lo que da la neurona: escalón (0 o 1), sigmoide, tanh o ReLU. El gráfico muestra dónde cae.',
   'help.inspect.term.activation.why': 'Es la parte que decide cuánto se enciende la neurona; sin ella, la red solo sumaría.',
-  'inspect.card.rounding': 'Números con dos decimales; los totales se calculan con los enteros.',
+  'inspect.card.rounding': 'Números redondeados a dos decimales.',
   'help.inspect.card.rounding.what': 'Cada número se muestra con dos decimales, pero la suma y el total se calculan con los números completos y se redondean al final.',
   'help.inspect.card.rounding.why': 'Si sumás a mano lo que ves, puede diferir en el último decimal: es el redondeo, no un error.',
   'inspect.card.others': 'Otras {count}',

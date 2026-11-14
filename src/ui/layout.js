@@ -50,26 +50,39 @@ function widthOr(value, fallback) {
 const clamp = (v, min, max) => Math.max(min, Math.min(v, max));
 
 /** Límites del panel al arrastrar su borde, con el escenario en `stage`. */
-export function panelLimits(stage, windowWidth) {
+export function panelLimits(stage, windowWidth, spec = {}) {
   const half = Math.floor(windowWidth * ZONES.panel.maxFraction);
-  return { min: ZONES.panel.min, max: Math.max(ZONES.panel.min, Math.min(half, freeWidth(windowWidth) - ZONES.board.min - stage)) };
+  return { min: ZONES.panel.min, max: Math.max(ZONES.panel.min, Math.min(half, freeWidth(windowWidth) - (spec.boardMin ?? ZONES.board.min) - stage)) };
 }
 
-/** Límites del escenario al arrastrar su borde, con el panel en `panel`. */
-export function stageLimits(panel, windowWidth) {
-  return { min: ZONES.stage.min, max: Math.max(ZONES.stage.min, freeWidth(windowWidth) - ZONES.board.min - panel) };
+/**
+ * Límites del escenario al arrastrar su borde, con el panel en `panel`. Una pestaña puede pedir otro
+ * mínimo para su zona izquierda (`spec.stageMin`, pestana-inspeccionar D1: la red no baja de 600 px).
+ */
+export function stageLimits(panel, windowWidth, spec = {}) {
+  const min = spec.stageMin ?? ZONES.stage.min;
+  return { min, max: Math.max(min, freeWidth(windowWidth) - (spec.boardMin ?? ZONES.board.min) - panel) };
 }
 
 /**
  * Anchos que se muestran para una ventana dada a partir de los elegidos: cede primero el tablero
  * (hasta 360), después el escenario (hasta 260) y por último el panel (hasta 300).
  * @param {{stage?:number|null, panel?:number|null}} preferred
+ * @param {number} windowWidth
+ * @param {{stageMin?:number, stageDefault?:number|'rest', boardMin?:number}} [spec] zonas propias de una pestaña
  * @returns {{stage:number, board:number, panel:number}}
  */
-export function fitZones({ stage, panel } = {}, windowWidth) {
+export function fitZones({ stage, panel } = {}, windowWidth, spec = {}) {
+  // Una pestaña puede tener su propio mínimo y su propio ancho por defecto para la zona izquierda
+  // (pestana-inspeccionar D1): 'rest' es todo lo que dejan el tablero en su mínimo y el panel.
+  // Con su propio mínimo de tablero (spec.boardMin), el tablero cede antes que la zona izquierda y que
+  // el panel; el ancho 'rest' se calcula con el tablero en su mínimo de siempre (360 px).
+  const stageMin = spec.stageMin ?? ZONES.stage.min;
+  const boardMin = spec.boardMin ?? ZONES.board.min;
   const F = freeWidth(windowWidth);
   const half = Math.floor(windowWidth * ZONES.panel.maxFraction);
-  const p = clamp(widthOr(panel, ZONES.panel.default), ZONES.panel.min, Math.min(half, F - ZONES.board.min - ZONES.stage.min));
-  const s = clamp(widthOr(stage, ZONES.stage.default), ZONES.stage.min, F - ZONES.board.min - p);
+  const p = clamp(widthOr(panel, ZONES.panel.default), ZONES.panel.min, Math.min(half, F - boardMin - stageMin));
+  const stageDefault = spec.stageDefault === 'rest' ? F - ZONES.board.min - p : (spec.stageDefault ?? ZONES.stage.default);
+  const s = clamp(widthOr(stage, stageDefault), stageMin, F - boardMin - p);
   return { stage: s, board: F - s - p, panel: p };
 }

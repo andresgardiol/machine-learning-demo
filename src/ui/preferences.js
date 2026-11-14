@@ -2,7 +2,7 @@
 // de la pestaña Reglas a mano y paisaje). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', inspectStageWidth: 'mlLab.inspect.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
 
 /** Atajos de una tecla encendidos por defecto (panel-de-entrenar-por-vistas D9). */
 export const DEFAULT_SHORTCUTS = true;
@@ -72,6 +72,13 @@ export function createPreferences(getStorage = defaultStorage) {
       return Number.isFinite(v) && v > 0 ? v : null;
     },
     set stageWidth(value) { write(KEYS.stageWidth, String(Math.round(value))); },
+
+    /** Ancho de la zona de la red en Inspeccionar, aparte del de las demás pestañas (pestana-inspeccionar D1). */
+    get inspectStageWidth() {
+      const v = Number.parseInt(read(KEYS.inspectStageWidth) ?? '', 10);
+      return Number.isFinite(v) && v > 0 ? v : null;
+    },
+    set inspectStageWidth(value) { write(KEYS.inspectStageWidth, String(Math.round(value))); },
     /** Velocidad máxima del auto elegida (m/s), compartida por todas las pestañas, o null si no se guardó una válida. */
     get carSpeed() {
       const v = Number.parseFloat(read(KEYS.carSpeed) ?? '');
