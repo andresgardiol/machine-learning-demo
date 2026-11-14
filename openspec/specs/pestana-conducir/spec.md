@@ -200,11 +200,11 @@ defecto.
 ### Requirement: Configuración avanzada
 La pestaña SHALL ofrecer, en la barra de escenario y siempre a la vista, la
 velocidad máxima del auto (compartida por todas las pestañas), los carriles
-(2, 3 o 4), la densidad y la irregularidad del tráfico, y la cantidad, el
-alcance y la apertura de los sensores. Todo cambio MUST aplicarse de
-inmediato. La velocidad máxima, la densidad y la irregularidad MUST aplicarse
-en marcha, sin reiniciar el intento. Los carriles y los sensores SHALL
-reiniciar el intento con la nueva configuración.
+(2, 3 o 4), y la densidad y la irregularidad del tráfico. MUST NOT ofrecer
+ajustes de sensores: maneja una persona con el teclado, y el auto lleva
+siempre los sensores por defecto. Todo cambio MUST aplicarse de inmediato: la
+velocidad, la densidad y la irregularidad en marcha; los carriles reinician
+el intento.
 
 #### Scenario: Sección colapsada
 - **WHEN** se abre la pestaña
@@ -223,16 +223,24 @@ reiniciar el intento con la nueva configuración.
 - **THEN** el intento sigue sin reiniciarse, los vehículos cercanos siguen donde estaban y el tráfico con la nueva configuración aparece más adelante
 
 #### Scenario: Cambiar los sensores
-- **WHEN** la persona cambia la cantidad de sensores a nueve
-- **THEN** el auto muestra nueve rayos y el tablero nueve barras con sus números
+- **WHEN** la persona busca en El problema cómo cambiar la cantidad, el alcance o la apertura de los sensores
+- **THEN** no hay ajustes de sensores en la barra ni en el panel, y el auto tiene siempre 5 rayos de 3 largos de auto y 90 grados
+
+#### Scenario: Sensores que siguen a la vista
+- **WHEN** la persona maneja en El problema
+- **THEN** los rayos, las barras de percepción, el interruptor de sensores y "ver como la máquina" siguen como antes
+
+#### Scenario: Sensores de las otras pestañas
+- **WHEN** la persona cambia los sensores en Reglas a mano o en Entrenar y vuelve a El problema
+- **THEN** el auto de El problema sigue con sus 5 rayos
 
 ### Requirement: Restablecer la configuración
 La barra de escenario SHALL ofrecer un botón que devuelve la pista, el
-tráfico, los sensores y la velocidad a sus valores por defecto.
+tráfico y la velocidad a sus valores por defecto.
 
 #### Scenario: Restablecer
-- **WHEN** la persona cambió velocidad, carriles, tráfico y sensores, y presiona restablecer
-- **THEN** la pista vuelve a ser la calle recta, el auto vuelve a 20 m/s, la calle a tres carriles, el tráfico a densidad e irregularidad de 50 %, y los sensores a 5 rayos, 3 largos de auto y 90 grados
+- **WHEN** la persona cambió velocidad, carriles y tráfico, y presiona restablecer
+- **THEN** la pista vuelve a ser la calle recta, el auto vuelve a 20 m/s, la calle a tres carriles y el tráfico a densidad e irregularidad de 50 %
 
 ### Requirement: Controles de la pestaña explicados
 Cada control de la pestaña (reiniciar, tráfico nuevo, pausa, sensores, ver como

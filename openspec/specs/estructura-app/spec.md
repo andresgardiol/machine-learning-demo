@@ -12,8 +12,8 @@ demás.
 ### Requirement: Pestañas del recorrido
 La aplicación SHALL mostrar una barra con las seis pestañas del recorrido, en
 este orden: El problema, Reglas a mano, Entrenar, Competir, Inspeccionar y
-Laboratorio. Las pestañas El problema, Reglas a mano, Entrenar y Competir
-SHALL estar disponibles. Las pestañas aún no disponibles MUST verse como no disponibles y
+Laboratorio. Las pestañas El problema, Reglas a mano, Entrenar, Competir e
+Inspeccionar SHALL estar disponibles. Las pestañas aún no disponibles MUST verse como no disponibles y
 no poder abrirse.
 
 #### Scenario: Recorrido visible
@@ -52,6 +52,14 @@ no poder abrirse.
 - **WHEN** la persona posa el cursor sobre la pestaña Competir
 - **THEN** un tooltip indica que ahí se comparan cerebros, reglas y personas en pistas vistas y no vistas, y por qué eso muestra si algo generaliza, sin decir que llegará próximamente
 
+#### Scenario: Abrir Inspeccionar
+- **WHEN** la persona elige la pestaña Inspeccionar
+- **THEN** Inspeccionar pasa a ser la pestaña activa y muestra su barra de escenario, la red, su tablero y su panel
+
+#### Scenario: Explicación de Inspeccionar
+- **WHEN** la persona posa el cursor sobre la pestaña Inspeccionar
+- **THEN** un tooltip indica que ahí se mira una red por dentro mientras maneja, y por qué eso muestra qué aprendió, sin decir que llegará próximamente
+
 ### Requirement: Lista para usar al abrir
 La aplicación SHALL abrir directamente en la primera pestaña, con su escenario
 funcionando, sin pedir ninguna configuración, registro ni paso previo.
@@ -63,9 +71,10 @@ funcionando, sin pedir ninguna configuración, registro ni paso previo.
 ### Requirement: Disposición común
 Toda pestaña con escenario SHALL mostrar el escenario a la izquierda, el
 tablero al centro cuando la pestaña lo usa, y un panel de controles a la
-derecha, con la barra de pestañas, el selector de idioma y el interruptor de
-guía siempre en el mismo lugar. El orden de lectura y de foco con el teclado
-SHALL ser escenario, tablero y panel.
+derecha. En Inspeccionar, la zona izquierda es de la red y es la más ancha,
+y el escenario va chico, en un tablero angosto. En todas, la barra de pestañas, el selector de idioma y
+el interruptor de guía van siempre en el mismo lugar. El orden de lectura y
+de foco con el teclado SHALL ser zona izquierda, tablero y panel.
 
 #### Scenario: Disposición de la primera pestaña
 - **WHEN** se muestra la primera pestaña en una ventana de 1440 píxeles de ancho
@@ -78,6 +87,14 @@ SHALL ser escenario, tablero y panel.
 #### Scenario: Recorrido con el teclado
 - **WHEN** la persona recorre la pestaña con la tecla Tab desde el escenario
 - **THEN** el foco pasa primero por los controles del escenario, después por el tablero y al final por el panel
+
+#### Scenario: Disposición de Inspeccionar
+- **WHEN** la persona pasa de Competir a Inspeccionar
+- **THEN** las tres zonas conservan su lugar, la izquierda muestra la red y pasa a ser la más ancha, y el tablero, angosto, muestra la escena del auto
+
+#### Scenario: Volver de Inspeccionar
+- **WHEN** la persona vuelve de Inspeccionar a Competir
+- **THEN** el escenario y el tablero de Competir tienen los anchos que tenían antes de ir
 
 ### Requirement: Panel ajustable
 El borde izquierdo del panel SHALL poder arrastrarse con el mouse para
@@ -205,10 +222,10 @@ dibujar, de modo que solo la pestaña visible consuma recursos.
 ### Requirement: Escenario ajustable
 El borde entre el escenario y el tablero SHALL poder arrastrarse con el mouse
 y moverse con el teclado para repartir el ancho entre los dos. El escenario
-SHALL medir 400 píxeles por defecto y 260 como mínimo, y MUST NOT dejar al
-tablero con menos de 360 píxeles. El borde SHALL tener un tooltip que diga qué
-hace y por qué importa, en español y en inglés, y el ancho elegido SHALL
-recordarse en el mismo navegador entre visitas.
+SHALL medir 400 píxeles por defecto y 260 como mínimo; en Inspeccionar, donde
+esa zona es de la red, lo que sobra por defecto y 600 como mínimo. MUST NOT
+dejar al tablero con menos de 360 píxeles. El borde SHALL tener un tooltip, en
+español y en inglés, y el ancho elegido SHALL recordarse entre visitas.
 
 #### Scenario: Estado por defecto
 - **WHEN** una persona abre la aplicación por primera vez en una ventana de 1440 píxeles de ancho
@@ -237,6 +254,10 @@ recordarse en el mismo navegador entre visitas.
 #### Scenario: Navegador sin almacenamiento
 - **WHEN** el navegador impide guardar o leer preferencias
 - **THEN** el escenario abre en 400 píxeles y el borde se puede mover igual
+
+#### Scenario: Mínimo de la red en Inspeccionar
+- **WHEN** la persona achica la zona izquierda en Inspeccionar todo lo que puede
+- **THEN** queda en 600 píxeles, y en las otras pestañas el mínimo sigue siendo 260
 
 ### Requirement: Anchos que se adaptan a la ventana
 Cuando la ventana se achica, los anchos elegidos SHALL ajustarse sin perderse:

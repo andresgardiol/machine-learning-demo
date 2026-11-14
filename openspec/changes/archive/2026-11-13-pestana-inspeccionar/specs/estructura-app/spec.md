@@ -80,3 +80,43 @@ de foco con el teclado SHALL ser zona izquierda, tablero y panel.
 #### Scenario: Volver de Inspeccionar
 - **WHEN** la persona vuelve de Inspeccionar a Competir
 - **THEN** el escenario y el tablero de Competir tienen los anchos que tenían antes de ir
+
+### Requirement: Escenario ajustable
+El borde entre el escenario y el tablero SHALL poder arrastrarse con el mouse
+y moverse con el teclado para repartir el ancho entre los dos. El escenario
+SHALL medir 400 píxeles por defecto y 260 como mínimo; en Inspeccionar, donde
+esa zona es de la red, lo que sobra por defecto y 600 como mínimo. MUST NOT
+dejar al tablero con menos de 360 píxeles. El borde SHALL tener un tooltip, en
+español y en inglés, y el ancho elegido SHALL recordarse entre visitas.
+
+#### Scenario: Estado por defecto
+- **WHEN** una persona abre la aplicación por primera vez en una ventana de 1440 píxeles de ancho
+- **THEN** el escenario mide 400 píxeles, el panel 360 y el tablero ocupa el resto
+
+#### Scenario: Agrandar el escenario
+- **WHEN** la persona arrastra el borde del escenario hacia la derecha
+- **THEN** el escenario se agranda, el tablero se achica, el panel no cambia y la simulación sigue sin cambios
+
+#### Scenario: Límites del escenario
+- **WHEN** la persona arrastra el borde del escenario más allá de sus límites en una ventana de 1440 píxeles con el panel en 360
+- **THEN** el escenario queda en 260 píxeles como mínimo y en 708 como máximo, con el tablero en 360
+
+#### Scenario: Con el teclado
+- **WHEN** la persona llega al borde del escenario con la tecla Tab y presiona la flecha derecha
+- **THEN** el escenario se agranda y el auto no gira
+
+#### Scenario: Volver al ancho inicial
+- **WHEN** la persona hace doble clic en el borde del escenario
+- **THEN** el escenario vuelve a 400 píxeles
+
+#### Scenario: Ancho recordado
+- **WHEN** la persona achicó el escenario y vuelve a abrir la aplicación en el mismo navegador
+- **THEN** el escenario tiene el ancho que había elegido
+
+#### Scenario: Navegador sin almacenamiento
+- **WHEN** el navegador impide guardar o leer preferencias
+- **THEN** el escenario abre en 400 píxeles y el borde se puede mover igual
+
+#### Scenario: Mínimo de la red en Inspeccionar
+- **WHEN** la persona achica la zona izquierda en Inspeccionar todo lo que puede
+- **THEN** queda en 600 píxeles, y en las otras pestañas el mínimo sigue siendo 260
