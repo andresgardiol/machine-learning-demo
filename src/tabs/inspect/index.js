@@ -38,7 +38,7 @@ import { EXAMPLE_BRAINS } from '../../data/example-brains.js';
 import { listBrains, resolveChoice, trainedScenario, trainedTracks, workingCopy, PICKER_GROUPS } from './brains.js';
 import { createPlayback, FRAME_PACES, STEP_PACES } from './playback.js';
 import { createStepAnimation, displayCursor, stepDuration } from './step-animation.js';
-import { describeStep, whereText, layerName, neuronLabel } from './describe.js';
+import { describeStep, whereText, layerName, neuronLabel, placeName } from './describe.js';
 import { createInspectMissions } from './missions.js';
 import { shortcutFor } from './shortcuts.js';
 import { createNeuronCard } from './card.js';
@@ -251,14 +251,18 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // --- Cambios de prueba ------------------------------------------------------------------------
   function changed() {
     keepChanges();
+    displayed.trace = null; // la cuenta cambió: los nombres accesibles se recalculan con la nueva
+    relabel();
     sync();
   }
+  /** Nombres accesibles de todas las neuronas, con su valor y su estado. */
+  function relabel() { neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j))); }
   function setChange(c) { if (changes.set(c)) changed(); }
   const selectedNeuron = () => traceNow().layers[state.selected.layer].neurons[state.selected.neuron];
   function toggleNeuron() {
     const { layer, neuron } = state.selected;
     setChange({ kind: 'neuronOff', layer, neuron, value: !selectedNeuron().off });
-    announce(t(selectedNeuron().off ? 'inspect.announce.off' : 'inspect.announce.on', { name: neuronLabel(t, net.sizes, layer, neuron) }));
+    announce(t(selectedNeuron().off ? 'inspect.announce.off' : 'inspect.announce.on', { name: placeName(t, net.sizes, layer, neuron) }));
   }
   function toggleConnection(input) {
     const { layer, neuron } = state.selected;
@@ -288,6 +292,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     state.manual[input] = v;
     const real = traceNetwork(net, inputsOf(world.perception), changes).outputs;
     state.missions.manualDecision({ manual: true, outputs: traceNow().outputs, real });
+    displayed.trace = null;
+    relabel();
     sync();
   }
   function releaseManual({ announceIt }) {
@@ -301,6 +307,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (!target) return;
     state.selected = { layer: target.layer, neuron: target.neuron };
     state.connection = target.input ?? null;
+    if (!neuronLayer.contains(document.activeElement)) focusNeuron(state.selected, { focus: false });
+    relabel(); // «elegida» al instante
     sync();
   }
 
@@ -315,7 +323,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }));
   const viewGroup = el('div', { class: 'segments inspect-views', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.view.label' }, viewButtons);
   const filterButtons = FILTERS.map((f) => el('button', {
-    class: 'segment', i18n: f === 'all' ? 'inspect.filter.all' : 'inspect.filter.n', params: f === 'all' ? undefined : { n: f },
+    class: 'segment', i18n: f === 'all' ? 'inspect.filter.all' : 'inspect.filter.n', params: f === 'all' ? undefined : { value: f },
     help: f === 'all' ? 'inspect.filter.all' : `inspect.filter.${f}`,
     i18nAttr: f === 'all' ? undefined : 'aria-label:inspect.filter.nLabel',
     attrs: { type: 'button', 'aria-pressed': 'false' }, dataset: { filter: String(f) },
@@ -349,7 +357,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Encabezados de capa sobre el diagrama (D6): botones de verdad que siguen a su columna.
   const headerLayer = el('div', { class: 'inspect-headers' });
   const neuronLayer = el('div', { class: 'inspect-neurons', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.neurons.label', on: { keydown: (e) => onNeuronKey(e) } });
-  inspector.overlay.append(neuronLayer, headerLayer);
+  inspector.overlay.append(headerLayer, neuronLayer);
   let headerButtons = [];
   let tableHeaders = [];
   let neuronButtons = []; // [layer][neuron]
@@ -384,6 +392,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       return b;
     }));
     layoutKey = '';
+    focusNeuron(state.selected, { focus: false }); // la elegida es la entrada a la red con Tab
   }
   function toggleLayer(l) {
     state.collapsed = state.collapsed.map((v, i) => (i === l ? !v : v));
@@ -404,7 +413,20 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const b = neuronButtons[target.layer]?.[target.neuron];
     if (!b) return;
     b.tabIndex = 0;
-    if (focus) b.focus({ preventScroll: true });
+    if (!focus) return;
+    // Con la red acercada, la vista se mueve para que la neurona con foco quede a la vista: es la forma
+    // de recorrerla sin arrastrar.
+    if (state.view === 'diagram' && inspector.zoomed) {
+      const p = inspector.screenOf(target.layer, target.neuron);
+      const vp = inspector.viewport;
+      const margin = 40;
+      if (p && (p.x < margin || p.x > vp.width - margin || p.y < margin || p.y > vp.height - margin)) {
+        inspector.camera.pan(vp.width / 2 - p.x, vp.height / 2 - p.y);
+        layoutKey = '';
+        draw();
+      }
+    }
+    b.focus({ preventScroll: true });
   }
   function onNeuronKey(e) {
     const b = e.target.closest?.('.inspect-neuron');
@@ -427,7 +449,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (l > 0 && (changes.has({ kind: 'bias', layer: l, neuron: j }) || n.weights.some((_, i) => changes.has({ kind: 'weight', layer: l, neuron: j, input: i })))) flags.push(t('inspect.aria.changed'));
     if (l === 0 && state.manual?.[j] !== null && state.manual?.[j] !== undefined) flags.push(t('inspect.aria.manual'));
     const label = t('inspect.aria.neuron', { layer: layerName(t, l, net.sizes.length), name: neuronLabel(t, net.sizes, l, j), value })
-      + (flags.length ? `. ${flags.join(', ')}` : '');
+      + (flags.length ? `. ${flags.join(', ').replace(/^./, (c) => c.toUpperCase())}` : '');
     if (b.getAttribute('aria-label') !== label) b.setAttribute('aria-label', label);
     b.setAttribute('aria-pressed', String(state.selected.layer === l && state.selected.neuron === j));
   }

@@ -1033,7 +1033,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-manual-badge { pointer-events: auto; display: inline-flex; align-items: center; gap: var(--space-2); border-color: var(--color-network-manual); }
 .inspect-manual-badge[hidden] { display: none; }
 .inspect-decision { flex: 0 0 auto; }
-.inspect-decision .panel-heading { display: inline-block; }
+.inspect-decision .panel-heading { display: inline-flex; align-items: center; min-height: 24px; }
 .inspect-decision .action-keys[data-undecided="true"] .action-key { border-style: dashed; opacity: 0.6; }
 .inspect-decision .action-keys[data-undecided="true"] .action-key::after { content: "?"; font-size: 12px; }
 .inspect-decision-note { margin-top: var(--space-1); }

@@ -74,10 +74,10 @@ que se puede usar; se puede cortar al final de cualquiera.
 
 ## 10. Accesibilidad
 
-- [ ] 10.1 Capa de botones sobre el diagrama con foco itinerante y flechas. Verificar los escenarios "Recorrer con el teclado" y "Lector de pantalla" de "Inspector accesible", leyendo el árbol de accesibilidad.
-- [ ] 10.2 Encabezados de capa, tabla con encabezados y tarjeta. Verificar los escenarios "Encabezado de capa" y "Tabla con encabezados".
-- [ ] 10.3 Anuncios de entradas soltadas y de red actualizada; menos movimiento; objetivos de 24 px. Verificar los escenarios correspondientes de "Controles explicados y accesibles".
-- [ ] 10.4 Recorrer la pestaña entera con el teclado: todo lo que se hace arrastrando o con el mouse se puede hacer sin él. Informar lo que no se cumpla.
+- [x] 10.1 Capa de botones sobre el diagrama con foco itinerante y flechas. Verificar los escenarios "Recorrer con el teclado" y "Lector de pantalla" de "Inspector accesible", leyendo el árbol de accesibilidad.
+- [x] 10.2 Encabezados de capa, tabla con encabezados y tarjeta. Verificar los escenarios "Encabezado de capa" y "Tabla con encabezados".
+- [x] 10.3 Anuncios de entradas soltadas y de red actualizada; menos movimiento; objetivos de 24 px. Verificar los escenarios correspondientes de "Controles explicados y accesibles".
+- [x] 10.4 Recorrer la pestaña entera con el teclado: todo lo que se hace arrastrando o con el mouse se puede hacer sin él. Informar lo que no se cumpla.
 
 ## 11. Verificación integral
 
