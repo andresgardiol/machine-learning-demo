@@ -86,4 +86,4 @@ que se puede usar; se puede cortar al final de cualquiera.
 - [x] 11.3 Recorrer el filtro de entrada de la propuesta, fila por fila, en el navegador. Informar lo que no se cumpla.
 - [x] 11.4 Comprobar que las pestañas 1 a 4 no cambiaron: `npm test` completo y un recorrido corto de cada una.
 - [x] 11.5 Correr `openspec validate pestana-inspeccionar --strict` y `npm test`. Actualizar `PENDIENTES.md`: la pestaña 5 hecha en el orden de trabajo, lo que quedó fuera de alcance y lo que quedó sin medir.
-- [ ] 11.6 Informe final que separe lo medido, lo observado en el navegador y lo que no se probó.
+- [x] 11.6 Informe final que separe lo medido, lo observado en el navegador y lo que no se probó.
