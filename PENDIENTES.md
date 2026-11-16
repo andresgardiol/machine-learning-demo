@@ -356,3 +356,13 @@ El resto de las notas de este archivo no tiene orden fijo.
     Salidas posibles: un segundo renglón para las herramientas o un menú de
     preferencias.
   - Sin probar: lector de pantalla real, Safari y Firefox.
+- **Lo que quedó fuera de `punto-de-prueba`.** Cada cosa, con su propia
+  propuesta:
+  - el punto de prueba con "Tu manejo" (rayos y velocidad a mano en el
+    Laboratorio; Inspeccionar ya lo permite con un cerebro guardado);
+  - llevar el punto de prueba a un ejemplo elegido en la tabla de datos;
+  - una misión ("Encontrá un lugar donde la red dude");
+  - varios puntos de prueba a la vez.
+  - Sin probar: lector de pantalla real (se leyó el texto que se anuncia),
+    Safari y Firefox, tocar y arrastrar con el dedo, y la fluidez con el
+    navegador a la vista (medida en Chrome sin ventana).

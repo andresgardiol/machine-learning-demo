@@ -24,13 +24,20 @@
 
 ## 3. Textos y acceso
 
-- [ ] 3.1 Tooltip del marcador y oración de la guía (D7). `mlLab.auditTooltips()` no informa nada. Medir el panel a 1440×900 y 1366×768 antes y después: **si deja de entrar o pierde una fila, parar y consultar.**
-- [ ] 3.2 Lector de pantalla y teclado: nombre del marcador, anuncio al soltar y con las flechas, no durante el arrastre; el foco no se va al escenario al hacer clic en el plano (`data-focus="keep"` si hace falta).
-- [ ] 3.3 Tres marcas a la vez en el plano (punto de prueba, ejemplo en curso, punto elegido en la tabla de datos): captura y comprobación de que se distinguen.
+- [x] 3.1 Tooltip del marcador y oración de la guía (D7). `mlLab.auditTooltips()` no informa nada. Medir el panel a 1440×900 y 1366×768 antes y después: **si deja de entrar o pierde una fila, parar y consultar.**
+  *Hecho. Tooltip del marcador (D7) y la oración de la guía en es y en. Medido sin ventana, panel del Laboratorio con puntos y nada elegido, antes (código de `d09b03c`) y después: la guía pasa de 59 a 78 px en español (de 78 a 98 en inglés), un renglón más; a 1440×900 y 1366×768 el panel no se desplaza ni dentro de él nada se desplaza, ningún control queda cortado, las 3 misiones siguen a la vista y las demás secciones no cambian de alto (113, 77, 26 y 59 px). No hizo falta consultar. `mlLab.auditTooltips()`: 0.*
+- [x] 3.2 Lector de pantalla y teclado: nombre del marcador, anuncio al soltar y con las flechas, no durante el arrastre; el foco no se va al escenario al hacer clic en el plano (`data-focus="keep"` si hace falta).
+  *Verificado sin ventana con mouse y teclas de verdad: el marcador se llama "Punto de prueba" y su descripción (`aria-describedby`) dice coordenadas y respuesta; al soltar se anuncia ("Punto de prueba en x 0,30, y −0,45: la red contesta …"), con las flechas también, y durante el arrastre no (la región de anuncios quedó vacía a mitad del arrastre). Después de un clic en el plano, el foco queda en el marcador, no en el escenario. Lector de pantalla real, sin probar.*
+- [x] 3.3 Tres marcas a la vez en el plano (punto de prueba, ejemplo en curso, punto elegido en la tabla de datos): captura y comprobación de que se distinguen.
+  *Verificado: con el ejemplo en curso (aro punteado amarillo), un punto elegido en la tabla de datos (aro blanco continuo) y el punto de prueba (aro con cruz, tenue mientras la red muestra el ejemplo) a menos de 0,15 entre sí, se distinguen por la forma, sin depender del color. Captura `prueba-3.3-tres-marcas-1440x900.png`.*
 
 ## 4. Cierre
 
-- [ ] 4.1 Fluidez: arrastrar el punto durante 10 s con la red 2-8-8-8-1 aprendiendo de a épocas; mediana y peor intervalo entre cuadros.
-- [ ] 4.2 Capturas en la carpeta de notas a 1440×900 y 1366×768: punto en zona segura, punto en la frontera, con una neurona elegida, y con un ejemplo paso a paso.
-- [ ] 4.3 PENDIENTES.md: lo que quedó afuera (design.md) y lo no probado.
-- [ ] 4.4 `npm test` y `openspec validate punto-de-prueba --strict`.
+- [x] 4.1 Fluidez: arrastrar el punto durante 10 s con la red 2-8-8-8-1 aprendiendo de a épocas; mediana y peor intervalo entre cuadros.
+  *Medido sin ventana a 1440×900, red 2-8-8-8-1 aprendiendo de a épocas, arrastrando el punto con el mouse de verdad durante 10 s (unos 500 movimientos), dos corridas: 60 cuadros por segundo, intervalo 16,7 ms de mediana, peor 33,3 ms en una y 16,8 en la otra; 100 épocas en cada una.*
+- [x] 4.2 Capturas en la carpeta de notas a 1440×900 y 1366×768: punto en zona segura, punto en la frontera, con una neurona elegida, y con un ejemplo paso a paso.
+  *Capturas a 1440×900 y 1366×768: `prueba-4.2-{zona-segura,frontera,neurona-elegida,ejemplo-paso-a-paso}-*.png` (zona segura en (0,20; −0,90), "azul · 96 %"; frontera en (0,35; 0,40), "naranja · 50 %").*
+- [x] 4.3 PENDIENTES.md: lo que quedó afuera (design.md) y lo no probado.
+  *Hecho: lo que quedó afuera según el diseño y lo no probado.*
+- [x] 4.4 `npm test` y `openspec validate punto-de-prueba --strict`.
+  *`npm test`: 1207 en verde. `openspec validate punto-de-prueba --strict`: válido.*
