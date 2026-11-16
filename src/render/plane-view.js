@@ -49,6 +49,62 @@ export function brightestRegion(values, size) {
   return v && h ? `${v}-${h}` : v || h || 'center';
 }
 
+// --- Punto de prueba (punto-de-prueba D2 a D4) ------------------------------------------------------
+/** Radio del marcador y lado mínimo de su área de agarre (px). */
+export const PROBE = Object.freeze({ radius: 10, grab: 28, step: 0.05, fineStep: 0.01 });
+
+/** El cuadrado del plano dentro de una zona de w × h: el lado es el menor y queda centrado. */
+export function planeGeometry(w, h) {
+  const side = Math.min(w, h);
+  return { ox: (w - side) / 2, oy: (h - side) / 2, side };
+}
+/** Coordenadas del plano (−1 a 1, y hacia arriba) → píxeles de la zona. */
+export const planeToPx = (g, x, y) => ({ x: g.ox + ((x + 1) / 2) * g.side, y: g.oy + ((1 - y) / 2) * g.side });
+const clamp1 = (v) => Math.max(-1, Math.min(1, v));
+const round2 = (v) => Math.round(v * 100) / 100 || 0; // sin «−0»
+/** Píxeles de la zona → coordenadas del plano, redondeadas a centésimos y dentro de −1 a 1. */
+export function pxToPlane(g, px, py) {
+  return { x: round2(clamp1(((px - g.ox) / g.side) * 2 - 1)), y: round2(clamp1(1 - ((py - g.oy) / g.side) * 2)) };
+}
+/** El punto movido con una flecha: 0,05 por tecla, 0,01 con Mayúsculas; null si la tecla no es una flecha. */
+export function nudgeProbe(p, key, fine = false) {
+  const d = fine ? PROBE.fineStep : PROBE.step;
+  const dx = key === 'ArrowRight' ? d : key === 'ArrowLeft' ? -d : 0;
+  const dy = key === 'ArrowUp' ? d : key === 'ArrowDown' ? -d : 0;
+  if (dx === 0 && dy === 0) return null;
+  return { x: round2(clamp1(p.x + dx)), y: round2(clamp1(p.y + dy)) };
+}
+/**
+ * Dónde va el rótulo de w × h junto al marcador en (px, py): a la derecha, a la izquierda, arriba,
+ * abajo o en diagonal, el primero que entra en el plano sin tapar el marcador; si ninguno entra (un
+ * rótulo más ancho que el plano), pegado al borde.
+ */
+export function probeLabelBox(g, px, py, w, h, r = PROBE.radius) {
+  const gap = 6;
+  const inside = (b) => b.x >= g.ox && b.y >= g.oy && b.x + w <= g.ox + g.side && b.y + h <= g.oy + g.side;
+  const options = [
+    { x: px + r + gap, y: py - h / 2 },
+    { x: px - r - gap - w, y: py - h / 2 },
+    { x: px - w / 2, y: py - r - gap - h },
+    { x: px - w / 2, y: py + r + gap },
+    // En una esquina, en diagonal.
+    { x: px + r + gap, y: py - r - gap - h },
+    { x: px - r - gap - w, y: py - r - gap - h },
+    { x: px + r + gap, y: py + r + gap },
+    { x: px - r - gap - w, y: py + r + gap },
+  ];
+  const fit = options.find(inside);
+  if (fit) return { ...fit, w, h };
+  const x = Math.max(g.ox, Math.min(g.ox + g.side - w, px + r + gap));
+  const y = Math.max(g.oy, Math.min(g.oy + g.side - h, py + r + gap));
+  return { x, y, w, h };
+}
+/** Lo que contesta la red en un lugar: la clase ('a' o 'b') y cuán segura está (0,5 a 1). */
+export function probeAnswer(net, x, y, off = null) {
+  const v = softOutputs(net, [x, y], off)[0];
+  return { value: v, cls: v > 0.5 ? 'a' : 'b', confidence: Math.max(v, 1 - v) };
+}
+
 const hexToRgb = (hex) => {
   const h = hex.replace('#', '').trim();
   const v = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
@@ -237,6 +293,8 @@ export function createPlaneView({ container, doc = document, now = () => perform
   return {
     canvas,
     render,
+    /** El cuadrado del plano en la zona, en px CSS (para el punto de prueba). */
+    get geometry() { if (size.w <= 1) resize(); return planeGeometry(size.w, size.h); },
     paintMap,
     refreshColors() { colors = readColors(); gridKey = null; },
     dispose() { observer.disconnect(); canvas.remove(); },

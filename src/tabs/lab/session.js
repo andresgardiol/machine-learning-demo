@@ -83,6 +83,9 @@ export function createLabSession({ brainFor = () => null } = {}) {
   let run = null;
   let recorded = null; // datos grabados (se conservan al volver al maestro)
   let version = 0; // cambia cada vez que el aprendizaje empieza de nuevo
+  // Punto de prueba (punto-de-prueba D6): dónde lo dejó la persona. Ningún cambio de datos, de red ni
+  // de pesos lo mueve; la red no aprende de él.
+  let probe = { x: 0, y: 0 };
 
   function teacherBrain() { return brainFor(s.teacher) ?? brainFor(DEFAULT_TEACHER); }
 
@@ -120,6 +123,15 @@ export function createLabSession({ brainFor = () => null } = {}) {
     get split() { return split; },
     get run() { return run; },
     get version() { return version; },
+    /** Punto de prueba del plano: { x, y } entre −1 y 1. Empieza en el centro. */
+    get probe() { return { ...probe }; },
+    setProbe(p) {
+      const c = (v) => Math.max(-1, Math.min(1, Number.isFinite(v) ? v : 0));
+      const next = { x: c(p.x), y: c(p.y) };
+      if (next.x === probe.x && next.y === probe.y) return false;
+      probe = next;
+      return true;
+    },
     get recorded() { return recorded; },
     /** Sensores de los ejemplos de manejo (los del maestro, o los de siempre si son grabados). */
     get sensors() { return data.sensors ?? { ...DEFAULT_SENSORS }; },

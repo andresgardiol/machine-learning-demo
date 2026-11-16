@@ -54,7 +54,7 @@ import { topConnections } from '../../core/network-changes.js';
 import { createResponseCurve } from '../shared/response-curve.js';
 import { createConnectionDetail } from '../shared/connection-detail.js';
 import { createWeightHistory } from '../shared/weight-history.js';
-import { PLANE_GRID, PLANE_FPS, mapShade, brightestRegion } from '../../render/plane-view.js';
+import { PLANE_GRID, PLANE_FPS, mapShade, brightestRegion, PROBE, planeToPx, pxToPlane, nudgeProbe, probeLabelBox, probeAnswer } from '../../render/plane-view.js';
 
 /** Semilla del tráfico de la escena (con tu manejo). */
 export const SEED = 1;
@@ -121,6 +121,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   let version = -1;
   let changesVersion = 0;
   let hovered = null; // neurona o conexión bajo el cursor (vista previa del plano, D12)
+  // La persona movió el punto de prueba con un ejemplo a medio corregir: la red muestra el punto hasta
+  // el paso siguiente (punto-de-prueba D5). Es solo vista: no toca el aprendizaje.
+  let probeView = false;
   // Mapas de las neuronas (D12): la grilla de 50 × 50 que pinta el plano, una vez para todas las
   // neuronas, recalculada como mucho 15 veces por segundo, cuando la red cambia.
   const maps = { key: null, at: -Infinity, grid: null, canvases: [] };
@@ -366,8 +369,93 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // ==================================================================================================
   // Tablero: datos, ejemplo en curso y curvas
   // ==================================================================================================
-  const planeBox = el('div', { class: 'lab-plane', attrs: { role: 'img' } });
+  const planeBox = el('div', { class: 'lab-plane', attrs: { role: 'group' } });
   const plane = createPlaneView({ container: planeBox });
+  // Punto de prueba (punto-de-prueba D2 y D3): un marcador HTML sobre el plano, con foco, tooltip y un
+  // agarre de 28 px. Se arrastra, se pone con un clic en el plano o se mueve con las flechas. La red no
+  // aprende de él. data-focus="keep": el clic no devuelve el foco al escenario.
+  const probeMarker = el('button', {
+    class: 'plane-probe', help: 'lab.probe', i18nAttr: 'aria-label:lab.probe.name', dataset: { focus: 'keep' },
+    attrs: { type: 'button', 'aria-describedby': 'lab-probe-desc' },
+  }, el('span', { class: 'plane-probe-mark', attrs: { 'aria-hidden': 'true' } }));
+  const probeLabel = el('span', { class: 'plane-probe-label', attrs: { 'aria-hidden': 'true' } });
+  const probeDesc = el('span', { class: 'sr-only', attrs: { id: 'lab-probe-desc' } });
+  planeBox.append(probeMarker, probeLabel, probeDesc);
+  let probeDrag = null; // pointerId mientras se arrastra
+  /** La persona movió el punto: la red lo muestra (D5); si estaba en un ejemplo a medio corregir, solo cambia la vista. */
+  function moveProbe(p, { announceIt = false } = {}) {
+    if (!isPoints()) return;
+    const changed = session.setProbe(p);
+    if (!(playback.playing && isRunning(playback.size))) probeView = true;
+    if (changed || announceIt) draw();
+    if (announceIt) announce(probeText());
+  }
+  const probeAt = (e) => {
+    const box = planeBox.getBoundingClientRect();
+    return pxToPlane(plane.geometry, e.clientX - box.left, e.clientY - box.top);
+  };
+  planeBox.addEventListener('pointerdown', (e) => {
+    if (!isPoints() || e.button !== 0) return;
+    // Un clic en el plano lleva el punto ahí (D3, WCAG 2.5.7); sobre el marcador, lo agarra. Las dos cosas
+    // siguen como arrastre mientras el botón esté apretado.
+    e.preventDefault();
+    if (e.target !== probeMarker && !probeMarker.contains(e.target)) moveProbe(probeAt(e));
+    probeDrag = e.pointerId;
+    planeBox.setPointerCapture?.(e.pointerId);
+    probeMarker.focus({ preventScroll: true });
+    setData(planeBox, 'dragging', 'true');
+  });
+  planeBox.addEventListener('pointermove', (e) => { if (probeDrag === e.pointerId) moveProbe(probeAt(e)); });
+  const endProbeDrag = (e) => {
+    if (probeDrag !== e.pointerId) return;
+    probeDrag = null;
+    setData(planeBox, 'dragging', 'false');
+    announce(probeText()); // al soltar, no en cada píxel del arrastre
+  };
+  planeBox.addEventListener('pointerup', endProbeDrag);
+  planeBox.addEventListener('pointercancel', endProbeDrag);
+  probeMarker.addEventListener('keydown', (e) => {
+    const next = nudgeProbe(session.probe, e.key, e.shiftKey);
+    if (!next) return;
+    e.preventDefault();
+    e.stopPropagation();
+    moveProbe(next, { announceIt: true });
+  });
+  /** Lo que contesta la red en el punto, en palabras (para el lector y la franja). */
+  function probeText() {
+    const p = session.probe;
+    const ans = probeAnswer(run().network, p.x, p.y, run().off);
+    return t('lab.probe.say', { x: fmt(p.x), y: fmt(p.y), answer: t(`lab.class.${ans.cls}`), pct: Math.round(ans.confidence * 100) });
+  }
+  let probeLabelKey = '';
+  /** Marcador y rótulo en su lugar (D4): el rótulo dice lo que contesta la red, o lo que da la neurona elegida. */
+  function placeProbe(r, focus, dim) {
+    const on = isPoints();
+    show(probeMarker, on);
+    show(probeLabel, on);
+    if (!on) return;
+    const g = plane.geometry;
+    const p = session.probe;
+    const at = planeToPx(g, p.x, p.y);
+    probeMarker.style.transform = `translate(${(at.x - PROBE.grab / 2).toFixed(1)}px, ${(at.y - PROBE.grab / 2).toFixed(1)}px)`;
+    setData(probeMarker, 'dim', String(Boolean(dim)));
+    let text;
+    if (focus) {
+      const n = forwardSoft(r.network, [p.x, p.y], r.off).trace.layers[focus.layer].neurons[focus.neuron];
+      text = t('lab.probe.neuron', { name: nameOf(focus.layer, focus.neuron), value: fmt(n.output) });
+    } else {
+      const ans = probeAnswer(r.network, p.x, p.y, r.off);
+      text = t('lab.probe.label', { answer: t(`lab.class.${ans.cls}`), pct: Math.round(ans.confidence * 100) });
+    }
+    write(probeLabel, text);
+    const key = `${text}|${at.x.toFixed(1)}|${at.y.toFixed(1)}|${g.side}`;
+    if (key !== probeLabelKey) {
+      probeLabelKey = key;
+      const b = probeLabelBox(g, at.x, at.y, probeLabel.offsetWidth, probeLabel.offsetHeight);
+      probeLabel.style.transform = `translate(${b.x.toFixed(1)}px, ${b.y.toFixed(1)}px)`;
+    }
+    write(probeDesc, probeText());
+  }
   const scene = el('div', { class: 'inspect-scene lab-scene' });
   const sceneView = createStageView({ container: scene, store, small: true });
   const recordText = el('span', { class: 'lab-record-text' });
@@ -745,6 +833,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   /** Un paso del tamaño `size`. */
   function advance(size, { auto }) {
     restartedNote = false;
+    probeView = false; // el paso siguiente vuelve a mostrar el ejemplo (punto-de-prueba D5)
     if (animation) { animation.finish(); animation = null; }
     const r = run().advance(size);
     const a = run().active;
@@ -1189,6 +1278,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       const label = map ? t('lab.plane.neuron', { name: placeNameOf(focus.layer, focus.neuron) }) : t('lab.plane.network');
       plane.render({ network: r.network, off: r.off, version: `${session.version}:${changesVersion}`, examples: session.data.examples, held: session.split.held, highlight: indexInData, selected: state.selectedRow, force: planeForce, map, label });
       planeForce = false;
+      placeProbe(r, map ? focus : null, Boolean(a));
     } else {
       const sensorsCount = (recording ? DEFAULT_SENSORS : session.sensors).count;
       if (world) {
