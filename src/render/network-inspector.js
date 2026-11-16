@@ -578,14 +578,18 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       const col = layout.columns[current.layer];
       const pts = P[current.layer];
       if (col && pts?.length) {
-        const half = (col.collapsed ? (col.side * z) / 2 : r) + 7;
+        // De costado, el marco queda cerca de las neuronas para no tocar los nombres de las salidas (que
+        // empiezan a r + 8); arriba y abajo, con más aire.
+        const base = col.collapsed ? (col.side * z) / 2 : r;
+        const halfX = base + 4;
+        const half = base + 7;
         const xs = pts.map((p) => p.x);
         const ys = pts.map((p) => p.y);
         ctx.strokeStyle = colors.current;
         ctx.lineWidth = 2.5;
         ctx.setLineDash([4, 3]);
         ctx.beginPath();
-        ctx.rect(Math.min(...xs) - half, Math.min(...ys) - half, Math.max(...xs) - Math.min(...xs) + 2 * half, Math.max(...ys) - Math.min(...ys) + 2 * half);
+        ctx.rect(Math.min(...xs) - halfX, Math.min(...ys) - half, Math.max(...xs) - Math.min(...xs) + 2 * halfX, Math.max(...ys) - Math.min(...ys) + 2 * half);
         ctx.stroke();
         ctx.setLineDash([]);
       }

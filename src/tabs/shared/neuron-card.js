@@ -158,10 +158,22 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
   let othersRow = null;
   let actKey = '';
 
+  let openInput = null; // fila con el deslizador abierto
+  function openRow(i) {
+    if (openInput === i) return;
+    openInput = i;
+    for (const [k, r] of rowNodes) {
+      const open = k === i;
+      r.sliderRow.hidden = !open || r.row.hidden;
+      r.weightButton.setAttribute('aria-expanded', String(open));
+    }
+  }
+
   function buildRows(state) {
     const { target, sizes } = state;
     tbody.replaceChildren();
     rowNodes = new Map();
+    openInput = null;
     const n = sizes[target.layer - 1];
     for (let i = 0; i < n; i++) {
       // El nombre de la entrada es un botón que elige esa conexión (vista-de-la-red D7).
@@ -179,20 +191,30 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
         attrs: { type: 'range', id: sliderId, step: 0.01 },
         on: { input: (e) => onWeight(i, Number(e.target.value)) },
       });
-      // Un renglón por fila (vista-de-la-red D17): el deslizador y el número lado a lado; el original,
-      // si el peso está cambiado, abajo.
-      const weight = el('td', { class: 'inspect-weight' },
-        el('div', { class: 'inspect-weight-box' }, slider, el('span', { class: 'inspect-weight-line' }, weightNum)), original);
+      // Un renglón por fila (vista-de-la-red D17): el peso es un botón; al hacerle clic o llegar con Tab,
+      // la fila abre debajo un renglón con su deslizador a todo el ancho. Una fila abierta por vez.
+      const weightButton = el('button', {
+        class: 'inspect-weight-open', help: 'inspect.weight.open', dataset: { focus: 'keep' },
+        attrs: { type: 'button', 'aria-expanded': 'false', 'aria-controls': `inspect-w-row-${i}` },
+        on: { click: () => { openRow(i); slider.focus({ preventScroll: true }); }, focus: () => openRow(i) },
+      }, el('span', { class: 'inspect-weight-line' }, weightNum));
+      const weight = el('td', { class: 'inspect-weight' }, weightButton, original);
+      slider.addEventListener('focus', () => openRow(i));
+      // La barra de lo que aporta va al costado del número, nunca encima.
       const barFill = el('span', { class: 'inspect-bar-fill' });
       const productNum = el('span', { class: 'num' });
-      const product = el('td', { class: 'num inspect-product' }, el('span', { class: 'inspect-bar', attrs: { 'aria-hidden': 'true' } }, barFill), productNum);
+      const product = el('td', { class: 'num inspect-product' },
+        el('div', { class: 'inspect-product-box' }, el('span', { class: 'inspect-bar', attrs: { 'aria-hidden': 'true' } }, barFill), productNum));
       const off = el('button', {
         class: 'inspect-row-off', help: 'inspect.connection.off', dataset: { focus: 'keep' },
         attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => onToggleConnection(i) },
       }, el('span', { attrs: { 'aria-hidden': 'true' } }, '⏻'));
       const row = el('tr', { dataset: { input: String(i) } }, from, value, weight, product, el('td', { class: 'inspect-col-off' }, off));
-      tbody.append(row);
-      rowNodes.set(i, { row, from: fromButton, value, weightNum, original, slider, barFill, productNum, off, weight });
+      const sliderRow = el('tr', { class: 'inspect-slider-row', attrs: { id: `inspect-w-row-${i}` } },
+        el('td', { attrs: { colspan: '5' } }, slider));
+      sliderRow.hidden = true;
+      tbody.append(row, sliderRow);
+      rowNodes.set(i, { row, sliderRow, weightButton, from: fromButton, value, weightNum, original, slider, barFill, productNum, off, weight });
     }
     othersRow = el('tr', { class: 'inspect-others' },
       el('th', { attrs: { scope: 'row', colspan: '3' }, class: 'inspect-from' }),
@@ -280,6 +302,8 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
     for (const [i, r] of rowNodes) {
       const visible = shown.has(i);
       if (r.row.hidden === visible) r.row.hidden = !visible;
+      const sliderOpen = visible && openInput === i;
+      if (r.sliderRow.hidden === sliderOpen) r.sliderRow.hidden = !sliderOpen;
       if (!visible) continue;
       const fromName = neuronLabel(t, sizes, target.layer - 1, i);
       write(r.from, fromName);
@@ -297,6 +321,7 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
       setAttr(r.slider, 'max', String(range.max));
       setAttr(r.slider, 'aria-label', t('inspect.weight.label', { from: neuronLabel(t, sizes, target.layer - 1, i) }));
       setAttr(r.slider, 'aria-valuetext', fmt(w));
+      setAttr(r.weightButton, 'aria-label', t('inspect.weight.openLabel', { from: neuronLabel(t, sizes, target.layer - 1, i), value: fmt(w) }));
       if (document.activeElement !== r.slider && Number(r.slider.value) !== w) r.slider.value = String(w);
       const connOff = Boolean(n.offConnections?.[i]);
       setData(r.row, 'off', String(connOff || trace.layers[target.layer - 1].neurons[i].off));

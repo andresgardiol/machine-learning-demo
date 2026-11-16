@@ -1094,9 +1094,19 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-card-views[hidden] { display: none; }
 .inspect-card-views .segment { min-height: 26px; }
 .inspect-intro[data-selection="true"] { display: none; }
-.inspect-weight-box { display: flex; align-items: center; gap: 4px; }
-.inspect-weight-box input[type="range"] { flex: 1 1 auto; min-width: 0; }
-.inspect-weight-box .inspect-weight-line { flex: 0 0 auto; min-width: 3.2em; }
+.inspect-weight-open {
+  width: 100%; min-height: 24px; padding: 0 2px; font: inherit; color: var(--color-text); background: none; border: 0;
+  border-bottom: 1px dotted var(--color-text-muted); cursor: pointer; text-align: right;
+}
+.inspect-weight-open:hover, .inspect-weight-open[aria-expanded="true"] { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+.inspect-weight-open:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+/* El deslizador de la fila abierta: un renglón propio, a todo el ancho de la fila (D17). */
+.inspect-slider-row[hidden] { display: none; }
+.inspect-slider-row td { padding: 0 6px 4px; }
+.inspect-slider-row input[type="range"] { display: block; width: 100%; min-width: 120px; height: 24px; margin: 0; accent-color: var(--color-accent); }
+/* La barra de lo que aporta, al costado del número (nunca encima). */
+.inspect-product-box { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.inspect-product-box .inspect-bar { position: relative; left: auto; right: auto; top: auto; margin: 0; flex: 0 0 24px; height: 6px; }
 .inspect-rows { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; font-variant-numeric: tabular-nums; }
 .inspect-rows th, .inspect-rows td { padding: 2px 4px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
 .inspect-rows thead th { position: sticky; top: 0; z-index: 1; background: var(--color-bg); color: var(--color-text-muted); font-weight: 600; text-align: left; }
@@ -1112,7 +1122,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-weight[data-changed="true"] .inspect-weight-num::before { content: "◆ "; }
 .inspect-original { font-size: 11px; }
 .inspect-weight input[type="range"], .inspect-bias input[type="range"] { display: block; width: 100%; height: 24px; margin: 0; accent-color: var(--color-accent); }
-.inspect-weight .inspect-original { display: block; text-align: right; }
+.inspect-weight .inspect-original { display: block; text-align: right; white-space: nowrap; }
 .inspect-weight .inspect-original:empty { display: none; }
 .inspect-product { position: relative; }
 .inspect-bar { position: absolute; left: 4px; right: 4px; top: 50%; height: 6px; margin-top: -3px; }
