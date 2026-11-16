@@ -77,8 +77,16 @@ y en inglés, que aparece también con las ayudas apagadas.
 - **THEN** cambia de estado y un lector de pantalla lee el estado nuevo
 
 #### Scenario: Barra de arriba sin desbordar
-- **WHEN** la ventana mide 1032 píxeles de ancho o más, en español o en inglés
-- **THEN** la barra de arriba entra con los tres interruptores, sin encimar ni cortar ningún texto
+- **WHEN** la ventana mide 1236 píxeles de ancho o más, en español o en inglés
+- **THEN** la barra de arriba entra en un renglón con las seis pestañas enteras y los tres interruptores con su nombre, sin cortar ningún texto
+
+#### Scenario: Interruptores con nombre
+- **WHEN** la ventana tiene cualquier ancho
+- **THEN** "Guía", "Ayudas" y "Atajos" se leen con su nombre al lado del interruptor, no solo con su dibujo
+
+#### Scenario: Ventana de 1032 píxeles
+- **WHEN** la ventana mide 1032 píxeles de ancho, en español o en inglés
+- **THEN** la barra de pestañas no queda más cortada que antes de existir "Ayudas"
 
 ## REMOVED Requirements
 

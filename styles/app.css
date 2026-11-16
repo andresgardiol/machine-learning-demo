@@ -128,6 +128,18 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .lang { display: inline-flex; border: 1px solid var(--color-control-border); border-radius: var(--radius); overflow: hidden; }
 .lang-option { padding: var(--space-1) var(--space-2); background: transparent; border: 0; cursor: pointer; }
 .lang-option[aria-pressed="true"] { background: var(--color-accent); color: var(--color-bg); font-weight: 700; }
+/* La barra de arriba (interruptor-de-ayudas D6): las herramientas al tamaño de las pestañas, para que entren
+   los tres interruptores con su nombre. Cada control sigue midiendo 24 px o más de alto. */
+.topbar .tools { gap: 6px; }
+.topbar .switch { gap: 6px; padding: 3px 7px; font-size: 13px; min-height: 26px; }
+.topbar .lang-option { padding: 3px 7px; font-size: 13px; min-height: 26px; }
+.topbar .tool { padding: 3px 9px; font-size: 13px; min-height: 26px; }
+.credits-icon { display: none; }
+@media (max-width: 1239.98px) {
+  .credits-label { display: none; }
+  .credits-icon { display: inline-grid; place-items: center; width: 16px; height: 16px; border: 1px solid currentColor; border-radius: 50%; font-size: 11px; font-weight: 700; font-style: italic; }
+  .topbar .credits-button { padding: 3px 6px; }
+}
 
 .workspace {
   display: grid;

@@ -58,9 +58,30 @@ mouse y no los tiene que ver de golpe.
   los conoce puede apagarlas. Un control que no se puede usar sigue diciendo
   por qué al apretarlo."
 
+### D6 · La barra de arriba (consulta 1.3)
+
+Medido por la sub-sesión: con "Ayudas" la barra de pestañas queda cortada 42
+px a 1440×900 en español (ahí se muestra el título, de 250 px) y 184 px en
+español y 123 en inglés a 1032×800. A 1032 px ya estaba cortada antes de este
+cambio (67 y 21 px). A 1366 y 1236 px entra entera.
+
+Decisión: **las herramientas de la barra pasan al tamaño de las pestañas**
+(texto de 13 px y menos relleno en los interruptores, el idioma y
+"Créditos"). Hoy usan 16 px y ocupan 501 px contra 667 de las seis pestañas.
+Por debajo de 1240 px, "Créditos" se muestra como un botón chico con una "i"
+y su nombre accesible. Estimado, sin medir: unos 90 px menos con el tamaño y
+unos 40 más con "Créditos" chico.
+
+- A 1440×900 tiene que entrar con el título a la vista. Si no entra aun así,
+  el título se muestra desde 1490 px.
+- Los interruptores no pierden su nombre en ningún ancho: tres interruptores
+  iguales sin nombre no se distinguen, y con las ayudas apagadas tampoco los
+  explicaría un tooltip.
+- A 1032 px no se pide que entre entera: se pide que no quede peor que antes.
+  Que la barra de pestañas se desplace por dentro a ese ancho es anterior a
+  este cambio y queda en PENDIENTES.md, con las salidas posibles (segundo
+  renglón para las herramientas o un menú de preferencias).
+
 ## Riesgos
 
-- **La barra de arriba gana un control.** Si a 1032 px de ancho (el mínimo
-  con el que se midió Inspeccionar), en español o en inglés, la barra pasa a
-  dos renglones o corta un texto: parar y consultar con medidas y una
-  alternativa.
+- **La barra de arriba gana un control.** Resuelto en D6.
