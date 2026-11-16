@@ -66,6 +66,8 @@ export const ZONES = Object.freeze({ stageMin: 600, stageFloor: 440, boardKeep: 
 // --- Estado conservado entre montajes ------------------------------------------------------------
 let state = null;
 const completedMissions = new Set();
+/** Interruptor "Flujo" (vista-de-la-red D10): encendido por defecto, recordado hasta cerrar la aplicación. */
+let flowOn = true;
 
 /** Olvida el estado conservado (para pruebas). */
 export function resetState() { state = null; }
@@ -408,7 +410,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const zoomIn = el('button', { class: 'tool small inspect-zoom', i18n: 'camera.zoomIn', help: 'inspect.zoomIn', i18nAttr: 'aria-label:camera.zoomIn.label', attrs: { type: 'button' }, on: { click: () => inspector.zoomIn() } });
   const zoomReset = el('button', { class: 'tool small inspect-zoom-reset', i18n: 'inspect.zoomReset', help: 'inspect.zoomReset', attrs: { type: 'button' }, on: { click: () => inspector.resetView() } });
   const zoomGroup = el('div', { class: 'inspect-zoom-group', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.zoom.label' }, zoomOut, zoomIn, zoomReset);
-  const topRow = el('div', { class: 'inspect-row' }, netTitle, viewGroup, filterGroup);
+  // "Flujo": marcas que viajan por las conexiones con señal mientras la red maneja (D10).
+  const flowSwitch = el('button', {
+    class: 'switch inspect-flow', help: 'inspect.flow', dataset: { focus: 'keep' },
+    attrs: { type: 'button', role: 'switch', 'aria-checked': String(flowOn) },
+    on: { click: () => { flowOn = !flowOn; setAttr(flowSwitch, 'aria-checked', String(flowOn)); draw(); } },
+  }, el('span', { class: 'switch-track', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'inspect.flow' }));
+  const topRow = el('div', { class: 'inspect-row' }, netTitle, viewGroup, flowSwitch, filterGroup);
   const editsRow = el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetButton, originalButton), zoomGroup);
   const controls = el('div', { class: 'inspect-controls' }, topRow, editsRow);
   // Ventana angosta (D18): con la red por debajo de 600 px, los botones de acercar pasan detrás del
@@ -763,6 +771,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const c = candidateOf(state.choice.key);
     const name = nameOf(c);
     setText(netTitle, 'inspect.net.title', { name });
+    setAttr(netTitle, 'title', t('inspect.net.title', { name })); // si se corta, se lee entero con el cursor
     write(brainName, name);
     write(brainMeta, `${t('inspect.brain.where', { where: whereOf(brain) })} · ${shapeOf(net)}`);
     brainNotice.hidden = !notice;
@@ -832,7 +841,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       name: t('inspect.pill.label', { from: neuronLabel(t, net.sizes, pillLink.layer - 1, state.connection), to: neuronLabel(t, net.sizes, pillLink.layer, pillLink.neuron) }),
       help: 'inspect.pill',
     } : null;
-    inspector.render({ ...common, pill, animation: anim, stepSize: playback.size, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
+    // Flujo: corre mientras la reproducción avanza sola de a cuadros; quieto en pausa; no se ve en el paso a
+    // paso, durante la animación de un paso ni con menos movimiento.
+    const flow = !flowOn || reducedMotion() || playback.size !== 'frame' || anim ? 'off' : playback.playing ? 'run' : 'frozen';
+    inspector.render({ ...common, pill, flow, animation: anim, stepSize: playback.size, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
     table.render({ ...common, visible: state.view === 'table', changesVersion: changes.version, filter: state.filter });
     placeOverlay();
     // Nombres accesibles de las neuronas (capa, nombre, valor y estado): dos veces por segundo.

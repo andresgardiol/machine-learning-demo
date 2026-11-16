@@ -1105,6 +1105,8 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     get radius() { return layout ? Math.min(INSIDE.maxRadius, layout.radius * camera.zoom) : 0; },
     get viewport() { return { ...viewport }; },
     get zoomed() { return camera.zoom > INSPECTOR_CAMERA.minZoom + 1e-9 || !camera.following; },
+    /** Modo del flujo en el último dibujo: 'run', 'frozen' u 'off' (verificación desde la consola). */
+    get flow() { return lastState?.flow ?? 'off'; },
     /** Conexiones que se dibujaron como relacionadas en el último cuadro ('l:j:i'; verificación desde la consola). */
     get related() { return new Set(relatedNow); },
     /** Lo que está bajo el cursor (vista previa), o null. */

@@ -959,6 +959,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-controls .tool.small, .inspect-playbar .tool { white-space: nowrap; }
 /* Con "Ver original" (vista-de-la-red D13), el segundo renglón entra en 600 px: botones más justos. */
 .inspect-controls .tool.small { padding-inline: 4px; }
+.inspect-controls .switch { min-height: 26px; padding: 2px 6px; gap: 4px; font-size: 13px; white-space: nowrap; }
+.inspect-controls .switch-track { width: 26px; height: 14px; }
+.inspect-controls .switch-track::after { width: 10px; height: 10px; }
+.inspect-controls .switch[aria-checked="true"] .switch-track::after { transform: translateX(12px); }
 .inspect-controls .inspect-row + .inspect-row { column-gap: var(--space-1); }
 .inspect-area { position: relative; flex: 1 1 auto; min-height: 120px; }
 .inspect-diagram, .inspect-table-zone { position: absolute; inset: 0; }

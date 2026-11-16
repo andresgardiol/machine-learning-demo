@@ -53,7 +53,7 @@
 
 ## 7. Flujo
 
-- [ ] 7.1 Marcas que viajan por las conexiones con señal (D10) e interruptor "Flujo". Verificar "Flujo de la señal" y "Flujo de la señal en Inspeccionar".
+- [x] 7.1 Marcas que viajan por las conexiones con señal (D10) e interruptor "Flujo". Verificar "Flujo de la señal" y "Flujo de la señal en Inspeccionar". *Interruptor "Flujo" en el primer renglón de la barra, encendido por defecto y recordado mientras la aplicación está abierta. Verificado en Chrome sin ventana: al abrir corre (`run`); en pausa queda quieto (dos lecturas del canvas a 400 ms, iguales); de a capas, `off`; apagado, `off`, y sigue apagado al volver de Entrenar; con `prefers-reduced-motion: reduce` emulado, `off`. La barra sigue en 2 renglones a 600 px y en 3 a 508; el título se corta con puntos suspensivos a 600 px y se lee entero en su `title`. Laboratorio: no pasa flujo. Captura `vista-7-flujo.png`.*
 
 ## 8. Colores y leyenda
 
