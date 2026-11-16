@@ -1480,7 +1480,7 @@ export default {
   'help.tab.lab.what': 'Opens “Lab”: a network learns from examples. It compares its answer with the right one, spreads the blame for the error backward and corrects each weight.',
   'help.tab.lab.why': 'It is how almost every real network learns (backpropagation), and it shows when a network memorizes instead of learning.',
   'lab.title': 'Lab',
-  'lab.guide': 'This network learns from examples. The background shows what it answers at each place. Pause and step one phase at a time to see how it corrects itself.',
+  'lab.guide': 'This network learns from examples. The background shows what it answers at each place. Pause and step one phase at a time to see how it corrects itself. Move the probe point to see what it answers at one place.',
   'lab.guide.driving': 'This network learns to drive by imitating a teacher. The scene shows how it drives with what it knows now. Pause and step one phase at a time to see how it corrects itself.',
   'lab.net.title': 'Network: {shape}',
   'lab.layer.inputs': 'Inputs',

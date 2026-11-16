@@ -1480,7 +1480,7 @@ export default {
   'help.tab.lab.what': 'Abre «Laboratorio»: una red aprende de ejemplos. Compara su respuesta con la correcta, reparte la culpa del error hacia atrás y corrige cada peso.',
   'help.tab.lab.why': 'Es como aprenden casi todas las redes de verdad (backpropagation), y deja ver cuándo una red memoriza en vez de aprender.',
   'lab.title': 'Laboratorio',
-  'lab.guide': 'Esta red aprende de ejemplos. El fondo muestra lo que contesta en cada lugar. Pausá y avanzá de a una fase para ver cómo se corrige.',
+  'lab.guide': 'Esta red aprende de ejemplos. El fondo muestra lo que contesta en cada lugar. Pausá y avanzá de a una fase para ver cómo se corrige. Mové el punto de prueba para ver qué contesta en un lugar.',
   'lab.guide.driving': 'Esta red aprende a manejar imitando a un maestro. La escena muestra cómo maneja con lo que sabe ahora. Pausá y avanzá de a una fase para ver cómo se corrige.',
   'lab.net.title': 'Red: {shape}',
   'lab.layer.inputs': 'Entradas',
