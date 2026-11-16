@@ -22,7 +22,7 @@ import { LEARNING_STEP_SIZES } from '../../core/learning-cursor.js';
 import { TRACK_IDS } from '../../core/circuits.js';
 import { STEP } from '../../core/constants.js';
 import { createStageView } from '../../render/view.js';
-import { createNetworkInspector } from '../../render/network-inspector.js';
+import { createNetworkInspector, sameTarget } from '../../render/network-inspector.js';
 import { neighborOf } from '../../render/inspector-layout.js';
 import { createWeightTable } from '../../render/weight-table.js';
 import { createPlaneView } from '../../render/plane-view.js';
@@ -169,7 +169,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   });
   const inspector = createNetworkInspector({
     container: diagram, i18n,
-    onSelect: (target) => { select(target); focusNeuron(target, { focus: false }); },
+    onSelect: (target) => select(target),
     onViewChange: () => { layoutKey = ''; },
   });
   const headerLayer = el('div', { class: 'inspect-headers' });
@@ -242,9 +242,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
   /** Elegir una neurona abre su tarjeta; elegir la misma otra vez la cierra (D15). */
   function select(target) {
-    if (!target) return;
-    const same = state.selected && state.selected.layer === target.layer && state.selected.neuron === target.neuron;
-    state.selected = same ? null : { layer: target.layer, neuron: target.neuron };
+    if (!target) { if (state.selected) deselect(); return; }
+    const same = sameTarget(state.selected, target);
+    state.selected = same ? null : { layer: target.layer, neuron: target.neuron, ...(target.input !== undefined ? { input: target.input } : {}) };
     focusNeuron(target, { focus: false });
     neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
     sync();

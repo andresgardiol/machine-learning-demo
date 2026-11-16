@@ -11,6 +11,7 @@
 // de estilo. El diagrama solo muestra: no tiene controles que cambien la red.
 // Los colores salen de styles/tokens.css y los rótulos, de los diccionarios.
 import { computeDetailed } from '../core/network.js';
+import { maxWeightOf } from './link-look.js';
 
 export const OUTPUT_KEYS = Object.freeze(['forward', 'left', 'right', 'reverse']);
 
@@ -78,17 +79,24 @@ export function layoutNetwork({ sizes, width, height }) {
   return { columns, radius, inputLabels, outputLabels, links };
 }
 
-/** Aspecto de un peso o un sesgo: signo y nivel de magnitud (1 a WEIGHT_LEVELS; 0 si es 0). */
-export function weightStyle(value) {
+/**
+ * Aspecto de un peso o un sesgo: signo y nivel de magnitud (1 a WEIGHT_LEVELS; 0 si es 0). La magnitud
+ * es relativa a `maxWeight`, el mayor peso de la red sin el signo (vista-de-la-red D2: la misma escala
+ * relativa que el inspector); sin él, la escala fija de 0 a 1.
+ */
+export function weightStyle(value, maxWeight = 1) {
   const sign = value < 0 ? 'negative' : 'positive';
-  const magnitude = Math.min(1, Math.abs(value));
+  const magnitude = Math.min(1, Math.abs(value) / (maxWeight > 0 ? maxWeight : 1));
   const level = magnitude === 0 ? 0 : Math.max(1, Math.ceil(magnitude * WEIGHT_LEVELS));
   return { sign, level, dashed: sign === 'negative' };
 }
 
-/** Grosor (px) y opacidad de una línea según su nivel de magnitud: marcada si pesa, tenue si no. */
+/**
+ * Grosor (px) y opacidad de una línea según su nivel de magnitud: marcada si pesa, tenue si no, pero
+ * siempre por encima de un mínimo que se distingue del fondo (vista-de-la-red, delta de vista-red).
+ */
 export function levelLook(level) {
-  return { width: 0.5 + level * 0.6, alpha: 0.12 + (level / WEIGHT_LEVELS) * 0.78 };
+  return { width: 1 + level * 0.55, alpha: 0.4 + (level / WEIGHT_LEVELS) * 0.55 };
 }
 
 /** Actividad de un nodo entre 0 y 1 a partir de su valor (las entradas y tanh pueden ser negativas). */
@@ -140,12 +148,12 @@ export function createNetworkView({ container, i18n, doc = document }) {
   observer.observe(container);
 
   /** Líneas de una capa agrupadas por signo y nivel: un trazo por grupo. */
-  function drawLinks(from, to, weights) {
+  function drawLinks(from, to, weights, maxWeight) {
     const groups = new Map();
     for (let j = 0; j < to.length; j++) {
       const row = weights[j];
       for (let i = 0; i < from.length; i++) {
-        const st = weightStyle(row[i]);
+        const st = weightStyle(row[i], maxWeight);
         if (st.level === 0) continue;
         const key = `${st.sign}${st.level}`;
         let g = groups.get(key);
@@ -168,7 +176,7 @@ export function createNetworkView({ container, i18n, doc = document }) {
   }
 
   /** Nodo: relleno según su actividad y, si tiene sesgo, contorno según el sesgo. */
-  function drawNode(p, r, level, bias) {
+  function drawNode(p, r, level, bias, maxWeight) {
     ctx.beginPath();
     ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
     ctx.fillStyle = colors.background;
@@ -184,7 +192,7 @@ export function createNetworkView({ container, i18n, doc = document }) {
       ctx.lineWidth = 1;
       ctx.setLineDash([]);
     } else {
-      const st = weightStyle(bias);
+      const st = weightStyle(bias, maxWeight);
       const look = levelLook(st.level);
       ctx.strokeStyle = st.level === 0 ? colors.node : colors[st.sign];
       ctx.lineWidth = Math.max(1, look.width * 1.4);
@@ -205,11 +213,12 @@ export function createNetworkView({ container, i18n, doc = document }) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, size.width, size.height);
     const { columns, radius } = layout;
-    for (let l = 0; l < network.layers.length; l++) drawLinks(columns[l].nodes, columns[l + 1].nodes, network.layers[l].weights);
+    const maxWeight = maxWeightOf(network);
+    for (let l = 0; l < network.layers.length; l++) drawLinks(columns[l].nodes, columns[l + 1].nodes, network.layers[l].weights, maxWeight);
     columns.forEach((col, c) => {
       const values = detail ? detail.values[c] : null;
       const biases = c === 0 ? null : network.layers[c - 1].biases;
-      col.nodes.forEach((p, i) => drawNode(p, radius, values ? activity(values[i]) : 0, biases ? biases[i] : undefined));
+      col.nodes.forEach((p, i) => drawNode(p, radius, values ? activity(values[i]) : 0, biases ? biases[i] : undefined, maxWeight));
     });
     // Rótulos
     ctx.fillStyle = colors.label;

@@ -24,7 +24,7 @@
   --color-sensor-hit: #ff5a5a;
   /* Diagrama de la red: distintos de auto, tráfico y sensores (el signo también se ve en el trazo) */
   --color-weight-positive: #36d6c3; /* pesos y sesgos positivos: línea continua */
-  --color-weight-negative: #ff6fb5; /* pesos y sesgos negativos: línea punteada */
+  --color-weight-negative: #e0489a; /* pesos y sesgos negativos: línea punteada. Más profundo que el verde agua para separarlos con daltonismo (vista-de-la-red D11: ΔE 14,3 con deuteranopia, 4,3:1 sobre la superficie) */
   --color-neuron-active: #f5f7fa; /* relleno de una neurona activa */
   --color-neuron: #5b6677; /* contorno de una neurona sin sesgo (entradas) */
   /* Inspector de la red (pestana-inspeccionar D6): la neurona que se calcula en el paso a paso, lo

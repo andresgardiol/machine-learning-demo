@@ -64,9 +64,18 @@ test('pesos visibles: 0,9 positivo y marcado; -0,1 negativo, punteado y tenue', 
   assert.deepEqual(strong, { sign: 'positive', level: 4, dashed: false });
   assert.deepEqual(weak, { sign: 'negative', level: 1, dashed: true });
   assert.ok(levelLook(strong.level).width > levelLook(weak.level).width);
-  assert.ok(levelLook(strong.level).alpha > 0.8 && levelLook(weak.level).alpha < 0.4);
+  assert.ok(levelLook(strong.level).alpha > 0.8 && levelLook(weak.level).alpha < 0.6);
   assert.equal(weightStyle(0).level, 0);
   assert.equal(weightStyle(-3).level, 4);
+});
+
+test('escala relativa (vista-de-la-red): en una red de pesos chicos, el mayor bien marcado y todos visibles', () => {
+  const max = 0.25;
+  assert.equal(weightStyle(0.25, max).level, 4);
+  assert.equal(weightStyle(-0.12, max).level, 2);
+  assert.equal(weightStyle(0.01, max).level, 1);
+  const min = levelLook(1);
+  assert.ok(min.width >= 1.5 && min.alpha >= 0.5, 'ninguna por debajo de un mínimo que se distingue');
 });
 
 test('sesgo -0,8: aspecto de valor negativo y bien marcado', () => {

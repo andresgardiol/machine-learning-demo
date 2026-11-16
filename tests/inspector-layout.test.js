@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { layoutInspector, hitNeuron, neighborOf, INSPECTOR_LAYOUT } from '../src/render/inspector-layout.js';
-import { linkRole, contributionBucket } from '../src/render/network-inspector.js';
+import { flowCounts, insideLevel, sameTarget, FLOW } from '../src/render/network-inspector.js';
 import { LAYOUT } from '../src/render/network-view.js';
 
 const ZONE = { width: 700, height: 560 };
@@ -80,14 +80,25 @@ test('foco con flechas: arriba y abajo en la capa, izquierda y derecha entre cap
   assert.equal(neighborOf(sizes, { layer: 2, neuron: 1 }, 'KeyA'), null);
 });
 
-test('papel de cada conexión: destacada la de la neurona elegida, atenuada la que queda fuera del filtro', () => {
-  const emphasis = new Set(['1:2']);
-  const top = [null, [new Set([0]), new Set([1]), new Set([2])]];
-  assert.equal(linkRole({ layer: 1, neuron: 2, input: 5, emphasis, top }), 'emphasized');
-  assert.equal(linkRole({ layer: 1, neuron: 0, input: 0, emphasis, top }), 'normal');
-  assert.equal(linkRole({ layer: 1, neuron: 0, input: 3, emphasis, top }), 'filtered');
-  assert.equal(linkRole({ layer: 1, neuron: 0, input: 3, emphasis, top: null }), 'normal');
-  assert.deepEqual([0, 0.1, -0.5].map(contributionBucket), [0, 1, 2]);
+test('flujo (D10): como mucho 150 marcas, repartidas según |producto|, ninguna sin señal', () => {
+  const c = flowCounts([0.6, -0.3, 0, 0.1]);
+  assert.ok(c.reduce((a, b) => a + b, 0) <= FLOW.marks);
+  assert.equal(c[2], 0);
+  assert.ok(c[0] > c[1] && c[1] > c[3] && c[3] > 0);
+  const many = flowCounts(Array.from({ length: 900 }, (_, k) => (k % 3 === 0 ? 0 : 0.01 * (k % 7))));
+  assert.ok(many.reduce((a, b) => a + b, 0) <= FLOW.marks);
+  assert.deepEqual(flowCounts([0, 0]), [0, 0]);
+});
+
+test('neurona por dentro (D4): solo relleno, valor, curva y detalle según el radio', () => {
+  assert.deepEqual([8, 12, 23, 24, 35, 36, 44].map(insideLevel), ['fill', 'value', 'value', 'curve', 'curve', 'detail', 'detail']);
+});
+
+test('mismo blanco: neurona con neurona, conexión con conexión', () => {
+  assert.ok(sameTarget({ layer: 1, neuron: 2 }, { layer: 1, neuron: 2 }));
+  assert.ok(!sameTarget({ layer: 1, neuron: 2 }, { layer: 1, neuron: 2, input: 0 }));
+  assert.ok(sameTarget({ layer: 1, neuron: 2, input: 0 }, { layer: 1, neuron: 2, input: 0 }));
+  assert.ok(!sameTarget(null, { layer: 1, neuron: 2 }));
 });
 
 // --- vista-de-la-red D3 y D5 -------------------------------------------------------------------

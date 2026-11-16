@@ -20,7 +20,8 @@ import { createPassCursor, STEP_SIZES } from '../../core/pass-cursor.js';
 import { TRACK_IDS, isCircuit } from '../../core/circuits.js';
 import { MAX_SPEED } from '../../core/constants.js';
 import { createStageView } from '../../render/view.js';
-import { createNetworkInspector } from '../../render/network-inspector.js';
+import { createNetworkInspector, sameTarget } from '../../render/network-inspector.js';
+import { maxWeightOfTrace } from '../../render/link-look.js';
 import { neighborOf } from '../../render/inspector-layout.js';
 import { createWeightTable } from '../../render/weight-table.js';
 import { weightStyle } from '../../render/network-view.js';
@@ -76,7 +77,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       filter: 'all',
       collapsed: [],
       shapeKey: '',
-      selected: { layer: 1, neuron: 0 },
+      selected: null, // nada elegido al abrir (vista-de-la-red D5); con una conexión, su neurona de destino
+      connection: null, // la conexión elegida: índice de su entrada en `selected`
       connection: null,
       playback: createPlayback(),
       settings: null,
@@ -137,9 +139,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (shapeKey !== state.shapeKey) {
       state.shapeKey = shapeKey;
       state.collapsed = net.sizes.map(() => false);
-      state.selected = { layer: 1, neuron: 0 };
-    } else if (!state.selected || state.selected.layer >= net.sizes.length || state.selected.neuron >= net.sizes[state.selected.layer]) {
-      state.selected = { layer: 1, neuron: 0 };
+      state.selected = null;
+    } else if (state.selected && (state.selected.layer >= net.sizes.length || state.selected.neuron >= net.sizes[state.selected.layer])) {
+      state.selected = null;
     }
     state.connection = null;
     state.manual = null;
@@ -321,11 +323,19 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
 
   // --- Selección ---------------------------------------------------------------------------------
+  /** Lo elegido como lo entiende el inspector: null, una neurona o una conexión ({ layer, neuron, input }). */
+  const picked = () => (!state.selected ? null : state.connection === null ? state.selected : { ...state.selected, input: state.connection });
+  /** Elige una neurona o una conexión; null, o elegir otra vez lo mismo, suelta (D5). */
   function select(target) {
-    if (!target) return;
-    state.selected = { layer: target.layer, neuron: target.neuron };
-    state.connection = target.input ?? null;
-    if (!neuronLayer.contains(document.activeElement)) focusNeuron(state.selected, { focus: false });
+    const same = target && sameTarget(target, picked());
+    if (!target || same) {
+      state.selected = null;
+      state.connection = null;
+    } else {
+      state.selected = { layer: target.layer, neuron: target.neuron };
+      state.connection = target.input ?? null;
+    }
+    if (state.selected && !neuronLayer.contains(document.activeElement)) focusNeuron(state.selected, { focus: false });
     relabel(); // «elegida» al instante
     sync();
   }
@@ -369,7 +379,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   area.append(diagram, tableZone);
   const inspector = createNetworkInspector({
     container: diagram, i18n,
-    onSelect: (target) => { select(target); focusNeuron(target, { focus: false }); },
+    onSelect: (target) => select(target),
     onViewChange: () => { layoutKey = ''; },
   });
   // Encabezados de capa sobre el diagrama (D6): botones de verdad que siguen a su columna.
@@ -410,7 +420,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       return b;
     }));
     layoutKey = '';
-    focusNeuron(state.selected, { focus: false }); // la elegida es la entrada a la red con Tab
+    focusNeuron(state.selected ?? focusTarget, { focus: false }); // la elegida es la entrada a la red con Tab
   }
   function toggleLayer(l) {
     state.collapsed = state.collapsed.map((v, i) => (i === l ? !v : v));
@@ -464,14 +474,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const c = displayed.cursor;
     const value = l === 0 || !c || c.opsDone(l, j) === 4 ? fmt(n.output) : t('inspect.aria.pending');
     const flags = [];
-    if (state.selected.layer === l && state.selected.neuron === j) flags.push(t('inspect.aria.selected'));
+    const isSel = Boolean(state.selected) && state.connection === null && state.selected.layer === l && state.selected.neuron === j;
+    if (isSel) flags.push(t('inspect.aria.selected'));
     if (n.off) flags.push(t('inspect.aria.off'));
     if (l > 0 && (changes.has({ kind: 'bias', layer: l, neuron: j }) || n.weights.some((_, i) => changes.has({ kind: 'weight', layer: l, neuron: j, input: i })))) flags.push(t('inspect.aria.changed'));
     if (l === 0 && state.manual?.[j] !== null && state.manual?.[j] !== undefined) flags.push(t('inspect.aria.manual'));
     const label = t('inspect.aria.neuron', { layer: layerName(t, l, net.sizes.length), name: neuronLabel(t, net.sizes, l, j), value })
       + (flags.length ? `. ${flags.join(', ').replace(/^./, (c) => c.toUpperCase())}` : '');
     if (b.getAttribute('aria-label') !== label) b.setAttribute('aria-label', label);
-    b.setAttribute('aria-pressed', String(state.selected.layer === l && state.selected.neuron === j));
+    b.setAttribute('aria-pressed', String(isSel));
   }
 
   // Operación en curso y reproducción (D7 y D7c)
@@ -687,7 +698,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const top = topConnections(net, changes, state.filter);
     const marks = marksOf();
     const common = {
-      sizes: net.sizes, trace, cursor: shownCursor, selected: state.selected, collapsed: state.collapsed, top, marks,
+      sizes: net.sizes, trace, cursor: shownCursor, selected: picked(), collapsed: state.collapsed, top, marks, filter: state.filter,
       manual: state.manual ? state.manual.map((v) => v !== null) : null,
     };
     inspector.render({ ...common, animation: anim, visible: state.view === 'diagram', headerRows });
@@ -705,16 +716,17 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const sel = state.selected;
     const sensors = brain.sensors.count;
     let rayLooks = null;
-    if (sel.layer === 1) {
+    if (sel && sel.layer === 1) {
       const n = trace.layers[1].neurons[sel.neuron];
-      rayLooks = Array.from({ length: sensors }, (_, i) => ({ ...weightStyle(n.weights[i]), off: Boolean(n.offConnections?.[i]) }));
+      const maxW = maxWeightOfTrace(trace);
+      rayLooks = Array.from({ length: sensors }, (_, i) => ({ ...weightStyle(n.weights[i], maxW), off: Boolean(n.offConnections?.[i]) }));
     }
     const raysOff = Array.from({ length: sensors }, (_, i) => trace.layers[0].neurons[i].off);
     const paused = !playback.playing;
     sceneView.render(world, {
       showSensors: true,
       rays: {
-        looks: rayLooks, off: raysOff, highlight: sel.layer === 0 && sel.neuron < sensors ? sel.neuron : null,
+        looks: rayLooks, off: raysOff, highlight: sel && sel.layer === 0 && sel.neuron < sensors ? sel.neuron : null,
         handles: paused ? { readings: trace.inputs.slice(0, sensors), onDrag: (i, v) => setManual(i, v) } : null,
       },
     });
@@ -730,11 +742,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     setText(decisionNote, decided ? (state.manual ? 'inspect.decision.manual' : 'inspect.decision.live') : 'inspect.decision.undecided');
 
     // Tarjeta de la neurona elegida.
-    card.sync({
-      target: sel, sizes: net.sizes, trace, changes, original: net, cursor: shownCursor,
-      top: top && sel.layer > 0 ? top[sel.layer][sel.neuron] : null,
-      paused, manual: state.manual, connection: state.connection,
-    });
+    show(card.node, Boolean(sel));
+    if (sel) {
+      card.sync({
+        target: sel, sizes: net.sizes, trace, changes, original: net, cursor: shownCursor,
+        top: top && sel.layer > 0 ? top[sel.layer][sel.neuron] : null,
+        paused, manual: state.manual, connection: state.connection,
+      });
+    }
     description.set(t('inspect.scene.description', { track: t(`track.${state.settings.track}`), state: t(paused ? 'inspect.paused' : 'inspect.playing') }));
   }
 
@@ -870,7 +885,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // La primera vez arranca reproduciendo; al volver, como se dejó (sin avanzar mientras no estaba a la vista).
   if (firstTime || state.wasPlaying) playback.play();
   buildOverlay();
-  focusNeuron(state.selected, { focus: false });
+  focusNeuron(state.selected ?? focusTarget, { focus: false });
   sync();
   draw();
   loop.start();

@@ -977,6 +977,18 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   position: absolute; top: 0; left: 0; padding: 0; background: transparent; border: 0; border-radius: 50%;
   pointer-events: none; /* el mouse lo atiende el canvas; estos botones son para el teclado y el lector */
 }
+/* Pastilla para cambiar un peso en el lugar (vista-de-la-red D8): un deslizador sobre la conexión elegida. */
+.inspector-pill {
+  position: absolute; top: 0; left: 0; pointer-events: auto; min-width: 44px; min-height: 26px; padding: 3px 8px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+  background: var(--color-bg); color: var(--color-text); border: 2px solid var(--color-weight-positive); border-radius: 13px;
+  font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: ns-resize; touch-action: none; user-select: none;
+}
+.inspector-pill[data-sign="negative"] { border-color: var(--color-weight-negative); border-style: dashed; }
+.inspector-pill::before { content: '↕'; font-weight: 400; color: var(--color-text-muted); font-size: 11px; }
+.inspector-pill:focus-visible, .inspector-pill.dragging { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.inspector-pill[hidden] { display: none; }
+.inspect-card[hidden] { display: none; }
 .inspect-op { flex: 0 0 auto; margin: 0; padding: var(--space-1) var(--space-2); min-height: calc(2 * 1.35em + 8px); font-size: 13px; line-height: 1.35; font-variant-numeric: tabular-nums; border-top: 1px solid var(--color-border); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .inspect-op[hidden] { display: none; }
 .inspect-playbar { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); padding: 6px var(--space-2); border-top: 1px solid var(--color-border); background: var(--color-surface-2); }

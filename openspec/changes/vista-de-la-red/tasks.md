@@ -13,11 +13,11 @@
 
 ## 2. Leer la red sin tocar nada
 
-- [ ] 2.1 El inspector dibuja las conexiones con `linkLook`, y Entrenar usa la misma escala (`network-view.js`). Verificar los escenarios de "Conexiones siempre visibles" y el delta de `vista-red`.
-- [ ] 2.2 Neuronas con el radio nuevo y sus rótulos. Verificar "Neuronas que usan el espacio" en el navegador, con capas resumidas.
-- [ ] 2.3 Neurona por dentro, según el radio en pantalla (D4). Verificar los escenarios de "Neurona por dentro", también acercando.
-- [ ] 2.4 Estado sin nada elegido en el inspector y en las dos pestañas; Inspeccionar abre así. Verificar "Estado sin nada elegido" y "Lista para mirar al abrir".
-- [ ] 2.5 El rosa nuevo en `styles/tokens.css`. Revisar que la leyenda, la tabla de pesos, Entrenar y el Laboratorio lo usen.
+- [x] 2.1 El inspector dibuja las conexiones con `linkLook`, y Entrenar usa la misma escala (`network-view.js`). Verificar los escenarios de "Conexiones siempre visibles" y el delta de `vista-red`.
+- [x] 2.2 Neuronas con el radio nuevo y sus rótulos. Verificar "Neuronas que usan el espacio" en el navegador, con capas resumidas.
+- [x] 2.3 Neurona por dentro, según el radio en pantalla (D4). Verificar los escenarios de "Neurona por dentro", también acercando.
+- [x] 2.4 Estado sin nada elegido en el inspector y en las dos pestañas; Inspeccionar abre así. Verificar "Estado sin nada elegido" y "Lista para mirar al abrir".
+- [x] 2.5 El rosa nuevo en `styles/tokens.css`. Revisar que la leyenda, la tabla de pesos, Entrenar y el Laboratorio lo usen.
 - [ ] 2.6 Tomar capturas a 1440×900 de tres redes sin nada elegido: el cerebro de ejemplo (6, 6, 4), una de 6, 8, 8, 4, y la más grande (21, 16, 16, 16, 4), antes y después del cambio, en Inspeccionar; y la red por defecto del Laboratorio. Guardarlas en la carpeta de notas y **detenerse y consultar** con ellas: los números de D2 se confirman mirando.
 
 ## 3. Vista previa, elegir y soltar
