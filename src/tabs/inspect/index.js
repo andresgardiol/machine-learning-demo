@@ -39,7 +39,7 @@ import { EXAMPLE_BRAINS } from '../../data/example-brains.js';
 import { listBrains, resolveChoice, trainedScenario, trainedTracks, workingCopy, PICKER_GROUPS } from './brains.js';
 import { createPlayback, FRAME_PACES, STEP_PACES } from './playback.js';
 import { createStepAnimation, displayCursor, stepDuration } from './step-animation.js';
-import { describeStep, whereText, layerName, neuronLabel, placeName } from './describe.js';
+import { describeStep, describeOperation, whereText, layerName, neuronLabel, placeName } from './describe.js';
 import { createInspectMissions } from './missions.js';
 import { shortcutFor } from './shortcuts.js';
 import { createNeuronCard, weightRange } from './card.js';
@@ -241,7 +241,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       const duration = stepDuration(size, auto ? { intervalMs: playback.intervalMs } : {});
       animation = createStepAnimation(r, cursor.at, { start: performance.now(), duration, sizes: net.sizes, fine: size === 'operation' });
     }
-    if (!auto) announce(describeStep({ t, fmt, size, last, trace: traceNow(), sizes: net.sizes }));
+    if (!auto) announce(describeStep({ t, fmt, size, last, trace: traceNow(), sizes: net.sizes, cursor, manual: state.manual }));
   }
 
   // --- Reproducción --------------------------------------------------------------------------------
@@ -555,7 +555,51 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
 
   // Operación en curso y reproducción (D7 y D7c)
-  const opStrip = el('p', { class: 'inspect-op', attrs: { 'aria-hidden': 'true' } });
+  // La franja (operacion-por-operacion D4): de a operaciones, cuatro renglones de alto fijo (lugar y
+  // paso; la cuenta con el nombre de cada número; una frase; el recorrido de la neurona). Con los otros
+  // tamaños, el resumen de dos renglones. Fuera del árbol de accesibilidad: el anuncio lleva la cuenta.
+  const opPlace = el('span', { class: 'op-place' });
+  const opStepText = el('span', { class: 'op-step' });
+  const opMath = el('div', { class: 'op-math num' });
+  const opSay = el('p', { class: 'op-say' });
+  const opTrack = el('ol', { class: 'op-track' });
+  const opFine = el('div', { class: 'op-fine' }, el('div', { class: 'op-head' }, opPlace, opStepText), opMath, opSay, opTrack);
+  const opSummary = el('p', { class: 'op-summary' });
+  const opStrip = el('div', { class: 'inspect-op', attrs: { 'aria-hidden': 'true' }, dataset: { mode: 'summary' } }, opFine, opSummary);
+  let opKey = '';
+  /** Escribe la franja; rehace la cuenta y el recorrido solo si cambiaron. */
+  function writeStrip(trace) {
+    const fine = playback.size === 'operation';
+    setData(opStrip, 'mode', fine ? 'fine' : 'summary');
+    if (!fine) {
+      write(opSummary, lastStep ? describeStep({ t, fmt, size: lastStep.size, last: lastStep.last, trace, sizes: net.sizes }) : t('inspect.op.idle'));
+      opKey = '';
+      return;
+    }
+    // De a operaciones: la última hecha, si fue de a una; si no, la que se acaba de completar.
+    const last = cursor.position;
+    if (!last) {
+      write(opPlace, t('inspect.op.idleFine'));
+      write(opStepText, '');
+      if (opKey !== 'idle') { opKey = 'idle'; opMath.replaceChildren(); opTrack.replaceChildren(); write(opSay, t('inspect.op.idle')); }
+      return;
+    }
+    const d = describeOperation({ t, fmt, last, trace, sizes: net.sizes, cursor, manual: state.manual });
+    write(opPlace, d.place);
+    write(opStepText, d.step);
+    write(opSay, d.say);
+    setAttr(opSay, 'title', d.say);
+    const key = `${i18n.language}|${JSON.stringify(d.tokens)}|${JSON.stringify(d.track)}`;
+    if (key === opKey) return;
+    opKey = key;
+    opMath.replaceChildren(...d.tokens.map((k) => {
+      if (k.kind === 'sym') return el('span', { class: 'op-sym' }, k.text);
+      return el('span', { class: k.kind === 'fn' ? 'op-term op-fn' : 'op-term', dataset: { result: String(Boolean(k.result)) } },
+        el('span', { class: 'op-num' }, k.text), el('span', { class: 'op-name', help: k.help }, k.name));
+    }));
+    opTrack.replaceChildren(...d.track.marks.map((m) => el('li', { class: 'op-mark', dataset: { state: m.state, wide: String(Boolean(m.wide)) } },
+      m.state === 'done' ? el('span', { class: 'op-tick' }, '✓') : null, el('span', {}, m.label))));
+  }
   const playButton = el('button', { class: 'tool primary inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
   const stepButton = el('button', { class: 'tool inspect-step', i18n: 'inspect.step', help: 'inspect.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
   const sizeButtons = STEP_SIZES.map((s) => el('button', {
@@ -857,7 +901,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
 
     // Operación en curso: en pausa y al reproducir de a capas, neuronas u operaciones (D7c).
     show(opStrip, !realTime);
-    if (!realTime) write(opStrip, lastStep ? describeStep({ t, fmt, size: lastStep.size, last: lastStep.last, trace, sizes: net.sizes }) : t('inspect.op.idle'));
+    if (!realTime) writeStrip(trace);
     write(where, whereText({ t, frame: world.steps, sizes: net.sizes, cursor: shownCursor ?? cursor, realTimePlaying: realTime }));
 
     // Escena: rayos con el peso de la neurona elegida si recibe los sensores (D9).
