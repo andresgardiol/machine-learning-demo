@@ -91,8 +91,12 @@ El resto de las notas de este archivo no tiene orden fijo.
     llega en ninguna carrera, con 34 a 39 choques. Con una capa de 8 y tasa
     0,03 llega sin choques a las 500 y a las 1000 épocas. Que la pista elegida
     cambie la tasa o la red por defecto queda para que decida el dueño.
-  - La espiral no se aprende con la red y la tasa por defecto; pide dos capas
-    de 8 y tasa 0,03 (622 a 1055 épocas en cinco semillas). El tooltip lo dice.
+  - La espiral (desde `espiral-aprendible`, 1,25 vueltas) se aprende con dos
+    capas de 7 u 8, tanh y la tasa por defecto (45 a 69 épocas en cinco
+    semillas); sigue sin andar bien, medido con una copia del generador
+    (design.md D2 de ese cambio, sin repetir con el real): tres capas de 8
+    con tanh, 2 de 5 semillas; ReLU, 1 o 2 de 5; sigmoide, 1 de 5 como mucho;
+    ruido 20 %, 2 de 5 con dos capas de 8.
   - Con pocos apartados (receta de la misión 2: 12 puntos), el error de los
     apartados es ruidoso: el aviso de sobreajuste aparece y se retira de 1 a 3
     veces en 600 épocas, según la semilla. Ninguna pasó de tres.

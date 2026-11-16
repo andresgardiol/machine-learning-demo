@@ -14,5 +14,5 @@
 
 ## 3. Cierre
 
-- [ ] 3.1 PENDIENTES.md: quitar la nota de la espiral y anotar lo que sigue sin andar (design.md D2).
-- [ ] 3.2 `npm test` y `openspec validate espiral-aprendible --strict`.
+- [x] 3.1 PENDIENTES.md: quitar la nota de la espiral y anotar lo que sigue sin andar (design.md D2). *Quitada la nota "la espiral no se aprende con la red y la tasa por defecto"; en su lugar, lo que se aprende ahora (medido) y lo que sigue sin andar según D2 (medido con la copia del generador, no repetido con el real).*
+- [x] 3.2 `npm test` y `openspec validate espiral-aprendible --strict`. *`npm test`: 1175 en verde. `openspec validate espiral-aprendible --strict`: pasa.*
