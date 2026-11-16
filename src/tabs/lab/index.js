@@ -1026,7 +1026,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     displayed.learning = learning;
     const forwardAnim = anim ? { items: anim.items.filter((x) => x.phase === 'forward') } : null;
     const common = { sizes, trace, cursor, selected: state.selected, collapsed: state.collapsed, top: null, labels, learning };
-    inspector.render({ ...common, animation: forwardAnim, visible: state.view === 'diagram', headerRows });
+    inspector.render({ ...common, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
     table.render({ ...common, visible: state.view === 'table', changesVersion: `${changesVersion}|${anim ? now : ''}`, filter: state.filter });
     placeOverlay();
     if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));

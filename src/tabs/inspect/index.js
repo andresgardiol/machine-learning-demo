@@ -809,7 +809,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       sizes: net.sizes, trace, cursor: shownCursor, selected: picked(), collapsed: state.collapsed, top, marks, filter: state.filter,
       manual: state.manual ? state.manual.map((v) => v !== null) : null,
     };
-    inspector.render({ ...common, animation: anim, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
+    inspector.render({ ...common, animation: anim, stepSize: playback.size, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
     table.render({ ...common, visible: state.view === 'table', changesVersion: changes.version, filter: state.filter });
     placeOverlay();
     // Nombres accesibles de las neuronas (capa, nombre, valor y estado): dos veces por segundo.

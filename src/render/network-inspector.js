@@ -61,6 +61,29 @@ export function flowCounts(products, total = FLOW.marks) {
   return counts;
 }
 
+/**
+ * Lo que está en curso en un recorrido paso a paso, del tamaño del paso (D19), y las conexiones que
+ * cuentan como relacionadas por eso. Con operación o neurona, la neurona de `cursor.next`; con capa, su
+ * capa entera; con cuadro, nada (ni durante su animación). Durante la animación de un paso, también las
+ * conexiones que entran a cada neurona que se anima. Puro, para las pruebas.
+ * @param {{sizes:number[], cursor:object|null, stepSize?:string, animation?:{items:{layer:number, neuron:number}[]}|null}} p
+ * @returns {{current:{kind:'neuron', layer:number, neuron:number}|{kind:'layer', layer:number}|null, links:Set<string>}}
+ */
+export function inProgress({ sizes, cursor, stepSize, animation = null }) {
+  const links = new Set();
+  if (stepSize === 'frame') return { current: null, links }; // de a cuadros nada se atenúa por el recorrido
+  const incoming = (l, j) => { if (l >= 1 && l < sizes.length) for (let i = 0; i < sizes[l - 1]; i++) links.add(`${l}:${j}:${i}`); };
+  let current = null;
+  if (cursor && !cursor.done) {
+    const next = cursor.next;
+    current = stepSize === 'layer' ? { kind: 'layer', layer: next.layer } : { kind: 'neuron', layer: next.layer, neuron: next.neuron };
+  }
+  if (current?.kind === 'layer') for (let j = 0; j < sizes[current.layer]; j++) incoming(current.layer, j);
+  else if (current) incoming(current.layer, current.neuron);
+  for (const it of animation?.items ?? []) incoming(it.layer, it.neuron);
+  return { current, links };
+}
+
 /** Mismo blanco: dos elecciones (neurona o conexión) iguales. */
 export const sameTarget = (a, b) => Boolean(a && b) && a.layer === b.layer && a.neuron === b.neuron && (a.input ?? null) === (b.input ?? null);
 
@@ -347,6 +370,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
    * @param {boolean[]} [state.manual] entradas a mano
    * @param {{items:{layer:number, neuron:number, op:string, p:number}[]}|null} [state.animation]
    * @param {boolean} [state.visible] falso: no se dibuja (la vista es la tabla)
+   * @param {string} [state.stepSize] tamaño del paso ('frame', 'layer', 'neuron', 'operation', …): define lo que está en curso (D19)
    * @param {'run'|'frozen'|'off'} [state.flow] flujo de la señal (D10): corre, quieto o no se ve
    * @param {{min:number, max:number}|null} [state.pill] la conexión elegida se puede cambiar en el lugar (D8)
    * @param {string|null} [state.banner] rótulo sobre la red (por ejemplo, "Original, sin tus cambios")
@@ -372,7 +396,8 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     const selected = state.selected ?? null;
     if (hover && !trace.layers[hover.layer]?.neurons[hover.neuron]) hover = null;
     const focus = hover ?? selected; // vista previa: como si estuviera elegida, sin perder lo elegido
-    const current = cursor && !cursor.done ? cursor.next : null;
+    const progress = inProgress({ sizes, cursor, stepSize: state.stepSize, animation: state.animation });
+    const current = progress.current;
     const top = state.top ?? null;
     const marks = state.marks ?? { changedWeights: new Set(), changedBiases: new Set() };
     const animated = new Map();
@@ -394,7 +419,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       }
       if (focus.layer < C - 1) for (let j = 0; j < sizes[focus.layer + 1]; j++) direct.add(`${focus.layer + 1}:${j}:${focus.neuron}`);
     }
-    if (current) for (let i = 0; i < sizes[current.layer - 1]; i++) direct.add(`${current.layer}:${current.neuron}:${i}`);
+    for (const key of progress.links) direct.add(key);
     const anyFocus = direct.size > 0;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -547,7 +572,24 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       ctx.stroke();
       ctx.setLineDash([]);
     };
-    if (current) ring(current, colors.current, [4, 3], 7);
+    if (current?.kind === 'neuron') ring(current, colors.current, [4, 3], 7);
+    if (current?.kind === 'layer') {
+      // Capa en curso: un solo marco punteado alrededor de la columna (D19).
+      const col = layout.columns[current.layer];
+      const pts = P[current.layer];
+      if (col && pts?.length) {
+        const half = (col.collapsed ? (col.side * z) / 2 : r) + 7;
+        const xs = pts.map((p) => p.x);
+        const ys = pts.map((p) => p.y);
+        ctx.strokeStyle = colors.current;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.rect(Math.min(...xs) - half, Math.min(...ys) - half, Math.max(...xs) - Math.min(...xs) + 2 * half, Math.max(...ys) - Math.min(...ys) + 2 * half);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
     if (hover && hover.input === undefined && !sameTarget(hover, selected)) ring(hover, colors.text, [], 3, 1.5);
     if (hover && hover.input !== undefined) { ring({ layer: hover.layer, neuron: hover.neuron }, colors.text, [], 3, 1.2); ring({ layer: hover.layer - 1, neuron: hover.input }, colors.text, [], 3, 1.2); }
     if (selected && selected.input === undefined) ring(selected, colors.selected, [], 3.5);
