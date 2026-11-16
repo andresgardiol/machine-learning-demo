@@ -6,6 +6,7 @@
 //   node tools/measure-lab.mjs imitation   2.5: aprender a manejar imitando a street-new en la calle recta
 //   node tools/measure-lab.mjs oval        2.6: lo mismo con el maestro del óvalo en el óvalo
 //   node tools/measure-lab.mjs oval-wide   2.6 ampliada: redes 8, 8+8 y 8+8+8, tasas 0,03 y 0,1, 500 y 1000 épocas
+//   node tools/measure-lab.mjs spiral      espiral-aprendible 1.2: épocas hasta 90 % en práctica y en apartados, tasa 0,1
 //
 // Protocolo común: los puntos se generan con la semilla 1 y se apartan con la semilla 1; cada
 // "semilla de pesos" s da la red inicial (createNetwork con createRandom(s)) y el orden de las
@@ -159,3 +160,27 @@ if (mode === 'oval-wide') {
 }
 
 export { STEP, softOutputs };
+
+
+// espiral-aprendible, tarea 1.2: la espiral con pointsDataset de verdad (200 puntos, ruido 10 %, semilla
+// de puntos 1), tanh y la tasa por defecto. Épocas hasta que práctica y apartados llegan juntos a 90 %.
+if (mode === 'spiral') {
+  const { SPIRAL_TURNS } = await import('../src/core/datasets.js');
+  const data = pointsDataset({ shape: 'spiral', count: 200, noise: 10, seed: 1 });
+  const both = ({ hidden, seed, max }) => {
+    const { run } = learner({ data, hidden, rate: 0.1, seed });
+    for (let e = 1; e <= max; e++) {
+      run.advance('epoch');
+      const h = run.history[e - 1];
+      if (h.practice.accuracy >= 0.9 && h.heldOut.accuracy >= 0.9) return e;
+    }
+    return null;
+  };
+  console.log(`## Espiral de ${SPIRAL_TURNS} vueltas: épocas hasta 90 % en práctica y en apartados (tasa 0,1, tanh)`);
+  console.log('Cada celda: semillas de pesos 1 a 5; "—" = no llegó en el máximo.\n');
+  console.log('| red | máximo | semillas 1 a 5 |');
+  console.log('|---|---|---|');
+  for (const [hidden, max] of [[[4], 600], [[7, 7], 200], [[8, 8], 200]]) {
+    console.log(`| ${hidden.join(' + ')} | ${max} | ${fmtCell(SEEDS.map((seed) => both({ hidden, seed, max })))} |`);
+  }
+}

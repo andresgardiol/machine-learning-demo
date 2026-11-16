@@ -47,6 +47,22 @@ test('puntos: espiral sin ruido, cada color forma un brazo', () => {
   }
 });
 
+test('puntos: la espiral da una vuelta y cuarto por brazo', async () => {
+  const { SPIRAL_TURNS } = await import('../src/core/datasets.js');
+  assert.equal(SPIRAL_TURNS, 1.25);
+  const d = pointsDataset({ shape: 'spiral', count: 200, noise: 0 });
+  // El ángulo recorrido por un brazo, siguiendo sus puntos en orden: 1,25 × 2π.
+  const arm = d.examples.filter((e) => e.targets[0] === 1).map((e) => Math.atan2(e.inputs[0], e.inputs[1]));
+  let total = 0;
+  for (let k = 1; k < arm.length; k++) {
+    let da = arm[k] - arm[k - 1];
+    if (da > Math.PI) da -= 2 * Math.PI;
+    if (da < -Math.PI) da += 2 * Math.PI;
+    total += da;
+  }
+  assert.ok(Math.abs(total - 1.25 * 2 * Math.PI) < 1e-6, String(total / (2 * Math.PI)));
+});
+
 test('puntos: mitad de cada color, con uno de diferencia como mucho', () => {
   for (const shape of POINT_SHAPES) {
     for (const count of [20, 21, 200, 499]) {

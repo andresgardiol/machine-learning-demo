@@ -26,3 +26,25 @@ test('receta de la misión 2: el aviso de sobreajuste aparece', () => {
   assert.ok(run.warningAppearances >= 1);
   assert.equal(run.warningEvents[0].kind, 'appeared');
 });
+
+test('espiral (espiral-aprendible): dos capas de 8 llegan a 90 % en menos de 200 épocas; una capa de 4 no llega en 600', async () => {
+  const { pointsDataset, splitDataset } = await import('../src/core/datasets.js');
+  const { createNetwork } = await import('../src/core/network.js');
+  const { createRandom } = await import('../src/core/random.js');
+  const { createLearningRun } = await import('../src/core/learning-cursor.js');
+  const data = pointsDataset({ shape: 'spiral', count: 200, noise: 10, seed: 1 });
+  const split = splitDataset(data, { holdout: 30, seed: 1 });
+  const epochsTo = (hidden, max) => {
+    const network = createNetwork({ inputs: 2, hidden, outputs: 1, activation: 'tanh', random: createRandom(1) });
+    const run = createLearningRun({ network, practice: split.practice, heldOut: split.heldOut, rate: NETWORK_DEFAULTS.rate, seed: 1 });
+    for (let e = 1; e <= max; e++) {
+      run.advance('epoch');
+      const h = run.history[e - 1];
+      if (h.practice.accuracy >= 0.9 && h.heldOut.accuracy >= 0.9) return e;
+    }
+    return null;
+  };
+  const deep = epochsTo([8, 8], 200);
+  assert.ok(deep !== null && deep < 200, `dos capas de 8: ${deep}`);
+  assert.equal(epochsTo([4], 600), null);
+});

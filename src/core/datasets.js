@@ -15,6 +15,8 @@ import { STEP } from './constants.js';
 import { forwardValues, isCorrect } from './backprop.js';
 
 export const POINT_SHAPES = Object.freeze(['blobs', 'circle', 'xor', 'spiral']);
+/** Vueltas de cada brazo de la espiral (espiral-aprendible D1). */
+export const SPIRAL_TURNS = 1.25;
 export const POINT_LIMITS = Object.freeze({
   count: Object.freeze({ min: 20, max: 500, step: 10 }),
   noise: Object.freeze({ min: 0, max: 50, step: 5 }),
@@ -80,10 +82,11 @@ function cleanPoint(shape, label, k, n, random) {
     const sy = label === 1 ? sx : -sx;
     return { x: sx * mag(), y: sy * mag() };
   }
-  // Espiral: dos brazos, el de la clase 0 girado media vuelta.
+  // Espiral: dos brazos de una vuelta y cuarto, el de la clase 0 girado media vuelta (espiral-aprendible
+  // D1: con 1,75 vueltas solo la aprendía una combinación exacta de red y tasa).
   const t = n <= 1 ? 0 : k / (n - 1);
   const r = 0.08 + 0.85 * t;
-  const a = 1.75 * t * 2 * Math.PI + (label === 1 ? 0 : Math.PI);
+  const a = SPIRAL_TURNS * t * 2 * Math.PI + (label === 1 ? 0 : Math.PI);
   return { x: r * Math.sin(a), y: r * Math.cos(a) };
 }
 
