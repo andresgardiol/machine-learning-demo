@@ -7,7 +7,8 @@ import { EXAMPLE_BRAINS } from '../src/data/example-brains.js';
 
 const net = EXAMPLE_BRAINS[0].network; // 6, 6, 4
 const sizes = net.sizes;
-const fresh = () => { const c = createPassCursor(net); c.reset(); return c; };
+// Las entradas ya leídas: la cuenta va por la primera capa oculta.
+const fresh = () => { const c = createPassCursor(net); c.reset(); c.advance('layer'); return c; };
 
 test('de a neuronas o de a operaciones: la neurona de cursor.next y solo sus conexiones de entrada', () => {
   for (const stepSize of ['neuron', 'operation']) {

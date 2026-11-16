@@ -96,7 +96,10 @@ export function describeStep({ t, fmt, size, last, trace, sizes }) {
   return `${activationName(t, n.activation)}(${fmt(n.total)}) = ${fmt(n.output)}`;
 }
 
-/** Dónde va la cuenta, en palabras: "Cuadro 132 · Oculta 1 · neurona 3 · suma". */
+/**
+ * Dónde va la cuenta, en palabras: "Cuadro 132 · Oculta 1 · neurona 2 · Sensor 3 · Multiplicar". Con
+ * multiplicar y sumar dice de qué entrada se trata.
+ */
 export function whereText({ t, frame, sizes, cursor, realTimePlaying }) {
   const parts = [t('inspect.where.frame', { n: frame })];
   if (realTimePlaying || !cursor) return parts[0];
@@ -106,6 +109,8 @@ export function whereText({ t, frame, sizes, cursor, realTimePlaying }) {
   if (!p) return `${parts[0]} · ${t('inspect.where.start')}`;
   // La operación que se acaba de hacer; si la neurona terminó, la que sigue.
   const at = p ?? next;
-  parts.push(layerName(t, at.layer, sizes.length), neuronLabel(t, sizes, at.layer, at.neuron), t(`inspect.op.${at.op}`));
+  parts.push(layerName(t, at.layer, sizes.length), neuronLabel(t, sizes, at.layer, at.neuron));
+  if (at.input !== undefined) parts.push(neuronLabel(t, sizes, at.layer - 1, at.input));
+  parts.push(t(`inspect.op.${at.op}`));
   return parts.join(' · ');
 }

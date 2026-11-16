@@ -83,11 +83,15 @@ test('de a neuronas o capas: un resumen de lo hecho', () => {
 
 test('lugar de la cuenta: el cuadro, la capa, la neurona y la operación, con palabras', () => {
   const cursor = createPassCursor([6, 6, 4]);
-  cursor.advance('neuron'); cursor.advance('neuron');
-  cursor.advance('operation'); cursor.advance('operation');
   const { t } = tools('es');
-  assert.equal(whereText({ t, frame: 132, sizes: [6, 6, 4], cursor, realTimePlaying: false }), 'Cuadro 132 · Oculta 1 · neurona 3 · Suma');
+  cursor.advance('operation');
+  assert.equal(whereText({ t, frame: 132, sizes: [6, 6, 4], cursor, realTimePlaying: false }), 'Cuadro 132 · Entradas · Sensor 1 · Leer');
+  cursor.advance('layer'); cursor.advance('neuron');
+  for (let k = 0; k < 5; k++) cursor.advance('operation'); // m0 a0 m1 a1 m2: multiplicó la tercera entrada
+  assert.equal(whereText({ t, frame: 132, sizes: [6, 6, 4], cursor, realTimePlaying: false }), 'Cuadro 132 · Oculta 1 · neurona 2 · Sensor 3 · Multiplicar');
   assert.equal(whereText({ t, frame: 132, sizes: [6, 6, 4], cursor, realTimePlaying: true }), 'Cuadro 132');
   const e = tools('en');
-  assert.equal(whereText({ ...e, frame: 7, sizes: [6, 6, 4], cursor, realTimePlaying: false }), 'Frame 7 · Hidden 1 · neuron 3 · Sum');
+  assert.equal(whereText({ ...e, frame: 7, sizes: [6, 6, 4], cursor, realTimePlaying: false }), 'Frame 7 · Hidden 1 · neuron 2 · Sensor 3 · Multiply');
+  for (let k = 0; k < 8; k++) cursor.advance('operation'); // hasta el sesgo
+  assert.equal(whereText({ t, frame: 132, sizes: [6, 6, 4], cursor, realTimePlaying: false }), 'Cuadro 132 · Oculta 1 · neurona 2 · Sesgo');
 });

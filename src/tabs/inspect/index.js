@@ -232,14 +232,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (r.finished || r.to === r.from) return;
     const ops = [];
     for (let k = r.from; k < r.to; k++) ops.push(cursor.at(k));
-    state.missions.stepped(size, ops);
+    state.missions.stepped(size, ops, net.sizes);
     const last = ops[ops.length - 1];
     lastStep = { size, last };
     // La tarjeta sigue a la cuenta (de a neuronas o de a operaciones).
     if (size === 'neuron' || size === 'operation') { state.selected = { layer: last.layer, neuron: last.neuron }; state.connection = null; }
     if (!reducedMotion()) {
       const duration = stepDuration(size, auto ? { intervalMs: playback.intervalMs } : {});
-      animation = createStepAnimation(r, cursor.at, { start: performance.now(), duration });
+      animation = createStepAnimation(r, cursor.at, { start: performance.now(), duration, sizes: net.sizes, fine: size === 'operation' });
     }
     if (!auto) announce(describeStep({ t, fmt, size, last, trace: traceNow(), sizes: net.sizes }));
   }
@@ -541,7 +541,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const trace = last && last.layers.length === net.sizes.length && last.layers.every((L, k) => L.neurons.length === net.sizes[k]) ? last : traceNow();
     const n = trace.layers[l].neurons[j];
     const c = displayed.cursor;
-    const value = l === 0 || !c || c.opsDone(l, j) === 4 ? fmt(n.output) : t('inspect.aria.pending');
+    const value = !c || c.opsDone(l, j) === 4 ? fmt(n.output) : t(l === 0 ? 'inspect.aria.unread' : 'inspect.aria.pending');
     const flags = [];
     const isSel = Boolean(state.selected) && state.connection === null && state.selected.layer === l && state.selected.neuron === j;
     if (isSel) flags.push(t('inspect.aria.selected'));

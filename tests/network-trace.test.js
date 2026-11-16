@@ -262,7 +262,7 @@ test('sin navegador: recorrer la cuenta entera termina y da las mismas salidas q
   let guard = 0;
   while (!cursor.done && guard++ < 10_000) cursor.advance('operation');
   assert.ok(cursor.done);
-  assert.equal(cursor.count, (16 * 3 + 4) * 4);
+  assert.equal(cursor.count, 21 + 16 * (2 * 21 + 2) + 16 * (2 * 16 + 2) * 2 + 4 * (2 * 16 + 2));
   assert.deepEqual(traceNetwork(net, inputs).outputs, computeNetwork(net, inputs));
 });
 

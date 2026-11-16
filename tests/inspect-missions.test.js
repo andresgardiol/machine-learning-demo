@@ -4,29 +4,37 @@ import { createInspectMissions, MISSION_IDS, OFF_SECONDS } from '../src/tabs/ins
 import es from '../src/i18n/es.js';
 import en from '../src/i18n/en.js';
 
-const op = (layer, neuron, o) => ({ layer, neuron, op: o });
+const op = (layer, neuron, o, input) => (input === undefined ? { layer, neuron, op: o } : { layer, neuron, op: o, input });
 
 test('tres misiones, ninguna cumplida al empezar', () => {
   const m = createInspectMissions();
   assert.deepEqual(m.missions, MISSION_IDS.map((id) => ({ id, done: false })));
 });
 
-test('seguir una cuenta: las cuatro operaciones de una misma neurona, de a una', () => {
+const SIZES = [2, 3, 4];
+/** Las seis operaciones de la neurona j de la capa 1 (dos entradas). */
+const neuronOps = (j) => [op(1, j, 'multiply', 0), op(1, j, 'add', 0), op(1, j, 'multiply', 1), op(1, j, 'add', 1), op(1, j, 'bias'), op(1, j, 'activation')];
+
+test('seguir una cuenta: todas las operaciones de una misma neurona (2n + 2), de a una', () => {
   const m = createInspectMissions();
-  for (const o of ['products', 'sum', 'bias']) m.stepped('operation', [op(1, 0, o)]);
+  const ops = neuronOps(0);
+  for (const o of ops.slice(0, 5)) m.stepped('operation', [o], SIZES);
   assert.equal(m.isDone('follow'), false);
-  m.stepped('operation', [op(1, 1, 'activation')]);
+  m.stepped('operation', [op(1, 1, 'activation')], SIZES);
   assert.equal(m.isDone('follow'), false, 'otra neurona no cuenta');
-  m.stepped('operation', [op(1, 0, 'activation')]);
+  m.stepped('operation', [op(0, 0, 'read')], SIZES);
+  assert.equal(m.isDone('follow'), false, 'leer una entrada no cuenta');
+  m.stepped('operation', [ops[5]], SIZES);
   assert.equal(m.isDone('follow'), true);
 });
 
 test('seguir una cuenta: de a neuronas no cuenta, ni empezar otro cuadro a mitad', () => {
   const m = createInspectMissions();
-  m.stepped('neuron', [op(1, 0, 'products'), op(1, 0, 'sum'), op(1, 0, 'bias'), op(1, 0, 'activation')]);
-  m.stepped('operation', [op(1, 1, 'products')]);
+  m.stepped('neuron', neuronOps(0), SIZES);
+  const ops = neuronOps(1);
+  m.stepped('operation', [ops[0]], SIZES);
   m.newFrame();
-  for (const o of ['sum', 'bias', 'activation']) m.stepped('operation', [op(1, 1, o)]);
+  for (const o of ops.slice(1)) m.stepped('operation', [o], SIZES);
   assert.equal(m.isDone('follow'), false);
 });
 

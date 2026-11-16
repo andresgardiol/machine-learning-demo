@@ -19,7 +19,7 @@ import { activity } from './network-view.js';
 import { linkLook, maxWeightOfTrace } from './link-look.js';
 import { layoutInspector, hitTarget, INSPECTOR_LAYOUT } from './inspector-layout.js';
 import { createCamera, panStarts } from './camera.js';
-import { OPERATIONS } from '../core/pass-cursor.js';
+import { STAGES } from '../core/pass-cursor.js';
 import { activationFunction } from '../core/network.js';
 import { upstream } from '../core/network-paths.js';
 import { formatValue } from '../ui/i18n.js';
@@ -1131,4 +1131,4 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
 }
 
 /** Operaciones de una neurona en orden (reexportadas para la vista). */
-export { OPERATIONS, INSPECTOR_LAYOUT };
+export { STAGES, INSPECTOR_LAYOUT };

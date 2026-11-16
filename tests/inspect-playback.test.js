@@ -103,50 +103,96 @@ test('al ritmo elegido: a 10 pasos por segundo cada animación termina antes del
   assert.equal(anim.state(interval - 1).done, true);
 });
 
-test('una operación: la marca viaja de 0 a 1 en la duración', () => {
+test('una operación: la marca viaja de 0 a 1 en la duración; la primera lee una entrada', () => {
   const cursor = createPassCursor([6, 6, 4]);
   const r = cursor.advance('operation');
-  const anim = createStepAnimation(r, cursor.at, { start: 1000, duration: 300 });
+  const anim = createStepAnimation(r, cursor.at, { start: 1000, duration: 300, sizes: cursor.sizes, fine: true });
   const s = anim.state(1150);
   assert.equal(s.items.length, 1);
-  assert.deepEqual({ ...s.items[0], p: Number(s.items[0].p.toFixed(2)) }, { layer: 1, neuron: 0, op: 'products', p: 0.5 });
+  assert.deepEqual({ ...s.items[0], p: Number(s.items[0].p.toFixed(2)) }, { layer: 0, neuron: 0, op: 'read', p: 0.5 });
+  const view = displayCursor(cursor, s);
+  assert.equal(view.opsDone(0, 0), 0, 'mientras se lee, todavía sin leer');
   assert.equal(anim.state(1300).done, true);
 });
 
-test('una neurona: las cuatro operaciones, en orden, en un solo movimiento', () => {
+test('de a operaciones: multiplicar va por una sola conexión y la vista la ve sin multiplicar hasta terminar', () => {
   const cursor = createPassCursor([6, 6, 4]);
+  cursor.advance('layer');
+  cursor.advance('operation'); // multiply0
+  cursor.advance('operation'); // add0
+  const r = cursor.advance('operation'); // multiply1
+  const anim = createStepAnimation(r, cursor.at, { start: 0, duration: 300, sizes: cursor.sizes, fine: true });
+  const s = anim.state(100);
+  assert.deepEqual(s.items.map((it) => [it.op, it.input]), [['multiply', 1]]);
+  const view = displayCursor(cursor, s);
+  assert.deepEqual(view.terms(1, 0), { read: false, multiplied: 1, added: 1, bias: false, activation: false, inputs: 6 });
+  assert.deepEqual(view.next, { layer: 1, neuron: 0, op: 'multiply', input: 1 });
+  assert.deepEqual(view.stepOf(1, 0), { done: 2, total: 14 });
+  assert.equal(view.stateOf(1, 0), 'current');
+  assert.deepEqual(displayCursor(cursor, anim.state(400)).terms(1, 0).multiplied, 2);
+});
+
+test('una neurona: sus fases en orden, más breves, en un solo movimiento', () => {
+  const cursor = createPassCursor([6, 6, 4]);
+  cursor.advance('layer');
   const r = cursor.advance('neuron');
-  const anim = createStepAnimation(r, cursor.at, { start: 0, duration: 400 });
+  const anim = createStepAnimation(r, cursor.at, { start: 0, duration: 400, sizes: cursor.sizes });
   assert.deepEqual([50, 150, 250, 350].map((t) => anim.state(t).items[0].op), ['products', 'sum', 'bias', 'activation']);
+  assert.deepEqual(anim.state(50).items[0].inputs, [0, 1, 2, 3, 4, 5], 'los productos viajan todos a la vez');
   // Mientras se anima, la vista la ve sin terminar.
   const view = displayCursor(cursor, anim.state(150));
   assert.equal(view.opsDone(1, 0), 1);
+  assert.equal(view.terms(1, 0).multiplied, 6);
+  assert.equal(view.terms(1, 0).added, 0);
   assert.equal(cursor.opsDone(1, 0), 4);
+});
+
+test('una neurona a medio hacer: solo lo que le faltaba', () => {
+  const cursor = createPassCursor([6, 6, 4]);
+  cursor.advance('layer');
+  for (let k = 0; k < 5; k++) cursor.advance('operation'); // m0 a0 m1 a1 m2
+  const r = cursor.advance('neuron');
+  const anim = createStepAnimation(r, cursor.at, { start: 0, duration: 400, sizes: cursor.sizes });
+  const s = anim.state(10);
+  assert.deepEqual(s.items[0].inputs, [3, 4, 5]);
+  assert.deepEqual(displayCursor(cursor, s).terms(1, 0), { read: false, multiplied: 3, added: 2, bias: false, activation: false, inputs: 6 });
+});
+
+test('las entradas de a una capa: se leen todas a la vez', () => {
+  const cursor = createPassCursor([6, 6, 4]);
+  const r = cursor.advance('layer');
+  const anim = createStepAnimation(r, cursor.at, { start: 0, duration: 400, sizes: cursor.sizes });
+  const s = anim.state(100);
+  assert.equal(s.items.length, 6);
+  assert.ok(s.items.every((it) => it.op === 'read'));
 });
 
 test('una capa: todas sus neuronas a la vez, como una ola', () => {
   const cursor = createPassCursor([6, 6, 4]);
+  cursor.advance('layer');
   const r = cursor.advance('layer');
-  const anim = createStepAnimation(r, cursor.at, { start: 0, duration: 400 });
-  const s = anim.state(100);
+  const anim = createStepAnimation(r, cursor.at, { start: 0, duration: 400, sizes: cursor.sizes });
+  const s = anim.state(50);
   assert.equal(s.items.length, 6);
-  assert.ok(s.items.every((it) => it.op === 'sum'));
+  assert.ok(s.items.every((it) => it.op === 'products'));
+  assert.ok(anim.state(150).items.every((it) => it.op === 'sum'));
 });
 
-test('un cuadro: una ola que cruza la red, capa por capa', () => {
+test('un cuadro: una ola que cruza la red, capa por capa, de las entradas a las salidas', () => {
   const cursor = createPassCursor([6, 6, 6, 4]);
   const r = cursor.advance('frame');
-  const anim = createStepAnimation(r, cursor.at, { start: 0, duration: 600 });
-  assert.deepEqual(anim.layers.map((L) => L.layer), [1, 2, 3]);
-  assert.ok(anim.state(50).items.every((it) => it.layer === 1));
+  const anim = createStepAnimation(r, cursor.at, { start: 0, duration: 600, sizes: cursor.sizes });
+  assert.deepEqual(anim.layers.map((L) => L.layer), [0, 1, 2, 3]);
+  assert.ok(anim.state(50).items.every((it) => it.layer === 0));
   const late = displayCursor(cursor, anim.state(50));
   assert.equal(late.opsDone(3, 0), 0, 'las salidas todavía no se ven calculadas');
+  assert.equal(late.opsDone(0, 0), 0, 'las entradas, sin leer');
   assert.ok(anim.state(550).items.every((it) => it.layer === 3));
 });
 
 test('no frena a la persona: completar al instante', () => {
   const cursor = createPassCursor([6, 6, 4]);
-  const anim = createStepAnimation(cursor.advance('neuron'), cursor.at, { start: 0, duration: 450 });
+  const anim = createStepAnimation(cursor.advance('neuron'), cursor.at, { start: 0, duration: 450, sizes: cursor.sizes });
   anim.finish();
   assert.equal(anim.state(10).done, true);
   assert.equal(displayCursor(cursor, null), cursor);
