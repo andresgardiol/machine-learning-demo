@@ -22,6 +22,18 @@ export const STAGES = Object.freeze(['products', 'sum', 'bias', 'activation']);
 export const OPERATIONS = Object.freeze(['read', 'multiply', 'add', 'bias', 'activation']);
 export const STEP_SIZES = Object.freeze(['frame', 'layer', 'neuron', 'operation']);
 
+/**
+ * La operación que se marca en curso (operacion-por-operacion D5): de a operaciones, la recién hecha
+ * (`position`), la misma que explica la franja; antes del primer paso del cuadro, la que hará el paso
+ * siguiente. Con los demás tamaños, la próxima (`next`), o null con la cuenta completa. Vale para
+ * cualquier cursor con `next` y `position`.
+ */
+export function focusOp(cursor, stepSize) {
+  if (!cursor) return null;
+  if (stepSize === 'operation') return cursor.position ?? cursor.next ?? null;
+  return cursor.done ? null : cursor.next ?? null;
+}
+
 /** Operaciones de cada neurona de la capa `layer`: 1 en las entradas; 2n + 2 en las demás. */
 export const opsPerNeuron = (sizes, layer) => (layer === 0 ? 1 : 2 * sizes[layer - 1] + 2);
 

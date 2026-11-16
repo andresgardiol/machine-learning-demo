@@ -988,7 +988,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       card.sync({
         target: sel, sizes: net.sizes, trace, changes: shownChanges, original: net, cursor: shownCursor,
         top: top && sel.layer > 0 ? top[sel.layer][sel.neuron] : null,
-        paused, manual: state.manual, connection: state.connection,
+        paused, manual: state.manual, connection: state.connection, stepSize: playback.size,
       });
       const hasViews = sel.layer > 0;
       show(viewSwitch, hasViews);

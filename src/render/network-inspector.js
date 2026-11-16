@@ -19,7 +19,7 @@ import { activity } from './network-view.js';
 import { linkLook, maxWeightOfTrace } from './link-look.js';
 import { layoutInspector, hitTarget, INSPECTOR_LAYOUT } from './inspector-layout.js';
 import { createCamera, panStarts } from './camera.js';
-import { STAGES } from '../core/pass-cursor.js';
+import { STAGES, focusOp } from '../core/pass-cursor.js';
 import { capToSquare } from './link-look.js';
 import { activationFunction } from '../core/network.js';
 import { upstream } from '../core/network-paths.js';
@@ -66,8 +66,8 @@ export function flowCounts(products, total = FLOW.marks) {
  * Lo que está en curso en un recorrido paso a paso, del tamaño del paso (D19), y las conexiones que
  * cuentan como relacionadas por eso. Con neurona, la neurona de `cursor.next`; con capa, su capa entera;
  * con cuadro, nada (ni durante su animación). Con operación y un cursor que dice qué entradas van hechas
- * (`terms`), una sola conexión cuando la próxima es multiplicar o sumar (operacion-por-operacion D5); si
- * no, la neurona. Durante la animación de un paso, también las conexiones de lo que se anima. Puro, para
+ * (`terms`), lo recién hecho (operacion-por-operacion D5, `focusOp`): una sola conexión si fue
+ * multiplicar o sumar; si no, la neurona. Durante la animación de un paso, también las conexiones de lo que se anima. Puro, para
  * las pruebas.
  * @param {{sizes:number[], cursor:object|null, stepSize?:string, animation?:{items:{layer:number, neuron:number, op?:string, input?:number}[]}|null}} p
  * @returns {{current:{kind:'neuron', layer:number, neuron:number}|{kind:'layer', layer:number}|{kind:'connection', layer:number, neuron:number, input:number}|null, links:Set<string>}}
@@ -78,11 +78,11 @@ export function inProgress({ sizes, cursor, stepSize, animation = null }) {
   const incoming = (l, j) => { if (l >= 1 && l < sizes.length) for (let i = 0; i < sizes[l - 1]; i++) links.add(`${l}:${j}:${i}`); };
   const fine = stepSize === 'operation' && typeof cursor?.terms === 'function';
   let current = null;
-  if (cursor && !cursor.done) {
-    const next = cursor.next;
-    if (stepSize === 'layer') current = { kind: 'layer', layer: next.layer };
-    else if (fine && (next.op === 'multiply' || next.op === 'add')) current = { kind: 'connection', layer: next.layer, neuron: next.neuron, input: next.input };
-    else current = { kind: 'neuron', layer: next.layer, neuron: next.neuron };
+  const op = fine ? focusOp(cursor, stepSize) : cursor && !cursor.done ? cursor.next : null;
+  if (op) {
+    if (stepSize === 'layer') current = { kind: 'layer', layer: op.layer };
+    else if (fine && (op.op === 'multiply' || op.op === 'add')) current = { kind: 'connection', layer: op.layer, neuron: op.neuron, input: op.input };
+    else current = { kind: 'neuron', layer: op.layer, neuron: op.neuron };
   }
   if (current?.kind === 'layer') for (let j = 0; j < sizes[current.layer]; j++) incoming(current.layer, j);
   else if (current?.kind === 'connection') links.add(`${current.layer}:${current.neuron}:${current.input}`);
@@ -670,7 +670,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       ctx.fillText(labels ? labels.output(lab.index) : i18n.t(`network.output.${lab.key}`), p.x + r + 8, p.y);
     }
     if (state.learning) drawLearning(state.learning, P, r, C, layout, z);
-    drawLinkNumbers(selected, trace, P, layout, Boolean(state.pill), termsOf);
+    drawLinkNumbers(selected, trace, P, layout, Boolean(state.pill), termsOf, current?.kind === 'connection' ? current : null);
     if (current?.kind === 'connection') drawLinkMath(current, trace, P, layout, cursor);
     placePill(state, P, trace);
     if (state.banner) bannerBox(state.banner);
@@ -784,7 +784,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
    * cursor. De a operaciones, en una neurona a medio calcular (operacion-por-operacion D5), los aportes de
    * las ya multiplicadas y nada en las que faltan; la conexión en curso lleva su cuenta aparte.
    */
-  function drawLinkNumbers(selected, trace, P, lay, hasPill, termsOf = null) {
+  function drawLinkNumbers(selected, trace, P, lay, hasPill, termsOf = null, inMath = null) {
     if (!selected) return;
     const items = [];
     const midway = termsOf && selected.input === undefined && selected.layer > 0 ? termsOf(selected.layer, selected.neuron) : null;
@@ -794,7 +794,11 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     if (midway && midway.multiplied > 0 && !midway.activation) {
       const n = trace.layers[selected.layer].neurons[selected.neuron];
       // Las ya sumadas, con su aporte; la que se multiplicó y falta sumar lleva la cuenta en curso.
-      for (let i = 0; i < midway.added; i++) items.push({ a: O[selected.layer - 1][i], b: I[selected.layer][selected.neuron], w: n.products[i] });
+      for (let i = 0; i < midway.added; i++) {
+        // La conexión en curso ya lleva su cuenta al costado: su número no se repite.
+        if (inMath && inMath.layer === selected.layer && inMath.neuron === selected.neuron && inMath.input === i) continue;
+        items.push({ a: O[selected.layer - 1][i], b: I[selected.layer][selected.neuron], w: n.products[i] });
+      }
     } else if (selected.input !== undefined) {
       if (hasPill) return; // la pastilla ya muestra su peso
       const n = trace.layers[selected.layer]?.neurons[selected.neuron];

@@ -18,6 +18,7 @@ import { createTextSetter } from '../../ui/controls.js';
 import { activationFunction } from '../../core/network.js';
 import { neuronLabel, layerName, activationName } from '../inspect/describe.js';
 import { OUTPUT_KEYS } from '../../render/network-view.js';
+import { focusOp } from '../../core/pass-cursor.js';
 
 /**
  * Rango del deslizador de un peso o un sesgo: [−base, base], o hasta el valor si está más lejos. En
@@ -296,12 +297,13 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
     const has = (k) => ops > k; // 0 productos, 1 suma, 2 sesgo, 3 activación
     // De a operaciones (operacion-por-operacion D6), con un cursor que dice qué entradas van hechas: la
     // cuenta fila por fila. Sin él (Laboratorio), los aportes de la neurona todos juntos, como siempre.
-    const tm = cursor && typeof cursor.terms === 'function' && ops < 4 ? cursor.terms(target.layer, target.neuron) : null;
-    const next = tm ? cursor.next : null;
-    const here = Boolean(next) && next.layer === target.layer && next.neuron === target.neuron;
-    const curInput = here && (next.op === 'multiply' || next.op === 'add') ? next.input : null;
-    // Por dónde va la cuenta de esta neurona: la última operación hecha (o, fila por fila, la próxima).
-    const fineOp = here ? (curInput !== null ? 'sum' : next.op) : null;
+    // La fila en curso es la de la operación recién hecha (operacion-por-operacion D5, focusOp): la misma
+    // que explica la franja. Con los demás tamaños, la próxima.
+    const opNow = cursor && typeof cursor.terms === 'function' ? focusOp(cursor, state.stepSize ?? 'operation') : null;
+    const here = Boolean(opNow) && opNow.layer === target.layer && opNow.neuron === target.neuron;
+    const tm = cursor && typeof cursor.terms === 'function' && (ops < 4 || (here && opNow.op === 'activation' && state.stepSize === 'operation')) ? cursor.terms(target.layer, target.neuron) : null;
+    const curInput = here && (opNow.op === 'multiply' || opNow.op === 'add') ? opNow.input : null;
+    const fineOp = here ? (curInput !== null ? 'sum' : opNow.op) : null;
     const curOp = tm ? fineOp : cursor && ops > 0 && ops < 4 ? ['products', 'sum', 'bias', 'activation'][ops - 1] : null;
     setData(node, 'op', tm ? 'fine' : curOp ?? (ops === 4 ? 'done' : 'pending'));
     const multiplied = (i) => (tm ? i < tm.multiplied : has(0));

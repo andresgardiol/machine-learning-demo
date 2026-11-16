@@ -122,7 +122,13 @@ desplazarse, parar y traer las medidas y una alternativa.
 
 ### D5 · El diagrama de a operaciones
 
-- En curso: la conexión de la operación (y sus dos neuronas). Las demás
+- En curso: la conexión de la operación **que se acaba de hacer** (y sus dos
+  neuronas), la misma que explica la franja. No la de la operación siguiente:
+  en la primera versión, después de sumar el aporte de Sensor 1 la franja
+  decía "Sumar · aporte de Sensor 1" y la red, la tarjeta y el recorrido
+  marcaban Sensor 2 (visto en `op-6.1-sumar-1366x768.png`). Antes del primer
+  paso del cuadro, la marca va en lo que hará el paso siguiente. De a
+  neuronas y de a capas no cambia: en curso sigue siendo la próxima. Las demás
   conexiones de esa neurona: las ya sumadas, normales, con su aporte en la
   pastilla; las que faltan, como sin calcular. El resto de la red, atenuado
   como hoy.

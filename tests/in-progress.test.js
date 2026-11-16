@@ -19,22 +19,40 @@ test('de a neuronas: la neurona de cursor.next y solo sus conexiones de entrada'
   for (const k of links) assert.ok(k.startsWith(`${current.layer}:${current.neuron}:`));
 });
 
-test('de a operaciones por la tercera entrada: solo esa conexión está en curso', () => {
+test('de a operaciones: en curso está lo recién hecho, la conexión que explica la franja', () => {
   const c = fresh();
-  for (let k = 0; k < 4; k++) c.advance('operation'); // m0 a0 m1 a1: va por la tercera
+  for (let k = 0; k < 4; k++) c.advance('operation'); // m0 a0 m1 a1: acaba de sumar la segunda
+  assert.deepEqual(inProgress({ sizes, cursor: c, stepSize: 'operation' }).current, { kind: 'connection', layer: 1, neuron: 0, input: 1 });
+  c.advance('operation'); // m2: acaba de multiplicar la tercera
   const { current, links } = inProgress({ sizes, cursor: c, stepSize: 'operation' });
   assert.deepEqual(current, { kind: 'connection', layer: 1, neuron: 0, input: 2 });
   assert.deepEqual([...links], ['1:0:2']);
-  c.advance('operation'); // m2: falta sumarla, sigue en curso
+  c.advance('operation'); // a2: acaba de sumarla
   assert.deepEqual(inProgress({ sizes, cursor: c, stepSize: 'operation' }).current, { kind: 'connection', layer: 1, neuron: 0, input: 2 });
 });
 
-test('de a operaciones en el sesgo, la activación o una entrada: la neurona', () => {
+test('de a operaciones en el sesgo, la activación o una entrada: la neurona recién hecha', () => {
   const c = fresh();
-  for (let k = 0; k < 12; k++) c.advance('operation'); // las seis entradas, multiplicadas y sumadas
+  for (let k = 0; k < 13; k++) c.advance('operation'); // las seis entradas y el sesgo
+  assert.deepEqual(inProgress({ sizes, cursor: c, stepSize: 'operation' }).current, { kind: 'neuron', layer: 1, neuron: 0 });
+  c.advance('operation'); // la activación
   assert.deepEqual(inProgress({ sizes, cursor: c, stepSize: 'operation' }).current, { kind: 'neuron', layer: 1, neuron: 0 });
   const start = createPassCursor(net);
+  start.advance('operation'); // leyó la primera entrada
   assert.deepEqual(inProgress({ sizes, cursor: start, stepSize: 'operation' }).current, { kind: 'neuron', layer: 0, neuron: 0 });
+});
+
+test('antes del primer paso de un cuadro: lo que hará el paso siguiente, la primera entrada', () => {
+  const c = createPassCursor(net);
+  assert.deepEqual(inProgress({ sizes, cursor: c, stepSize: 'operation' }).current, { kind: 'neuron', layer: 0, neuron: 0 });
+});
+
+test('de a neuronas no cambia: en curso sigue siendo la próxima', () => {
+  const c = fresh();
+  for (let k = 0; k < 5; k++) c.advance('operation');
+  assert.deepEqual(inProgress({ sizes, cursor: c, stepSize: 'neuron' }).current, { kind: 'neuron', layer: 1, neuron: 0 });
+  for (let k = 0; k < 9; k++) c.advance('operation'); // terminó la neurona 1
+  assert.deepEqual(inProgress({ sizes, cursor: c, stepSize: 'neuron' }).current, { kind: 'neuron', layer: 1, neuron: 1 });
 });
 
 test('sin detalle fino (un cursor sin terms, como el del Laboratorio): la neurona, como hasta ahora', () => {
@@ -48,7 +66,7 @@ test('sin detalle fino (un cursor sin terms, como el del Laboratorio): la neuron
 
 test('mientras se anima una operación: solo su conexión', () => {
   const c = fresh();
-  c.complete();
+  for (let k = 0; k < 37; k++) c.advance('operation'); // acaba de multiplicar la quinta entrada de la neurona 3 (la que se anima)
   const { links } = inProgress({ sizes, cursor: c, stepSize: 'operation', animation: { items: [{ layer: 1, neuron: 2, op: 'multiply', input: 4, p: 0.3 }] } });
   assert.deepEqual([...links], ['1:2:4']);
 });

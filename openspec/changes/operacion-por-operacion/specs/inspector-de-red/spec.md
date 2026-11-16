@@ -95,8 +95,16 @@ tamaño del paso: una conexión, una neurona o una capa entera.
 - **THEN** la marca pasa de la neurona a su capa entera, y las neuronas ya calculadas conservan su valor
 
 #### Scenario: De a operaciones
-- **WHEN** el recorrido avanza de a operaciones y va por la tercera entrada de una neurona
-- **THEN** se destaca solo esa conexión, con sus dos extremos; las dos ya sumadas de esa neurona muestran su aporte sin destacarse; las que faltan se ven sin calcular, y el resto de la red se atenúa
+- **WHEN** el recorrido avanza de a operaciones y acaba de multiplicar o de sumar la tercera entrada de una neurona
+- **THEN** se destaca solo esa conexión, con sus dos extremos; las ya sumadas de esa neurona muestran su aporte sin destacarse; las que faltan se ven sin calcular, y el resto de la red se atenúa
+
+#### Scenario: Lo destacado es lo que se acaba de hacer
+- **WHEN** la persona avanza una operación y mira la red, la franja y la tarjeta
+- **THEN** las tres marcan la misma operación, la que se acaba de hacer: la conexión destacada, la fila en curso de la tarjeta y la marca en curso del recorrido de la neurona son de la entrada que nombra la franja, no de la siguiente
+
+#### Scenario: Antes del primer paso de un cuadro
+- **WHEN** la cuenta del cuadro todavía no empezó y el recorrido es de a operaciones
+- **THEN** la marca de en curso está en la primera entrada, que es lo que hará el paso siguiente, y la franja lo dice
 
 #### Scenario: Cuenta sobre la conexión
 - **WHEN** se multiplica una entrada

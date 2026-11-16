@@ -7,6 +7,7 @@
 // para el lector de pantalla (de a operaciones) o el resumen de lo hecho (de a neuronas, capas o
 // cuadros).
 import { OUTPUT_KEYS } from '../../render/network-view.js';
+import { focusOp } from '../../core/pass-cursor.js';
 
 /** Con más términos que estos, se muestran los más grandes y "y N más". */
 export const MAX_TERMS = 6;
@@ -202,9 +203,10 @@ export function describeOperation({ t, fmt, last, trace, sizes, cursor = null, m
  * @returns {{marks:{label:string, state:string}[]}}
  */
 export function trackOf({ t, sizes, layer, neuron, cursor }) {
-  const next = cursor?.next ?? null;
+  // En curso: la operación recién hecha (operacion-por-operacion D5), la misma que explica la franja.
+  const next = focusOp(cursor, 'operation');
   const here = Boolean(next) && next.layer === layer && (layer === 0 || next.neuron === neuron);
-  const state = (done, cur) => (done ? 'done' : cur ? 'current' : 'pending');
+  const state = (done, cur) => (cur ? 'current' : done ? 'done' : 'pending');
   if (layer === 0) {
     return {
       marks: Array.from({ length: sizes[0] }, (_, i) => ({

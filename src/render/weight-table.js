@@ -10,6 +10,7 @@
 import { el, setData } from '../ui/dom.js';
 import { formatValue } from '../ui/i18n.js';
 import { activity } from './network-view.js';
+import { focusOp } from '../core/pass-cursor.js';
 
 /** Fondo de una celda: el color del signo con una opacidad según el tamaño del peso (0,08 a 0,6). */
 export function cellLook(weight) {
@@ -225,10 +226,11 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
         r.nameButton.setAttribute('aria-pressed', String(here && link < 0));
         r.cells.forEach((td, i) => setData(td, 'selected', String(i === link)));
         // De a operaciones, en la neurona a medio calcular: la celda en curso y las que faltan (D5).
-        const fine = state.stepSize === 'operation' && typeof cursor?.terms === 'function' && cursor.stateOf(l, j) === 'current';
+        // La celda en curso es la de la operación recién hecha (focusOp), la misma que explica la franja.
+        const op = state.stepSize === 'operation' && typeof cursor?.terms === 'function' ? focusOp(cursor, 'operation') : null;
+        const fine = Boolean(op) && op.layer === l && op.neuron === j;
         const tm = fine ? cursor.terms(l, j) : null;
-        const next = fine ? cursor.next : null;
-        const curInput = next && next.layer === l && next.neuron === j && (next.op === 'multiply' || next.op === 'add') ? next.input : -1;
+        const curInput = fine && (op.op === 'multiply' || op.op === 'add') ? op.input : -1;
         r.cells.forEach((td, i) => setData(td, 'op', !tm ? 'none' : i === curInput ? 'current' : i < tm.added ? 'done' : 'pending'));
       });
     }

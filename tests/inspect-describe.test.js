@@ -45,7 +45,7 @@ test('una operación es una sola cuenta: multiplicar la tercera entrada, con el 
   assert.deepEqual(d.tokens.filter((k) => k.kind === 'num').map((k) => k.name), ['valor de Velocidad', 'peso de la conexión', 'aporte de Velocidad']);
   assert.deepEqual(d.tokens.filter((k) => k.result).map((k) => k.text), ['0,59'], 'un solo resultado, marcado');
   assert.ok(d.tokens.filter((k) => k.kind === 'num').length <= 3, 'dos números como mucho y un resultado');
-  // Por dónde va la neurona: las dos primeras hechas, la tercera en curso.
+  // Por dónde va la neurona: las dos primeras hechas, la tercera (la recién multiplicada) en curso.
   assert.deepEqual(d.track.marks.map((m) => m.state), ['done', 'done', 'current', 'pending', 'pending']);
   assert.match(d.spoken, /^Multiplicar: valor de Velocidad, 0,95 por peso de la conexión, 0,62 igual a aporte de Velocidad, 0,59\./);
 });
@@ -116,7 +116,7 @@ test('leer una entrada: el valor con su nombre y qué significa; una entrada no 
   assert.match(read(4).say, /muy cerca/);
   assert.match(read(5).say, /velocidad del auto, respecto de la máxima: 60 %/);
   assert.match(read(2, [null, null, 0.5, null, null, null]).say, /lo pusiste vos/);
-  assert.equal(read(2).track.marks.map((m) => m.state).join(), 'done,done,done,current,pending,pending');
+  assert.equal(read(2).track.marks.map((m) => m.state).join(), 'done,done,current,pending,pending,pending', 'la recién leída, en curso');
 });
 
 test('conexión apagada y neurona apagada: la frase lo dice', () => {
