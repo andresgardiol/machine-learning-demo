@@ -23,8 +23,36 @@ export function cellLook(weight) {
  */
 export function createWeightTable({ container, i18n, onSelect, headerFor, names }) {
   const fmt = (v) => formatValue(v, i18n.language);
-  const root = el('div', { class: 'weight-tables' });
+  const root = el('div', { class: 'weight-tables', on: { keydown: (e) => onKey(e) } });
   container.append(root);
+
+  // Teclado (vista-de-la-red, "Inspector accesible"): el nombre de cada fila es la parada de Tab; las
+  // flechas pasan a las celdas de su fila y a las de arriba y abajo, y Enter elige la conexión.
+  function onKey(e) {
+    const cell = e.target.closest?.('.wt-cell, .wt-name');
+    if (!cell) return;
+    const tr = cell.closest('tr');
+    const isName = cell.classList.contains('wt-name');
+    const row = [tr.querySelector('.wt-name'), ...tr.querySelectorAll('.wt-cell[data-input]')];
+    const col = isName ? 0 : row.indexOf(cell);
+    if ((e.key === 'Enter' || e.key === ' ') && !isName) {
+      e.preventDefault();
+      e.stopPropagation();
+      cell.click();
+      return;
+    }
+    let next = null;
+    if (e.key === 'ArrowRight') next = row[col + 1];
+    else if (e.key === 'ArrowLeft') next = row[col - 1];
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      const other = e.key === 'ArrowDown' ? tr.nextElementSibling : tr.previousElementSibling;
+      if (other) next = col === 0 ? other.querySelector('.wt-name') : other.querySelectorAll('.wt-cell[data-input]')[col - 1];
+    }
+    if (!next) return;
+    e.preventDefault();
+    e.stopPropagation();
+    next.focus({ preventScroll: false });
+  }
   let built = null; // { key, tables: [{ layer, wrap, strip:[], rows:[{tr, cells:[], bias, value, name}] }] }
 
   const write = (n, text) => { if (n.textContent !== text) n.textContent = text; };
@@ -78,7 +106,10 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
         const tr = el('tr', { dataset: { neuron: String(j) } }, el('th', { attrs: { scope: 'row' } }, nameButton));
         const cells = [];
         for (let i = 0; i < inputs; i++) {
-          const td = el('td', { class: 'wt-cell num', on: { click: () => onSelect({ layer: l, neuron: j, input: i }) } });
+          const td = el('td', {
+            class: 'wt-cell num', attrs: { tabindex: '-1' }, dataset: { input: String(i), focus: 'keep' },
+            on: { click: () => onSelect({ layer: l, neuron: j, input: i }) },
+          });
           tr.append(td);
           cells.push(td);
         }
@@ -185,8 +216,11 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
         const blame = state.learning?.blame(l, j);
         setData(r.tr, 'blame', blame === null || blame === undefined ? 'none' : blame < 0 ? 'negative' : 'positive');
         setData(r.tr, 'off', String(Boolean(n.off)));
-        setData(r.tr, 'selected', String(Boolean(selected && selected.layer === l && selected.neuron === j)));
-        r.nameButton.setAttribute('aria-pressed', r.tr.dataset.selected);
+        const here = Boolean(selected && selected.layer === l && selected.neuron === j);
+        const link = here && selected.input !== undefined && selected.input !== null ? selected.input : -1;
+        setData(r.tr, 'selected', String(here && link < 0));
+        r.nameButton.setAttribute('aria-pressed', String(here && link < 0));
+        r.cells.forEach((td, i) => setData(td, 'selected', String(i === link)));
       });
     }
   }

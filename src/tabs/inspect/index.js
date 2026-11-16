@@ -337,7 +337,16 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
     if (state.selected && !neuronLayer.contains(document.activeElement)) focusNeuron(state.selected, { focus: false });
     relabel(); // «elegida» al instante
+    announceSelection(picked());
     sync();
+  }
+  const capitalize = (text) => text.replace(/^./, (c) => c.toUpperCase());
+  /** Avisa qué quedó elegido (inspector-de-red, "el inspector avisa cuál es"). */
+  function announceSelection(p) {
+    const name = (l, j) => capitalize(neuronLabel(t, net.sizes, l, j));
+    if (!p) announce(t('inspect.announce.cleared'));
+    else if (p.input === undefined) announce(t('inspect.announce.selected', { name: name(p.layer, p.neuron) }));
+    else announce(t('inspect.announce.selectedLink', { from: name(p.layer - 1, p.input), to: name(p.layer, p.neuron) }));
   }
 
   // ==================================================================================================
@@ -373,7 +382,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetButton), zoomGroup));
 
   // Red: diagrama y tabla, en la misma zona.
-  const area = el('div', { class: 'inspect-area', attrs: { role: 'group', 'aria-labelledby': 'inspect-net-title' } });
+  const area = el('div', {
+    class: 'inspect-area', attrs: { role: 'group', 'aria-labelledby': 'inspect-net-title' },
+    // Escape con el foco en la red (diagrama o tabla) suelta lo elegido.
+    on: { keydown: (e) => { if (e.key === 'Escape' && state.selected) { e.preventDefault(); e.stopPropagation(); select(null); } } },
+  });
   const diagram = el('div', { class: 'inspect-diagram' });
   const tableZone = el('div', { class: 'inspect-table-zone' });
   area.append(diagram, tableZone);

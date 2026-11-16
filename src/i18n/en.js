@@ -1291,6 +1291,9 @@ export default {
   'inspect.announce.undone': 'Change undone. {count} left.',
   'inspect.announce.reset': 'Network reset: it is the brain’s own.',
   'inspect.announce.released': 'Inputs released: the network gets what the car sees.',
+  'inspect.announce.selected': '{name} selected.',
+  'inspect.announce.selectedLink': 'Connection from {from} to {to} selected.',
+  'inspect.announce.cleared': 'Nothing selected: the whole network is shown.',
   'inspect.card.neuron': 'Neuron {n}',
   'inspect.card.outputRule': 'It says yes to {action} when the total is greater than 0; otherwise, no.',
   // El problema sin ajustes de sensores (conducir-sin-ajustes-de-sensores)

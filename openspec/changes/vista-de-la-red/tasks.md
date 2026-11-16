@@ -22,10 +22,10 @@
 
 ## 3. Vista previa, elegir y soltar
 
-- [ ] 3.1 Vista previa al posar el cursor sobre una neurona o una línea, y la lectura junto al cursor (D6). Verificar los escenarios de "Vista previa al posar el cursor".
-- [ ] 3.2 Elegir una neurona o una conexión, en el diagrama y en la tabla, y soltar con otro clic, clic afuera sin arrastre y Escape. Verificar los escenarios de "Elegir una neurona o una conexión".
-- [ ] 3.3 Números sobre las conexiones de lo elegido. Verificar "Números sobre las conexiones", con 6 y con 21 entradas.
-- [ ] 3.4 Teclado y lector de pantalla para elegir y soltar. Verificar "Inspector accesible" completo.
+- [x] 3.1 Vista previa al posar el cursor sobre una neurona o una línea, y la lectura junto al cursor (D6). Verificar los escenarios de "Vista previa al posar el cursor". *Verificado con Chrome sin ventana y mouse de verdad, en las dos pestañas: neurona y línea se destacan bajo el cursor, la lectura aparece con la guía en cualquier estado y al salir vuelve todo.*
+- [x] 3.2 Elegir una neurona o una conexión, en el diagrama y en la tabla, y soltar con otro clic, clic afuera sin arrastre y Escape. Verificar los escenarios de "Elegir una neurona o una conexión". *Verificado: clic en neurona, en línea y en celda de la tabla; otro clic, clic en vacío y Escape (en el diagrama y en la tabla) sueltan; arrastrar no suelta. La celda elegida queda marcada.*
+- [x] 3.3 Números sobre las conexiones de lo elegido. Verificar "Números sobre las conexiones", con 6 y con 21 entradas. *Verificado: con 6 entradas, 6 números; con 21, 11 números sin encimarse (captura vista-3-numeros-21.png).*
+- [x] 3.4 Teclado y lector de pantalla para elegir y soltar. Verificar "Inspector accesible" completo. *Flechas y Enter en neuronas; en la tabla, el nombre de la fila es la parada de Tab y las flechas recorren las celdas (Enter elige la conexión). Se anuncia lo elegido y lo soltado.*
 - [ ] 3.5 Probar en el navegador elegir líneas en la red más grande: diez intentos sobre líneas distintas, con y sin una neurona elegida. Informar cuántas veces se eligió la que se buscaba. Si son menos de ocho, **detenerse y consultar**.
 
 ## 4. Detalle en el panel de Inspeccionar

@@ -157,7 +157,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'inspect-row' }, netTitle, viewGroup, filterGroup),
     el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetChangesButton), zoomGroup));
 
-  const area = el('div', { class: 'inspect-area', attrs: { role: 'group', 'aria-labelledby': 'lab-net-title' } });
+  const area = el('div', {
+    class: 'inspect-area', attrs: { role: 'group', 'aria-labelledby': 'lab-net-title' },
+    on: { keydown: (e) => { if (e.key === 'Escape' && state.selected && !dataZone.contains(e.target)) { e.preventDefault(); e.stopPropagation(); deselect(); } } },
+  });
   const diagram = el('div', { class: 'inspect-diagram' });
   const tableZone = el('div', { class: 'inspect-table-zone' });
   const dataZone = el('div', { class: 'inspect-table-zone lab-data-zone' });
@@ -247,11 +250,16 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     state.selected = same ? null : { layer: target.layer, neuron: target.neuron, ...(target.input !== undefined ? { input: target.input } : {}) };
     focusNeuron(target, { focus: false });
     neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
+    const p = state.selected;
+    if (!p) announce(t('inspect.announce.cleared'));
+    else if (p.input === undefined) announce(t('inspect.announce.selected', { name: nameOf(p.layer, p.neuron).replace(/^./, (c) => c.toUpperCase()) }));
+    else announce(t('inspect.announce.selectedLink', { from: nameOf(p.layer - 1, p.input), to: nameOf(p.layer, p.neuron) }));
     sync();
   }
   function deselect() {
     const was = state.selected;
     state.selected = null;
+    announce(t('inspect.announce.cleared'));
     sync();
     if (was) neuronButtons[was.layer]?.[was.neuron]?.focus({ preventScroll: true });
   }
