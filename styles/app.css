@@ -957,6 +957,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-zoom-group[hidden] { display: none; }
 .inspect-zoom { min-width: 26px; }
 .inspect-controls .tool.small, .inspect-playbar .tool { white-space: nowrap; }
+/* Con "Ver original" (vista-de-la-red D13), el segundo renglón entra en 600 px: botones más justos. */
+.inspect-controls .tool.small { padding-inline: 4px; }
+.inspect-controls .inspect-row + .inspect-row { column-gap: var(--space-1); }
 .inspect-area { position: relative; flex: 1 1 auto; min-height: 120px; }
 .inspect-diagram, .inspect-table-zone { position: absolute; inset: 0; }
 .inspect-diagram[hidden], .inspect-table-zone[hidden] { display: none; }
@@ -1074,7 +1077,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-brain-name { flex: 1 1 auto; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inspect-brain-meta { margin: 2px 0 0; font-size: 13px; }
 .inspect-brain-notice[hidden] { display: none; }
-.inspect-card { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); }
+.inspect-card { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); }
 .inspect-card-head { flex: 0 0 auto; display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2); border-bottom: 1px solid var(--color-border); }
 .inspect-card-names { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
 .inspect-card-title { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1084,6 +1087,16 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-input p { margin: 0 0 var(--space-2); }
 .inspect-input[hidden], .inspect-rows-scroll[hidden], .inspect-foot-block[hidden], .inspect-input-slider[hidden] { display: none; }
 .inspect-rows-scroll { flex: 1 1 auto; min-height: 60px; overflow-y: auto; overflow-x: hidden; }
+/* Tarjeta completa de Inspeccionar: la lista nunca con menos de cuatro filas de alto (D17). */
+.inspect-card:not(.lab-card) .inspect-rows-scroll { min-height: calc(22px + 4 * 31px); }
+.inspect-card[data-view="response"] .inspect-rows-scroll, .inspect-card[data-view="response"] .inspect-foot-block { display: none; }
+.inspect-card-views { flex: 0 0 auto; margin: var(--space-1) var(--space-2) 0; align-self: flex-start; }
+.inspect-card-views[hidden] { display: none; }
+.inspect-card-views .segment { min-height: 26px; }
+.inspect-intro[data-selection="true"] { display: none; }
+.inspect-weight-box { display: flex; align-items: center; gap: 4px; }
+.inspect-weight-box input[type="range"] { flex: 1 1 auto; min-width: 0; }
+.inspect-weight-box .inspect-weight-line { flex: 0 0 auto; min-width: 3.2em; }
 .inspect-rows { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; font-variant-numeric: tabular-nums; }
 .inspect-rows th, .inspect-rows td { padding: 2px 4px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
 .inspect-rows thead th { position: sticky; top: 0; z-index: 1; background: var(--color-bg); color: var(--color-text-muted); font-weight: 600; text-align: left; }
@@ -1099,6 +1112,8 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-weight[data-changed="true"] .inspect-weight-num::before { content: "◆ "; }
 .inspect-original { font-size: 11px; }
 .inspect-weight input[type="range"], .inspect-bias input[type="range"] { display: block; width: 100%; height: 24px; margin: 0; accent-color: var(--color-accent); }
+.inspect-weight .inspect-original { display: block; text-align: right; }
+.inspect-weight .inspect-original:empty { display: none; }
 .inspect-product { position: relative; }
 .inspect-bar { position: absolute; left: 4px; right: 4px; top: 50%; height: 6px; margin-top: -3px; }
 .inspect-bar-fill { position: absolute; top: 0; bottom: 0; left: 50%; width: 0; background: var(--color-weight-positive); opacity: 0.45; }
@@ -1118,6 +1133,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-foot dt { color: var(--color-text-muted); }
 .inspect-foot dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
 .inspect-bias-line { display: flex; justify-content: flex-end; gap: 4px; }
+/* El sesgo en un renglón, como las filas (D17): el deslizador y su número lado a lado. */
+.inspect-bias { display: flex; align-items: center; gap: 4px; }
+.inspect-bias input[type="range"] { order: -1; flex: 1 1 auto; min-width: 0; }
+.inspect-bias .inspect-bias-line { flex: 0 0 auto; flex-wrap: wrap; }
 .inspect-bias-line[data-changed="true"] .inspect-bias-value { color: var(--color-network-changed); font-weight: 700; }
 .inspect-act { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-1); }
 .inspect-act-graph { flex: 0 0 auto; }
@@ -1146,16 +1165,16 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-shortcut:hover { border-color: var(--color-accent); }
 .inspect-shortcut:focus-visible, .inspect-from-button:focus-visible, .link-end:focus-visible, .curve-chip:focus-visible, .curve-handle:focus-visible, .curve-title:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
 .inspect-from-button {
-  max-width: 100%; padding: 0; font: inherit; color: var(--color-text); background: none; border: 0; border-bottom: 1px dotted var(--color-text-muted);
+  max-width: 100%; min-height: 24px; padding: 0; font: inherit; color: var(--color-text); background: none; border: 0; border-bottom: 1px dotted var(--color-text-muted);
   cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
 }
 .inspect-from-button:hover { color: var(--color-accent); border-bottom-color: var(--color-accent); }
-.inspect-formula { margin: 0 0 var(--space-1); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inspect-formula { margin: 0 0 var(--space-1); font-size: 13px; font-weight: 600; white-space: normal; overflow-wrap: anywhere; }
 
 .link-head { align-items: flex-start; }
 .link-route { margin: 2px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13px; }
 .link-end {
-  padding: 1px 6px; font: inherit; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-control-border);
+  min-height: 24px; padding: 1px 8px; font: inherit; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-control-border);
   border-radius: 999px; cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .link-end:hover { border-color: var(--color-accent); }

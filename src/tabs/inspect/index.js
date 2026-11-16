@@ -60,7 +60,8 @@ export const VIEWS = Object.freeze(['diagram', 'table']);
  * baja de 600 px; y su ancho se recuerda aparte del de las demás pestañas. Los límites del tablero y
  * del panel son los de siempre.
  */
-export const ZONES = Object.freeze({ stageMin: 600, stageDefault: 'rest', preference: 'inspectStageWidth' });
+// En una ventana angosta la red cede hasta 440 px para que el tablero conserve 280 (vista-de-la-red D18).
+export const ZONES = Object.freeze({ stageMin: 600, stageFloor: 440, boardKeep: 280, stageDefault: 'rest', preference: 'inspectStageWidth' });
 
 // --- Estado conservado entre montajes ------------------------------------------------------------
 let state = null;
@@ -81,7 +82,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       shapeKey: '',
       selected: null, // nada elegido al abrir (vista-de-la-red D5); con una conexión, su neurona de destino
       connection: null, // la conexión elegida: índice de su entrada en `selected`
-      connection: null,
+      cardView: 'count', // vista de la tarjeta de la neurona: 'count' o 'response' (D17), recordada
       playback: createPlayback(),
       settings: null,
       changesBy: new Map(), // firma del cerebro → lista de cambios
@@ -618,6 +619,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     onDrag: (i, v) => setManual(i, v),
   });
   card.node.append(curve.node);
+  // Dos vistas de la tarjeta (D17): "Cuenta | Respuesta". Arranca en "Cuenta" y se recuerda.
+  const viewTabs = ['count', 'response'].map((v) => el('button', {
+    class: 'segment', i18n: `inspect.cardView.${v}`, help: `inspect.cardView.${v}`, dataset: { view: v, focus: 'keep' },
+    attrs: { type: 'button', 'aria-pressed': 'false' },
+    on: { click: () => { state.cardView = v; draw(); } },
+  }));
+  const viewSwitch = el('div', { class: 'segments inspect-card-views', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.cardView.label' }, viewTabs);
+  card.node.insertBefore(viewSwitch, card.node.children[1]);
   // Detalle de una conexión (D7).
   const linkDetail = createConnectionDetail({
     i18n, idPrefix: 'inspect', names: (l, j) => neuronLabel(t, net.sizes, l, j),
@@ -843,6 +852,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Panel (D7): nada elegido, la tarjeta de la neurona o el detalle de la conexión.
     const isLink = Boolean(sel) && state.connection !== null;
     show(emptyBlock, !sel);
+    setData(intro, 'selection', String(Boolean(sel))); // con algo elegido, el texto cede su lugar (D17)
     show(card.node, Boolean(sel) && !isLink);
     show(linkDetail.node, isLink);
     const shownChanges = originalHeld ? NO_CHANGES : changes;
@@ -854,8 +864,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         top: top && sel.layer > 0 ? top[sel.layer][sel.neuron] : null,
         paused, manual: state.manual, connection: state.connection,
       });
-      show(curve.node, sel.layer > 0);
-      if (sel.layer > 0) {
+      const hasViews = sel.layer > 0;
+      show(viewSwitch, hasViews);
+      const view = hasViews ? state.cardView : 'count';
+      setData(card.node, 'view', view);
+      for (const b of viewTabs) setAttr(b, 'aria-pressed', String(b.dataset.view === view));
+      show(curve.node, view === 'response');
+      if (view === 'response') {
         curve.sync({
           net, inputs: trace.inputs, trace, target: sel, changes: originalHeld ? null : changes,
           range: (i) => (i === net.sizes[0] - 1 ? [-1, 1] : [0, 1]), draggable: paused && !originalHeld,

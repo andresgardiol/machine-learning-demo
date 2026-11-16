@@ -24,6 +24,41 @@ nuevo. El auto SHALL manejar en una pista donde ese cerebro entrenó.
 - **WHEN** dos personas abren la pestaña con el mismo cerebro y los mismos ajustes
 - **THEN** ven al auto hacer lo mismo
 
+### Requirement: La red en el centro
+La pestaña SHALL mostrar la red en la zona grande de la pantalla; la escena
+del auto, chica, en el tablero, con la decisión de la red debajo; y en el
+panel, lo que se sabe y se puede cambiar de la neurona elegida. Las zonas
+conservan los divisores para cambiarles el ancho. En una ventana angosta la
+red MUST ceder ancho antes de que el tablero deje de leerse.
+
+#### Scenario: Pantalla de 1440×900
+- **WHEN** se abre la pestaña con la ventana en 1440×900
+- **THEN** la red ocupa la zona más grande, el tablero muestra la escena y la decisión, y el panel muestra el cerebro, la neurona elegida y las misiones, sin desplazar ninguna zona
+
+#### Scenario: Anchos por defecto
+- **WHEN** se abre la pestaña por primera vez con la ventana en 1440 píxeles de ancho
+- **THEN** el tablero y el panel miden 360 píxeles cada uno y la red ocupa todo lo demás
+
+#### Scenario: Agrandar la red
+- **WHEN** la persona mueve el divisor para agrandar la zona de la red
+- **THEN** la red crece y la escena conserva su proporción
+
+#### Scenario: La red no se achica de más
+- **WHEN** la persona mueve el divisor para achicar la zona de la red
+- **THEN** la red no baja de 600 píxeles de ancho mientras la ventana deje 280 para el tablero, y sus controles de arriba siguen en dos renglones
+
+#### Scenario: Anchos propios
+- **WHEN** la persona cambia el ancho de la red en Inspeccionar y pasa a otra pestaña
+- **THEN** la otra pestaña conserva sus anchos, e Inspeccionar recuerda el suyo al volver
+
+#### Scenario: Orden del foco
+- **WHEN** la persona recorre la pestaña con Tab
+- **THEN** el foco pasa por la red y sus controles, después por el tablero y al final por el panel
+
+#### Scenario: Ventana angosta
+- **WHEN** la ventana mide entre 960 y 1240 píxeles de ancho
+- **THEN** el tablero mide al menos 280 píxeles, la red cede ancho sin bajar de 440, y los nombres de las cuatro decisiones se leen enteros
+
 ### Requirement: Tarjeta de la neurona
 Con una neurona elegida, el panel SHALL mostrar su cuenta real, y es donde
 se la cambia: una fila por entrada, con de dónde viene, su valor, su peso, su
@@ -83,13 +118,29 @@ valores SHALL actualizarse en el momento.
 - **WHEN** se abre la pestaña
 - **THEN** no hay neurona elegida y el panel muestra qué elegir, no una tarjeta vacía
 
+#### Scenario: Filas a la vista
+- **WHEN** la persona elige una neurona de 6 entradas con la ventana en 1366×768 o más grande, en español o en inglés
+- **THEN** las seis filas se ven sin desplazar nada, con el pie debajo
+
+#### Scenario: La cuenta entera
+- **WHEN** la cuenta escrita no entra en un renglón del panel
+- **THEN** sigue en un segundo renglón y se lee hasta la salida, sin puntos suspensivos
+
+#### Scenario: Nada se encima
+- **WHEN** el panel muestra cualquier detalle, con cualquier ancho de panel y alto de ventana que la aplicación permita
+- **THEN** ninguna parte del detalle tapa a otra ni a las misiones, y nada sale del borde de la tarjeta
+
+#### Scenario: Controles que se pueden apuntar
+- **WHEN** la persona mira los botones del detalle de una neurona o de una conexión
+- **THEN** cada uno mide al menos 24 píxeles de alto
+
 ### Requirement: Guía, leyenda y misiones
 Con la guía activa, el panel SHALL empezar con un texto breve que diga qué se
 está viendo, una leyenda de cómo se lee la red (colores, trazos y relleno) y
 tres misiones con su progreso: seguir la cuenta de una neurona paso a paso,
 cambiar una decisión de la red moviendo una entrada a mano, y apagar una
 neurona y ver qué cambia. Las misiones SHALL ocupar tres renglones, uno cada
-una, y MUST NOT bloquear nada.
+una, y MUST NOT bloquear nada. Con algo elegido, el texto cede su lugar.
 
 #### Scenario: Guía visible
 - **WHEN** la guía está activa
@@ -118,6 +169,10 @@ una, y MUST NOT bloquear nada.
 #### Scenario: Términos con su nombre
 - **WHEN** la persona posa el cursor sobre "sesgo", "activación" o "tabla de pesos"
 - **THEN** un tooltip dice qué es con palabras llanas y con su nombre técnico
+
+#### Scenario: Con algo elegido
+- **WHEN** hay una neurona o una conexión elegida
+- **THEN** el texto de arriba del panel no se muestra, las misiones siguen a la vista y el detalle usa ese lugar
 
 #### Scenario: Leyenda corta
 - **WHEN** la guía está activa
@@ -223,15 +278,28 @@ tooltip y textos en español y en inglés.
 - **THEN** el flujo sigue apagado
 
 ### Requirement: Curva de respuesta
-El detalle de una neurona oculta o de salida SHALL incluir un gráfico de cómo
-cambia su suma cuando una entrada de la red recorre su rango y las demás
-quedan como están. La entrada se elige; un punto marca su valor de ahora, una
-línea marca dónde la neurona cambia de salida, y una frase lo dice con
-palabras. SHALL tener tooltips y textos en español y en inglés.
+El detalle de una neurona oculta o de salida SHALL tener dos vistas, "Cuenta"
+y "Respuesta". "Respuesta" muestra cómo cambia su suma cuando una entrada de
+la red recorre su rango y las demás quedan como están. La entrada se elige; un
+punto marca su valor de ahora, una línea marca dónde la neurona cambia de
+salida, y una frase lo dice con palabras. SHALL tener tooltips y textos en
+español y en inglés.
 
 #### Scenario: Estado por defecto
-- **WHEN** la persona elige una neurona oculta
-- **THEN** la curva muestra la entrada que más le aporta ahora, sin que la persona elija nada
+- **WHEN** la persona elige una neurona oculta por primera vez
+- **THEN** el detalle muestra la vista "Cuenta", con "Respuesta" a un clic
+
+#### Scenario: Abrir la respuesta
+- **WHEN** la persona pasa a "Respuesta"
+- **THEN** la curva ocupa el lugar de las filas y del pie, y muestra la entrada que más le aporta ahora, sin que la persona elija nada
+
+#### Scenario: Vista recordada
+- **WHEN** la persona está en "Respuesta" y elige otra neurona
+- **THEN** el detalle de la otra neurona se abre en "Respuesta"
+
+#### Scenario: Entra en el panel
+- **WHEN** la vista "Respuesta" está abierta con la ventana en 1366×768 o más grande
+- **THEN** los botones de entrada, el gráfico y la frase se ven enteros, sin desplazar nada
 
 #### Scenario: Elegir la entrada
 - **WHEN** la persona elige otra entrada entre los botones de la curva
@@ -267,7 +335,7 @@ palabras. SHALL tener tooltips y textos en español y en inglés.
 
 #### Scenario: Neurona de entrada
 - **WHEN** la persona elige una neurona de entrada
-- **THEN** la curva no se muestra
+- **THEN** no hay vista "Respuesta" ni botones para cambiar de vista
 
 #### Scenario: Lector de pantalla
 - **WHEN** un lector de pantalla llega a la curva

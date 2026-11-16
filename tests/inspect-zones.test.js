@@ -18,3 +18,14 @@ test('las demás pestañas siguen con sus anchos de siempre', () => {
   assert.deepEqual(fitZones({}, 1440), { stage: 400, board: 668, panel: 360 });
   assert.equal(stageLimits(360, 1440).min, 260);
 });
+
+test('ventana angosta (vista-de-la-red D18): la red cede hasta 440 para que el tablero conserve 280', () => {
+  assert.deepEqual(fitZones({ stage: null, panel: null }, 1100, INSPECT), { stage: 508, board: 280, panel: 300 });
+  assert.equal(stageLimits(300, 1100, INSPECT).min, 508);
+  // Mientras la ventana deja 280 para el tablero, la red no baja de 600.
+  assert.deepEqual(fitZones({ stage: null, panel: null }, 1240, INSPECT), { stage: 600, board: 328, panel: 300 });
+  assert.equal(stageLimits(300, 1240, INSPECT).min, 600);
+  // Nunca menos de 440: a 960 no hay lugar para todo y el tablero queda con lo que sobra.
+  assert.deepEqual(fitZones({ stage: null, panel: null }, 960, INSPECT), { stage: 440, board: 208, panel: 300 });
+  assert.equal(stageLimits(300, 960, INSPECT).min, 440);
+});

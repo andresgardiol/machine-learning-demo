@@ -179,7 +179,10 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
         attrs: { type: 'range', id: sliderId, step: 0.01 },
         on: { input: (e) => onWeight(i, Number(e.target.value)) },
       });
-      const weight = el('td', { class: 'inspect-weight' }, el('span', { class: 'inspect-weight-line' }, weightNum, original), slider);
+      // Un renglón por fila (vista-de-la-red D17): el deslizador y el número lado a lado; el original,
+      // si el peso está cambiado, abajo.
+      const weight = el('td', { class: 'inspect-weight' },
+        el('div', { class: 'inspect-weight-box' }, slider, el('span', { class: 'inspect-weight-line' }, weightNum)), original);
       const barFill = el('span', { class: 'inspect-bar-fill' });
       const productNum = el('span', { class: 'num' });
       const product = el('td', { class: 'num inspect-product' }, el('span', { class: 'inspect-bar', attrs: { 'aria-hidden': 'true' } }, barFill), productNum);

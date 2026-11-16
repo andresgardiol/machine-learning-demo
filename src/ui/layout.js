@@ -49,6 +49,17 @@ function widthOr(value, fallback) {
 /** Valor dentro de [min, max]; si el máximo queda por debajo del mínimo, manda el mínimo. */
 const clamp = (v, min, max) => Math.max(min, Math.min(v, max));
 
+/**
+ * Mínimo de la zona izquierda. Una pestaña puede pedir que ceda en una ventana angosta
+ * (vista-de-la-red D18): con `stageFloor` y `boardKeep`, el mínimo es el menor entre `stageMin` y lo que
+ * deja la ventana con el tablero en `boardKeep` y el panel en `panel`, sin bajar de `stageFloor`.
+ */
+export function stageMinFor(spec, windowWidth, panel) {
+  const min = spec.stageMin ?? ZONES.stage.min;
+  if (!spec.stageFloor) return min;
+  return Math.max(spec.stageFloor, Math.min(min, freeWidth(windowWidth) - (spec.boardKeep ?? ZONES.board.min) - panel));
+}
+
 /** Límites del panel al arrastrar su borde, con el escenario en `stage`. */
 export function panelLimits(stage, windowWidth, spec = {}) {
   const half = Math.floor(windowWidth * ZONES.panel.maxFraction);
@@ -60,7 +71,7 @@ export function panelLimits(stage, windowWidth, spec = {}) {
  * mínimo para su zona izquierda (`spec.stageMin`, pestana-inspeccionar D1: la red no baja de 600 px).
  */
 export function stageLimits(panel, windowWidth, spec = {}) {
-  const min = spec.stageMin ?? ZONES.stage.min;
+  const min = stageMinFor(spec, windowWidth, panel);
   return { min, max: Math.max(min, freeWidth(windowWidth) - (spec.boardMin ?? ZONES.board.min) - panel) };
 }
 
@@ -77,11 +88,12 @@ export function fitZones({ stage, panel } = {}, windowWidth, spec = {}) {
   // (pestana-inspeccionar D1): 'rest' es todo lo que dejan el tablero en su mínimo y el panel.
   // Con su propio mínimo de tablero (spec.boardMin), el tablero cede antes que la zona izquierda y que
   // el panel; el ancho 'rest' se calcula con el tablero en su mínimo de siempre (360 px).
-  const stageMin = spec.stageMin ?? ZONES.stage.min;
   const boardMin = spec.boardMin ?? ZONES.board.min;
   const F = freeWidth(windowWidth);
   const half = Math.floor(windowWidth * ZONES.panel.maxFraction);
-  const p = clamp(widthOr(panel, ZONES.panel.default), ZONES.panel.min, Math.min(half, F - boardMin - stageMin));
+  // El panel cede primero, como siempre; después, si la pestaña lo pide, la zona izquierda (D18).
+  const p = clamp(widthOr(panel, ZONES.panel.default), ZONES.panel.min, Math.min(half, F - boardMin - (spec.stageMin ?? ZONES.stage.min)));
+  const stageMin = stageMinFor(spec, windowWidth, p);
   const stageDefault = spec.stageDefault === 'rest' ? F - ZONES.board.min - p : (spec.stageDefault ?? ZONES.stage.default);
   const s = clamp(widthOr(stage, stageDefault), stageMin, F - boardMin - p);
   return { stage: s, board: F - s - p, panel: p };

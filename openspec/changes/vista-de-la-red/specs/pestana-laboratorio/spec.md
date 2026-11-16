@@ -47,9 +47,9 @@ de los de práctica sin depender solo del color.
 ### Requirement: Qué detecta cada neurona
 Con puntos, cada neurona oculta SHALL llevar adentro un mapa chico de dónde se
 enciende en el plano, con los colores del plano, actualizado mientras la red
-aprende. Con tu manejo no hay plano: la tarjeta de la neurona SHALL mostrar
-su curva de respuesta a la entrada que se elija, con las demás como en el
-ejemplo en curso.
+aprende. Con tu manejo no hay plano: la tarjeta de la neurona SHALL tener la
+vista "Respuesta", con su curva de respuesta a la entrada que se elija y las
+demás como en el ejemplo en curso.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña con puntos

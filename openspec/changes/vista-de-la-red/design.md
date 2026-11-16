@@ -296,18 +296,64 @@ entrada va de 0 a 1 y las demás quedan como están.
   peso; más atrás y en las salidas, escalones (cada salto es una neurona
   oculta que cambia). En el Laboratorio las activaciones son suaves y la
   curva también.
-- **Dónde:** en el detalle de la neurona, debajo de la cuenta, de unos 140
-  px de alto. Botones chicos para elegir la entrada; arranca en la que más
-  aporta ahora y después recuerda la elegida.
+- **Dónde:** en el detalle de la neurona, como segunda vista: dos botones
+  "Cuenta | Respuesta" en la tarjeta, que se recuerdan hasta cerrar la
+  aplicación. "Respuesta" reemplaza las filas y el pie. Botones chicos para
+  elegir la entrada; arranca en la que más aporta ahora y después recuerda
+  la elegida.
 - **El punto se arrastra** en Inspeccionar, en pausa: es otra forma de las
   entradas a mano que ya existen, con su misma vuelta atrás. En el
   Laboratorio no se arrastra: ahí no hay entradas a mano.
-- **[Sin medir] Si entra en el panel.** La tarjeta de Inspeccionar ya mide
-  508 px. Si a 1440×900 no entra con una neurona de 6 entradas, la salida es
-  alternar "Cuenta | Respuesta" con dos botones en la tarjeta; se consulta
-  en la 4.7 antes de hacerlo.
+- **Medido el 16 de noviembre de 2026, con la curva debajo de la cuenta:** no
+  entra. A 1440×900 (panel de 738 px de alto) las filas quedaban en 60 px
+  para 297 de contenido (una fila de seis a la vista) y la curva (260 px)
+  salía 43 a 81 px de la tarjeta y tapaba las misiones. Igual a 1366×768,
+  1236×863 y 1100×800. Por eso las dos vistas, y además:
+  - con algo elegido se oculta el texto de arriba del panel (78 px); las
+    misiones (59 px) quedan;
+  - las filas pasan a un renglón cada una (hoy 49 px: el número va arriba
+    del deslizador) y la lista no baja de cuatro filas de alto;
+  - la cuenta escrita sigue en un segundo renglón en vez de cortarse;
+  - la tarjeta no deja salir nada de su borde;
+  - los botones del detalle miden 24 px de alto o más (hoy 18 y 22).
 - **Dibujo:** el gráfico compartido, o un dibujo propio chico si el
   compartido no admite la línea del cero y el punto arrastrable.
+
+### D18. Ventana angosta en Inspeccionar
+
+Ya pasaba antes de este cambio y salió en la revisión del 16 de noviembre:
+la red no baja de 600 px y el panel de 300, así que entre 960 y unos 1240 px
+de ventana el tablero se queda con lo que sobra. Medido a 1100×800: 155 px
+de tablero, la escena en 155 px, los botones de decisión en dos columnas de
+75 px y la leyenda en 314 px de alto. Más angosto, los nombres se cortan.
+
+- El mínimo de la red pasa a ser el menor entre 600 y lo que deja la ventana
+  con el tablero en 280 px, sin bajar de 440. Las neuronas ya se achican con
+  el lugar (D3).
+- **[Sin medir]** Cómo queda la barra de arriba de la red entre 440 y 600
+  px. Se mide en la 4.10; si pasa de tres renglones, se consulta.
+
+### D19. Lo que está en curso es del tamaño del paso
+
+Pedido del dueño el 16 de noviembre de 2026: avanzando de a capas, la vista
+mostraba una sola neurona por capa. Causa, leída en el código: la animación
+del paso ya recorre todas las neuronas de la capa (`step-animation.js`),
+pero el inspector marca como en curso `cursor.next`, que es una neurona, y
+destaca solo sus conexiones. Desde que lo no relacionado baja a 0,15 (D2),
+el resto de la capa casi no se ve, ni quieto ni durante la animación.
+
+- El inspector recibe el tamaño del paso. La unidad en curso es: con
+  operación o neurona, la neurona de `cursor.next`, como hoy; con capa, la
+  capa de `cursor.next` entera; con cuadro, nada.
+- **Capa en curso:** un solo marco punteado amarillo alrededor de la columna
+  (neuronas o cuadritos), no un anillo por neurona. Todas las conexiones que
+  le entran cuentan como relacionadas; con capas resumidas, la banda entera.
+- **Durante la animación** de un paso, cuentan como relacionadas las
+  conexiones que entran a cada neurona que se anima, sea cual sea el tamaño.
+- Lo elegido no cambia: sigue destacando lo suyo, además de lo en curso.
+- La lectura de abajo ("Oculta 1: 8 de 16 neuronas encendidas") sigue
+  hablando de lo hecho; el marco, de lo que sigue. Es la misma convención
+  que ya hay de a neuronas.
 
 ## Risks / Trade-offs
 
@@ -320,7 +366,7 @@ entrada va de 0 a 1 y las demás quedan como están.
   las filas y la tabla. Se prueba en la 3.5.
 - **[Sin medir] El detalle nuevo en el panel.** La tarjeta de hoy mide 508
   px en Inspeccionar; las barras no suman alto, la cuenta escrita reemplaza
-  renglones. → Se mide en la 4.7.
+  renglones. → Medido: no entraba; ver D17. Se vuelve a medir en la 4.8.
 - **[Sin medir] Fluidez con la red más grande y todo encendido.** → 11.2.
 - **[Sin medir] Los mapas chicos se leen a 40 px.** → Se mira en la 9.2.
 - **Inspeccionar abre sin tarjeta.** Quien llega ve menos cuenta de entrada.

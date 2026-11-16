@@ -2,6 +2,42 @@
 
 ## MODIFIED Requirements
 
+### Requirement: Actividad en el momento
+Las dos vistas SHALL mostrar el valor de cada neurona y lo que aporta cada
+conexión con la cuenta que se les pasa, y actualizarse cada vez que esa
+cuenta cambia, sin demora visible. Una neurona todavía no calculada en un
+recorrido paso a paso MUST verse distinta de una calculada que vale cero. Lo
+que se marca como en curso MUST ser del tamaño del paso: una neurona o una
+capa entera.
+
+#### Scenario: Red manejando
+- **WHEN** el auto maneja y sus sensores cambian
+- **THEN** el relleno de las neuronas cambia en el mismo cuadro, en el diagrama y en la tabla
+
+#### Scenario: A medio calcular
+- **WHEN** el recorrido paso a paso va por la segunda neurona de una capa
+- **THEN** la primera muestra su valor, la segunda está marcada como la que se calcula y las demás se ven sin calcular
+
+#### Scenario: Capa en curso
+- **WHEN** el recorrido avanza de a neuronas o de a operaciones
+- **THEN** las conexiones que entran a la neurona en curso se destacan y las demás se atenúan
+
+#### Scenario: De a capas
+- **WHEN** el recorrido avanza de a capas
+- **THEN** la capa en curso entera lleva la marca de en curso, como un solo marco alrededor de sus neuronas o de sus cuadritos, y todas las conexiones que le entran se destacan, no solo las de su primera neurona
+
+#### Scenario: Mientras se anima una capa
+- **WHEN** se anima el paso de una capa
+- **THEN** las marcas viajan por todas las conexiones que entran a esa capa, y ninguna de esas conexiones está atenuada
+
+#### Scenario: De a cuadros
+- **WHEN** el recorrido avanza de a cuadros, en pausa o reproduciendo
+- **THEN** ninguna neurona ni capa lleva la marca de en curso y nada se atenúa por el recorrido
+
+#### Scenario: Cambiar el tamaño del paso
+- **WHEN** la persona pasa de neuronas a capas con una capa a medio hacer
+- **THEN** la marca pasa de la neurona a su capa entera, y las neuronas ya calculadas conservan su valor
+
 ### Requirement: Elegir una neurona o una conexión
 El inspector SHALL permitir elegir con un clic una neurona o una conexión, en
 el diagrama o en la tabla, y avisar cuál se eligió. Hay como mucho una cosa
