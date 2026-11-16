@@ -157,6 +157,13 @@ del cuadro no hace nada; queda con `aria-disabled` y su tooltip lo explica,
 como los demás controles sin efecto momentáneo. Reproduciendo, pausa y
 vuelve un paso.
 
+**Ventana angosta (consulta 5.1).** Medido: con "Atrás (B)" la barra pasaba
+de 2 a 3 renglones con la red en 440 px en inglés y en 508 px en español (32
+px menos de alto para la red). Con la red por debajo de 600 px, "Reproducir",
+"Paso" y "Atrás" usan el nombre sin atajo (los textos `.plain` que ya existen
+para los atajos apagados); el atajo sigue en el tooltip. Así la barra no suma
+renglones en ningún tamaño medido.
+
 Alternativa descartada: guardar los cuadros anteriores para volver también el
 auto. Es otro cambio (historia de la simulación).
 

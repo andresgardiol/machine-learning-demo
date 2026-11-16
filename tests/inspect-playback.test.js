@@ -200,9 +200,10 @@ test('no frena a la persona: completar al instante', () => {
 
 // --- Atajos ---------------------------------------------------------------------------------
 
-test('atajos: espacio reproduce o pausa, N da un paso, R reinicia y V restablece la vista', () => {
+test('atajos: espacio reproduce o pausa, N da un paso, B vuelve uno, R reinicia y V restablece la vista', () => {
   const ev = (code) => ({ code, target: { tagName: 'DIV', matches: () => false, closest: () => null } });
-  assert.deepEqual(SHORTCUTS, { Space: 'play', KeyN: 'step', KeyR: 'restart', KeyV: 'view' });
+  assert.deepEqual(SHORTCUTS, { Space: 'play', KeyN: 'step', KeyB: 'back', KeyR: 'restart', KeyV: 'view' });
+  assert.equal(shortcutFor(ev('KeyB')), 'back');
   assert.equal(shortcutFor(ev('Space')), 'play');
   assert.equal(shortcutFor(ev('KeyN')), 'step');
   assert.equal(shortcutFor(ev('KeyR')), 'restart');
@@ -210,7 +211,7 @@ test('atajos: espacio reproduce o pausa, N da un paso, R reinicia y V restablece
   assert.equal(shortcutFor({ code: 'KeyN', target: { tagName: 'INPUT', type: 'text' } }), null, 'no mientras se escribe');
   setCharacterShortcuts(false);
   try {
-    for (const code of ['Space', 'KeyN', 'KeyR', 'KeyV']) assert.equal(shortcutFor(ev(code)), null, `${code} apagado`);
+    for (const code of ['Space', 'KeyN', 'KeyB', 'KeyR', 'KeyV']) assert.equal(shortcutFor(ev(code)), null, `${code} apagado`);
   } finally {
     setCharacterShortcuts(true);
   }

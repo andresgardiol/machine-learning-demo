@@ -261,6 +261,29 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     stepCursor(playback.size, { auto: false });
     sync();
   }
+  /** Nombres de reproducir, paso y atrás: con su atajo, o sin él con la red angosta (consulta 5.1). */
+  function barLabels() {
+    const plain = narrowBar ? '.plain' : '';
+    setText(playButton, `${playback.playing ? 'inspect.pause' : 'inspect.play'}${plain}`);
+    setText(stepButton, `inspect.step${plain}`);
+    setText(backButton, `inspect.back${plain}`);
+  }
+
+  /** Vuelve un paso del tamaño elegido dentro del cuadro, sin animación; reproduciendo, pausa primero (D7). */
+  function stepBack() {
+    if (playback.playing) pause();
+    animation = null;
+    const r = cursor.back(playback.size);
+    if (!r.moved) { sync(); return; }
+    const last = cursor.position;
+    lastStep = last ? { size: playback.size, last } : null;
+    if (last && (playback.size === 'neuron' || playback.size === 'operation')) { state.selected = { layer: last.layer, neuron: last.neuron }; state.connection = null; }
+    announce(last
+      ? t('inspect.announce.back', { step: describeStep({ t, fmt, size: playback.size, last, trace: traceNow(), sizes: net.sizes, cursor, manual: state.manual }) })
+      : t('inspect.announce.backStart'));
+    sync();
+  }
+
   function restart() {
     world.reset();
     cursor.complete();
@@ -423,11 +446,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // filtro de conexiones, así los dos grupos comparten renglón cuando la barra se parte. Desde 600 px,
   // vuelven al segundo renglón (la barra en dos renglones, como siempre).
   const NARROW_BAR = 600;
+  let narrowBar = false;
   const placeZoom = () => {
     const narrow = controls.clientWidth > 0 && controls.getBoundingClientRect().width < NARROW_BAR;
     const parent = narrow ? topRow : editsRow;
     if (zoomGroup.parentElement !== parent) parent.append(zoomGroup);
     setData(controls, 'narrow', String(narrow));
+    // Con la red angosta, la barra de reproducción usa los nombres sin atajo (operacion-por-operacion
+    // D7, consulta 5.1); el atajo sigue en el tooltip.
+    if (narrow !== narrowBar) { narrowBar = narrow; barLabels(); }
   };
   const barObserver = new ResizeObserver(() => placeZoom());
   barObserver.observe(controls);
@@ -602,6 +629,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
   const playButton = el('button', { class: 'tool primary inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
   const stepButton = el('button', { class: 'tool inspect-step', i18n: 'inspect.step', help: 'inspect.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
+  // Paso atrás (operacion-por-operacion D7): deshace dentro del cuadro; al principio no tiene efecto.
+  const backButton = el('button', { class: 'tool inspect-back', i18n: 'inspect.back', help: 'inspect.back', attrs: { type: 'button', 'aria-disabled': 'false' }, on: { click: () => stepBack() } });
   const sizeButtons = STEP_SIZES.map((s) => el('button', {
     class: 'segment', i18n: `inspect.size.${s}`, help: `inspect.size.${s}`,
     attrs: { type: 'button', 'aria-pressed': 'false' }, dataset: { size: s, focus: 'keep' },
@@ -620,7 +649,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('label', { class: 'inspect-label', attrs: { for: 'inspect-pace' }, i18n: 'inspect.pace.label' }), paceInput, paceValue);
   const where = el('p', { class: 'inspect-where' });
   const playbar = el('div', { class: 'inspect-playbar', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.playbar.label' },
-    el('div', { class: 'inspect-playbar-main' }, playButton, stepButton, sizeGroup),
+    el('div', { class: 'inspect-playbar-main' }, playButton, stepButton, backButton, sizeGroup),
     el('div', { class: 'inspect-playbar-pace' }, paceGroup, where));
   const netZone = el('div', { class: 'inspect-net' }, controls, area, opStrip, playbar);
   stage.append(netZone);
@@ -846,7 +875,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     diagram.hidden = state.view !== 'diagram';
     tableZone.hidden = state.view !== 'table';
     // Reproducción
-    setText(playButton, playback.playing ? 'inspect.pause' : 'inspect.play');
+    barLabels();
     setData(playButton, 'help', playback.playing ? 'inspect.pause' : 'inspect.play');
     setAttr(playButton, 'aria-pressed', String(!playback.playing));
     for (const b of sizeButtons) setAttr(b, 'aria-pressed', String(b.dataset.size === playback.size));
@@ -906,6 +935,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     show(opStrip, !realTime);
     if (!realTime) writeStrip(trace);
     write(where, whereText({ t, frame: world.steps, sizes: net.sizes, cursor: shownCursor ?? cursor, realTimePlaying: realTime }));
+    // "Atrás" sin efecto al principio del cuadro (o reproduciendo en tiempo real, que no tiene pasos).
+    const canBack = cursor.started && !realTime;
+    setAttr(backButton, 'aria-disabled', String(!canBack));
+    setData(backButton, 'help', canBack ? 'inspect.back' : 'inspect.back.none');
 
     // Escena: rayos con el peso de la neurona elegida si recibe los sensores (D9).
     const sel = state.selected;
@@ -1072,10 +1105,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (!action) return;
     e.preventDefault();
     if (action === 'play') handledSpace = true;
-    if (e.repeat && action !== 'step') return;
+    if (e.repeat && action !== 'step' && action !== 'back') return;
     try {
       if (action === 'play') togglePlay();
       else if (action === 'step') stepOnce();
+      else if (action === 'back') stepBack();
       else if (action === 'restart') restart();
       else if (action === 'view') inspector.resetView();
     } catch (err) {
@@ -1135,7 +1169,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     get brain() { return brain; },
     get state() { return state; },
     get playback() { return playback; },
-    play, pause, stepOnce, restart, setSize, select, choose, undo, resetNetwork, toggleNeuron, setWeight, setBias, setManual, toggleLayer, toggleAll,
+    play, pause, stepOnce, stepBack, restart, setSize, select, choose, undo, resetNetwork, toggleNeuron, setWeight, setBias, setManual, toggleLayer, toggleAll,
     unmount() {
       keepChanges();
       state.wasPlaying = playback.playing;

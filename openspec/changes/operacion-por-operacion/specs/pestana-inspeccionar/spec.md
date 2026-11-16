@@ -25,8 +25,12 @@ es un paso de la simulación: percibir, calcular la red y mover el auto.
 - **THEN** la barra de reproducción está pegada a la red, no en el panel
 
 #### Scenario: Paso atrás a la vista
-- **WHEN** la persona mira la barra en pausa
+- **WHEN** la persona mira la barra en pausa con la red de 600 píxeles de ancho o más
 - **THEN** "Atrás" está al lado de "Paso", con su atajo en el nombre
+
+#### Scenario: Barra en ventana angosta
+- **WHEN** la red mide menos de 600 píxeles de ancho, en español o en inglés
+- **THEN** "Reproducir", "Paso" y "Atrás" se leen sin el atajo en el nombre, que sigue en su explicación, y la barra no ocupa más renglones que antes de tener "Atrás"
 
 ### Requirement: Avance paso a paso
 Con la reproducción en pausa, "Paso" SHALL avanzar la cuenta una vez, del
