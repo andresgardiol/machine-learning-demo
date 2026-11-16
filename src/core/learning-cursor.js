@@ -18,10 +18,12 @@ import {
   forwardSoft, exampleError, backward, corrections, applyCorrections, learnExample, evaluate, shuffledOrder,
   assertLearnable,
 } from './backprop.js';
-import { copyNetwork } from './network.js';
+import { copyNetwork, flatValues } from './network.js';
 import { randomFor } from './random.js';
 import { trackWarning } from './overfitting.js';
 
+/** Tope de muestras de la historia de cada peso. */
+export const WEIGHT_HISTORY_MAX = 300;
 export const PHASES = Object.freeze(['forward', 'error', 'backward', 'update']);
 export const LEARNING_STEP_SIZES = Object.freeze(['epoch', 'example', 'phase', 'layer', 'neuron']);
 
@@ -120,6 +122,13 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
   let nextIndex = 0; // próximo ejemplo del orden a empezar
   let active = null; // { index, example, detail, cursor, done, original }
   const history = [];
+  // Historia de los pesos (vista-de-la-red D12): los valores al terminar cada época, en el orden de
+  // flatValues, con tope de WEIGHT_HISTORY_MAX muestras. Al llenarse se conserva una de cada dos (las
+  // épocas múltiplos del paso nuevo) y la última siempre está.
+  const initialValues = flatValues(net);
+  let samples = []; // { epoch, values }
+  let stride = 1;
+  const manualMarks = []; // { epoch, key }
   let warn = { active: false, since: null, appearances: 0 }; // aviso de sobreajuste (no es fijo)
   const events = []; // { epoch, kind: 'appeared' | 'retired' }
   const size = practice.length;
@@ -141,12 +150,31 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
     const p = evaluate(net, practice, offArg());
     const h = evaluate(net, heldOut, offArg());
     history.push({ epoch, practice: p, heldOut: h });
+    keepSample();
     const w = trackWarning(warn, history);
     warn = w.state;
     if (w.appeared) events.push({ epoch, kind: 'appeared' });
     if (w.retired) events.push({ epoch, kind: 'retired' });
     order = null;
     nextIndex = 0;
+  }
+
+  function keepSample() {
+    const last = samples[samples.length - 1];
+    if (last && last.epoch % stride !== 0) samples.pop(); // la última anterior quedaba solo por ser la última
+    samples.push({ epoch, values: flatValues(net) });
+    if (samples.length > WEIGHT_HISTORY_MAX) {
+      stride *= 2;
+      const keep = samples.filter((x, k) => x.epoch % stride === 0 || k === samples.length - 1);
+      samples = keep;
+    }
+  }
+  /** Lugar de un peso (o del sesgo, con i === 'bias') en el orden de flatValues. */
+  function flatIndex(l, j, i) {
+    let k = 0;
+    for (let c = 1; c < l; c++) k += net.sizes[c] * net.sizes[c - 1] + net.sizes[c];
+    const inputs = net.sizes[l - 1];
+    return i === 'bias' ? k + net.sizes[l] * inputs + j : k + j * inputs + i;
   }
 
   /** Termina el ejemplo activo (aplica su corrección) y, si era el último, la época. */
@@ -201,6 +229,7 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
       const next = copyNetwork(net);
       next.layers[l - 1].weights[j][i] = value;
       net = next;
+      manualMarks.push({ epoch, key: `${l}:${j}:${i}` });
       changed();
       return true;
     },
@@ -211,6 +240,7 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
       const next = copyNetwork(net);
       next.layers[l - 1].biases[j] = value;
       net = next;
+      manualMarks.push({ epoch, key: `${l}:${j}:bias` });
       changed();
       return true;
     },
@@ -301,6 +331,19 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
     get exampleInEpoch() { return nextIndex; },
     get size() { return size; },
     get history() { return history; },
+    /**
+     * Historia de un peso (i: entrada) o de un sesgo (i === 'bias') de la neurona j de la columna l:
+     * { initial, points: [{ epoch, value }], manual: [épocas con un cambio a mano] }.
+     */
+    weightHistory(l, j, i) {
+      const k = flatIndex(l, j, i);
+      const key = `${l}:${j}:${i}`;
+      return {
+        initial: initialValues[k],
+        points: samples.map((x) => ({ epoch: x.epoch, value: x.values[k] })),
+        manual: manualMarks.filter((m) => m.key === key).map((m) => m.epoch),
+      };
+    },
     /** El aviso de sobreajuste a la vista ({ epoch: desde cuándo }), o null. */
     get warning() { return warn.active ? { epoch: warn.since } : null; },
     /** Cuántas veces apareció el aviso desde que empezó el aprendizaje. */

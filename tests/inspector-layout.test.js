@@ -10,8 +10,9 @@ test('red de 6, 6 y 4: tres columnas de izquierda a derecha, con lugar arriba pa
   const l = layoutInspector({ sizes: [6, 6, 4], ...ZONE });
   assert.deepEqual(l.columns.map((c) => c.nodes.length), [6, 6, 4]);
   assert.ok(l.columns[0].x < l.columns[1].x && l.columns[1].x < l.columns[2].x);
-  assert.equal(l.columns[0].x, INSPECTOR_LAYOUT.labelLeft);
-  assert.equal(l.columns[2].x, ZONE.width - INSPECTOR_LAYOUT.labelRight);
+  // El lugar de los rótulos va del borde de la neurona hacia afuera (vista-de-la-red D3).
+  assert.equal(l.columns[0].x, INSPECTOR_LAYOUT.labelLeft + l.radius);
+  assert.equal(l.columns[2].x, ZONE.width - INSPECTOR_LAYOUT.labelRight - l.radius);
   for (const c of l.columns) {
     for (const n of c.nodes) assert.ok(n.y - l.radius >= INSPECTOR_LAYOUT.header, 'ninguna neurona bajo los encabezados');
     for (let i = 1; i < c.nodes.length; i++) assert.ok(c.nodes[i].y - c.nodes[i - 1].y > 2 * l.radius);
@@ -87,4 +88,83 @@ test('papel de cada conexión: destacada la de la neurona elegida, atenuada la q
   assert.equal(linkRole({ layer: 1, neuron: 0, input: 3, emphasis, top }), 'filtered');
   assert.equal(linkRole({ layer: 1, neuron: 0, input: 3, emphasis, top: null }), 'normal');
   assert.deepEqual([0, 0.1, -0.5].map(contributionBucket), [0, 1, 2]);
+});
+
+// --- vista-de-la-red D3 y D5 -------------------------------------------------------------------
+import { hitTarget, hitLink, segmentDistance } from '../src/render/inspector-layout.js';
+
+test('red chica (6, 6, 4) en 708 × 648: cada neurona mide al menos 30 px de radio, sin pasar de 44', () => {
+  const l = layoutInspector({ sizes: [6, 6, 4], width: 708, height: 648 });
+  assert.ok(l.radius >= 30, `radio ${l.radius}`);
+  assert.ok(l.radius <= 44);
+});
+
+test('resumir la capa de 21 entradas agranda las neuronas de las otras capas', () => {
+  const open = layoutInspector({ sizes: [21, 8, 8, 4], width: 708, height: 648 });
+  const sum = layoutInspector({ sizes: [21, 8, 8, 4], width: 708, height: 648, collapsed: [true, false, false, false] });
+  assert.ok(sum.radius > open.radius * 1.5, `${open.radius} → ${sum.radius}`);
+});
+
+test('la zona más grande agranda las neuronas, hasta el máximo', () => {
+  const a = layoutInspector({ sizes: [6, 16, 4], width: 600, height: 500 });
+  const b = layoutInspector({ sizes: [6, 16, 4], width: 900, height: 800 });
+  assert.ok(b.radius > a.radius);
+  const huge = layoutInspector({ sizes: [2, 2, 1], width: 2000, height: 2000 });
+  assert.equal(huge.radius, INSPECTOR_LAYOUT.maxRadius);
+});
+
+test('sin encimarse: en toda forma que permite la aplicación, ninguna neurona toca a su vecina ni los rótulos', () => {
+  const zones = [[600, 420], [708, 648], [1000, 760], [520, 380]];
+  const shapes = [[6, 4], [6, 6, 4], [6, 8, 8, 4], [21, 16, 16, 16, 4], [101, 16, 16, 16, 4], [2, 1], [2, 8, 8, 8, 1], [21, 1, 4], [3, 16, 1]];
+  for (const [width, height] of zones) for (const sizes of shapes) {
+    const masks = [sizes.map(() => false), sizes.map((_, i) => i === 0), sizes.map((_, i) => i === 1), sizes.map((_, i) => i === sizes.length - 1)];
+    for (const collapsed of masks) {
+      const l = layoutInspector({ sizes, width, height, collapsed });
+      const r = l.radius;
+      l.columns.forEach((c, k) => {
+        if (c.collapsed) return;
+        for (let i = 1; i < c.nodes.length; i++) assert.ok(c.nodes[i].y - c.nodes[i - 1].y > 2 * r, `vertical ${sizes} ${width}`);
+        for (const n of c.nodes) assert.ok(n.y - r >= INSPECTOR_LAYOUT.header - 1e-9 && n.y + r <= height, `alto ${sizes}`);
+        const next = l.columns[k + 1];
+        if (next) assert.ok(next.x - c.x > (next.collapsed ? r + INSPECTOR_LAYOUT.collapsedWidth / 2 : 2 * r), `horizontal ${sizes} ${width}`);
+      });
+      // Lugar para los rótulos fuera de la neurona.
+      if (!collapsed[0]) assert.ok(l.columns[0].x - r >= INSPECTOR_LAYOUT.labelLeft - 1e-9, `rótulos de entradas ${sizes}`);
+      if (!collapsed.at(-1)) assert.ok(width - (l.columns.at(-1).x + r) >= INSPECTOR_LAYOUT.labelRight - 1e-9, `rótulos de salidas ${sizes}`);
+    }
+  }
+});
+
+test('distancia a un segmento: perpendicular adentro, al extremo afuera', () => {
+  assert.equal(segmentDistance({ x: 5, y: 3 }, { x: 0, y: 0 }, { x: 10, y: 0 }), 3);
+  assert.equal(segmentDistance({ x: -4, y: 3 }, { x: 0, y: 0 }, { x: 10, y: 0 }), 5);
+});
+
+test('neurona antes que línea: el clic sobre una neurona por la que pasan líneas elige la neurona', () => {
+  const l = layoutInspector({ sizes: [6, 6, 4], width: 708, height: 648 });
+  const n = l.columns[1].nodes[2];
+  assert.deepEqual(hitTarget(l, { x: n.x + 2, y: n.y }), { kind: 'neuron', layer: 1, neuron: 2 });
+});
+
+test('línea más cercana: a menos de 6 px de varias, la más cercana; con una neurona elegida, primero las suyas', () => {
+  const l = layoutInspector({ sizes: [6, 6, 4], width: 708, height: 648 });
+  const a = l.columns[0].nodes[0];
+  const b = l.columns[1].nodes[0];
+  const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 + 1 };
+  assert.deepEqual(hitTarget(l, mid), { kind: 'link', layer: 1, neuron: 0, input: 0 });
+  // Un punto en el cruce de dos líneas: sin elegir, la más cercana; con la neurona de la otra elegida, la suya.
+  const p0 = l.columns[0].nodes[0];
+  const q0 = l.columns[1].nodes[1];
+  const p1 = l.columns[0].nodes[1];
+  const q1 = l.columns[1].nodes[0];
+  const cross = { x: (p0.x + q0.x) / 2, y: (p0.y + q0.y) / 2 }; // las dos líneas se cruzan en el medio
+  const near0 = { x: cross.x, y: cross.y - 0.5 };
+  const free = hitLink(l, near0);
+  assert.ok(free);
+  const other = free.neuron === 1 ? { layer: 1, neuron: 0 } : { layer: 1, neuron: 1 };
+  const mine = hitLink(l, near0, 1, other);
+  assert.equal(mine.neuron, other.neuron);
+  void p1; void q1;
+  // Lejos de toda línea y neurona: nada.
+  assert.equal(hitTarget(l, { x: 2, y: 2 }), null);
 });

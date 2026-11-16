@@ -11,14 +11,17 @@ import { LAYOUT, OUTPUT_KEYS } from './network-view.js';
 export const INSPECTOR_LAYOUT = Object.freeze({
   header: 34, // alto reservado arriba para los encabezados de capa
   headerRow: 28, // alto de un segundo renglón de encabezados, si no entran en uno
-  maxRadius: 16,
-  minRadius: 2,
+  maxRadius: 44, // vista-de-la-red D3: las neuronas usan el espacio
+  minRadius: 1,
+  heightShare: 0.38, // del alto que le toca a cada neurona de la capa abierta más alta
+  gapShare: 0.3, // del hueco entre columnas
   square: 14, // lado máximo de un cuadrito de una capa resumida
   collapsedWidth: 18, // ancho de la columna de una capa resumida
   collapsedGapWeight: 0.35, // cuánto pesa en el reparto del ancho el lado de una capa resumida
   hitSlop: 4, // px de tolerancia alrededor de una neurona al hacer clic
-  labelLeft: 92, // lugar para los rótulos de las entradas (más que en Entrenar: las neuronas son más grandes)
-  labelRight: 104, // lugar para los rótulos de las salidas ("Retroceder" entero)
+  labelLeft: 76, // lugar para el texto de los rótulos de las entradas, sin contar el radio
+  labelRight: 88, // lugar para el texto de los rótulos de las salidas ("Retroceder" entero), sin el radio
+  linkSlop: 6, // px de pantalla: a esta distancia o menos de una línea, el clic la toca (D5)
 });
 
 /**
@@ -30,28 +33,42 @@ export const INSPECTOR_LAYOUT = Object.freeze({
 export function layoutInspector({ sizes, width, height, collapsed = [], headerRows = 1 }) {
   const { padding, minLabelGap } = LAYOUT;
   const header = INSPECTOR_LAYOUT.header + (headerRows > 1 ? INSPECTOR_LAYOUT.headerRow : 0);
-  const { maxRadius, minRadius, square, collapsedWidth, collapsedGapWeight, labelLeft, labelRight } = INSPECTOR_LAYOUT;
+  const { maxRadius, minRadius, square, collapsedWidth, collapsedGapWeight, labelLeft, labelRight, heightShare, gapShare } = INSPECTOR_LAYOUT;
   const isCollapsed = (c) => Boolean(collapsed[c]);
-  const left = isCollapsed(0) ? collapsedWidth + padding : labelLeft;
-  const right = Math.max(left + 1, width - (isCollapsed(sizes.length - 1) ? collapsedWidth + padding : labelRight));
   const top = header + padding;
   const bottom = Math.max(top + 1, height - padding);
   const span = bottom - top;
+  const C = sizes.length;
 
+  // Radio (D3): el menor de 44, 0,38 del alto por neurona de la capa abierta más alta y 0,3 del hueco
+  // entre columnas. Con una capa resumida, la más alta deja de limitar y las otras crecen solas. El
+  // lugar de los rótulos de entradas y salidas va del borde de la neurona hacia afuera.
+  const openSizes = sizes.filter((_, c) => !isCollapsed(c));
+  const tallest = openSizes.length > 0 ? Math.max(...openSizes) : 1;
+  const byHeight = (span / tallest) * heightShare;
+  const edges = (r) => {
+    const left = isCollapsed(0) ? collapsedWidth + padding : labelLeft + r;
+    const right = Math.max(left + 1, width - (isCollapsed(C - 1) ? collapsedWidth + padding : labelRight + r));
+    return { left, right };
+  };
   // Reparto del ancho: cada hueco entre dos columnas pesa por sus dos lados; el lado de una capa
   // resumida pesa menos, así las demás ganan lugar.
-  const C = sizes.length;
   const sideWeight = (c) => (isCollapsed(c) ? collapsedGapWeight : 1);
   const gaps = [];
   for (let c = 0; c < C - 1; c++) gaps.push(sideWeight(c) + sideWeight(c + 1));
   const totalGap = gaps.reduce((a, b) => a + b, 0);
+  const minGap = ({ left, right }) => {
+    let g = Infinity;
+    for (let c = 0; c < C - 1; c++) if (!isCollapsed(c) || !isCollapsed(c + 1)) g = Math.min(g, ((right - left) * gaps[c]) / totalGap);
+    return g;
+  };
+  let radius = Math.min(maxRadius, byHeight);
+  if (C > 1) radius = Math.min(radius, gapShare * minGap(edges(radius)));
+  radius = Math.max(minRadius, radius);
+  const { left, right } = edges(radius);
   const xs = [left];
   for (let c = 0; c < C - 1; c++) xs.push(xs[c] + (totalGap > 0 ? ((right - left) * gaps[c]) / totalGap : 0));
   if (C === 1) xs[0] = (left + right) / 2;
-
-  const openSizes = sizes.filter((_, c) => !isCollapsed(c));
-  const tallest = openSizes.length > 0 ? Math.max(...openSizes) : 1;
-  const radius = Math.max(minRadius, Math.min(maxRadius, (span / tallest) * 0.38));
 
   const columns = sizes.map((count, c) => {
     const x = xs[c];
@@ -109,6 +126,60 @@ export function hitNeuron(layout, point, scale = 1) {
     });
   });
   return best;
+}
+
+/** Distancia de un punto al segmento a–b. */
+export function segmentDistance(p, a, b) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len2 = dx * dx + dy * dy;
+  const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2));
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
+/**
+ * Conexión bajo un punto (D5), o null: la más cercana a `linkSlop` px de pantalla o menos. Con una
+ * neurona elegida, primero las suyas (las que le entran y las que salen de ella). Las conexiones de
+ * una capa resumida no se tocan: son una banda. Devuelve la conexión como en los cambios: `layer` es
+ * la capa de destino.
+ * @returns {{layer:number, neuron:number, input:number, distance:number}|null}
+ */
+export function hitLink(layout, point, scale = 1, selected = null) {
+  const slop = INSPECTOR_LAYOUT.linkSlop / scale;
+  let best = null;
+  let bestMine = null;
+  const cols = layout.columns;
+  for (let l = 1; l < cols.length; l++) {
+    if (cols[l - 1].collapsed || cols[l].collapsed) continue;
+    const from = cols[l - 1].nodes;
+    const to = cols[l].nodes;
+    // Descarte rápido: fuera de la franja entre las dos columnas.
+    if (point.x < Math.min(cols[l - 1].x, cols[l].x) - slop || point.x > Math.max(cols[l - 1].x, cols[l].x) + slop) continue;
+    for (let j = 0; j < to.length; j++) {
+      for (let i = 0; i < from.length; i++) {
+        const d = segmentDistance(point, from[i], to[j]);
+        if (d > slop) continue;
+        const hit = { layer: l, neuron: j, input: i, distance: d };
+        if (!best || d < best.distance) best = hit;
+        const mine = selected && selected.input === undefined
+          && ((selected.layer === l && selected.neuron === j) || (selected.layer === l - 1 && selected.neuron === i));
+        if (mine && (!bestMine || d < bestMine.distance)) bestMine = hit;
+      }
+    }
+  }
+  return bestMine ?? best;
+}
+
+/**
+ * Lo que toca un punto (D5): una neurona gana sobre las líneas que pasan por ella; si no, la línea más
+ * cercana. null si no hay nada.
+ * @returns {{kind:'neuron', layer:number, neuron:number}|{kind:'link', layer:number, neuron:number, input:number}|null}
+ */
+export function hitTarget(layout, point, scale = 1, selected = null) {
+  const n = hitNeuron(layout, point, scale);
+  if (n) return { kind: 'neuron', ...n };
+  const k = hitLink(layout, point, scale, selected);
+  return k ? { kind: 'link', layer: k.layer, neuron: k.neuron, input: k.input } : null;
 }
 
 /** Vecino de una neurona para el foco con flechas: arriba y abajo en la capa, izquierda y derecha entre capas. */

@@ -424,3 +424,29 @@ export function bakeOff(net, off) {
   }
   return out;
 }
+
+/**
+ * Valores de todas las neuronas sobre una grilla del plano (vista-de-la-red D12), para una red de dos
+ * entradas: una pasada por punto, en el centro de cada celda de una grilla de size × size sobre [−1, 1]²
+ * (fila 0 arriba), con lo apagado tenido en cuenta. `layers[l][j]` es la grilla de la neurona j de la
+ * columna l (l ≥ 1); la de la salida es la misma que pinta el fondo del plano.
+ * @returns {{size:number, layers:(Float32Array[]|null)[]}}
+ */
+export function neuronGrid(net, size = 50, off = null) {
+  const layers = net.sizes.map((n, l) => (l === 0 ? null : Array.from({ length: n }, () => new Float32Array(size * size))));
+  const point = [0, 0];
+  for (let r = 0; r < size; r++) {
+    point[1] = 1 - ((r + 0.5) / size) * 2;
+    for (let c = 0; c < size; c++) {
+      point[0] = ((c + 0.5) / size) * 2 - 1;
+      const { values } = forwardValues(net, [point[0], point[1]], off);
+      const k = r * size + c;
+      for (let l = 1; l < values.length; l++) {
+        const row = values[l];
+        const out = layers[l];
+        for (let j = 0; j < row.length; j++) out[j][k] = row[j];
+      }
+    }
+  }
+  return { size, layers };
+}
