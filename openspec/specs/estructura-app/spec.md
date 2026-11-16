@@ -12,9 +12,8 @@ demás.
 ### Requirement: Pestañas del recorrido
 La aplicación SHALL mostrar una barra con las seis pestañas del recorrido, en
 este orden: El problema, Reglas a mano, Entrenar, Competir, Inspeccionar y
-Laboratorio. Las pestañas El problema, Reglas a mano, Entrenar, Competir e
-Inspeccionar SHALL estar disponibles. Las pestañas aún no disponibles MUST verse como no disponibles y
-no poder abrirse.
+Laboratorio. Las seis SHALL estar disponibles. Una pestaña que no esté
+disponible MUST verse como no disponible y no poder abrirse.
 
 #### Scenario: Recorrido visible
 - **WHEN** se abre la aplicación
@@ -60,6 +59,14 @@ no poder abrirse.
 - **WHEN** la persona posa el cursor sobre la pestaña Inspeccionar
 - **THEN** un tooltip indica que ahí se mira una red por dentro mientras maneja, y por qué eso muestra qué aprendió, sin decir que llegará próximamente
 
+#### Scenario: Abrir Laboratorio
+- **WHEN** la persona elige la pestaña Laboratorio
+- **THEN** Laboratorio pasa a ser la pestaña activa y muestra la barra de datos, la red, su tablero y su panel
+
+#### Scenario: Explicación de Laboratorio
+- **WHEN** la persona posa el cursor sobre la pestaña Laboratorio
+- **THEN** un tooltip indica que ahí una red aprende de ejemplos corrigiendo sus errores, y por qué importa, sin decir que llegará próximamente
+
 ### Requirement: Lista para usar al abrir
 La aplicación SHALL abrir directamente en la primera pestaña, con su escenario
 funcionando, sin pedir ninguna configuración, registro ni paso previo.
@@ -71,8 +78,8 @@ funcionando, sin pedir ninguna configuración, registro ni paso previo.
 ### Requirement: Disposición común
 Toda pestaña con escenario SHALL mostrar el escenario a la izquierda, el
 tablero al centro cuando la pestaña lo usa, y un panel de controles a la
-derecha. En Inspeccionar, la zona izquierda es de la red y es la más ancha,
-y el escenario va chico, en un tablero angosto. En todas, la barra de pestañas, el selector de idioma y
+derecha. En Inspeccionar y en Laboratorio, la zona izquierda es de la red y
+es la más ancha, y lo demás va en un tablero angosto. En todas, la barra de pestañas, el selector de idioma y
 el interruptor de guía van siempre en el mismo lugar. El orden de lectura y
 de foco con el teclado SHALL ser zona izquierda, tablero y panel.
 
@@ -95,6 +102,10 @@ de foco con el teclado SHALL ser zona izquierda, tablero y panel.
 #### Scenario: Volver de Inspeccionar
 - **WHEN** la persona vuelve de Inspeccionar a Competir
 - **THEN** el escenario y el tablero de Competir tienen los anchos que tenían antes de ir
+
+#### Scenario: Disposición de Laboratorio
+- **WHEN** la persona pasa de Inspeccionar a Laboratorio
+- **THEN** las tres zonas conservan su lugar y su ancho: la izquierda muestra la red y el tablero, los datos y las curvas
 
 ### Requirement: Panel ajustable
 El borde izquierdo del panel SHALL poder arrastrarse con el mouse para
@@ -131,7 +142,8 @@ recordarse en el mismo navegador.
 
 ### Requirement: Interruptor de guía
 La aplicación SHALL ofrecer un interruptor que muestra u oculta, en toda la
-aplicación, los textos de guía y las misiones. La guía SHALL estar visible por
+aplicación, los textos de guía, las misiones y los tooltips que aparecen al
+posar el cursor. La guía SHALL estar visible por
 defecto. El interruptor SHALL tener un tooltip que diga qué hace y por qué
 importa, en español y en inglés.
 
@@ -146,6 +158,14 @@ importa, en español y en inglés.
 #### Scenario: Volver a mostrar la guía
 - **WHEN** la persona vuelve a encender el interruptor de guía
 - **THEN** los textos de guía y las misiones reaparecen con el progreso que tenían
+
+#### Scenario: La guía apagada calla los tooltips
+- **WHEN** la persona apaga el interruptor de guía y posa el cursor sobre un control habilitado
+- **THEN** no aparece su tooltip
+
+#### Scenario: El tooltip del interruptor dice lo que gobierna
+- **WHEN** la persona posa el cursor sobre el interruptor de guía, encendido o apagado
+- **THEN** su tooltip nombra los textos de guía, las misiones y las ayudas al posar el cursor, y dice que con Tab siguen apareciendo
 
 ### Requirement: Preferencias recordadas
 La aplicación SHALL recordar en el mismo navegador el idioma elegido, el
@@ -222,8 +242,8 @@ dibujar, de modo que solo la pestaña visible consuma recursos.
 ### Requirement: Escenario ajustable
 El borde entre el escenario y el tablero SHALL poder arrastrarse con el mouse
 y moverse con el teclado para repartir el ancho entre los dos. El escenario
-SHALL medir 400 píxeles por defecto y 260 como mínimo; en Inspeccionar, donde
-esa zona es de la red, lo que sobra por defecto y 600 como mínimo. MUST NOT
+SHALL medir 400 píxeles por defecto y 260 como mínimo; en Inspeccionar y en
+Laboratorio, donde esa zona es de la red, lo que sobra por defecto y 600 como mínimo. MUST NOT
 dejar al tablero con menos de 360 píxeles. El borde SHALL tener un tooltip, en
 español y en inglés, y el ancho elegido SHALL recordarse entre visitas.
 
