@@ -933,6 +933,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   color: var(--color-text); text-shadow: 0 4px 18px rgb(0 0 0 / 0.7); font-variant-numeric: tabular-nums;
 }
 .countdown-number[data-go="true"] { color: var(--color-car); }
+/* Menos movimiento (vista-de-la-red D16): los interruptores cambian sin deslizarse. */
+@media (prefers-reduced-motion: reduce) {
+  .switch-track::after { transition: none; }
+}
 @media (prefers-reduced-motion: no-preference) {
   .countdown-pop { animation: countdown-pop 0.35s ease-out; }
 }
