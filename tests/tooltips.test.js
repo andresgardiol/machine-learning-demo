@@ -89,16 +89,23 @@ test('con calma: apretado (callado) o con un botón del mouse apretado, no apare
   assert.equal(opensTooltip({ ...base }), true);
 });
 
-test('guía apagada: no aparece al posar el cursor, salvo el interruptor de guía y un control sin acción', () => {
-  const base = { cause: 'hover', writingArea: false, keyboard: false, guide: false };
+test('ayudas apagadas: no aparece al posar el cursor, ni en un control sin acción; sí en el interruptor de ayudas', () => {
+  const base = { cause: 'hover', writingArea: false, keyboard: false, hints: false };
   assert.equal(opensTooltip(base), false);
-  assert.equal(opensTooltip({ ...base, guideSwitch: true }), true);
-  assert.equal(opensTooltip({ ...base, unavailable: true }), true);
-  assert.equal(opensTooltip({ ...base, guide: true }), true);
+  assert.equal(opensTooltip({ ...base, unavailable: true }), false, 'un control sin acción se explica al apretarlo, no al posar');
+  assert.equal(opensTooltip({ ...base, hintsSwitch: true }), true);
+  assert.equal(opensTooltip({ ...base, hints: true }), true);
 });
 
-test('guía apagada: con Tab sigue apareciendo', () => {
-  assert.equal(opensTooltip({ cause: 'focus', writingArea: false, keyboard: true, focusVisible: true, guide: false }), true);
+test('ayudas apagadas: con Tab tampoco, salvo el interruptor de ayudas', () => {
+  const focus = { cause: 'focus', writingArea: false, keyboard: true, focusVisible: true };
+  assert.equal(opensTooltip({ ...focus, hints: false }), false);
+  assert.equal(opensTooltip({ ...focus, hints: false, hintsSwitch: true }), true);
+  assert.equal(opensTooltip({ ...focus, hints: true }), true);
+});
+
+test('la guía ya no cuenta: el pedido no la recibe', () => {
+  assert.equal(opensTooltip({ cause: 'hover', writingArea: false, keyboard: false, guide: false }), true);
 });
 
 test('apretar un control sin acción lo explica; apretar cualquier otro lo calla', () => {

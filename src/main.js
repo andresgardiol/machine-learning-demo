@@ -38,11 +38,12 @@ i18n.onChange((lang) => {
   document.title = i18n.t('app.title');
   i18n.translateTree(document.body);
 });
-// La guía gobierna también los tooltips al posar el cursor (tooltips-con-calma D3): se consulta en cada
-// decisión, así encenderla o apagarla vale en el momento.
+// Las ayudas gobiernan los tooltips (interruptor-de-ayudas D2): se consultan en cada decisión, así
+// encenderlas o apagarlas vale en el momento. Al apagarlas, el tooltip a la vista se cierra.
 let app = null;
-const tooltips = installTooltips({ doc: document, i18n, guideOn: () => (app ? app.store.get().guide !== false : true) });
+const tooltips = installTooltips({ doc: document, i18n, hintsOn: () => (app ? app.store.get().hints !== false : true) });
 app = createApp({ root: document.getElementById('app'), tabs: TABS, i18n, preferences });
+app.store.subscribe((state, prev) => { if (prev.hints && !state.hints) tooltips.hide(); });
 
 // Ayudas para la verificación manual desde la consola del navegador.
 window.mlLab = {

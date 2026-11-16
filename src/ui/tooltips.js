@@ -31,23 +31,22 @@ const MARGIN = 8;
 export const WRITING_AREA_SELECTOR = 'textarea';
 
 /**
- * ¿Corresponde abrir el tooltip de un control?
+ * ¿Corresponde abrir el tooltip de un control al posar el cursor o al llegar con el foco?
  * @param {{cause: 'hover'|'focus', writingArea: boolean, keyboard: boolean, focusVisible?: boolean,
- *   guide?: boolean, unavailable?: boolean, guideSwitch?: boolean, silenced?: boolean, buttonDown?: boolean}} spec
+ *   hints?: boolean, hintsSwitch?: boolean, silenced?: boolean, buttonDown?: boolean}} spec
  *   keyboard: el foco llegó con Tab; focusVisible: el navegador muestra el anillo de foco;
- *   guide: la guía está encendida; unavailable: el control está sin acción (aria-disabled);
- *   guideSwitch: es el interruptor de guía; silenced: se apretó y el cursor todavía no salió;
- *   buttonDown: hay un botón del mouse apretado (se está arrastrando)
+ *   hints: las ayudas están encendidas; hintsSwitch: es el interruptor de ayudas;
+ *   silenced: se apretó y el cursor todavía no salió; buttonDown: hay un botón del mouse apretado
+ *   (se está arrastrando)
+ * Con las ayudas apagadas no se abre ninguno, salvo el del interruptor de ayudas, que es el camino de
+ * vuelta (interruptor-de-ayudas D2). Apretar un control sin acción lo explica aparte (pressAction).
  */
 export function opensTooltip({
   cause, writingArea, keyboard, focusVisible = keyboard,
-  guide = true, unavailable = false, guideSwitch = false, silenced = false, buttonDown = false,
+  hints = true, hintsSwitch = false, silenced = false, buttonDown = false,
 }) {
-  if (cause === 'hover') {
-    if (writingArea || silenced || buttonDown) return false;
-    // Con la guía apagada, al posar el cursor solo se explican el interruptor de guía y lo que no anda.
-    return guide || unavailable || guideSwitch;
-  }
+  if (!hints && !hintsSwitch) return false;
+  if (cause === 'hover') return !(writingArea || silenced || buttonDown);
   // Con el foco, un área de escritura siempre muestra el anillo (también tras un clic): cuenta solo Tab.
   return writingArea ? keyboard : focusVisible;
 }
@@ -100,16 +99,16 @@ export function placeTooltip(anchor, size, viewport, gap = GAP, margin = MARGIN)
  */
 export const pressAction = ({ unavailable }) => (unavailable ? 'explain' : 'silence');
 
-/** Selector del interruptor de guía. */
-export const GUIDE_SWITCH_SELECTOR = '#guide-switch';
+/** Selector del interruptor de ayudas: se explica siempre (interruptor-de-ayudas D2). */
+export const HINTS_SWITCH_SELECTOR = '#hints-switch';
 
 /**
  * Instala el sistema de tooltips en el documento.
- * @param {{doc?: Document, i18n: object, delay?: number, guideOn?: () => boolean}} spec
- *   guideOn: si la guía está encendida; se consulta en cada decisión (sin recargar)
+ * @param {{doc?: Document, i18n: object, delay?: number, hintsOn?: () => boolean}} spec
+ *   hintsOn: si las ayudas están encendidas; se consulta en cada decisión (sin recargar)
  * @returns {{hide: Function, dispose: Function, element: HTMLElement}}
  */
-export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS, hideDelay = HIDE_DELAY_MS, guideOn = () => true }) {
+export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS, hideDelay = HIDE_DELAY_MS, hintsOn = () => true }) {
   const win = doc.defaultView;
   const tip = doc.createElement('div');
   tip.className = 'tooltip';
@@ -133,9 +132,12 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS, h
   let tabbing = false; // la última interacción fue la tecla Tab (y no un clic)
   let silenced = null; // control apretado: callado hasta que el cursor sale de él
   let buttonDown = false; // hay un botón del mouse apretado
+  // Control sin acción que se acaba de apretar: su explicación no se cierra porque la pestaña devuelva el
+  // foco al escenario tras el clic (se cierra al sacar el cursor, con Escape o al apretar otra cosa).
+  let explained = null;
 
   const isUnavailable = (control) => control.getAttribute('aria-disabled') === 'true';
-  const isGuideSwitch = (control) => control.matches(GUIDE_SWITCH_SELECTOR);
+  const isHintsSwitch = (control) => control.matches(HINTS_SWITCH_SELECTOR);
 
   const isWritingArea = (control) => control.matches(WRITING_AREA_SELECTOR);
   const controlOf = (node) => (node && node.closest ? node.closest('[data-help]') : null);
@@ -178,6 +180,7 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS, h
   }
 
   function hide() {
+    explained = null;
     clearTimeout(hideTimer);
     hideTimer = null;
     clearTimeout(timer);
@@ -195,7 +198,7 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS, h
     if (!control || control === current) return;
     const decision = {
       cause: 'hover', writingArea: isWritingArea(control), keyboard: false,
-      guide: guideOn(), unavailable: isUnavailable(control), guideSwitch: isGuideSwitch(control),
+      hints: hintsOn(), hintsSwitch: isHintsSwitch(control),
       silenced: control === silenced, buttonDown,
     };
     if (!opensTooltip(decision)) return;
@@ -233,16 +236,21 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS, h
     if (!control) return;
     // Solo con foco de teclado (Tab); un clic con el mouse no lo muestra.
     const focusVisible = control.matches(':focus-visible');
-    if (opensTooltip({ cause: 'focus', writingArea: isWritingArea(control), keyboard: tabbing, focusVisible })) show(control);
+    if (opensTooltip({ cause: 'focus', writingArea: isWritingArea(control), keyboard: tabbing, focusVisible, hints: hintsOn(), hintsSwitch: isHintsSwitch(control) })) show(control);
   }
 
   function onFocusOut(e) {
-    if (current && controlOf(e.target) === current) hide();
+    if (current && controlOf(e.target) === current && current !== explained) hide();
   }
 
   function onKeyDown(e) {
     tabbing = e.key === 'Tab';
-    if (e.key === 'Escape' && current) hide();
+    if (e.key === 'Escape' && current) { hide(); return; }
+    // Apretar con el teclado un control sin acción también lo explica, con las ayudas encendidas o apagadas.
+    if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
+      const control = controlOf(e.target);
+      if (control && isUnavailable(control) && !isWritingArea(control) && (tip.hidden || current !== control)) { show(control); explained = control; }
+    }
   }
 
   function onPointerDown(e) {
@@ -253,9 +261,10 @@ export function installTooltips({ doc = document, i18n, delay = SHOW_DELAY_MS, h
     const control = controlOf(e.target);
     if (!control || tip.contains(e.target) || isWritingArea(control)) return;
     if (pressAction({ unavailable: isUnavailable(control) }) === 'explain') {
-      // "¿Por qué no anda?": la explicación aparece en el momento, con la guía encendida o apagada.
+      // "¿Por qué no anda?": la explicación aparece en el momento, con las ayudas encendidas o apagadas.
       silenced = null;
       show(control);
+      explained = control;
       return;
     }
     if (current === control) hide();
