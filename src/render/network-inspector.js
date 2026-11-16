@@ -143,6 +143,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
   let flowClock = 0; // segundos de flujo acumulados
   let flowLast = null;
   let pillInfo = null; // { target, value, min, max, name }
+  let relatedNow = new Set(); // conexiones relacionadas en el último dibujo (verificación)
 
   function readColors() {
     const style = getComputedStyle(doc.documentElement);
@@ -414,8 +415,14 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     } else if (focus) {
       relatedNeurons.add(`${focus.layer}:${focus.neuron}`);
       if (focus.layer > 0) {
-        for (let i = 0; i < sizes[focus.layer - 1]; i++) direct.add(`${focus.layer}:${focus.neuron}:${i}`);
         back = upstream(trace, focus, state.filter ?? 'all');
+        // Con el filtro de conexiones (D9), de las que le entran cuentan solo las que sigue el camino; sin
+        // filtro, todas.
+        const limited = typeof state.filter === 'number';
+        for (let i = 0; i < sizes[focus.layer - 1]; i++) {
+          const key = `${focus.layer}:${focus.neuron}:${i}`;
+          if (!limited || back.links.has(key)) direct.add(key);
+        }
       }
       if (focus.layer < C - 1) for (let j = 0; j < sizes[focus.layer + 1]; j++) direct.add(`${focus.layer + 1}:${j}:${focus.neuron}`);
     }
@@ -430,6 +437,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     let maxProduct = 0;
     for (let l = 1; l < C; l++) trace.layers[l].neurons.forEach((n, j) => { if (computedProducts(l, j)) for (const p of n.products) { const a = Math.abs(p); if (a > maxProduct) maxProduct = a; } });
     const groups = new Map();
+    relatedNow = new Set();
     const zeroSegs = [];
     const offSegs = [];
     const changedAt = [];
@@ -451,6 +459,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
           const isDirect = direct.has(key);
           const importance = back?.links.get(key);
           const related = isDirect || importance !== undefined;
+          if (related) relatedNow.add(key);
           if (banded && !related) continue; // en una banda solo se ven las de lo enfocado
           const a = P[l - 1][i];
           const b = P[l][j];
@@ -461,7 +470,9 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
           const role = related ? 'related' : anyFocus ? 'unrelated' : filtered ? 'filtered' : 'normal';
           const look = linkLook({
             weight: n.weights[i], maxWeight, product: shown ? n.products[i] : null, maxProduct,
-            role: filtered && !isDirect && role !== 'unrelated' ? 'filtered' : role, density, importance: isDirect ? 1 : importance,
+            // Lo que está en el camino hacia atrás no se atenúa por el filtro, aunque no esté entre las de
+            // mayor peso: el camino elige por lo que aporta (D9).
+            role: filtered && !related && role !== 'unrelated' ? 'filtered' : role, density, importance: isDirect ? 1 : importance,
           });
           if (look.sign === 'zero') { zeroSegs.push(a.x, a.y, b.x, b.y); continue; }
           addSeg(groups, { color: colors[look.sign], alpha: look.alpha, width: look.width * zoomWidth, dash: look.dashed ? [5, 3.5] : [] }, a, b);
@@ -1094,6 +1105,8 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     get radius() { return layout ? Math.min(INSIDE.maxRadius, layout.radius * camera.zoom) : 0; },
     get viewport() { return { ...viewport }; },
     get zoomed() { return camera.zoom > INSPECTOR_CAMERA.minZoom + 1e-9 || !camera.following; },
+    /** Conexiones que se dibujaron como relacionadas en el último cuadro ('l:j:i'; verificación desde la consola). */
+    get related() { return new Set(relatedNow); },
     /** Lo que está bajo el cursor (vista previa), o null. */
     get hover() { return hover; },
     /** Simula el cursor en un punto de la zona (verificación desde la consola). */

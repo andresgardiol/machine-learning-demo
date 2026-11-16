@@ -49,7 +49,7 @@
 
 ## 6. De dónde viene
 
-- [ ] 6.1 El inspector destaca el camino hacia atrás con `upstream`, y el filtro de conexiones lo limita. Verificar "De dónde viene una neurona" con una red de dos capas ocultas, y que "Conexiones más importantes" sigue cumpliéndose.
+- [x] 6.1 El inspector destaca el camino hacia atrás con `upstream`, y el filtro de conexiones lo limita. Verificar "De dónde viene una neurona" con una red de dos capas ocultas, y que "Conexiones más importantes" sigue cumpliéndose. *Arreglado al verificar: con filtro se destacaban igual todas las conexiones de entrada de la elegida, y un tramo del camino que no estaba entre los de mayor peso quedaba atenuado como filtrado; ahora, con filtro, de las directas de entrada cuentan las que sigue el camino, y lo que está en el camino no se atenúa. Verificado en `prueba-6884` (6, 8, 8, 4) con la salida Avanzar: con todas, 50 conexiones relacionadas (8 / 24 / 18 por capa) y todas las de atrás están en el camino; el tramo más destacado de la primera capa sale del sensor que más aporta (sensor 5, 0,486); con la más importante, un camino de 3 tramos hasta una entrada; con entradas a mano el camino cambia (de 1:6:4 a 1:6:0). Sin nada elegido, el filtro sigue por peso ("Conexiones más importantes"). Anotado: con una neurona elegida el camino elige por lo que aporta (D9) y el filtro sin elección por |peso|; cada escenario se cumple en su caso. Capturas `vista-6-*.png`.*
 
 ## 7. Flujo
 
