@@ -45,6 +45,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   // carSpeed: velocidad máxima del auto, una sola para toda la app (las pestañas la leen y la cambian acá).
   const store = createStore({
     guide: preferences.guide,
+    hints: preferences.hints ?? true, // tooltips (interruptor-de-ayudas D1)
     activeTab: tabs.find((t) => t.module)?.id ?? null,
     carSpeed: preferences.carSpeed ?? MAX_SPEED,
     scenery: preferences.scenery ?? true, // paisaje alrededor de la pista, igual en todas las pestañas
@@ -59,6 +60,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     applyShortcuts(state.shortcuts);
   });
   store.subscribe((state, prev) => { if (state.carSpeed !== prev.carSpeed) preferences.carSpeed = state.carSpeed; });
+  store.subscribe((state, prev) => { if (state.hints !== prev.hints) preferences.hints = state.hints; });
   store.subscribe((state, prev) => { if (state.scenery !== prev.scenery) preferences.scenery = state.scenery; });
 
   // --- Barra de pestañas -------------------------------------------------
@@ -87,6 +89,13 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     on: { click: () => setGuide(!store.get().guide) },
   }, el('span', { class: 'switch-track', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'app.guide' }));
 
+  // Interruptor "Ayudas", entre "Guía" y "Atajos": enciende o apaga los tooltips (interruptor-de-ayudas D1).
+  const hintsSwitch = el('button', {
+    class: 'switch', help: 'hints',
+    attrs: { type: 'button', role: 'switch', 'aria-checked': 'true', id: 'hints-switch' },
+    on: { click: () => store.set({ hints: !store.get().hints }) },
+  }, el('span', { class: 'switch-track', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'app.hints' }));
+
   // Interruptor "Atajos", junto al de guía: apaga los atajos de una sola tecla.
   const shortcutsSwitch = el('button', {
     class: 'switch', help: 'shortcuts',
@@ -111,7 +120,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   const header = el('header', { class: 'topbar' },
     el('div', { class: 'brand', i18n: 'app.title' }),
     tabBar,
-    el('div', { class: 'tools' }, guideSwitch, shortcutsSwitch, languageGroup, creditsButton));
+    el('div', { class: 'tools' }, guideSwitch, hintsSwitch, shortcutsSwitch, languageGroup, creditsButton));
 
   // --- Disposición común: escenario, tablero y panel (en ese orden de foco) ----
   const stage = el('section', { class: 'stage', i18nAttr: 'aria-label:app.stage', attrs: { tabindex: '-1' } });
@@ -311,6 +320,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     const { guide, activeTab } = store.get();
     shell.dataset.guide = guide ? 'on' : 'off';
     guideSwitch.setAttribute('aria-checked', String(guide));
+    hintsSwitch.setAttribute('aria-checked', String(store.get().hints));
     shortcutsSwitch.setAttribute('aria-checked', String(store.get().shortcuts));
     for (const b of tabButtons) {
       const selected = b.dataset.tab === activeTab;

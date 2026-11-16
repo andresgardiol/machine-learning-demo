@@ -147,3 +147,21 @@ test('paisaje: encendido por defecto, se recuerda apagado y vuelve a encenderse'
   assert.equal(createPreferences(() => storage).scenery, true);
   assert.equal(createPreferences(failingStorage).scenery, true);
 });
+
+test('ayudas: encendidas por defecto, se recuerdan y, sin valor guardado, toman el de la guía', () => {
+  const storage = memoryStorage();
+  const prefs = createPreferences(() => storage);
+  assert.equal(prefs.hints, true);
+  prefs.hints = false;
+  assert.equal(createPreferences(() => storage).hints, false, 'ayudas apagadas en la segunda visita');
+  const old = memoryStorage();
+  old.setItem('mlLab.guide', 'off');
+  const before = createPreferences(() => old);
+  assert.equal(before.hints, false, 'quien tenía la guía apagada abre con las ayudas apagadas');
+  assert.equal(before.guide, false);
+  before.guide = true;
+  assert.equal(before.hints, true, 'sin valor propio sigue a la guía');
+  before.hints = false;
+  assert.equal(before.hints, false);
+  assert.equal(createPreferences(failingStorage).hints, true, 'sin almacenamiento, encendidas');
+});

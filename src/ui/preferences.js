@@ -1,8 +1,8 @@
-// Preferencias recordadas en el navegador (idioma, guía, ancho del panel y del escenario, velocidad del auto, programa
+// Preferencias recordadas en el navegador (idioma, guía, ayudas, ancho del panel y del escenario, velocidad del auto, programa
 // de la pestaña Reglas a mano y paisaje). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', inspectStageWidth: 'mlLab.inspect.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', hints: 'mlLab.hints', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', inspectStageWidth: 'mlLab.inspect.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
 
 /** Atajos de una tecla encendidos por defecto (panel-de-entrenar-por-vistas D9). */
 export const DEFAULT_SHORTCUTS = true;
@@ -48,6 +48,15 @@ export function createPreferences(getStorage = defaultStorage) {
       return v === 'off' ? false : v === 'on' ? true : DEFAULT_PREFERENCES.guide;
     },
     set guide(value) { write(KEYS.guide, value ? 'on' : 'off'); },
+    /**
+     * Interruptor "Ayudas" (interruptor-de-ayudas D4): los tooltips; encendido por defecto. Sin valor
+     * guardado toma el de la guía: quien la tenía apagada no veía tooltips con el mouse.
+     */
+    get hints() {
+      const v = read(KEYS.hints);
+      return v === 'off' ? false : v === 'on' ? true : this.guide;
+    },
+    set hints(value) { write(KEYS.hints, value ? 'on' : 'off'); },
     /** Interruptor del paisaje alrededor de la pista (circuitos-y-paisaje D9); encendido por defecto. */
     get scenery() {
       const v = read(KEYS.scenery);
