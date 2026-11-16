@@ -1514,7 +1514,7 @@ export default {
   'help.lab.shape.xor.why': 'It is the classic problem a single neuron cannot solve.',
   'lab.shape.spiral': 'Spiral',
   'help.lab.shape.spiral.what': 'Each color forms one arm of a spiral, wound around the other.',
-  'help.lab.shape.spiral.why': 'It is the hard one: it needs a bigger network (two layers of 8), a lower rate (0.03) and patience, hundreds of epochs.',
+  'help.lab.shape.spiral.why': 'It is the hard one: a single hidden layer is not enough; with two hidden layers of 7 or 8 neurons the network learns it.',
   'lab.bar.points': 'Points',
   'lab.bar.noise': 'Noise',
   'help.lab.bar.noise.what': 'Moves each point a little at random: with more noise, some land on the other color’s side.',

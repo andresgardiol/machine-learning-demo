@@ -8,9 +8,9 @@
 
 ## 2. Lo que se ve
 
-- [ ] 2.1 La miniatura de la espiral en la barra del Laboratorio muestra la forma nueva. Verificar "Miniatura" en el navegador.
-- [ ] 2.2 Tooltip de la espiral en `es.js` y `en.js`: es la difícil y pide dos capas ocultas, sin nombrar una tasa. Verificar "Tooltip de la forma" y que `mlLab.auditTooltips()` no informa nada.
-- [ ] 2.3 En el navegador, con la página recién cargada: elegir la espiral, armar dos capas de 8 y dejar correr. Informar en cuántas épocas llega a 90 % y tomar una captura del plano con la espiral aprendida, a 1440×900. Después, lo mismo con la red por defecto, 300 épocas, y otra captura.
+- [x] 2.1 La miniatura de la espiral en la barra del Laboratorio muestra la forma nueva. Verificar "Miniatura" en el navegador. *La miniatura usa `SPIRAL_TURNS`, la misma constante que el generador (antes tenía su propio 1,75). Vista en el navegador: el botón de la espiral muestra los dos brazos de una vuelta y cuarto (captura `espiral-dos-capas-de-8.png`, barra de arriba).*
+- [x] 2.2 Tooltip de la espiral en `es.js` y `en.js`: es la difícil y pide dos capas ocultas, sin nombrar una tasa. Verificar "Tooltip de la forma" y que `mlLab.auditTooltips()` no informa nada. *es: "Es la difícil: una sola capa oculta no alcanza; con dos capas ocultas de 7 u 8 neuronas la red la aprende."; en, lo mismo. Sin tasa. `mlLab.auditTooltips()` sin faltantes.*
+- [x] 2.3 En el navegador, con la página recién cargada: elegir la espiral, armar dos capas de 8 y dejar correr. Informar en cuántas épocas llega a 90 % y tomar una captura del plano con la espiral aprendida, a 1440×900. Después, lo mismo con la red por defecto, 300 épocas, y otra captura. *Chrome sin ventana a 1440×900, página recién cargada, todo con clics y los deslizadores de la interfaz: espiral, dos capas, 8 y 8 neuronas, tanh, tasa 0,1, 200 puntos. Medido: llegó a 90 % en práctica y en apartados en la época 48, a los 5 s a 10 épocas por segundo (captura `espiral-dos-capas-de-8.png`, época 69, 90 % y 95 %). Con "Red de siempre" (2, 4, 1) y 304 épocas: 54 % en práctica y 58 % en apartados, sin llegar nunca (captura `espiral-red-por-defecto-300.png`: el plano queda partido por una línea). Consola sin errores. Observado, no medido: en la captura de las dos capas el fondo sigue a los dos brazos, con algunas zonas del borde todavía mezcladas.*
 
 ## 3. Cierre
 

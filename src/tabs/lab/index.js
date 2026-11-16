@@ -15,7 +15,7 @@ import { createWorld } from '../../core/world.js';
 import { computeNetwork, copyNetwork } from '../../core/network.js';
 import { forwardSoft, bakeOff } from '../../core/backprop.js';
 import { overfitting } from '../../core/overfitting.js';
-import { createRecorder, DRIVING_OUTPUTS, summary, POINT_SHAPES, POINT_LIMITS, HOLDOUT_LIMITS, evaluatedRows, filterRows } from '../../core/datasets.js';
+import { createRecorder, DRIVING_OUTPUTS, summary, POINT_SHAPES, POINT_LIMITS, HOLDOUT_LIMITS, evaluatedRows, filterRows, SPIRAL_TURNS } from '../../core/datasets.js';
 import { createBrain } from '../../core/brain.js';
 import { DEFAULT_SENSORS } from '../../core/sensors.js';
 import { LEARNING_STEP_SIZES } from '../../core/learning-cursor.js';
@@ -1467,7 +1467,7 @@ function shapeThumbnail(shape) {
     blobs: [[-0.5, 0.5, 1], [-0.3, 0.2, 1], [-0.6, 0.1, 1], [0.5, -0.5, 0], [0.3, -0.2, 0], [0.6, -0.1, 0]],
     circle: [[0, 0, 1], [0.2, 0.15, 1], [-0.2, -0.1, 1], [0.8, 0, 0], [-0.8, 0.1, 0], [0, 0.8, 0], [0.1, -0.8, 0], [0.6, 0.6, 0], [-0.6, -0.6, 0]],
     xor: [[0.5, 0.5, 1], [-0.5, -0.5, 1], [0.6, 0.3, 1], [-0.5, 0.5, 0], [0.5, -0.5, 0], [-0.3, 0.6, 0]],
-    spiral: Array.from({ length: 10 }, (_, k) => { const tt = k / 9; const r = 0.15 + 0.8 * tt; const a = 1.75 * tt * 2 * Math.PI; return [[r * Math.sin(a), r * Math.cos(a), 1], [-r * Math.sin(a), -r * Math.cos(a), 0]]; }).flat(),
+    spiral: Array.from({ length: 10 }, (_, k) => { const tt = k / 9; const r = 0.15 + 0.8 * tt; const a = SPIRAL_TURNS * tt * 2 * Math.PI; return [[r * Math.sin(a), r * Math.cos(a), 1], [-r * Math.sin(a), -r * Math.cos(a), 0]]; }).flat(),
   }[shape];
   for (const [x, y, c] of pts) {
     const px = 15 + x * 13;

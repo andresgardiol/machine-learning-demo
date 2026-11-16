@@ -1514,7 +1514,7 @@ export default {
   'help.lab.shape.xor.why': 'Es el problema clásico que una sola neurona no puede resolver.',
   'lab.shape.spiral': 'Espiral',
   'help.lab.shape.spiral.what': 'Cada color forma un brazo de una espiral, enroscados uno con otro.',
-  'help.lab.shape.spiral.why': 'Es la difícil: pide una red más grande (dos capas de 8), una tasa más baja (0,03) y paciencia, cientos de épocas.',
+  'help.lab.shape.spiral.why': 'Es la difícil: una sola capa oculta no alcanza; con dos capas ocultas de 7 u 8 neuronas la red la aprende.',
   'lab.bar.points': 'Puntos',
   'lab.bar.noise': 'Ruido',
   'help.lab.bar.noise.what': 'Corre cada punto un poco al azar: con más ruido, algunos quedan del lado del otro color.',
