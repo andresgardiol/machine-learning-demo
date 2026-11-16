@@ -57,9 +57,9 @@
 
 ## 8. Colores y leyenda
 
-- [ ] 8.1 Lo cambiado y lo puesto a mano, con marcas de forma en el color del texto; quitar los dos tonos que dejan de usarse. Verificar "Pocos colores con significado" y "Marcas de lo apagado y lo cambiado".
-- [ ] 8.2 Leyenda de cinco renglones en Inspeccionar. Verificar "Leyenda corta".
-- [ ] 8.3 Revisar en el navegador las seis pestañas por si algo usaba el rosa viejo o los tonos quitados.
+- [x] 8.1 Lo cambiado y lo puesto a mano, con marcas de forma en el color del texto; quitar los dos tonos que dejan de usarse. Verificar "Pocos colores con significado" y "Marcas de lo apagado y lo cambiado". *Quitados `--color-network-changed` y `--color-network-manual`. Cambiado: rombo del color del texto en el diagrama (ya estaba), ◆ y contorno punteado del color del texto en la tabla, la tarjeta y el contador; a mano: marca cuadrada del color del texto en el diagrama y en la tabla, y las manijas de la escena en el color del texto.*
+- [x] 8.2 Leyenda de cinco renglones en Inspeccionar. Verificar "Leyenda corta". *Cinco renglones: signo; grosor; brillo y relleno; sesgo; y uno con elegida, en curso, apagada y cambiada. Medido con Chrome sin ventana: una línea por renglón (cinco en total) en es y en, con el tablero en 360 y 324 px (1440×900 y 1236×863). Con el tablero en 280 px o menos (1100×800 y 960×800) algunos renglones se parten: 6 a 9 líneas.*
+- [x] 8.3 Revisar en el navegador las seis pestañas por si algo usaba el rosa viejo o los tonos quitados. *Revisadas las seis pestañas a 1440×900 (capturas `vista-8.3-*.png`): no queda el rosa viejo ni los tonos quitados en el código (el violeta `#b49cff` sigue solo como color de un competidor, que es otro token).*
 
 ## 9. Laboratorio
 

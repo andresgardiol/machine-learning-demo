@@ -599,15 +599,20 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const decisionBlock = el('section', { class: 'inspect-decision', attrs: { 'aria-labelledby': 'inspect-decision-title' } },
     el('h2', { class: 'panel-heading', i18n: 'inspect.decision.title', help: 'inspect.decision', attrs: { id: 'inspect-decision-title', tabindex: '0' } }),
     decision.node, decisionNote);
-  const legendItem = (cls, key) => el('li', { class: `inspect-legend-item ${cls}` }, el('span', { class: 'inspect-legend-swatch', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: key }));
+  // Leyenda de cinco renglones (D11): signo; grosor; brillo y relleno; sesgo; y las cuatro marcas.
+  const swatches = (...classes) => el('span', { class: 'inspect-legend-swatches', attrs: { 'aria-hidden': 'true' } }, classes.map((c) => el('span', { class: c })));
+  const legendItem = (sw, key) => el('li', { class: 'inspect-legend-item' }, sw, el('span', { i18n: key }));
+  const mark = (cls, key) => el('span', { class: `lg-mark ${cls}` }, el('i', { attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: key }));
   const legend = el('section', { class: 'guide inspect-legend', attrs: { 'aria-labelledby': 'inspect-legend-title' } },
     el('h2', { class: 'panel-heading', i18n: 'inspect.legend.title', attrs: { id: 'inspect-legend-title' } }),
     el('ul', { class: 'inspect-legend-list' },
-      legendItem('lg-positive', 'inspect.legend.positive'), legendItem('lg-negative', 'inspect.legend.negative'),
-      legendItem('lg-width', 'inspect.legend.width'), legendItem('lg-fill', 'inspect.legend.fill'),
-      legendItem('lg-bias', 'inspect.legend.bias'), legendItem('lg-pending', 'inspect.legend.pending'),
-      legendItem('lg-off', 'inspect.legend.off'), legendItem('lg-changed', 'inspect.legend.changed'),
-      legendItem('lg-manual', 'inspect.legend.manual')));
+      legendItem(swatches('lg-pos', 'lg-neg'), 'inspect.legend.sign'),
+      legendItem(swatches('lg-thick'), 'inspect.legend.width'),
+      legendItem(swatches('lg-dim', 'lg-bright', 'lg-fill'), 'inspect.legend.signal'),
+      legendItem(swatches('lg-bias'), 'inspect.legend.bias'),
+      el('li', { class: 'inspect-legend-item inspect-legend-marks' },
+        mark('lg-selected', 'inspect.legend.mark.selected'), mark('lg-current', 'inspect.legend.mark.current'),
+        mark('lg-off', 'inspect.legend.mark.off'), mark('lg-changed', 'inspect.legend.mark.changed'))));
   const announcer = el('p', { class: 'sr-only', attrs: { role: 'status', 'aria-live': 'polite' } });
   function announce(text) { announcer.textContent = ''; announcer.textContent = text ?? ''; }
   board.append(scene, decisionBlock, legend, announcer);

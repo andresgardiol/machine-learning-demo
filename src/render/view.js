@@ -65,7 +65,7 @@ const COLOR_VARS = {
   // Rayos con el peso de una neurona (pestana-inspeccionar D9): la convención de signo del diagrama.
   weightPositive: '--color-weight-positive',
   weightNegative: '--color-weight-negative',
-  handle: '--color-network-manual',
+  handle: '--color-text', // manijas de las entradas a mano: color del texto (vista-de-la-red D11)
   highlight: '--color-accent',
 };
 
