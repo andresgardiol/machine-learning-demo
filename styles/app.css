@@ -1458,6 +1458,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .lab-card-close { min-width: 26px; font-size: 16px; line-height: 1; }
 .lab-card [hidden] { display: none; }
 .lab-card-input { margin: var(--space-2); }
+.lab-card-probe { margin: 0 var(--space-2) var(--space-2); }
+.lab-card-probe[hidden] { display: none; }
+.lab-card-probe input[type="range"] { width: 100%; }
 .lab-card-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 .lab-card-rows thead th:nth-child(1) { width: 55%; }
 .lab-card-slider-box { display: flex; align-items: center; gap: var(--space-2); }

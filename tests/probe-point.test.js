@@ -84,3 +84,16 @@ test('el punto se conserva al cambiar la forma de los datos, reiniciar los pesos
   session.setPoints({ shape: 'circle' });
   assert.equal(session.data.examples.length, examples, 'el punto no es un ejemplo: los datos no cambian por él');
 });
+
+test('sin efecto en el aprendizaje: mover el punto cien veces no cambia pesos, época, curvas ni el ejemplo a medio corregir', async () => {
+  const { createLabSession } = await import('../src/tabs/lab/session.js');
+  const session = createLabSession();
+  const run = session.run;
+  run.advance('epoch');
+  run.advance('phase'); // un ejemplo a medio corregir
+  const before = JSON.stringify({ net: run.network, epoch: run.epoch, history: run.history, active: run.active?.order, count: run.active?.cursor.count });
+  for (let k = 0; k < 100; k++) session.setProbe({ x: Math.sin(k), y: Math.cos(k * 1.7) });
+  const after = JSON.stringify({ net: run.network, epoch: run.epoch, history: run.history, active: run.active?.order, count: run.active?.cursor.count });
+  assert.equal(after, before);
+  assert.equal(session.run, run, 'el aprendizaje sigue siendo el mismo');
+});

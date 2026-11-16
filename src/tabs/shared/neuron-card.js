@@ -436,7 +436,7 @@ export function parseWeight(text) {
  * @param {number} [spec.base] rango de los deslizadores (3)
  * @param {string} [spec.idPrefix]
  */
-export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onBias, onGestureEnd, onToggleNeuron, onToggleConnection, onClose, base = 3, idPrefix = 'lab-card' }) {
+export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onBias, onGestureEnd, onToggleNeuron, onToggleConnection, onClose, onInput = null, base = 3, idPrefix = 'lab-card' }) {
   const t = (k, p) => i18n.t(k, p);
   const fmt = (v) => formatValue(v, i18n.language);
   const titleId = `${idPrefix}-title`;
@@ -449,6 +449,17 @@ export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onB
   }, el('span', { attrs: { 'aria-hidden': 'true' } }, '×'));
   const head = el('div', { class: 'inspect-card-head' }, el('div', { class: 'inspect-card-names' }, title, subtitle), offButton, closeButton);
   const inputNote = el('p', { class: 'caption lab-card-input', i18n: 'lab.card.inputNote' });
+  // Entrada x o y con puntos (punto-de-prueba D3): un deslizador que mueve el punto de prueba.
+  const inputId = `${idPrefix}-input`;
+  const inputValue = el('output', { class: 'setting-value', attrs: { for: inputId } });
+  const inputSlider = el('input', {
+    help: 'lab.probe.slider', dataset: { focus: 'keep' },
+    attrs: { type: 'range', id: inputId, min: -1, max: 1, step: 0.01 },
+    on: { input: (e) => { if (onInput && lastState) onInput(lastState.target.neuron, Number(e.target.value)); } },
+  });
+  const inputRow = el('div', { class: 'setting lab-card-probe' },
+    el('label', { class: 'setting-label', attrs: { for: inputId } }), inputValue, inputSlider);
+  inputRow.hidden = true;
   const tbody = el('tbody');
   const table = el('table', { class: 'inspect-rows lab-card-rows', attrs: { 'aria-labelledby': titleId } },
     el('thead', {}, el('tr', {},
@@ -463,7 +474,7 @@ export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onB
   const biasRow = el('div', { class: 'lab-card-bias' },
     el('label', { attrs: { for: biasId }, i18n: 'inspect.op.bias', help: 'inspect.term.bias' }), biasSlider, biasField);
   const message = el('p', { class: 'caption lab-card-message', attrs: { role: 'status' } });
-  const node = el('section', { class: 'inspect-card lab-card', attrs: { 'aria-labelledby': titleId } }, head, inputNote, scroller, biasRow, message);
+  const node = el('section', { class: 'inspect-card lab-card', attrs: { 'aria-labelledby': titleId } }, head, inputNote, inputRow, scroller, biasRow, message);
 
   let key = null;
   let rows = [];
@@ -556,6 +567,14 @@ export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onB
     if (inputNote.hidden === isInput) inputNote.hidden = !isInput;
     if (scroller.hidden !== isInput) scroller.hidden = isInput;
     if (biasRow.hidden !== isInput) biasRow.hidden = isInput;
+    const probe = isInput && state.probe ? state.probe : null; // con puntos: { value, label }
+    if (inputRow.hidden === Boolean(probe)) inputRow.hidden = !probe;
+    if (probe) {
+      write(inputRow.querySelector('label'), probe.label);
+      write(inputValue, fmt(probe.value));
+      setAttr(inputSlider, 'aria-valuetext', fmt(probe.value));
+      if (document.activeElement !== inputSlider && Number(inputSlider.value) !== probe.value) inputSlider.value = String(probe.value);
+    }
     if (isInput) return;
     const layer = network.layers[target.layer - 1];
     rows.forEach((r, i) => {

@@ -626,6 +626,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     onWeight: (i, v, info) => manualChange(() => run().setWeight(state.selected.layer, state.selected.neuron, i, v), info.gesture),
     onBias: (v, info) => manualChange(() => run().setBias(state.selected.layer, state.selected.neuron, v), info.gesture),
     onGestureEnd: () => state.manual.end(),
+    // Deslizador de la entrada x o y: mueve el punto de prueba (punto-de-prueba D3).
+    onInput: (i, v) => { const p = session.probe; moveProbe(i === 0 ? { x: v, y: p.y } : { x: p.x, y: v }); },
     onToggleNeuron: () => {
       const { layer, neuron } = state.selected;
       const off = !run().isOff(layer, neuron);
@@ -1153,11 +1155,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const running = playback.playing && isRunning(playback.size);
     let anim = null;
     if (animation) { const s = animation.state(now); if (s.done) animation = null; else anim = s; }
-    const a = !running ? r.active : null;
+    // De quién es la cuenta que se ve (punto-de-prueba D5): la del ejemplo en curso (con los pesos que ya
+    // cambiaron) al avanzar de a fases, capas o neuronas, o reproduciendo de a ejemplos; si no, con puntos,
+    // la del punto de prueba, con la red de ahora y los cambios a mano. Mover el punto en pausa la muestra
+    // hasta el paso siguiente, sin tocar el ejemplo.
+    const followsExamples = playback.playing && playback.size === 'example';
+    const a = !running && !probeView ? r.active : null;
+    const playedExample = followsExamples && r.active ? r.active : null;
     const sizes = r.network.sizes;
     const L = sizes.length - 1;
-    // La cuenta que se ve: la del ejemplo en curso (con los pesos que ya cambiaron), o la de un
-    // ejemplo de referencia con la red de ahora.
     let trace;
     let learning = null;
     let cursor = null;
@@ -1200,8 +1206,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
           .map((part) => ({ from: { layer: x.layer + 1, neuron: part.to }, to: { layer: x.layer, neuron: x.neuron }, value: part.product, p: x.p }))),
       };
       cursor = learningCursor(a, anim);
+    } else if (playedExample) {
+      trace = forwardSoft(r.network, playedExample.example.inputs, r.off).trace;
+    } else if (isPoints()) {
+      const p = session.probe;
+      trace = forwardSoft(r.active ? r.shownNetwork() : r.network, [p.x, p.y], r.off).trace;
     } else {
-      const ref = isPoints() ? session.data.examples[0].inputs : (world?.perception ? [...world.perception.sensors, world.perception.speed] : session.data.examples[0].inputs);
+      const ref = world?.perception ? [...world.perception.sensors, world.perception.speed] : session.data.examples[0].inputs;
       trace = forwardSoft(r.network, ref.length === sizes[0] ? ref : session.data.examples[0].inputs, r.off).trace;
     }
     displayed.cursor = cursor;
@@ -1226,17 +1237,30 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
 
     // Operación en curso: en pausa y de a fases, capas o neuronas (D11).
-    const showOp = !(playback.playing && isRunning(playback.size));
+    // Con puntos, la franja dice siempre de quién es la cuenta (punto-de-prueba D4): el punto de prueba,
+    // o el ejemplo, con su operación.
+    const showOp = isPoints() || !(playback.playing && isRunning(playback.size));
     show(opStrip, showOp);
     if (showOp) {
-      const text = lastStep && r.active ? describeLearningStep({ t, fmt, last: lastStep.units[lastStep.units.length - 1], detail: lastStep.detail, ctx: ctx() })
-        : restartedNote && r.active && !r.active.done && !r.active.cursor.started ? t('lab.op.restarted') : t('lab.op.idle');
+      const exampleName = (ex) => t('lab.owner.example', { n: ex.order + 1, total: r.size });
+      let text;
+      if (a && lastStep) text = `${exampleName(a)}: ${describeLearningStep({ t, fmt, last: lastStep.units[lastStep.units.length - 1], detail: lastStep.detail, ctx: ctx() })}`;
+      else if (a && restartedNote && !a.done && !a.cursor.started) text = t('lab.op.restarted');
+      else if (a && isPoints()) text = t('lab.owner.exampleOnly', { n: a.order + 1, total: r.size });
+      else if (playedExample) text = t('lab.owner.playing', { n: playedExample.order + 1, total: r.size });
+      else if (isPoints()) {
+        const p = session.probe;
+        const ans = probeAnswer(r.active ? r.shownNetwork() : r.network, p.x, p.y, r.off);
+        text = t('lab.op.probe', { x: fmt(p.x), y: fmt(p.y), answer: t(`lab.class.${ans.cls}`), pct: Math.round(ans.confidence * 100) });
+      } else text = lastStep && r.active ? describeLearningStep({ t, fmt, last: lastStep.units[lastStep.units.length - 1], detail: lastStep.detail, ctx: ctx() }) : t('lab.op.idle');
       write(opText, text);
     }
     write(where, whereText({ t, run: r, ctx: ctx(), running }));
     const selNow = state.selected;
     if (selNow && selNow.input === undefined) {
-      card.sync({ target: selNow, sizes, network: a ? r.shownNetwork() : r.network, isOff: (l, j, i = null) => r.isOff(l, j, i) });
+      const probeInput = isPoints() && selNow.layer === 0
+        ? { value: selNow.neuron === 0 ? session.probe.x : session.probe.y, label: t('lab.probe.sliderLabel', { name: nameOf(0, selNow.neuron) }) } : null;
+      card.sync({ target: selNow, sizes, network: a ? r.shownNetwork() : r.network, isOff: (l, j, i = null) => r.isOff(l, j, i), probe: probeInput });
     }
     // Tablero, con tu manejo: la curva de la neurona elegida (oculta o de salida), o el renglón que dice
     // que ahí va a aparecer.
@@ -1503,6 +1527,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     get recording() { return recording; },
     get world() { return world; },
     get animation() { return animation; },
+    /** La cuenta que muestra la red ahora (verificación desde la consola). */
+    get displayed() { return displayed; },
     play, pause, stepOnce, setSize, setKind, setPoints, resetWeights, startRecording, stopRecording, saveBrain, select,
     unmount() {
       state.wasPlaying = playback.playing;
