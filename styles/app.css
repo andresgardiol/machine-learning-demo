@@ -1193,6 +1193,14 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-others th { color: var(--color-text-muted); font-style: italic; }
 .inspect-others[hidden] { display: none; }
 .inspect-card[data-op="products"] .inspect-product .num { color: var(--color-network-current); font-weight: 700; }
+/* La cuenta fila por fila (operacion-por-operacion D6): sumada con tilde; la fila en curso, con la marca de en curso; las que faltan, sin aporte. */
+.inspect-term-mark { flex: 0 0 auto; margin-right: auto; font-size: 11px; line-height: 1; color: var(--color-text); }
+.inspect-term-mark:empty { display: none; }
+.inspect-product-box .inspect-term-mark:not(:empty) ~ .inspect-bar { flex: 0 1 24px; min-width: 8px; }
+.inspect-rows tr[data-current="true"] > th, .inspect-rows tr[data-current="true"] > td { background: var(--color-surface); }
+.inspect-rows tr[data-current="true"] > th { box-shadow: inset 4px 0 0 var(--color-network-current); }
+.inspect-rows tr[data-current="true"] .inspect-product .num { color: var(--color-network-current); font-weight: 700; outline: 2px dashed var(--color-network-current); outline-offset: 1px; border-radius: 2px; }
+.inspect-rows tr[data-term="pending"] .inspect-product .num { color: var(--color-text-muted); }
 .inspect-foot-block { flex: 0 0 auto; border-top: 1px solid var(--color-border); padding: var(--space-1) var(--space-2) var(--space-2); }
 .inspect-foot { display: grid; gap: 2px; margin: 0; font-size: 13px; }
 .inspect-foot-row { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); align-items: center; gap: var(--space-2); padding: 1px 2px; border-radius: 4px; }

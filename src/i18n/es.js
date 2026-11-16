@@ -1280,6 +1280,7 @@ export default {
   'help.inspect.card.weight.what': 'Cuánto influye esa entrada: el valor se multiplica por este número. Se cambia con el deslizador.',
   'help.inspect.card.weight.why': 'Lo aprendido son los pesos: cambiarlos cambia el manejo.',
   'inspect.card.product': 'Aporte',
+  'inspect.card.partialSum': 'Suma hasta acá',
   'help.inspect.card.product.what': 'Valor por peso: lo que aporta esa entrada a la suma. La barra va a la derecha si suma y a la izquierda si resta.',
   'help.inspect.card.product.why': 'Se ve qué entradas empujan la neurona hacia encenderse y cuáles la frenan.',
   'inspect.card.offColumn': 'Apagar',

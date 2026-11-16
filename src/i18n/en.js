@@ -1280,6 +1280,7 @@ export default {
   'help.inspect.card.weight.what': 'How much that input influences: the value is multiplied by this number. Change it with the slider.',
   'help.inspect.card.weight.why': 'What was learned is the weights: changing them changes the driving.',
   'inspect.card.product': 'Contri\u00ADbution',
+  'inspect.card.partialSum': 'Sum so far',
   'help.inspect.card.product.what': 'Value times weight: what that input adds to the sum. The bar goes right if it adds and left if it subtracts.',
   'help.inspect.card.product.why': 'You see which inputs push the neuron to light up and which hold it back.',
   'inspect.card.offColumn': 'Turn off',

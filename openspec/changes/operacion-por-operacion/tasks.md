@@ -49,7 +49,8 @@ controles, franja y barra) y el de la franja. Anotarlo acá.
 
 ## 4. La tarjeta
 
-- [ ] 4.1 `shared/neuron-card.js`: filas sin hacer, multiplicada, sumada y en curso; pie con la suma hasta acá; la fila en curso a la vista aunque esté en "Otras" (D6). Verificar "La tarjeta sigue la cuenta de a una operación" a 1440×900, 1366×768 y 1236×863, sin romper "Filas a la vista" ni "Nada se encima".
+- [x] 4.1 `shared/neuron-card.js`: filas sin hacer, multiplicada, sumada y en curso; pie con la suma hasta acá; la fila en curso a la vista aunque esté en "Otras" (D6). Verificar "La tarjeta sigue la cuenta de a una operación" a 1440×900, 1366×768 y 1236×863, sin romper "Filas a la vista" ni "Nada se encima".
+  *Hecho. Con `terms` (solo Inspeccionar), cada fila lleva `data-term` (pending, multiplied, added) y `data-current`; la sumada, una ✓ al lado de su aporte; la que falta, "–"; la fila en curso, barra amarilla a la izquierda y el aporte con borde punteado, y se trae a la vista dentro de las filas. Con el filtro de conexiones la fila en curso se agrega a las que se muestran. El pie dice "Suma hasta acá" con la suma de los aportes sumados, y sesgo, activación y salida "–". Medido sin ventana a 1440×900, 1366×768, 1236×863 y 1100×800: yendo por la tercera entrada, las filas dan sumada, sumada, multiplicada (en curso), y tres sin hacer; con tres sumadas el pie da "Suma hasta acá −0,11"; con el filtro en 1, la fila en curso se ve igual. Filas a la vista 6 de 6 en los cuatro tamaños y nada se encima ni sale de la celda del aporte (al principio la ✓ se encimaba con la barra a 1236×863; la barra ahora se achica). La tarjeta compacta del Laboratorio no se tocó. Tooltips: 0. Capturas `op-4.1-*.png`.*
 
 ## 5. Paso atrás
 

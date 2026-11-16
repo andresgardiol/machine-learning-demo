@@ -114,6 +114,8 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
 
   // Pie: suma, sesgo, activación y salida.
   const sumValue = el('dd', { class: 'num' });
+  const sumLabel = el('dt', { i18n: 'inspect.op.sum', help: 'inspect.card.sum' });
+  let lastCurrent = null; // la fila en curso que se trajo a la vista
   const biasValue = el('span', { class: 'num inspect-bias-value' });
   const biasOriginal = el('span', { class: 'inspect-original muted' });
   const biasId = 'inspect-bias-slider';
@@ -138,7 +140,7 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
   const outValue = el('dd', { class: 'num inspect-out' });
   const roundNote = el('p', { class: 'caption muted inspect-round', i18n: 'inspect.card.rounding', help: 'inspect.card.rounding', attrs: { tabindex: '0' } });
   const foot = el('dl', { class: 'inspect-foot' },
-    el('div', { class: 'inspect-foot-row', dataset: { op: 'sum' } }, el('dt', { i18n: 'inspect.op.sum', help: 'inspect.card.sum' }), sumValue),
+    el('div', { class: 'inspect-foot-row', dataset: { op: 'sum' } }, sumLabel, sumValue),
     el('div', { class: 'inspect-foot-row inspect-foot-bias', dataset: { op: 'bias' } },
       el('dt', {}, el('label', { attrs: { for: biasId }, i18n: 'inspect.op.bias', help: 'inspect.term.bias' })),
       el('dd', { class: 'inspect-bias' }, el('span', { class: 'inspect-bias-line' }, biasValue, biasOriginal), biasSlider)),
@@ -203,8 +205,10 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
       // La barra de lo que aporta va al costado del número, nunca encima.
       const barFill = el('span', { class: 'inspect-bar-fill' });
       const productNum = el('span', { class: 'num' });
+      // Marca de sumada (operacion-por-operacion D6): una tilde, no solo un color.
+      const termMark = el('span', { class: 'inspect-term-mark', attrs: { 'aria-hidden': 'true' } });
       const product = el('td', { class: 'num inspect-product' },
-        el('div', { class: 'inspect-product-box' }, el('span', { class: 'inspect-bar', attrs: { 'aria-hidden': 'true' } }, barFill), productNum));
+        el('div', { class: 'inspect-product-box' }, termMark, el('span', { class: 'inspect-bar', attrs: { 'aria-hidden': 'true' } }, barFill), productNum));
       const off = el('button', {
         class: 'inspect-row-off', help: 'inspect.connection.off', dataset: { focus: 'keep' },
         attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => onToggleConnection(i) },
@@ -214,7 +218,7 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
         el('td', { attrs: { colspan: '5' } }, slider));
       sliderRow.hidden = true;
       tbody.append(row, sliderRow);
-      rowNodes.set(i, { row, sliderRow, weightButton, from: fromButton, value, weightNum, original, slider, barFill, productNum, off, weight });
+      rowNodes.set(i, { row, sliderRow, weightButton, from: fromButton, value, weightNum, original, slider, barFill, productNum, termMark, off, weight });
     }
     othersRow = el('tr', { class: 'inspect-others' },
       el('th', { attrs: { scope: 'row', colspan: '3' }, class: 'inspect-from' }),
@@ -290,12 +294,21 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
 
     const ops = cursor ? cursor.opsDone(target.layer, target.neuron) : 4;
     const has = (k) => ops > k; // 0 productos, 1 suma, 2 sesgo, 3 activación
-    // Por dónde va la cuenta de esta neurona: la última operación hecha, mientras no esté completa.
-    const curOp = cursor && ops > 0 && ops < 4 ? ['products', 'sum', 'bias', 'activation'][ops - 1] : null;
-    setData(node, 'op', curOp ?? (ops === 4 ? 'done' : 'pending'));
+    // De a operaciones (operacion-por-operacion D6), con un cursor que dice qué entradas van hechas: la
+    // cuenta fila por fila. Sin él (Laboratorio), los aportes de la neurona todos juntos, como siempre.
+    const tm = cursor && typeof cursor.terms === 'function' && ops < 4 ? cursor.terms(target.layer, target.neuron) : null;
+    const next = tm ? cursor.next : null;
+    const here = Boolean(next) && next.layer === target.layer && next.neuron === target.neuron;
+    const curInput = here && (next.op === 'multiply' || next.op === 'add') ? next.input : null;
+    // Por dónde va la cuenta de esta neurona: la última operación hecha (o, fila por fila, la próxima).
+    const fineOp = here ? (curInput !== null ? 'sum' : next.op) : null;
+    const curOp = tm ? fineOp : cursor && ops > 0 && ops < 4 ? ['products', 'sum', 'bias', 'activation'][ops - 1] : null;
+    setData(node, 'op', tm ? 'fine' : curOp ?? (ops === 4 ? 'done' : 'pending'));
+    const multiplied = (i) => (tm ? i < tm.multiplied : has(0));
 
     const { rows, others } = cardRows(n.products, top);
     const shown = new Set(rows);
+    if (curInput !== null) shown.add(curInput); // la fila en curso se ve aunque el filtro la deje en «Otras»
     // Barras con signo: el largo es relativo al mayor producto de esta neurona (D7).
     let maxProduct = 0;
     for (const p of n.products) maxProduct = Math.max(maxProduct, Math.abs(p));
@@ -329,8 +342,13 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
       setAttr(r.off, 'aria-label', t(connOff ? 'inspect.connection.on.label' : 'inspect.connection.off.label', { from: neuronLabel(t, sizes, target.layer - 1, i) }));
       setData(r.off, 'help', connOff ? 'inspect.connection.on' : 'inspect.connection.off');
       const p = n.products[i];
-      write(r.productNum, has(0) ? fmt(p) : '–');
-      const width = has(0) && maxProduct > 0 ? `${((Math.abs(p) / maxProduct) * 50).toFixed(1)}%` : '0%';
+      const done = multiplied(i);
+      write(r.productNum, done ? fmt(p) : '–');
+      const width = done && maxProduct > 0 ? `${((Math.abs(p) / maxProduct) * 50).toFixed(1)}%` : '0%';
+      const term = !tm ? 'none' : i < tm.added ? 'added' : done ? 'multiplied' : 'pending';
+      setData(r.row, 'term', term);
+      setData(r.row, 'current', String(i === curInput));
+      write(r.termMark, term === 'added' ? '✓' : '');
       if (r.barFill.style.width !== width) r.barFill.style.width = width;
       setData(r.barFill, 'sign', p < 0 ? 'negative' : 'positive');
       setData(r.row, 'selected', String(state.connection === i));
@@ -338,10 +356,25 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
     if (othersRow.hidden !== !others) othersRow.hidden = !others;
     if (others) {
       write(othersRow.children[0], t('inspect.card.others', { count: others.count }));
-      write(othersRow.children[1], has(0) ? fmt(others.sum) : '–');
+      write(othersRow.children[1], has(0) && (!tm || tm.multiplied >= tm.inputs) ? fmt(others.sum) : '–');
     }
+    // La fila en curso, a la vista dentro de las filas (sin mover la página).
+    if (curInput !== null && curInput !== lastCurrent) {
+      const r = rowNodes.get(curInput);
+      const head = table.tHead?.offsetHeight ?? 0;
+      const top0 = r.row.offsetTop - head;
+      const bottom = r.row.offsetTop + r.row.offsetHeight;
+      if (top0 < scroller.scrollTop) scroller.scrollTop = top0;
+      else if (bottom > scroller.scrollTop + scroller.clientHeight) scroller.scrollTop = bottom - scroller.clientHeight;
+    }
+    lastCurrent = curInput;
 
-    write(sumValue, has(1) ? fmt(n.sum) : '–');
+    // Suma: completa, o la suma hasta acá mientras se van sumando los aportes.
+    const midway = Boolean(tm) && tm.added > 0 && tm.added < tm.inputs;
+    setText(sumLabel, midway ? 'inspect.card.partialSum' : 'inspect.op.sum');
+    let partial = 0;
+    if (midway) for (let q = 0; q < tm.added; q++) partial += n.products[q];
+    write(sumValue, midway ? fmt(partial) : has(1) ? fmt(n.sum) : '–');
     write(biasValue, has(2) ? fmt(n.bias) : '–');
     const origBias = original.layers[target.layer - 1].biases[target.neuron];
     const biasChanged = changes.has({ kind: 'bias', layer: target.layer, neuron: target.neuron });
