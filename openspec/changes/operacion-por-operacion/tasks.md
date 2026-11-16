@@ -60,8 +60,13 @@ controles, franja y barra) y el de la franja. Anotarlo acá.
 
 ## 6. Cierre
 
-- [ ] 6.1 Recorrido completo en el navegador de un cuadro de a operaciones con el cerebro por defecto: capturas de un `read`, un `multiply`, un `add`, el sesgo, una activación oculta y una de salida, a 1440×900 y 1366×768, en la carpeta de notas.
-- [ ] 6.2 Fluidez: de a cuadros en tiempo real con `prueba-grande` (mediana y peor intervalo entre cuadros, 10 s) y de a operaciones a 20 pasos por segundo. Comparar con 5,6 ms de mediana medidos en `vista-de-la-red`.
-- [ ] 6.3 Teclado y lector: Tab llega a "Atrás"; cada paso a mano anuncia la cuenta con nombres; reproduciendo no anuncia.
-- [ ] 6.4 PENDIENTES.md: lo que quedó afuera (design.md, "Mejoras que quedan afuera") y lo no medido.
-- [ ] 6.5 `npm test` y `openspec validate operacion-por-operacion --strict`.
+- [x] 6.1 Recorrido completo en el navegador de un cuadro de a operaciones con el cerebro por defecto: capturas de un `read`, un `multiply`, un `add`, el sesgo, una activación oculta y una de salida, a 1440×900 y 1366×768, en la carpeta de notas.
+  *Hecho. Chrome sin ventana, `example:street-new`, `straight`, un cuadro de a operaciones: leer (Sensor 2, 0,07, "casi al final de su alcance (93 %)"), multiplicar (0,45 × −0,26 = −0,12), sumar (0,00 + (−0,12) = −0,12), sesgo (−0,21 + 0,00 = −0,21), activación oculta (escalón (−0,21) = 0,00) y de salida (0,07 > 0,00 → sí, Avanzar), a 1440×900 y 1366×768: `op-6.1-*.png` en la carpeta de notas. Al terminar la neurona de salida la misión "Seguí la cuenta de una neurona" queda cumplida. El cerebro por defecto usa escalón en la oculta: tanh se cubre con las pruebas.*
+- [x] 6.2 Fluidez: de a cuadros en tiempo real con `prueba-grande` (mediana y peor intervalo entre cuadros, 10 s) y de a operaciones a 20 pasos por segundo. Comparar con 5,6 ms de mediana medidos en `vista-de-la-red`.
+  *Medido sin ventana a 1440×900 con `prueba-grande`, 10 s por caso, el mismo script con el código de `d09b03c` y con el de ahora. De a cuadros en tiempo real: 60 cuadros por segundo, intervalo 16,7 ms de mediana y 16,8 de peor en las dos versiones; dibujo del diagrama 1,4 ms de mediana antes y 1,6 y 1,0 en dos corridas ahora. De a operaciones a 20 pasos por segundo: 60 por segundo; dibujo 1,4 antes y 1,7 y 1,1 ahora; peor intervalo 33,2 ms en una corrida y 16,8 en la otra. No sé cómo se midieron los 5,6 ms de `vista-de-la-red` y no los repetí: la comparación es contra el código de antes medido igual. Fluidez con el navegador a la vista, sin medir.*
+- [x] 6.3 Teclado y lector: Tab llega a "Atrás"; cada paso a mano anuncia la cuenta con nombres; reproduciendo no anuncia.
+  *Verificado sin ventana: Tab desde "Paso" llega a "Atrás (B)"; un clic de verdad en "Paso" anuncia "Multiplicar: valor de Sensor 1, 0,45 por peso de la conexión, −0,26 igual a aporte de Sensor 1, −0,12. …" y el siguiente la suma; reproduciendo 1,5 s (15 operaciones) el anuncio no cambia. Lector de pantalla real, sin probar.*
+- [x] 6.4 PENDIENTES.md: lo que quedó afuera (design.md, "Mejoras que quedan afuera") y lo no medido.
+  *Hecho: lo que queda afuera según el diseño, lo no medido y "Eliminar" en la biblioteca, que se vio al arreglar "Renombrar".*
+- [x] 6.5 `npm test` y `openspec validate operacion-por-operacion --strict`.
+  *`npm test`: 1192 en verde. `openspec validate operacion-por-operacion --strict`: válido.*

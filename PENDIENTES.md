@@ -327,3 +327,22 @@ El resto de las notas de este archivo no tiene orden fijo.
     fijos);
   - programas de ejemplo de Reglas a mano escritos para los circuitos (hoy los
     ejemplos son de la calle recta y cargarlos vuelve a ella).
+- **Lo que quedó fuera de `operacion-por-operacion`.** Cada cosa, con su propia
+  propuesta:
+  - saltear los aportes que valen cero, para acortar el recorrido de a
+    operaciones (la red 6 → 6 → 4 tiene 146 operaciones por cuadro);
+  - que la vista se acerque sola a la neurona en curso;
+  - el mismo desglose de a una operación en la ida del Laboratorio (hoy se ve
+    como siempre);
+  - volver cuadros hacia atrás: "Atrás" deshace dentro del cuadro y no guarda
+    los cuadros anteriores.
+  - Sin medir o sin probar:
+    - lector de pantalla real (se leyó el texto del anuncio, no se oyó);
+    - Safari y Firefox;
+    - fluidez con el navegador a la vista (las medidas son de Chrome sin
+      ventana);
+    - "Activación con tanh" en el navegador: el cerebro de ejemplo usa
+      escalón en la oculta; el escenario está cubierto por las pruebas.
+  - "Eliminar" en la biblioteca pasa el foco a "Cancelar" y no lleva
+    `data-focus="keep"`. Por el mismo camino que "Renombrar", un clic con el
+    mouse devolvería el foco al escenario; no se probó.
