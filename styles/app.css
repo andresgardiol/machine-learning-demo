@@ -1314,16 +1314,28 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .lab-field-name { font-size: 13px; color: var(--color-text-muted); flex: 0 0 auto; }
 .lab-field .segment { min-width: 28px; min-height: 26px; padding: 2px 8px; font-size: 13px; }
 .lab-neuron-rows { display: flex; flex-direction: column; gap: 2px; }
-.lab-slider { display: flex; flex-direction: column; gap: 0; }
 .lab-slider-label { display: flex; justify-content: space-between; gap: var(--space-2); font-size: 13px; }
-.lab-slider input[type="range"] { width: 100%; height: 24px; margin: 0; accent-color: var(--color-accent); }
+/* Ajustes en un renglón (vista-de-la-red D20): nombre, deslizador de 120 px o más, y valor. */
+.lab-slider { display: grid; grid-template-columns: minmax(0, auto) minmax(120px, 1fr) auto; align-items: center; column-gap: var(--space-2); }
+.lab-slider .lab-slider-label { display: contents; }
+.lab-slider .lab-slider-label > span { grid-column: 1; font-size: 13px; }
+.lab-slider .lab-slider-label > output { grid-column: 3; grid-row: 1; font-size: 13px; text-align: right; min-width: 2.6em; }
+.lab-slider input[type="range"] { grid-column: 2; grid-row: 1; width: 100%; min-width: 120px; height: 24px; margin: 0; accent-color: var(--color-accent); }
 .lab-value { font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
 .lab-actions-panel { display: flex; flex-wrap: wrap; gap: 4px; }
 .lab-actions-panel .tool { min-height: 26px; }
 .lab-actions-panel [hidden] { display: none; }
 .lab-save[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
 .lab-save-message, .lab-record-notice { margin: 0; }
-.lab-teacher-row { display: flex; align-items: center; gap: var(--space-2); }
+.lab-teacher-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--space-2); }
+.lab-recorded-actions:not(:has(> :not([hidden]))) { display: none; }
+/* Curva de respuesta en el tablero, con tu manejo (D20): ocupa el lugar libre entre la escena y las curvas. */
+.lab-curve-block { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-start; }
+.lab-curve-block[hidden], .lab-curve-hint[hidden] { display: none; }
+.lab-curve-block .curve { border-top: 0; padding: 0; }
+.lab-curve-hint { margin: 0; }
+.lab-board:has(> .lab-curve-block:not([hidden])) > .lab-data { flex: 0 0 auto; }
+.lab-teacher-row .lab-teacher-name { min-width: auto; max-width: 100%; }
 .lab-teacher-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
 .lab-teacher-row [hidden] { display: none; }
 .lab-record-badge { pointer-events: auto; display: inline-flex; align-items: center; gap: var(--space-2); border-color: var(--color-car-crashed); }

@@ -1293,6 +1293,8 @@ export default {
   'inspect.announce.selected': '{name} selected.',
   'inspect.announce.selectedLink': 'Connection from {from} to {to} selected.',
   'inspect.announce.cleared': 'Nothing selected: the whole network is shown.',
+  'lab.curve.title': 'Response of {name}',
+  'lab.curve.hint': 'Select a neuron in the network to see here how it responds to each sensor.',
   'lab.history.title': 'Weight history',
   'lab.history.now': 'now {value}',
   'lab.history.empty': 'The history appears when the first epoch ends.',

@@ -15,6 +15,8 @@ import { responseCurve, upstream } from '../../core/network-paths.js';
 const SVG = 'http://www.w3.org/2000/svg';
 /** Medidas del dibujo, en unidades del viewBox (se escala al ancho del panel). */
 export const CURVE_BOX = Object.freeze({ width: 300, height: 120, left: 34, right: 8, top: 10, bottom: 18 });
+/** Alto del dibujo en la forma chica (con el ancho de un tablero de 360 px, unos 72 px en pantalla). */
+export const CURVE_COMPACT_HEIGHT = 66;
 
 /**
  * Entrada que más aporta ahora a `target` (D17: la curva arranca en esa). En la primera capa oculta, la
@@ -56,9 +58,19 @@ export function curveScale(totals, nowTotal) {
 export function createResponseCurve({ i18n, idPrefix, names, shortNames, onDrag = null }) {
   const t = (k, p) => i18n.t(k, p);
   const fmt = (v) => formatValue(v, i18n.language);
-  const B = CURVE_BOX;
+  // Forma completa o chica (D20): la chica tiene el gráfico más bajo y solo la primera frase.
+  let compact = false;
+  const B = { ...CURVE_BOX };
   const plotW = B.width - B.left - B.right;
-  const plotH = B.height - B.top - B.bottom;
+  let plotH = B.height - B.top - B.bottom;
+  function setBox(isCompact) {
+    B.height = isCompact ? CURVE_COMPACT_HEIGHT : CURVE_BOX.height;
+    plotH = B.height - B.top - B.bottom;
+    svg.setAttribute('viewBox', `0 0 ${B.width} ${B.height}`);
+    frame.setAttribute('height', String(plotH));
+    yBottom.setAttribute('y', String(B.top + plotH));
+    for (const n of [xLeft, xRight, xName]) n.setAttribute('y', String(B.height - 4));
+  }
 
   const titleId = `${idPrefix}-curve-title`;
   const title = el('h3', { class: 'curve-title', i18n: 'inspect.curve.title', help: 'inspect.curve', attrs: { id: titleId, tabindex: '0' } });
@@ -88,7 +100,7 @@ export function createResponseCurve({ i18n, idPrefix, names, shortNames, onDrag 
   });
   const plot = el('div', { class: 'curve-plot' }, svg, handle);
   const sentence = el('p', { class: 'caption curve-sentence', attrs: { id: `${idPrefix}-curve-sentence` } });
-  svg.setAttribute('aria-labelledby', sentence.id);
+  // El lector de pantalla lee la frase entera, también en la forma chica (aria-label, en sync).
   const node = el('section', { class: 'curve', attrs: { 'aria-labelledby': titleId } }, title, chips, plot, sentence);
 
   let chosen = null; // entrada elegida a mano (se recuerda entre neuronas mientras exista)
@@ -162,6 +174,7 @@ export function createResponseCurve({ i18n, idPrefix, names, shortNames, onDrag 
    * @param {boolean} [state.soft] activaciones suaves (Laboratorio)
    * @param {(i:number) => [number, number]} state.range rango de cada entrada
    * @param {boolean} [state.draggable] el punto se puede mover ahora
+   * @param {string} [state.title] título propio (en el tablero del Laboratorio, con el nombre de la neurona)
    */
   function sync(state) {
     lastState = state;
@@ -226,9 +239,20 @@ export function createResponseCurve({ i18n, idPrefix, names, shortNames, onDrag 
     else parts.push(t('inspect.curve.steps'));
     if (c.flips.length === 0) parts.push(t('inspect.curve.noFlip', { input: names(input) }));
     else parts.push(t('inspect.curve.flip', { input: names(input), x: c.flips.map((x) => fmt(x)).join(', ') }));
-    write(sentence, parts.join(' '));
+    write(sentence, compact ? parts[0] : parts.join(' '));
+    svg.setAttribute('aria-label', parts.join(' '));
+    if (state.title) write(title, state.title);
     return c;
   }
 
-  return { node, sync, get input() { return last?.input ?? null; }, get handle() { return handle; }, get svg() { return svg; } };
+  /** Forma chica o completa (D20). */
+  function setCompact(on) {
+    if (compact === Boolean(on)) return;
+    compact = Boolean(on);
+    setBox(compact);
+    setData(node, 'compact', String(compact));
+    if (lastState) sync(lastState);
+  }
+
+  return { node, sync, setCompact, get compact() { return compact; }, get input() { return last?.input ?? null; }, get handle() { return handle; }, get svg() { return svg; } };
 }

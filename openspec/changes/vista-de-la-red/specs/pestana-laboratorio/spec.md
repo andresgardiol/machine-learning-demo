@@ -47,9 +47,9 @@ de los de práctica sin depender solo del color.
 ### Requirement: Qué detecta cada neurona
 Con puntos, cada neurona oculta SHALL llevar adentro un mapa chico de dónde se
 enciende en el plano, con los colores del plano, actualizado mientras la red
-aprende. Con tu manejo no hay plano: la tarjeta de la neurona SHALL tener la
-vista "Respuesta", con su curva de respuesta a la entrada que se elija y las
-demás como en el ejemplo en curso.
+aprende. Con tu manejo no hay plano: el tablero SHALL mostrar, debajo de la
+escena, la curva de respuesta de la neurona elegida a la entrada que se
+elija, con las demás como en el ejemplo en curso.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña con puntos
@@ -69,7 +69,19 @@ demás como en el ejemplo en curso.
 
 #### Scenario: Con tu manejo
 - **WHEN** los datos son de manejo y la persona elige una neurona oculta
-- **THEN** su tarjeta muestra la curva de cómo responde a una entrada, con botones para elegir cuál, un punto en el valor del ejemplo en curso y una frase que la lee
+- **THEN** el tablero muestra, debajo de la escena, la curva de cómo responde a una entrada, con el nombre de la neurona, botones para elegir cuál entrada, un punto en el valor del ejemplo en curso y una frase que la lee
+
+#### Scenario: La tarjeta solo lleva la cuenta
+- **WHEN** los datos son de manejo y la persona elige una neurona
+- **THEN** la tarjeta del panel muestra sus filas y su sesgo, sin botones para cambiar de vista
+
+#### Scenario: Sin neurona elegida
+- **WHEN** los datos son de manejo y no hay una neurona oculta o de salida elegida
+- **THEN** el tablero no muestra la curva, y con la guía activa un renglón dice que al elegir una neurona se ve ahí su respuesta
+
+#### Scenario: Curva en poco lugar
+- **WHEN** entre la escena y las curvas de error no entra la curva completa
+- **THEN** se muestra en su forma chica, con el gráfico más bajo y solo la primera frase, entera y sin tapar las curvas de error
 
 #### Scenario: La curva cambia al aprender
 - **WHEN** la red aprende con una neurona elegida
@@ -86,6 +98,28 @@ demás como en el ejemplo en curso.
 #### Scenario: Vuelta atrás
 - **WHEN** la persona reinicia los pesos
 - **THEN** los mapas vuelven a mostrar una red que no sabe nada
+
+### Requirement: Panel del Laboratorio con algo elegido
+Con una neurona o una conexión elegida, el panel SHALL seguir mostrando todos
+los ajustes de la red y del aprendizaje, sin plegar ninguno, y su detalle
+debajo. Para darle lugar, cada ajuste con deslizador MUST ocupar un renglón:
+nombre, deslizador y valor. Nada MUST encimarse ni salir de su caja.
+
+#### Scenario: Ajustes en un renglón
+- **WHEN** la persona mira "Neuronas de la capa", "Tasa de aprendizaje" o "Apartados", con puntos o con tu manejo
+- **THEN** cada uno ocupa un renglón, con un deslizador de al menos 120 píxeles de ancho
+
+#### Scenario: Con tu manejo a 1440×900
+- **WHEN** los datos son de manejo, la ventana está en 1440×900 y la persona elige una neurona de 6 entradas, en español o en inglés
+- **THEN** se ven todos los ajustes, las seis filas de la tarjeta y su sesgo sin desplazar nada, y la curva completa en el tablero
+
+#### Scenario: Con tu manejo a 1366×768
+- **WHEN** los datos son de manejo, la ventana está en 1366×768 y la persona elige una neurona de 6 entradas
+- **THEN** se ven todos los ajustes y al menos cinco de las seis filas, la que falta se desplaza dentro de la tarjeta, el panel no se desplaza y la curva entra en el tablero
+
+#### Scenario: Con una conexión elegida
+- **WHEN** la persona elige una conexión, con puntos o con tu manejo
+- **THEN** el detalle de la conexión se ve entero en el panel, con todos los ajustes a la vista
 
 ### Requirement: Detalle de una conexión en el Laboratorio
 Al elegir una conexión, el panel SHALL mostrar su detalle en el lugar de la

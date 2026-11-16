@@ -349,6 +349,36 @@ de tablero, la escena en 155 px, los botones de decisión en dos columnas de
   desde 500 px de red, cuatro a 440. No se mueve ningún control a otro
   lugar ni cambia ningún texto.
 
+### D20. En el Laboratorio, la curva va al tablero
+
+Decisión del dueño el 16 de noviembre de 2026, sobre la consulta 9.6. Con
+tu manejo, la tarjeta de la neurona con "Cuenta | Respuesta" no entraba en
+el panel (a 1366×768: 194 px de tarjeta, 1 fila de 6 y la curva recortada
+152 px), y plegar los ajustes rompía "Sin secciones plegables", que es un
+pedido suyo. Eligió entre dos esquemas.
+
+- **La curva de respuesta se muestra en el tablero,** debajo de la escena y
+  su texto, arriba de las curvas de error, donde con tu manejo hay lugar
+  libre. Es el mismo criterio que con puntos: el tablero muestra lo que
+  detecta la neurona elegida (allá el mapa en el plano, acá la curva).
+  Lleva el nombre de la neurona.
+- **La tarjeta del Laboratorio no tiene "Cuenta | Respuesta":** solo la
+  cuenta, con puntos y con tu manejo. En Inspeccionar no cambia nada: ahí el
+  tablero no tiene lugar.
+- **Solo la neurona elegida,** no la que está bajo el cursor: un gráfico que
+  aparece y desaparece al mover el mouse molesta. Sin neurona elegida no se
+  muestra; con la guía, un renglón dice que ahí va a aparecer.
+- **Forma chica** cuando entre la escena y las curvas de error no entra la
+  completa (unos 260 px): gráfico de unos 90 px y solo la primera frase.
+  Las curvas de error no se achican ni se tapan.
+- **Ajustes en un renglón:** "Neuronas de la capa", "Tasa de aprendizaje" y
+  "Apartados" pasan a nombre, deslizador y valor en un renglón (hoy dos), y
+  "Maestro", "Cambiar" y "Grabar" comparten renglón si entran. Siempre, con
+  puntos y con tu manejo. Cálculo sobre las medidas de la 9.6: unos 75 px
+  más para la tarjeta.
+- **[Sin medir]** A 1366×768 queda justo: calculo 5 de 6 filas a la vista y
+  la curva en su forma chica (165 px libres). Se mide en la 9.7.
+
 ### D19. Lo que está en curso es del tamaño del paso
 
 Pedido del dueño el 16 de noviembre de 2026: avanzando de a capas, la vista

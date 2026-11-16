@@ -98,7 +98,6 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       collapsed: [],
       shapeKey: '',
       selected: null, // el Laboratorio abre sin neurona elegida (D15)
-      cardView: 'count', // con tu manejo: "Cuenta" o "Respuesta" en la tarjeta (vista-de-la-red D17), recordada
       manual: createManualChanges(),
       missions: createLabMissions({ completed: completedMissions }),
       recorder: createRecorder({ sensors: DEFAULT_SENSORS }),
@@ -411,7 +410,32 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   chart.element.setAttribute('aria-describedby', 'lab-chart-description');
   const announcer = el('p', { class: 'sr-only', attrs: { role: 'status', 'aria-live': 'polite' } });
   function announce(text) { announcer.textContent = ''; announcer.textContent = text ?? ''; }
-  board.append(el('div', { class: 'lab-board' }, dataBlock, exampleBlock, curves), announcer);
+  // Con tu manejo, la curva de respuesta de la neurona elegida va en el tablero (vista-de-la-red D20),
+  // debajo de la escena: allá donde con puntos el plano muestra lo que detecta. Solo la elegida.
+  const curve = createResponseCurve({
+    i18n, idPrefix: 'lab',
+    names: (i) => nameOf(0, i),
+    shortNames: (i) => (i === run().network.sizes[0] - 1 ? t('inspect.curve.chip.speed') : t('inspect.curve.chip.sensor', { n: i + 1 })),
+    onDrag: null,
+  });
+  const curveHint = el('p', { class: 'guide caption lab-curve-hint', i18n: 'lab.curve.hint' });
+  const curveBlock = el('div', { class: 'lab-curve-block' }, curve.node, curveHint);
+  board.append(el('div', { class: 'lab-board' }, dataBlock, curveBlock, exampleBlock, curves), announcer);
+  let curveFit = { key: '', full: 0 };
+  /** Forma completa o chica según el lugar que deja el tablero entre la escena y las curvas (D20). */
+  function fitCurve(key) {
+    if (curve.node.hidden) return;
+    const avail = curveBlock.clientHeight;
+    if (key !== curveFit.key) {
+      curveFit = { key, full: 0 };
+      curve.setCompact(false);
+    }
+    if (!curve.compact) {
+      const need = curve.node.scrollHeight;
+      curveFit.full = need;
+      if (need > avail + 1) curve.setCompact(true);
+    } else if (curveFit.full && avail >= curveFit.full) curve.setCompact(false);
+  }
 
   // ==================================================================================================
   // Panel: guía, red, aprendizaje, acciones, tu manejo y misiones (D6)
@@ -495,8 +519,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const recordNotice = el('p', { class: 'caption lab-record-notice', attrs: { role: 'status' } });
   const teacherSection = el('section', { class: 'lab-section lab-teacher', attrs: { 'aria-labelledby': 'lab-teacher-heading' } },
     el('h2', { class: 'panel-heading', i18n: 'lab.panel.examples', attrs: { id: 'lab-teacher-heading' } }),
-    el('div', { class: 'lab-teacher-row' }, teacherName, changeTeacher),
-    el('div', { class: 'lab-actions-panel' }, recordButton, useRecordedButton, clearButton), recordNotice);
+    el('div', { class: 'lab-teacher-row' }, teacherName, changeTeacher, recordButton),
+    el('div', { class: 'lab-actions-panel lab-recorded-actions' }, useRecordedButton, clearButton), recordNotice);
   // Misiones
   const missionRows = state.missions.missions.map((m) => {
     const status = el('span', { class: 'mission-status' });
@@ -525,22 +549,6 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     },
     onClose: () => deselect(),
   });
-  // Con tu manejo, la tarjeta tiene dos vistas (D17): "Cuenta" y "Respuesta" (la curva). Con puntos no:
-  // el mapa del plano ya dice qué detecta cada neurona.
-  const curve = createResponseCurve({
-    i18n, idPrefix: 'lab',
-    names: (i) => nameOf(0, i),
-    shortNames: (i) => (i === run().network.sizes[0] - 1 ? t('inspect.curve.chip.speed') : t('inspect.curve.chip.sensor', { n: i + 1 })),
-    onDrag: null,
-  });
-  card.node.append(curve.node);
-  const viewTabs = ['count', 'response'].map((v) => el('button', {
-    class: 'segment', i18n: `inspect.cardView.${v}`, help: `inspect.cardView.${v}`, dataset: { view: v, focus: 'keep' },
-    attrs: { type: 'button', 'aria-pressed': 'false' },
-    on: { click: () => { state.cardView = v; draw(); } },
-  }));
-  const viewSwitch = el('div', { class: 'segments inspect-card-views', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.cardView.label' }, viewTabs);
-  card.node.insertBefore(viewSwitch, card.node.children[1]);
   // Detalle de una conexión (D7 y D12): el cambio va a la red que aprende y cuenta como un cambio a mano.
   const linkDetail = createConnectionDetail({
     i18n, idPrefix: 'lab', base: 3, names: (l, j) => nameOf(l, j),
@@ -1136,19 +1144,21 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const selNow = state.selected;
     if (selNow && selNow.input === undefined) {
       card.sync({ target: selNow, sizes, network: a ? r.shownNetwork() : r.network, isOff: (l, j, i = null) => r.isOff(l, j, i) });
-      const hasViews = !isPoints() && selNow.layer > 0;
-      show(viewSwitch, hasViews);
-      const view = hasViews ? state.cardView : 'count';
-      setData(card.node, 'view', view);
-      for (const b of viewTabs) setAttr(b, 'aria-pressed', String(b.dataset.view === view));
-      show(curve.node, view === 'response');
-      if (view === 'response') {
-        const inputs = trace.inputs ?? trace.layers[0].neurons.map((n) => n.raw ?? n.output);
-        curve.sync({
-          net: a ? r.shownNetwork() : r.network, inputs, trace, target: selNow, off: r.off, soft: true,
-          range: (i) => (i === sizes[0] - 1 ? [-1, 1] : [0, 1]), draggable: false,
-        });
-      }
+    }
+    // Tablero, con tu manejo: la curva de la neurona elegida (oculta o de salida), o el renglón que dice
+    // que ahí va a aparecer.
+    const curveOn = !isPoints() && Boolean(selNow) && selNow.input === undefined && selNow.layer > 0;
+    show(curveBlock, !isPoints());
+    show(curve.node, curveOn);
+    show(curveHint, !isPoints() && !curveOn);
+    if (curveOn) {
+      const inputs = trace.inputs ?? trace.layers[0].neurons.map((n) => n.raw ?? n.output);
+      curve.sync({
+        net: a ? r.shownNetwork() : r.network, inputs, trace, target: selNow, off: r.off, soft: true,
+        range: (i) => (i === sizes[0] - 1 ? [-1, 1] : [0, 1]), draggable: false,
+        title: t('lab.curve.title', { name: placeNameOf(selNow.layer, selNow.neuron) }),
+      });
+      fitCurve(`${selNow.layer}:${selNow.neuron}|${i18n.language}|${board.clientWidth}x${board.clientHeight}`);
     }
     if (selNow && selNow.input !== undefined) {
       const net = a ? r.shownNetwork() : r.network;

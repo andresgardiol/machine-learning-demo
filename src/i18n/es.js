@@ -1293,6 +1293,8 @@ export default {
   'inspect.announce.selected': '{name} elegida.',
   'inspect.announce.selectedLink': 'Conexión de {from} a {to} elegida.',
   'inspect.announce.cleared': 'Nada elegido: se ve la red entera.',
+  'lab.curve.title': 'Respuesta de {name}',
+  'lab.curve.hint': 'Elegí una neurona en la red y acá vas a ver cómo responde a cada sensor.',
   'lab.history.title': 'Historia del peso',
   'lab.history.now': 'ahora {value}',
   'lab.history.empty': 'La historia aparece al terminar la primera época.',
