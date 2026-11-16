@@ -27,6 +27,18 @@ function bestText(fitness) {
  * el nombre grabado en el cerebro y el del archivo exportado no cambian.
  * @param {{origin:'saved'|'autosave', slot?:'current'|'previous', brain:object}} entry
  */
+/**
+ * "Renombrar" de un cerebro guardado: abre el campo del nombre y le pasa el foco. Lleva data-focus="keep"
+ * para que, tras el clic con el mouse, la pestaña no devuelva el foco al escenario: si lo hiciera, el
+ * campo lo perdería, se cerraría con el mismo nombre y no se podría renombrar (ui/shortcuts.js,
+ * returnsFocusToStage).
+ */
+export function renameButton(onClick) {
+  const b = button('library.rename', 'library.rename', onClick, 'tool small');
+  b.setAttribute('data-focus', 'keep');
+  return b;
+}
+
 export function brainSummary(entry) {
   const { brain } = entry;
   const summary = {
@@ -183,7 +195,7 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
     const actions = [continueButton, exportButton];
     // Todo cerebro se puede eliminar, también los autoguardados (panel-de-entrenar-por-vistas D14); los
     // autoguardados no se renombran: se conservan guardándolos con nombre.
-    if (s.editable) actions.push(button('library.rename', 'library.rename', () => { renaming = s.id; render(); }, 'tool small'));
+    if (s.editable) actions.push(renameButton(() => { renaming = s.id; render(); }));
     else actions.push(el('button', { class: 'tool small', i18n: 'library.rename', help: 'library.autosaveLocked', attrs: { type: 'button', disabled: true } }));
     // El del entrenamiento en curso vuelve a guardarse solo: la confirmación lo avisa.
     const deleteMessage = entry.origin === 'autosave' && entry.slot === 'current' ? 'library.confirm.delete.current' : 'library.confirm.delete';

@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brainSummary, brainDetail, scenarioText } from '../src/ui/library-view.js';
+import { brainSummary, brainDetail, scenarioText, renameButton } from '../src/ui/library-view.js';
+import { button } from '../src/ui/controls.js';
+import { returnsFocusToStage } from '../src/ui/shortcuts.js';
 import { createBrain } from '../src/core/brain.js';
 import { createNetwork } from '../src/core/network.js';
 import { createRandom } from '../src/core/random.js';
@@ -113,4 +115,30 @@ test('pistas en los datos: el escenario nombra la pista o las pistas en el idiom
   // Varias pistas.
   assert.equal(text(es_, { ...base, track: 'straight+kidney', generations: 40 }), 'alternando Calle recta y Óvalo con chicana, 3 carriles, densidad 50 %, irregularidad 0 %, tráfico nuevo: 40 generaciones');
   assert.equal(text(en_, { ...base, track: 'oval+kidney+grandPrix', generations: 9 }), 'alternating Oval, Oval with chicane and Curves circuit: 9 generations');
+});
+
+/** Un documento mínimo, para armar botones con el() sin navegador. */
+function withFakeDocument(fn) {
+  const make = (tag) => {
+    const attrs = new Map();
+    const node = {
+      tagName: tag.toUpperCase(), dataset: {}, className: '', children: [],
+      setAttribute: (k, v) => attrs.set(k, String(v)), getAttribute: (k) => (attrs.has(k) ? attrs.get(k) : null),
+      addEventListener() {}, append(...c) { node.children.push(...c); },
+      closest: (sel) => (sel.split(',').some((x) => x.trim().toLowerCase() === tag) ? node : null),
+    };
+    return node;
+  };
+  const before = globalThis.document;
+  globalThis.document = { createElement: make };
+  try { return fn(); } finally { if (before === undefined) delete globalThis.document; else globalThis.document = before; }
+}
+
+test('"Renombrar" de la lista deja el foco en el campo del nombre: el clic no lo devuelve al escenario', () => {
+  withFakeDocument(() => {
+    assert.equal(returnsFocusToStage(button('library.export', 'library.export', () => {})), true, 'un botón cualquiera sí lo devuelve');
+    const rename = renameButton(() => {});
+    assert.equal(rename.getAttribute('data-focus'), 'keep');
+    assert.equal(returnsFocusToStage(rename), false);
+  });
 });
