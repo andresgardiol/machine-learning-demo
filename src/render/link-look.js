@@ -2,7 +2,8 @@
 // el inspector y el diagrama de Entrenar.
 //
 //   signo  → color y trazo (continuo si suma, punteado si resta)
-//   peso   → grosor, relativo al mayor peso de la red (sin el signo), con un mínimo que se ve
+//   peso   → grosor, relativo al mayor peso de la red (sin el signo), con un mínimo que se ve y un
+//            máximo que baja con la densidad
 //   señal  → brillo: un piso, que baja con la densidad, más lo que pasa ahora por la conexión
 //
 // Los tres canales no se multiplican entre sí. La elección (papel) no cambia ninguno: atenúa lo que no
@@ -11,7 +12,8 @@
 /** Valores de partida de D2 (ajustados mirando capturas: ver la consulta 2.6). */
 export const LINK_LOOK = Object.freeze({
   minWidth: 1.5, // px con el acercamiento en 1
-  widthRange: 5.5, // el mayor peso mide minWidth + widthRange
+  widthRange: 5.5, // con pocas conexiones entre dos capas, el mayor peso mide minWidth + widthRange (7 px)
+  widthRangeDense: 2.5, // con muchas, minWidth + widthRangeDense (4 px): consulta 2.6
   zeroWidth: 1, // peso cero: línea fina y gris
   floorSparse: 0.35, // piso de brillo con pocas conexiones entre dos capas
   floorDense: 0.12, // piso con muchas
@@ -22,12 +24,22 @@ export const LINK_LOOK = Object.freeze({
   filtered: 0.12, // fuera del filtro de conexiones
 });
 
+/** De `sparse` (hasta 48 conexiones entre dos capas) a `dense` (256 o más), lineal entre medio. */
+function byDensity(links, sparse, dense) {
+  const { sparseLinks, denseLinks } = LINK_LOOK;
+  if (!(links > sparseLinks)) return sparse;
+  if (links >= denseLinks) return dense;
+  return sparse + ((dense - sparse) * (links - sparseLinks)) / (denseLinks - sparseLinks);
+}
+
 /** Piso de brillo según cuántas conexiones hay entre dos capas: 0,35 hasta 48, 0,12 desde 256, lineal entre medio. */
 export function densityFloor(links) {
-  const { floorSparse, floorDense, sparseLinks, denseLinks } = LINK_LOOK;
-  if (!(links > sparseLinks)) return floorSparse;
-  if (links >= denseLinks) return floorDense;
-  return floorSparse + ((floorDense - floorSparse) * (links - sparseLinks)) / (denseLinks - sparseLinks);
+  return byDensity(links, LINK_LOOK.floorSparse, LINK_LOOK.floorDense);
+}
+
+/** Rango de grosor según cuántas conexiones hay entre dos capas: 5,5 hasta 48, 2,5 desde 256 (consulta 2.6). */
+export function densityWidthRange(links) {
+  return byDensity(links, LINK_LOOK.widthRange, LINK_LOOK.widthRangeDense);
 }
 
 /**
@@ -42,7 +54,7 @@ export function densityFloor(links) {
  * @returns {{width:number, alpha:number, sign:'positive'|'negative'|'zero', dashed:boolean}}
  */
 export function linkLook({ weight, maxWeight, product = null, maxProduct = 0, role = 'normal', density = 0, importance = 1 }) {
-  const { minWidth, widthRange, zeroWidth, relatedMin, unrelated, filtered } = LINK_LOOK;
+  const { minWidth, zeroWidth, relatedMin, unrelated, filtered } = LINK_LOOK;
   const floor = densityFloor(density);
   const signal = product === null || !(maxProduct > 0) ? 0 : Math.min(1, Math.abs(product) / maxProduct);
   let alpha = floor + (1 - floor) * signal;
@@ -55,7 +67,7 @@ export function linkLook({ weight, maxWeight, product = null, maxProduct = 0, ro
   if (weight === 0) return { width: zeroWidth, alpha: Math.min(alpha, 0.5), sign: 'zero', dashed: false };
   const rel = maxWeight > 0 ? Math.min(1, Math.abs(weight) / maxWeight) : 1;
   const sign = weight < 0 ? 'negative' : 'positive';
-  return { width: minWidth + widthRange * rel, alpha: Math.min(1, alpha), sign, dashed: sign === 'negative' };
+  return { width: minWidth + densityWidthRange(density) * rel, alpha: Math.min(1, alpha), sign, dashed: sign === 'negative' };
 }
 
 /** Mayor |peso| de una red (sin contar los sesgos); 0 si no tiene pesos. */

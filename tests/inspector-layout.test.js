@@ -91,7 +91,7 @@ test('flujo (D10): como mucho 150 marcas, repartidas según |producto|, ninguna 
 });
 
 test('neurona por dentro (D4): solo relleno, valor, curva y detalle según el radio', () => {
-  assert.deepEqual([8, 12, 23, 24, 35, 36, 44].map(insideLevel), ['fill', 'value', 'value', 'curve', 'curve', 'detail', 'detail']);
+  assert.deepEqual([8, 12, 23, 24, 37.6, 39, 40, 44].map(insideLevel), ['fill', 'value', 'value', 'curve', 'curve', 'curve', 'detail', 'detail']);
 });
 
 test('mismo blanco: neurona con neurona, conexión con conexión', () => {

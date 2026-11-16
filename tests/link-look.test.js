@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { linkLook, densityFloor, maxWeightOf, maxProductOf, LINK_LOOK } from '../src/render/link-look.js';
+import { linkLook, densityFloor, densityWidthRange, maxWeightOf, maxProductOf, LINK_LOOK } from '../src/render/link-look.js';
 import { traceNetwork } from '../src/core/network-trace.js';
 import { createChanges } from '../src/core/network-changes.js';
 import { EXAMPLE_BRAINS } from '../src/data/example-brains.js';
@@ -87,4 +87,20 @@ test('mismo aspecto, misma red: misma cuenta, mismo grosor y brillo', () => {
   const b = traceNetwork(example, inputs);
   const looks = (t) => t.layers.slice(1).flatMap((L) => L.neurons.flatMap((n) => n.products.map((p, i) => linkLook({ weight: n.weights[i], maxWeight: maxWeightOf(example), product: p, maxProduct: maxProductOf(t), density: 36 }))));
   assert.deepEqual(looks(a), looks(b));
+});
+
+test('grosor entre capas densas: con 256 conexiones o más la más gruesa mide 4 px o menos y la más fina al menos 1,5', () => {
+  for (const density of [256, 400, 912]) {
+    assert.ok(linkLook({ weight: 1, maxWeight: 1, density }).width <= 4);
+    assert.ok(linkLook({ weight: 1e-6, maxWeight: 1, density }).width >= 1.5);
+    assert.ok(linkLook({ weight: -0.01, maxWeight: 1, density }).width >= 1.5);
+  }
+  assert.equal(densityWidthRange(256), 2.5);
+});
+
+test('grosor con 48 conexiones o menos: la más gruesa sigue en 7 px; entre medio, lineal', () => {
+  for (const density of [0, 12, 36, 48]) assert.equal(linkLook({ weight: 0.4, maxWeight: 0.4, density }).width, 7);
+  const mid = linkLook({ weight: 1, maxWeight: 1, density: 152 }).width;
+  assert.ok(Math.abs(mid - 5.5) < 1e-9, `${mid}`);
+  assert.ok(linkLook({ weight: 1, maxWeight: 1, density: 144 }).width < 7);
 });

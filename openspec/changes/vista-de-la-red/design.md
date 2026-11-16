@@ -65,8 +65,14 @@ Función pura `linkLook({ weight, maxWeight, product, maxProduct, role,
 density })`, en `src/render/`, con pruebas. Valores de partida, a ajustar
 mirando capturas (ver tareas):
 
-- **Grosor:** `1,5 + 5,5 × |peso| / mayor |peso| de la red`, en píxeles con
+- **Grosor:** `1,5 + rango × |peso| / mayor |peso| de la red`, en píxeles con
   el acercamiento en 1. El mayor peso se toma de la red con sus cambios.
+- **Rango según la densidad:** 5,5 (máximo de 7 px) con hasta 48 conexiones
+  entre dos capas, bajando hasta 2,5 (máximo de 4 px) con 256 o más, con la
+  misma interpolación que el piso de brillo. Sale de la consulta 2.6: con el
+  rango fijo, entre dos capas de 16 había demasiada línea gruesa. Costo
+  aceptado: el grosor se compara dentro de un mismo par de capas; entre un
+  par denso y uno ralo, el mismo peso no mide lo mismo.
 - **Brillo:** `piso + (1 − piso) × |producto| / mayor |producto| del cuadro`.
   Sin cuenta (nada calculado), todo en el piso.
 - **Piso según la densidad:** 0,35 con hasta 48 conexiones entre dos capas,
@@ -97,8 +103,12 @@ Según el radio en pantalla (lugar, capas resumidas o acercamiento):
 |---|---|
 | menos de 12 | solo el relleno |
 | 12 a 23 | el valor |
-| 24 a 35 | el valor y la curva de su activación con un punto donde cae la suma |
-| 36 o más | además, suma y sesgo con su nombre |
+| 24 a 39 | el valor y la curva de su activación con un punto donde cae la suma |
+| 40 o más | además, suma y sesgo con su nombre |
+
+El último umbral era 36 y pasó a 40 en la consulta 2.6: a 37,6 px (red de 6,
+6, 4 en Inspeccionar) la suma y el sesgo iban en letra de 10 px, apretados
+contra la curva. En el Laboratorio (44 px) no cambia nada.
 
 Las entradas muestran solo su valor. Con un mapa (D12), el mapa reemplaza al
 relleno desde los 20 px y el valor va encima.

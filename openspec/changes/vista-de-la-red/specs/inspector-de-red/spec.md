@@ -72,8 +72,8 @@ atenúa por elección, y la red se ve entera y pareja.
 Toda conexión con peso distinto de cero SHALL verse. El grosor es relativo al
 peso más grande de la red, sin el signo, con un mínimo que se distingue; el
 signo va con color y trazo; y el brillo dice cuánta señal pasa ahora, sin
-bajar de un piso. El piso MUST adaptarse a cuántas conexiones hay entre dos
-capas, para que una red densa no sea una mancha.
+bajar de un piso. El piso y el grosor máximo MUST bajar con la cantidad de
+conexiones entre dos capas, para que una red densa no sea una mancha.
 
 #### Scenario: Red de pesos chicos
 - **WHEN** se muestra una red cuyos pesos no pasan de 0,25
@@ -102,6 +102,10 @@ capas, para que una red densa no sea una mancha.
 #### Scenario: Red densa
 - **WHEN** se muestra la red más grande que permite la aplicación, sin nada elegido
 - **THEN** se distinguen las capas y las conexiones más fuertes, y el conjunto no es una mancha uniforme
+
+#### Scenario: Grosor entre capas densas
+- **WHEN** dos capas vecinas tienen 256 conexiones o más entre ellas
+- **THEN** la más gruesa de esas conexiones mide 4 píxeles o menos, y la más fina sigue midiendo al menos 1,5
 
 #### Scenario: Mismo aspecto, misma red
 - **WHEN** se muestra dos veces la misma red con la misma cuenta
@@ -145,7 +149,7 @@ acercar.
 - **THEN** muestra su valor y una marca de dónde cae su suma en la curva de su activación
 
 #### Scenario: Neurona muy grande
-- **WHEN** una neurona mide 36 píxeles de radio o más
+- **WHEN** una neurona mide 40 píxeles de radio o más
 - **THEN** muestra además su suma y su sesgo con su nombre
 
 #### Scenario: Al acercar

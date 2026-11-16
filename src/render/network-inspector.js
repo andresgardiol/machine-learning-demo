@@ -28,7 +28,7 @@ import { formatValue } from '../ui/i18n.js';
 export const INSPECTOR_CAMERA = Object.freeze({ zoom: 1, minZoom: 1, maxZoom: 6, step: 1.25, anchor: Object.freeze({ x: 0.5, y: 0.5 }) });
 
 /** Detalle dentro de una neurona según su radio en pantalla (D4). */
-export const INSIDE = Object.freeze({ value: 12, curve: 24, detail: 36, map: 20, maxRadius: 110 });
+export const INSIDE = Object.freeze({ value: 12, curve: 24, detail: 40, map: 20, maxRadius: 110 });
 
 /** Flujo de la señal (D10): marcas a la vez y segundos para cruzar un tramo. */
 export const FLOW = Object.freeze({ marks: 150, crossing: 0.6 });

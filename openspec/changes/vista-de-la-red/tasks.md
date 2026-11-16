@@ -18,7 +18,7 @@
 - [x] 2.3 Neurona por dentro, según el radio en pantalla (D4). Verificar los escenarios de "Neurona por dentro", también acercando.
 - [x] 2.4 Estado sin nada elegido en el inspector y en las dos pestañas; Inspeccionar abre así. Verificar "Estado sin nada elegido" y "Lista para mirar al abrir".
 - [x] 2.5 El rosa nuevo en `styles/tokens.css`. Revisar que la leyenda, la tabla de pesos, Entrenar y el Laboratorio lo usen.
-- [ ] 2.6 Tomar capturas a 1440×900 de tres redes sin nada elegido: el cerebro de ejemplo (6, 6, 4), una de 6, 8, 8, 4, y la más grande (21, 16, 16, 16, 4), antes y después del cambio, en Inspeccionar; y la red por defecto del Laboratorio. Guardarlas en la carpeta de notas y **detenerse y consultar** con ellas: los números de D2 se confirman mirando.
+- [x] 2.6 Tomar capturas a 1440×900 de tres redes sin nada elegido: el cerebro de ejemplo (6, 6, 4), una de 6, 8, 8, 4, y la más grande (21, 16, 16, 16, 4), antes y después del cambio, en Inspeccionar; y la red por defecto del Laboratorio. Guardarlas en la carpeta de notas y **detenerse y consultar** con ellas: los números de D2 se confirman mirando. *Consultada: aprobada con dos ajustes (grosor máximo de 7 a 4 px según la densidad; suma y sesgo desde 40 px). Red grande con la regla nueva: grosor 1,50 / 2,15 / 5,98 px (mín / mediana / máx); entre ocultas de 16, máx. 3,8 px.*
 
 ## 3. Vista previa, elegir y soltar
 
