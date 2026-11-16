@@ -43,6 +43,8 @@ import { describeStep, whereText, layerName, neuronLabel, placeName } from './de
 import { createInspectMissions } from './missions.js';
 import { shortcutFor } from './shortcuts.js';
 import { createNeuronCard } from './card.js';
+import { createConnectionDetail, linkShare } from '../shared/connection-detail.js';
+import { createResponseCurve } from '../shared/response-curve.js';
 import { OUTPUT_KEYS } from '../../render/network-view.js';
 
 /** Semilla del tráfico: la misma para todos (misma semilla, misma escena). */
@@ -186,7 +188,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (!state.manual) return real;
     return real.map((v, i) => (state.manual[i] ?? v));
   }
-  const traceNow = () => traceNetwork(net, currentInputs(), changes);
+  const traceNow = () => traceNetwork(net, currentInputs(), originalHeld ? null : changes);
+  /** "Ver original" (D13): mientras se mantiene apretado, la vista muestra la red sin los cambios. */
+  let originalHeld = false;
+  const NO_CHANGES = Object.freeze({ has: () => false, count: 0, list: () => [] });
 
   /** Un cuadro del mundo: percibir, calcular la red y mover el auto. Suelta las entradas a mano. */
   function stepWorld() {
@@ -288,9 +293,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const { layer, neuron } = state.selected;
     const off = changes.valueOf({ kind: 'connectionOff', layer, neuron, input });
     setChange({ kind: 'connectionOff', layer, neuron, input, value: !off });
-    state.connection = input;
   }
-  const setWeight = (input, value) => { state.connection = input; setChange({ kind: 'weight', layer: state.selected.layer, neuron: state.selected.neuron, input, value }); };
+  // Cambiar un peso no cambia lo elegido: la tarjeta sigue siendo la de la neurona (D7).
+  const setWeight = (input, value) => setChange({ kind: 'weight', layer: state.selected.layer, neuron: state.selected.neuron, input, value });
   const setBias = (value) => setChange({ kind: 'bias', layer: state.selected.layer, neuron: state.selected.neuron, value });
   function undo() {
     const u = changes.undo();
@@ -373,13 +378,38 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const changesCount = el('span', { class: 'inspect-changes', attrs: { role: 'status' } });
   const undoButton = el('button', { class: 'tool small inspect-undo', i18n: 'inspect.undo', attrs: { type: 'button' }, on: { click: () => undo() } });
   const resetButton = el('button', { class: 'tool small inspect-reset', i18n: 'inspect.resetNetwork', attrs: { type: 'button' }, on: { click: () => resetNetwork() } });
+  // "Ver original": un botón de resorte (D13). Vale mientras se mantiene apretado, con el mouse o con la
+  // barra espaciadora; no toca la lista de cambios.
+  function holdOriginal(on) {
+    const next = Boolean(on) && changes.count > 0;
+    if (next === originalHeld) return;
+    originalHeld = next;
+    setAttr(originalButton, 'aria-pressed', String(next));
+    displayed.trace = null;
+    if (next) announce(t('inspect.original.banner'));
+    relabel();
+    draw();
+  }
+  const originalButton = el('button', {
+    class: 'tool small inspect-original-view', i18n: 'inspect.original.view', dataset: { focus: 'keep' },
+    attrs: { type: 'button', 'aria-pressed': 'false' },
+    on: {
+      pointerdown: (e) => { if (e.button === 0) holdOriginal(true); },
+      pointerup: () => holdOriginal(false),
+      pointerleave: () => holdOriginal(false),
+      pointercancel: () => holdOriginal(false),
+      blur: () => holdOriginal(false),
+      keydown: (e) => { if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); e.stopPropagation(); if (!e.repeat) holdOriginal(true); } },
+      keyup: (e) => { if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); e.stopPropagation(); holdOriginal(false); } },
+    },
+  });
   const zoomOut = el('button', { class: 'tool small inspect-zoom', i18n: 'camera.zoomOut', help: 'inspect.zoomOut', i18nAttr: 'aria-label:camera.zoomOut.label', attrs: { type: 'button' }, on: { click: () => inspector.zoomOut() } });
   const zoomIn = el('button', { class: 'tool small inspect-zoom', i18n: 'camera.zoomIn', help: 'inspect.zoomIn', i18nAttr: 'aria-label:camera.zoomIn.label', attrs: { type: 'button' }, on: { click: () => inspector.zoomIn() } });
   const zoomReset = el('button', { class: 'tool small inspect-zoom-reset', i18n: 'inspect.zoomReset', help: 'inspect.zoomReset', attrs: { type: 'button' }, on: { click: () => inspector.resetView() } });
   const zoomGroup = el('div', { class: 'inspect-zoom-group', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.zoom.label' }, zoomOut, zoomIn, zoomReset);
   const controls = el('div', { class: 'inspect-controls' },
     el('div', { class: 'inspect-row' }, netTitle, viewGroup, filterGroup),
-    el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetButton), zoomGroup));
+    el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetButton, originalButton), zoomGroup));
 
   // Red: diagrama y tabla, en la misma zona.
   const area = el('div', {
@@ -580,6 +610,61 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     onManualInput: (i, v) => setManual(i, v),
     onSelectConnection: (i) => { if (state.connection !== i) { state.connection = i; sync(); } },
   });
+  // Curva de respuesta (D17), debajo de la cuenta de la tarjeta.
+  const curve = createResponseCurve({
+    i18n, idPrefix: 'inspect',
+    names: (i) => neuronLabel(t, net.sizes, 0, i),
+    shortNames: (i) => (i === net.sizes[0] - 1 ? t('inspect.curve.chip.speed') : t('inspect.curve.chip.sensor', { n: i + 1 })),
+    onDrag: (i, v) => setManual(i, v),
+  });
+  card.node.append(curve.node);
+  // Detalle de una conexión (D7).
+  const linkDetail = createConnectionDetail({
+    i18n, idPrefix: 'inspect', names: (l, j) => neuronLabel(t, net.sizes, l, j),
+    onSelectNeuron: (target) => select(target),
+    onWeight: (v) => { if (state.selected && state.connection !== null) setWeight(state.connection, v); },
+    onToggle: () => { if (state.selected && state.connection !== null) toggleConnection(state.connection); },
+  });
+  // Sin nada elegido (D7): una frase y atajos a lo que más pasa ahora.
+  const shortcutButtons = Array.from({ length: 4 }, () => el('button', {
+    class: 'inspect-shortcut', dataset: { focus: 'keep' }, attrs: { type: 'button' },
+    on: { click: (e) => { const b = e.currentTarget; if (b.dataset.target) select(JSON.parse(b.dataset.target)); } },
+  }));
+  const emptyBlock = el('section', { class: 'inspect-empty', attrs: { 'aria-labelledby': 'inspect-empty-title' } },
+    el('p', { class: 'inspect-empty-text', i18n: 'inspect.empty.text', attrs: { id: 'inspect-empty-title' } }),
+    el('h3', { class: 'inspect-label inspect-empty-head', i18n: 'inspect.empty.shortcuts' }),
+    el('ul', { class: 'inspect-shortcuts' }, shortcutButtons.map((b) => el('li', {}, b))));
+  let shortcutsAt = -Infinity;
+  /** Atajos: las tres conexiones con más señal ahora y la salida que decide. Como mucho dos veces por segundo. */
+  function syncShortcuts(trace, now) {
+    if (now - shortcutsAt < 500) return;
+    shortcutsAt = now;
+    const name = (l, j) => neuronLabel(t, net.sizes, l, j);
+    const links = [];
+    for (let l = 1; l < trace.layers.length; l++) {
+      trace.layers[l].neurons.forEach((n, j) => {
+        if (n.off) return;
+        n.products.forEach((p, i) => { if (p !== 0 && !n.offConnections?.[i]) links.push({ l, j, i, p }); });
+      });
+    }
+    links.sort((a, b) => (Math.abs(b.p) - Math.abs(a.p)) || (a.l - b.l) || (a.j - b.j) || (a.i - b.i));
+    const out = trace.layers.length - 1;
+    const outs = trace.layers[out].neurons.map((n, j) => ({ j, on: n.output === 1, total: n.total }));
+    outs.sort((a, b) => (Number(b.on) - Number(a.on)) || (b.total - a.total) || (a.j - b.j));
+    const items = links.slice(0, 3).map((k) => ({
+      target: { layer: k.l, neuron: k.j, input: k.i },
+      text: t('inspect.empty.link', { from: name(k.l - 1, k.i), to: name(k.l, k.j), product: fmt(k.p) }), help: 'inspect.empty.link',
+    }));
+    if (outs.length) items.push({ target: { layer: out, neuron: outs[0].j }, text: t('inspect.empty.output', { name: name(out, outs[0].j) }), help: 'inspect.empty.output' });
+    shortcutButtons.forEach((b, k) => {
+      const it = items[k];
+      b.parentElement.hidden = !it;
+      if (!it) return;
+      write(b, it.text);
+      setData(b, 'target', JSON.stringify(it.target));
+      setData(b, 'help', it.help);
+    });
+  }
   const missionRows = state.missions.missions.map((m) => {
     const status = el('span', { class: 'mission-status' });
     const row = el('li', { class: 'mission inspect-mission' }, el('span', { class: 'mission-name', i18n: `inspect.mission.${m.id}` }), status);
@@ -589,7 +674,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('h2', { class: 'sr-only', i18n: 'inspect.missions.title' }),
     el('ol', { class: 'mission-list inspect-mission-list' }, missionRows.map((r) => r.row)));
   panel.append(el('h1', { class: 'sr-only', i18n: 'inspect.title' }),
-    el('div', { class: 'inspect-panel' }, intro, brainSection, card.node, missions));
+    el('div', { class: 'inspect-panel' }, intro, brainSection, emptyBlock, card.node, linkDetail.node, missions));
 
   const picker = createPicker({
     id: 'inspect-picker', anchor: changeBrain, t,
@@ -665,10 +750,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const count = changes.count;
     setText(changesCount, count === 0 ? 'inspect.changes.none' : 'inspect.changes.count', { value: count });
     setData(changesCount, 'changed', String(count > 0));
-    for (const [b, key] of [[undoButton, 'inspect.undo'], [resetButton, 'inspect.resetNetwork']]) {
+    for (const [b, key] of [[undoButton, 'inspect.undo'], [resetButton, 'inspect.resetNetwork'], [originalButton, 'inspect.original.view']]) {
       setAttr(b, 'aria-disabled', String(count === 0));
       setData(b, 'help', count === 0 ? `${key}.none` : key);
     }
+    if (count === 0 && originalHeld) holdOriginal(false);
     zoomGroup.hidden = state.view !== 'diagram';
     diagram.hidden = state.view !== 'diagram';
     tableZone.hidden = state.view !== 'table';
@@ -709,12 +795,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     displayed.cursor = shownCursor;
     displayed.trace = trace;
     const top = topConnections(net, changes, state.filter);
-    const marks = marksOf();
+    const marks = originalHeld ? { changedWeights: new Set(), changedBiases: new Set() } : marksOf();
     const common = {
       sizes: net.sizes, trace, cursor: shownCursor, selected: picked(), collapsed: state.collapsed, top, marks, filter: state.filter,
       manual: state.manual ? state.manual.map((v) => v !== null) : null,
     };
-    inspector.render({ ...common, animation: anim, visible: state.view === 'diagram', headerRows });
+    inspector.render({ ...common, animation: anim, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
     table.render({ ...common, visible: state.view === 'table', changesVersion: changes.version, filter: state.filter });
     placeOverlay();
     // Nombres accesibles de las neuronas (capa, nombre, valor y estado): dos veces por segundo.
@@ -754,13 +840,37 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     setData(decision.node, 'undecided', String(!decided));
     setText(decisionNote, decided ? (state.manual ? 'inspect.decision.manual' : 'inspect.decision.live') : 'inspect.decision.undecided');
 
-    // Tarjeta de la neurona elegida.
-    show(card.node, Boolean(sel));
-    if (sel) {
+    // Panel (D7): nada elegido, la tarjeta de la neurona o el detalle de la conexión.
+    const isLink = Boolean(sel) && state.connection !== null;
+    show(emptyBlock, !sel);
+    show(card.node, Boolean(sel) && !isLink);
+    show(linkDetail.node, isLink);
+    const shownChanges = originalHeld ? NO_CHANGES : changes;
+    if (!sel) syncShortcuts(trace, now);
+    else shortcutsAt = -Infinity; // al soltar, los atajos se escriben enseguida
+    if (sel && !isLink) {
       card.sync({
-        target: sel, sizes: net.sizes, trace, changes, original: net, cursor: shownCursor,
+        target: sel, sizes: net.sizes, trace, changes: shownChanges, original: net, cursor: shownCursor,
         top: top && sel.layer > 0 ? top[sel.layer][sel.neuron] : null,
         paused, manual: state.manual, connection: state.connection,
+      });
+      show(curve.node, sel.layer > 0);
+      if (sel.layer > 0) {
+        curve.sync({
+          net, inputs: trace.inputs, trace, target: sel, changes: originalHeld ? null : changes,
+          range: (i) => (i === net.sizes[0] - 1 ? [-1, 1] : [0, 1]), draggable: paused && !originalHeld,
+        });
+      }
+    }
+    if (isLink) {
+      const n = trace.layers[sel.layer].neurons[sel.neuron];
+      const i = state.connection;
+      const orig = net.layers[sel.layer - 1].weights[sel.neuron][i];
+      linkDetail.sync({
+        target: { layer: sel.layer, neuron: sel.neuron, input: i },
+        weight: n.weights[i], original: shownChanges.has({ kind: 'weight', layer: sel.layer, neuron: sel.neuron, input: i }) ? orig : null,
+        rangeFrom: orig, input: n.from[i], product: n.products[i], share: linkShare(n, i),
+        off: Boolean(n.offConnections?.[i]), computed: !shownCursor || shownCursor.opsDone(sel.layer, sel.neuron) > 0,
       });
     }
     description.set(t('inspect.scene.description', { track: t(`track.${state.settings.track}`), state: t(paused ? 'inspect.paused' : 'inspect.playing') }));

@@ -30,12 +30,12 @@
 
 ## 4. Detalle en el panel de Inspeccionar
 
-- [ ] 4.1 Panel sin nada elegido: frase y atajos. Verificar "Panel sin nada elegido".
-- [ ] 4.2 Tarjeta de la neurona con barras de lo que aporta, la cuenta escrita y filas que eligen su conexión. Verificar los escenarios de "Tarjeta de la neurona", los de antes y los nuevos.
-- [ ] 4.3 Detalle de una conexión. Verificar "Detalle de una conexión".
-- [ ] 4.4 "Ver original" como botón que se mantiene apretado. Verificar "Comparar con el original".
-- [ ] 4.5 Curva de respuesta en la tarjeta de la neurona: botones de entrada, línea del cero, punto de ahora que se arrastra en pausa, y la frase que la lee. Verificar los escenarios de "Curva de respuesta".
-- [ ] 4.6 Comprobar que "Apagar una parte de la red", "Cambiar pesos y sesgos", "Deshacer y restablecer la red" y las tres misiones siguen cumpliéndose.
+- [x] 4.1 Panel sin nada elegido: frase y atajos. Verificar "Panel sin nada elegido". *Verificado en el navegador: frase y cuatro atajos (tres conexiones con más señal y la salida que decide), se rehacen cada 500 ms como mucho; un atajo elige y al soltar vuelven.*
+- [x] 4.2 Tarjeta de la neurona con barras de lo que aporta, la cuenta escrita y filas que eligen su conexión. Verificar los escenarios de "Tarjeta de la neurona", los de antes y los nuevos. *Barras relativas al mayor producto de la neurona, cuenta escrita al pie y nombres de entrada como botones que eligen la conexión. Cambiar un peso desde la tarjeta ya no cambia lo elegido. Cuánto entra en el panel: ver 4.7.*
+- [x] 4.3 Detalle de una conexión. Verificar "Detalle de una conexión". *Detalle compartido (`src/tabs/shared/connection-detail.js`): extremos como botones, peso con deslizador y campo, original, cuenta de ahora, parte de lo que recibe, apagar. Verificado: deshacer, campo con coma y restablecer.*
+- [x] 4.4 "Ver original" como botón que se mantiene apretado. Verificar "Comparar con el original". *Verificado con mouse (apretado: valores del cerebro y rótulo; al soltar vuelven, los 2 cambios siguen) y con la barra espaciadora (no pone en marcha la reproducción). Sin cambios: sin acción, con su tooltip.*
+- [x] 4.5 Curva de respuesta en la tarjeta de la neurona: botones de entrada, línea del cero, punto de ahora que se arrastra en pausa, y la frase que la lee. Verificar los escenarios de "Curva de respuesta". *`src/tabs/shared/response-curve.js`. Verificado: arranca en la entrada que más aporta y no salta mientras se maneja; recta con su peso en la primera capa, escalones en la salida, línea donde cambia, punto que se arrastra y se mueve con las flechas en pausa. Cuánto entra: ver 4.7.*
+- [x] 4.6 Comprobar que "Apagar una parte de la red", "Cambiar pesos y sesgos", "Deshacer y restablecer la red" y las tres misiones siguen cumpliéndose. *`npm test` en verde (1164) y en el navegador: apagar neurona y conexión, cambiar peso y sesgo, deshacer, restablecer y la misión de la cuenta.*
 - [ ] 4.7 Medir en el DOM a 1440×900 y a 1366×768, en los dos idiomas, el panel con cada forma del detalle (nada, neurona de 6 y de 21 entradas con su curva de respuesta, conexión). Si a 1440×900 el panel se desplaza con una neurona de 6 entradas o con una conexión, **detenerse y consultar** con las medidas y con la alternativa de design.md D17 (alternar "Cuenta | Respuesta").
 
 ## 5. Cambiar en el lugar

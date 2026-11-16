@@ -83,7 +83,7 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
 
   const title = el('h2', { class: 'panel-heading inspect-card-title', attrs: { id: 'inspect-card-title' } });
   const subtitle = el('span', { class: 'inspect-card-sub muted' });
-  const offButton = el('button', { class: 'tool small inspect-off', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => onToggleNeuron() } });
+  const offButton = el('button', { class: 'tool small inspect-off', help: 'inspect.turnOff', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => onToggleNeuron() } });
   const head = el('div', { class: 'inspect-card-head' }, el('div', { class: 'inspect-card-names' }, title, subtitle), offButton);
 
   // Filas (una por entrada)
@@ -147,7 +147,9 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
       el('dd', { class: 'inspect-act' }, actName, graph, actValue)),
     el('div', { class: 'inspect-foot-row inspect-foot-out', dataset: { op: 'output' } }, el('dt', { i18n: 'inspect.card.output', help: 'inspect.card.output' }), outValue));
   const outputRule = el('p', { class: 'caption inspect-output-rule' });
-  const footBlock = el('div', { class: 'inspect-foot-block' }, foot, outputRule, roundNote);
+  // La cuenta escrita (D7): "suma −0,07 + sesgo 0,00 = −0,07 → escalón → 0".
+  const formula = el('p', { class: 'inspect-formula num' });
+  const footBlock = el('div', { class: 'inspect-foot-block' }, formula, foot, outputRule, roundNote);
 
   const node = el('section', { class: 'inspect-card', attrs: { 'aria-labelledby': 'inspect-card-title' } }, head, inputBlock, scroller, footBlock);
 
@@ -162,7 +164,12 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
     rowNodes = new Map();
     const n = sizes[target.layer - 1];
     for (let i = 0; i < n; i++) {
-      const from = el('th', { attrs: { scope: 'row' }, class: 'inspect-from' });
+      // El nombre de la entrada es un botón que elige esa conexión (vista-de-la-red D7).
+      const fromButton = el('button', {
+        class: 'inspect-from-button', help: 'inspect.card.pickLink', dataset: { focus: 'keep' },
+        attrs: { type: 'button' }, on: { click: () => onSelectConnection(i) },
+      });
+      const from = el('th', { attrs: { scope: 'row' }, class: 'inspect-from' }, fromButton);
       const value = el('td', { class: 'num' });
       const weightNum = el('span', { class: 'num inspect-weight-num' });
       const original = el('span', { class: 'inspect-original muted' });
@@ -170,7 +177,7 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
       const slider = el('input', {
         help: 'inspect.weight.slider',
         attrs: { type: 'range', id: sliderId, step: 0.01 },
-        on: { input: (e) => onWeight(i, Number(e.target.value)), focus: () => onSelectConnection(i) },
+        on: { input: (e) => onWeight(i, Number(e.target.value)) },
       });
       const weight = el('td', { class: 'inspect-weight' }, el('span', { class: 'inspect-weight-line' }, weightNum, original), slider);
       const barFill = el('span', { class: 'inspect-bar-fill' });
@@ -180,10 +187,9 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
         class: 'inspect-row-off', help: 'inspect.connection.off', dataset: { focus: 'keep' },
         attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => onToggleConnection(i) },
       }, el('span', { attrs: { 'aria-hidden': 'true' } }, '⏻'));
-      const row = el('tr', { dataset: { input: String(i) }, on: { click: (e) => { if (e.target === row || e.target.closest('th, .num')) onSelectConnection(i); } } },
-        from, value, weight, product, el('td', { class: 'inspect-col-off' }, off));
+      const row = el('tr', { dataset: { input: String(i) } }, from, value, weight, product, el('td', { class: 'inspect-col-off' }, off));
       tbody.append(row);
-      rowNodes.set(i, { row, from, value, weightNum, original, slider, barFill, productNum, off, weight });
+      rowNodes.set(i, { row, from: fromButton, value, weightNum, original, slider, barFill, productNum, off, weight });
     }
     othersRow = el('tr', { class: 'inspect-others' },
       el('th', { attrs: { scope: 'row', colspan: '3' }, class: 'inspect-from' }),
@@ -265,11 +271,17 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
 
     const { rows, others } = cardRows(n.products, top);
     const shown = new Set(rows);
+    // Barras con signo: el largo es relativo al mayor producto de esta neurona (D7).
+    let maxProduct = 0;
+    for (const p of n.products) maxProduct = Math.max(maxProduct, Math.abs(p));
     for (const [i, r] of rowNodes) {
       const visible = shown.has(i);
       if (r.row.hidden === visible) r.row.hidden = !visible;
       if (!visible) continue;
-      write(r.from, neuronLabel(t, sizes, target.layer - 1, i));
+      const fromName = neuronLabel(t, sizes, target.layer - 1, i);
+      write(r.from, fromName);
+      setAttr(r.from, 'aria-label', t('inspect.card.pickLinkLabel', { from: fromName }));
+      setAttr(r.from, 'aria-pressed', String(state.connection === i));
       write(r.value, fmt(n.from[i]));
       const w = n.weights[i];
       write(r.weightNum, fmt(w));
@@ -290,7 +302,7 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
       setData(r.off, 'help', connOff ? 'inspect.connection.on' : 'inspect.connection.off');
       const p = n.products[i];
       write(r.productNum, has(0) ? fmt(p) : '–');
-      const width = has(0) ? `${Math.round(Math.min(1, Math.abs(p)) * 50)}%` : '0%';
+      const width = has(0) && maxProduct > 0 ? `${((Math.abs(p) / maxProduct) * 50).toFixed(1)}%` : '0%';
       if (r.barFill.style.width !== width) r.barFill.style.width = width;
       setData(r.barFill, 'sign', p < 0 ? 'negative' : 'positive');
       setData(r.row, 'selected', String(state.connection === i));
@@ -326,6 +338,10 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
     const out = isOutput ? t(n.output === 1 ? 'inspect.card.yes' : 'inspect.card.no') : fmt(n.output);
     write(outValue, has(3) ? (off ? t('inspect.card.offOutput') : out) : '–');
     for (const row of foot.children) setData(row, 'current', String(row.dataset.op === curOp));
+    write(formula, t('inspect.card.formula', {
+      sum: has(1) ? fmt(n.sum) : '–', bias: has(2) ? fmt(n.bias) : '–', total: has(2) ? fmt(n.total) : '–',
+      activation: activationName(t, n.activation), output: has(3) ? (off ? t('inspect.card.offOutput') : (isOutput ? String(n.output) : fmt(n.output))) : '–',
+    }));
   }
 
   return { node, sync, get scroller() { return scroller; }, get rows() { return rowNodes; } };

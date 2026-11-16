@@ -106,6 +106,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
   pill.setAttribute('tabindex', '0');
   pill.setAttribute('aria-orientation', 'vertical');
   pill.dataset.focus = 'keep';
+  pill.dataset.help = 'inspect.pill';
   pill.hidden = true;
   overlay.append(pill);
 

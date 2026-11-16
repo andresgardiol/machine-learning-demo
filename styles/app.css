@@ -1131,6 +1131,71 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-mission .mission-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inspect-output-rule { margin: var(--space-1) 0 0; font-size: 12px; }
 .inspect-output-rule[hidden] { display: none; }
+/* vista-de-la-red D7: panel sin nada elegido, filas que eligen, cuenta escrita, detalle de una conexión */
+.inspect-empty { flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--space-2); }
+.inspect-empty[hidden], .link-detail[hidden], .curve[hidden], .curve-handle[hidden], .link-now[hidden], .link-share[hidden] { display: none; }
+.inspect-empty-text { margin: 0; font-size: 14px; }
+.inspect-empty-head { margin: 0; }
+.inspect-shortcuts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.inspect-shortcuts li[hidden] { display: none; }
+.inspect-shortcut {
+  width: 100%; min-height: 32px; padding: 4px var(--space-2); text-align: left; font: inherit; font-size: 13px;
+  color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-control-border); border-radius: var(--radius);
+  cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.inspect-shortcut:hover { border-color: var(--color-accent); }
+.inspect-shortcut:focus-visible, .inspect-from-button:focus-visible, .link-end:focus-visible, .curve-chip:focus-visible, .curve-handle:focus-visible, .curve-title:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.inspect-from-button {
+  max-width: 100%; padding: 0; font: inherit; color: var(--color-text); background: none; border: 0; border-bottom: 1px dotted var(--color-text-muted);
+  cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
+}
+.inspect-from-button:hover { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+.inspect-formula { margin: 0 0 var(--space-1); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.link-head { align-items: flex-start; }
+.link-route { margin: 2px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13px; }
+.link-end {
+  padding: 1px 6px; font: inherit; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-control-border);
+  border-radius: 999px; cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.link-end:hover { border-color: var(--color-accent); }
+.link-arrow { color: var(--color-text-muted); }
+.link-body { padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); font-size: 13px; }
+.link-weight-row { display: flex; align-items: baseline; gap: var(--space-2); }
+.link-weight-label { color: var(--color-text-muted); }
+.link-weight { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.link-original { font-size: 12px; }
+.link-weight-row[data-changed="true"] .link-weight::before { content: "◆ "; font-size: 14px; }
+.link-slider-row { display: flex; align-items: center; gap: var(--space-2); }
+.link-slider-row input[type="range"] { flex: 1 1 auto; min-width: 0; height: 24px; margin: 0; accent-color: var(--color-accent); }
+.link-now, .link-share { margin: 0; }
+.link-detail[data-off="true"] .link-weight { text-decoration: line-through; opacity: 0.6; }
+.link-extra:empty { display: none; }
+
+/* Curva de respuesta (D17) */
+.curve { flex: 0 0 auto; padding: var(--space-1) var(--space-2) var(--space-2); border-top: 1px solid var(--color-border); }
+.curve-title { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+.curve-chips { display: flex; gap: 3px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.curve-chip {
+  flex: 0 0 auto; min-width: 28px; min-height: 24px; padding: 0 5px; font: inherit; font-size: 11px; color: var(--color-text-muted);
+  background: transparent; border: 1px solid var(--color-control-border); border-radius: 4px; cursor: pointer;
+}
+.curve-chip[aria-pressed="true"] { color: var(--color-text); border-color: var(--color-accent); background: var(--color-surface); font-weight: 700; }
+.curve-plot { position: relative; margin-top: 4px; }
+.curve-graph { display: block; width: 100%; height: auto; overflow: visible; }
+.curve-frame { fill: none; stroke: var(--color-border); stroke-width: 1; }
+.curve-zero { stroke: var(--color-text-muted); stroke-width: 1; stroke-dasharray: 4 3; }
+.curve-flip { stroke: var(--color-text); stroke-width: 1.2; }
+.curve-line { fill: none; stroke: var(--color-text); stroke-width: 2; }
+.curve-dot { fill: var(--color-network-current); stroke: var(--color-bg); stroke-width: 1.5; }
+.curve-side, .curve-axis { fill: var(--color-text-muted); font-size: 10px; font-family: inherit; font-variant-numeric: tabular-nums; }
+.curve-handle {
+  position: absolute; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%;
+  background: transparent; cursor: ew-resize; touch-action: none;
+}
+.curve[data-draggable="true"] .curve-dot { stroke: var(--color-text); }
+.curve-sentence { margin: 4px 0 0; font-size: 12px; }
+
 
 /* ---- Laboratorio (pestana-laboratorio) -----------------------------------------------------------
    La disposición de Inspeccionar (D1): la red a la izquierda con la operación en curso y la barra de
