@@ -102,7 +102,7 @@ test('mismo blanco: neurona con neurona, conexión con conexión', () => {
 });
 
 // --- vista-de-la-red D3 y D5 -------------------------------------------------------------------
-import { hitTarget, hitLink, segmentDistance } from '../src/render/inspector-layout.js';
+import { hitTarget, hitLink, segmentDistance, linkEnds } from '../src/render/inspector-layout.js';
 
 test('red chica (6, 6, 4) en 708 × 648: cada neurona mide al menos 30 px de radio, sin pasar de 44', () => {
   const l = layoutInspector({ sizes: [6, 6, 4], width: 708, height: 648 });
@@ -178,4 +178,25 @@ test('línea más cercana: a menos de 6 px de varias, la más cercana; con una n
   void p1; void q1;
   // Lejos de toda línea y neurona: nada.
   assert.equal(hitTarget(l, { x: 2, y: 2 }), null);
+});
+
+test('entre capas resumidas: un clic sobre la línea elige la conexión; sobre el cuadrito, la neurona', () => {
+  const l = layoutInspector({ sizes: [21, 11, 11, 4], width: 708, height: 560, collapsed: [true, true, true, true] });
+  const a = linkEnds(l.columns[1], 1)[3];
+  const b = linkEnds(l.columns[2], -1)[7];
+  assert.ok(a.x > l.columns[1].x && b.x < l.columns[2].x, 'las puntas van al borde de los cuadritos que se miran');
+  const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  const hit = hitTarget(l, mid);
+  assert.equal(hit.kind, 'link');
+  assert.equal(hit.layer, 2);
+  // La línea más cercana al punto medio de 3 → 7 es esa (o, si se cruzan justo ahí, una a la misma distancia).
+  const d = segmentDistance(mid, linkEnds(l.columns[1], 1)[hit.input], linkEnds(l.columns[2], -1)[hit.neuron]);
+  assert.ok(d < 1e-9);
+  const sq = l.columns[1].nodes[5];
+  assert.deepEqual(hitTarget(l, { x: sq.x, y: sq.y }), { kind: 'neuron', layer: 1, neuron: 5 });
+  const mixed = layoutInspector({ sizes: [21, 11, 11, 4], width: 708, height: 560, collapsed: [true, false, false, false] });
+  assert.equal(linkEnds(mixed.columns[1], -1), mixed.columns[1].nodes, 'en una capa abierta, el centro de la neurona');
+  const p = linkEnds(mixed.columns[0], 1)[10];
+  const q = mixed.columns[1].nodes[4];
+  assert.equal(hitLink(mixed, { x: p.x + (q.x - p.x) * 0.5, y: p.y + (q.y - p.y) * 0.5 })?.layer, 1, 'de un cuadrito a una neurona abierta');
 });

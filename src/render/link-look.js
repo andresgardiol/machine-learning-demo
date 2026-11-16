@@ -70,6 +70,17 @@ export function linkLook({ weight, maxWeight, product = null, maxProduct = 0, ro
   return { width: minWidth + densityWidthRange(density) * rel, alpha: Math.min(1, alpha), sign, dashed: sign === 'negative' };
 }
 
+/**
+ * Tope de grosor de una línea que llega a un cuadrito o sale de él (conexiones-en-capas-resumidas D2):
+ * no más que la mitad de su lado en pantalla. El piso es 1,5 px, o 1 si el tope queda por debajo de 1,5.
+ * Sin cuadrito (side infinito), el grosor queda como está.
+ */
+export function capToSquare(width, side) {
+  if (!Number.isFinite(side)) return width;
+  const cap = side / 2;
+  return Math.max(cap < 1.5 ? 1 : 1.5, Math.min(width, cap));
+}
+
 /** Mayor |peso| de una red (sin contar los sesgos); 0 si no tiene pesos. */
 export function maxWeightOf(net) {
   let m = 0;

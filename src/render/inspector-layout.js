@@ -128,6 +128,15 @@ export function hitNeuron(layout, point, scale = 1) {
   return best;
 }
 
+/**
+ * Puntas de las líneas de una columna (conexiones-en-capas-resumidas D1): en una capa resumida, el borde
+ * del cuadrito hacia la otra capa (`side` 1: sale a la derecha; −1: llega por la izquierda); si no, el
+ * centro de la neurona.
+ */
+export function linkEnds(col, side) {
+  return col.collapsed ? col.nodes.map((n) => ({ x: n.x + (side * col.side) / 2, y: n.y })) : col.nodes;
+}
+
 /** Distancia de un punto al segmento a–b. */
 export function segmentDistance(p, a, b) {
   const dx = b.x - a.x;
@@ -139,9 +148,9 @@ export function segmentDistance(p, a, b) {
 
 /**
  * Conexión bajo un punto (D5), o null: la más cercana a `linkSlop` px de pantalla o menos. Con una
- * neurona elegida, primero las suyas (las que le entran y las que salen de ella). Las conexiones de
- * una capa resumida no se tocan: son una banda. Devuelve la conexión como en los cambios: `layer` es
- * la capa de destino.
+ * neurona elegida, primero las suyas (las que le entran y las que salen de ella). Entre capas resumidas
+ * también: la línea va del borde de un cuadrito al otro (conexiones-en-capas-resumidas D1 y D3).
+ * Devuelve la conexión como en los cambios: `layer` es la capa de destino.
  * @returns {{layer:number, neuron:number, input:number, distance:number}|null}
  */
 export function hitLink(layout, point, scale = 1, selected = null) {
@@ -150,9 +159,8 @@ export function hitLink(layout, point, scale = 1, selected = null) {
   let bestMine = null;
   const cols = layout.columns;
   for (let l = 1; l < cols.length; l++) {
-    if (cols[l - 1].collapsed || cols[l].collapsed) continue;
-    const from = cols[l - 1].nodes;
-    const to = cols[l].nodes;
+    const from = linkEnds(cols[l - 1], 1);
+    const to = linkEnds(cols[l], -1);
     // Descarte rápido: fuera de la franja entre las dos columnas.
     if (point.x < Math.min(cols[l - 1].x, cols[l].x) - slop || point.x > Math.max(cols[l - 1].x, cols[l].x) + slop) continue;
     for (let j = 0; j < to.length; j++) {

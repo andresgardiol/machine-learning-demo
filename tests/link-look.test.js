@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { linkLook, densityFloor, densityWidthRange, maxWeightOf, maxProductOf, LINK_LOOK } from '../src/render/link-look.js';
+import { linkLook, densityFloor, densityWidthRange, maxWeightOf, maxProductOf, LINK_LOOK, capToSquare } from '../src/render/link-look.js';
 import { traceNetwork } from '../src/core/network-trace.js';
 import { createChanges } from '../src/core/network-changes.js';
 import { EXAMPLE_BRAINS } from '../src/data/example-brains.js';
@@ -103,4 +103,18 @@ test('grosor con 48 conexiones o menos: la más gruesa sigue en 7 px; entre medi
   const mid = linkLook({ weight: 1, maxWeight: 1, density: 152 }).width;
   assert.ok(Math.abs(mid - 5.5) < 1e-9, `${mid}`);
   assert.ok(linkLook({ weight: 1, maxWeight: 1, density: 144 }).width < 7);
+});
+
+test('grosor entre cuadritos: no más que la mitad del lado; el piso es 1,5 o 1 si el tope queda debajo', () => {
+  assert.equal(capToSquare(5.5, 14), 5.5, 'con lado 14 el tope es 7');
+  assert.equal(capToSquare(9, 14), 7);
+  assert.equal(capToSquare(6, 8), 4, 'con lado 8 el tope es 4');
+  assert.equal(capToSquare(1, 8), 1.5, 'el piso de siempre');
+  assert.equal(capToSquare(4, 2.4), 1.2, 'tope por debajo de 1,5: la línea no pasa del tope');
+  assert.equal(capToSquare(0.5, 2.4), 1, 'y nunca baja de 1');
+  assert.equal(capToSquare(4, Infinity), 4, 'sin cuadrito, sin tope');
+  for (const side of [2, 3, 5, 8, 14]) for (const w of [0.5, 1, 2, 5, 9]) {
+    const c = capToSquare(w, side);
+    assert.ok(c <= Math.max(1, side / 2) + 1e-9 && c >= 1, `${w} con lado ${side}: ${c}`);
+  }
 });
