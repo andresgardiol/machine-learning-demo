@@ -66,6 +66,7 @@ test('historia: un cambio a mano queda anotado en su época; reiniciar la vacía
   const r = runOf();
   r.runEpochs(30);
   r.setWeight(1, 0, 1, 2.5);
+  r.setWeight(1, 0, 1, 2.6); // el mismo arrastre, en la misma época: una sola marca
   r.runEpochs(5);
   assert.deepEqual(r.weightHistory(1, 0, 1).manual, [30]);
   assert.deepEqual(r.weightHistory(1, 0, 0).manual, []);
@@ -74,6 +75,38 @@ test('historia: un cambio a mano queda anotado en su época; reiniciar la vacía
   const again = runOf();
   again.runEpochs(30);
   again.setWeight(1, 0, 1, 2.5);
+  again.setWeight(1, 0, 1, 2.6);
   again.runEpochs(5);
   assert.deepEqual(again.weightHistory(1, 0, 1), r.weightHistory(1, 0, 1));
+});
+
+test('mapa de una neurona en la escala del plano: tanh, sigmoide y ReLU van a 0..1 con 0,5 en el medio', async () => {
+  const { mapShade, brightestRegion } = await import('../src/render/plane-view.js');
+  assert.equal(mapShade(-1, 'tanh'), 0);
+  assert.equal(mapShade(0, 'tanh'), 0.5);
+  assert.equal(mapShade(1, 'tanh'), 1);
+  assert.equal(mapShade(0.8, 'sigmoid'), 0.8);
+  assert.equal(mapShade(0, 'relu', 2), 0.5);
+  assert.equal(mapShade(2, 'relu', 2), 1);
+  assert.equal(mapShade(1, 'relu', 0), 0.5);
+  // Dónde se enciende más: la celda mayor, en tercios del plano (fila 0 arriba).
+  const v = new Float32Array(9).fill(0);
+  v[2] = 1;
+  assert.equal(brightestRegion(v, 3), 'top-right');
+  v[2] = 0; v[4] = 1;
+  assert.equal(brightestRegion(v, 3), 'center');
+  v[4] = 0; v[7] = 1;
+  assert.equal(brightestRegion(v, 3), 'bottom');
+});
+
+test('dibujo de la historia de un peso: empieza en la época 0 con el valor inicial y marca los cambios a mano', async () => {
+  const { historyModel } = await import('../src/tabs/shared/weight-history.js');
+  assert.equal(historyModel({ initial: 0.1, points: [], manual: [] }), null);
+  const m = historyModel({ initial: -0.5, points: [{ epoch: 1, value: 0 }, { epoch: 2, value: 0.5 }], manual: [1] });
+  assert.equal(m.last, 2);
+  assert.ok(m.lo < -0.5 && m.hi > 0.5);
+  assert.ok(m.d.startsWith('M'));
+  assert.equal(m.d.split('L').length, 3);
+  assert.deepEqual(m.marks, [1]);
+  assert.ok(m.yOf(0.5) < m.yOf(-0.5), 'arriba, los valores más altos');
 });

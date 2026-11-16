@@ -129,6 +129,8 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
   let samples = []; // { epoch, values }
   let stride = 1;
   const manualMarks = []; // { epoch, key }
+  /** Anota un cambio a mano; un arrastre entero en la misma época es una sola marca. */
+  const markManual = (epoch, key) => { if (!manualMarks.some((m) => m.epoch === epoch && m.key === key)) manualMarks.push({ epoch, key }); };
   let warn = { active: false, since: null, appearances: 0 }; // aviso de sobreajuste (no es fijo)
   const events = []; // { epoch, kind: 'appeared' | 'retired' }
   const size = practice.length;
@@ -229,7 +231,7 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
       const next = copyNetwork(net);
       next.layers[l - 1].weights[j][i] = value;
       net = next;
-      manualMarks.push({ epoch, key: `${l}:${j}:${i}` });
+      markManual(epoch, `${l}:${j}:${i}`);
       changed();
       return true;
     },
@@ -240,7 +242,7 @@ export function createLearningRun({ network, practice, heldOut = [], rate, seed 
       const next = copyNetwork(net);
       next.layers[l - 1].biases[j] = value;
       net = next;
-      manualMarks.push({ epoch, key: `${l}:${j}:bias` });
+      markManual(epoch, `${l}:${j}:bias`);
       changed();
       return true;
     },

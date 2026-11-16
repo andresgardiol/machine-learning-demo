@@ -49,6 +49,11 @@ import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS } from './defaults.js';
 import { createDataTable } from './data-table.js';
 import { createManualChanges } from './manual-changes.js';
 import { createCompactNeuronCard, weightRange } from '../shared/neuron-card.js';
+import { neuronGrid } from '../../core/backprop.js';
+import { createResponseCurve } from '../shared/response-curve.js';
+import { createConnectionDetail } from '../shared/connection-detail.js';
+import { createWeightHistory } from '../shared/weight-history.js';
+import { PLANE_GRID, PLANE_FPS, mapShade, brightestRegion } from '../../render/plane-view.js';
 
 /** Semilla del tráfico de la escena (con tu manejo). */
 export const SEED = 1;
@@ -93,6 +98,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       collapsed: [],
       shapeKey: '',
       selected: null, // el Laboratorio abre sin neurona elegida (D15)
+      cardView: 'count', // con tu manejo: "Cuenta" o "Respuesta" en la tarjeta (vista-de-la-red D17), recordada
       manual: createManualChanges(),
       missions: createLabMissions({ completed: completedMissions }),
       recorder: createRecorder({ sensors: DEFAULT_SENSORS }),
@@ -114,6 +120,33 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   let announcedAppearances = 0;
   let version = -1;
   let changesVersion = 0;
+  let hovered = null; // neurona o conexión bajo el cursor (vista previa del plano, D12)
+  // Mapas de las neuronas (D12): la grilla de 50 × 50 que pinta el plano, una vez para todas las
+  // neuronas, recalculada como mucho 15 veces por segundo, cuando la red cambia.
+  const maps = { key: null, at: -Infinity, grid: null, canvases: [] };
+  function refreshMaps() {
+    if (!isPoints()) return null;
+    const key = `${session.version}:${changesVersion}:${run().network.sizes.join('-')}`;
+    const now = performance.now();
+    if (maps.grid && (key === maps.key || now - maps.at < 1000 / PLANE_FPS) && maps.grid.layers.length === run().network.sizes.length) return maps;
+    const net = run().network;
+    maps.grid = neuronGrid(net, PLANE_GRID, run().off);
+    maps.key = key;
+    maps.at = now;
+    maps.canvases = maps.grid.layers.map((layer, l) => (!layer || l === net.sizes.length - 1 ? null : layer.map((values, j) => {
+      const c = maps.canvases[l]?.[j] ?? Object.assign(document.createElement('canvas'), { width: PLANE_GRID, height: PLANE_GRID });
+      plane.paintMap(c, values, mapToY(values));
+      return c;
+    })));
+    return maps;
+  }
+  /** Escala de un mapa de neurona oculta a la del plano (ReLU, relativa a su mayor valor). */
+  function mapToY(values) {
+    const act = run().network.activation;
+    let max = 0;
+    if (act === 'relu') for (const v of values) if (v > max) max = v;
+    return (v) => mapShade(v, act, max);
+  }
   let recording = false;
   let world = null;
   let worldKey = '';
@@ -174,6 +207,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     container: diagram, i18n,
     onSelect: (target) => select(target),
     onViewChange: () => { layoutKey = ''; },
+    onHover: (h) => { hovered = h; },
     // Pastilla sobre la conexión elegida (D8): un arrastre es un solo cambio a mano, que se deshace.
     onPill: {
       change: (value, info) => {
@@ -191,6 +225,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   let tableHeaders = [];
   let neuronButtons = [];
   const nameOf = (l, j) => neuronName(t, ctx(), l, j);
+  /** "Oculta 1 · neurona 2": la capa y la neurona, para el rótulo del plano. */
+  const placeNameOf = (l, j) => `${layerName(t, l, run().network.sizes.length)} · ${nameOf(l, j)}`;
   const labels = {
     input: (i) => nameOf(0, i),
     output: (j) => nameOf(run().network.sizes.length - 1, j),
@@ -272,6 +308,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     sync();
     if (was) neuronButtons[was.layer]?.[was.neuron]?.focus({ preventScroll: true });
   }
+  /** Con puntos, dónde se enciende más una neurona oculta (lo que el mapa dice con color, D12). */
+  function mapRegionText(l, j) {
+    const values = isPoints() && l > 0 && l < run().network.sizes.length - 1 ? maps.grid?.layers[l]?.[j] : null;
+    return values ? `. ${t('lab.aria.map', { where: t(`lab.region.${brightestRegion(values, PLANE_GRID)}`) }).replace(/^./, (c) => c.toUpperCase())}` : '';
+  }
   function labelNeuron(b, l, j) {
     const shown = displayed.trace;
     const n = shown?.layers[l]?.neurons[j];
@@ -279,7 +320,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const value = !n ? '–' : l === 0 || !c || c.opsDone(l, j) === 4 ? fmt(n.output) : t('inspect.aria.pending');
     const blame = displayed.learning?.blame(l, j);
     const extra = (blame === null || blame === undefined ? '' : `. ${t('lab.aria.blame', { value: fmt(blame) })}`)
-      + (run().isOff(l, j) ? `. ${t('inspect.aria.off').replace(/^./, (c) => c.toUpperCase())}` : '');
+      + (run().isOff(l, j) ? `. ${t('inspect.aria.off').replace(/^./, (c) => c.toUpperCase())}` : '')
+      + mapRegionText(l, j);
     const label = t('inspect.aria.neuron', { layer: layerName(t, l, run().network.sizes.length), name: nameOf(l, j), value }) + extra;
     if (b.getAttribute('aria-label') !== label) b.setAttribute('aria-label', label);
     b.setAttribute('aria-pressed', String(Boolean(state.selected) && state.selected.layer === l && state.selected.neuron === j));
@@ -483,9 +525,41 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     },
     onClose: () => deselect(),
   });
+  // Con tu manejo, la tarjeta tiene dos vistas (D17): "Cuenta" y "Respuesta" (la curva). Con puntos no:
+  // el mapa del plano ya dice qué detecta cada neurona.
+  const curve = createResponseCurve({
+    i18n, idPrefix: 'lab',
+    names: (i) => nameOf(0, i),
+    shortNames: (i) => (i === run().network.sizes[0] - 1 ? t('inspect.curve.chip.speed') : t('inspect.curve.chip.sensor', { n: i + 1 })),
+    onDrag: null,
+  });
+  card.node.append(curve.node);
+  const viewTabs = ['count', 'response'].map((v) => el('button', {
+    class: 'segment', i18n: `inspect.cardView.${v}`, help: `inspect.cardView.${v}`, dataset: { view: v, focus: 'keep' },
+    attrs: { type: 'button', 'aria-pressed': 'false' },
+    on: { click: () => { state.cardView = v; draw(); } },
+  }));
+  const viewSwitch = el('div', { class: 'segments inspect-card-views', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.cardView.label' }, viewTabs);
+  card.node.insertBefore(viewSwitch, card.node.children[1]);
+  // Detalle de una conexión (D7 y D12): el cambio va a la red que aprende y cuenta como un cambio a mano.
+  const linkDetail = createConnectionDetail({
+    i18n, idPrefix: 'lab', base: 3, names: (l, j) => nameOf(l, j),
+    onSelectNeuron: (target) => select(target),
+    onWeight: (v, info) => {
+      const sel = state.selected;
+      if (sel && sel.input !== undefined) manualChange(() => run().setWeight(sel.layer, sel.neuron, sel.input, v), info.gesture);
+    },
+    onGestureEnd: () => state.manual.end(),
+    onToggle: () => {
+      const sel = state.selected;
+      if (sel && sel.input !== undefined) manualChange(() => run().setOff({ kind: 'connection', layer: sel.layer, neuron: sel.neuron, input: sel.input }, !run().isOff(sel.layer, sel.neuron, sel.input)), null);
+    },
+  });
+  const history = createWeightHistory({ i18n, idPrefix: 'lab' });
+  linkDetail.extra.append(history.node);
   // Al final del panel, debajo de las misiones: elegir una neurona no mueve ningún ajuste (D15).
   panel.append(el('h1', { class: 'sr-only', i18n: 'lab.title' }),
-    el('div', { class: 'inspect-panel lab-panel' }, intro, netSection, learnSection, actions, saveMessage, teacherSection, missions, card.node));
+    el('div', { class: 'inspect-panel lab-panel' }, intro, netSection, learnSection, actions, saveMessage, teacherSection, missions, card.node, linkDetail.node));
 
   const picker = createPicker({
     id: 'lab-picker', anchor: changeTeacher, t,
@@ -866,7 +940,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     setData(undoButton, 'help', state.manual.canUndo ? 'lab.undo' : 'lab.undo.none');
     setAttr(resetChangesButton, 'aria-disabled', String(count === 0));
     setData(resetChangesButton, 'help', count === 0 ? 'lab.resetChanges.none' : 'lab.resetChanges');
-    show(card.node, Boolean(state.selected));
+    const isLink = Boolean(state.selected) && state.selected.input !== undefined;
+    show(card.node, Boolean(state.selected) && !isLink);
+    show(linkDetail.node, isLink);
     // Con la tarjeta abierta, la guía y las misiones no se muestran (consulta 13.6): siempre, en cualquier
     // tamaño. Las misiones siguen contando y vuelven con su progreso al cerrarla.
     show(intro, !state.selected);
@@ -1041,7 +1117,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       name: t('inspect.pill.label', { from: nameOf(sel.layer - 1, sel.input), to: nameOf(sel.layer, sel.neuron) }),
       help: 'inspect.pill',
     } : null;
-    inspector.render({ ...common, pill, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
+    const m = refreshMaps();
+    const mapsFn = m ? (l, j) => m.canvases[l]?.[j] ?? null : null;
+    inspector.render({ ...common, pill, maps: mapsFn, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
     table.render({ ...common, visible: state.view === 'table', changesVersion: `${changesVersion}|${anim ? now : ''}`, filter: state.filter });
     placeOverlay();
     if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
@@ -1055,13 +1133,47 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       write(opText, text);
     }
     write(where, whereText({ t, run: r, ctx: ctx(), running }));
-    if (state.selected) card.sync({ target: state.selected, sizes, network: a ? r.shownNetwork() : r.network, isOff: (l, j, i = null) => r.isOff(l, j, i) });
+    const selNow = state.selected;
+    if (selNow && selNow.input === undefined) {
+      card.sync({ target: selNow, sizes, network: a ? r.shownNetwork() : r.network, isOff: (l, j, i = null) => r.isOff(l, j, i) });
+      const hasViews = !isPoints() && selNow.layer > 0;
+      show(viewSwitch, hasViews);
+      const view = hasViews ? state.cardView : 'count';
+      setData(card.node, 'view', view);
+      for (const b of viewTabs) setAttr(b, 'aria-pressed', String(b.dataset.view === view));
+      show(curve.node, view === 'response');
+      if (view === 'response') {
+        const inputs = trace.inputs ?? trace.layers[0].neurons.map((n) => n.raw ?? n.output);
+        curve.sync({
+          net: a ? r.shownNetwork() : r.network, inputs, trace, target: selNow, off: r.off, soft: true,
+          range: (i) => (i === sizes[0] - 1 ? [-1, 1] : [0, 1]), draggable: false,
+        });
+      }
+    }
+    if (selNow && selNow.input !== undefined) {
+      const net = a ? r.shownNetwork() : r.network;
+      const w = net.layers[selNow.layer - 1].weights[selNow.neuron][selNow.input];
+      linkDetail.sync({
+        target: selNow, weight: w, original: null, rangeFrom: w, input: null, product: null, share: null,
+        off: r.isOff(selNow.layer, selNow.neuron, selNow.input),
+      });
+      history.sync(r.weightHistory(selNow.layer, selNow.neuron, selNow.input), w);
+    }
 
     // Tablero
     const highlight = a ? a.index : null;
     if (isPoints()) {
       const indexInData = highlight === null ? null : session.data.examples.indexOf(session.split.practice[highlight]);
-      plane.render({ network: r.network, off: r.off, version: `${session.version}:${changesVersion}`, examples: session.data.examples, held: session.split.held, highlight: indexInData, selected: state.selectedRow, force: planeForce });
+      // El plano muestra lo elegido (D12): el mapa de la neurona oculta bajo el cursor o elegida, o lo que
+      // contesta la red; el rótulo dice cuál.
+      const L = r.network.sizes.length - 1;
+      const isHidden = (x) => x && x.input === undefined && x.layer > 0 && x.layer < L;
+      const focus = isHidden(hovered) ? hovered : isHidden(state.selected) ? state.selected : null;
+      const mg = focus ? refreshMaps() : null;
+      const values = mg?.grid.layers[focus.layer]?.[focus.neuron] ?? null;
+      const map = values ? { key: `${focus.layer}:${focus.neuron}`, values, toY: mapToY(values) } : null;
+      const label = map ? t('lab.plane.neuron', { name: placeNameOf(focus.layer, focus.neuron) }) : t('lab.plane.network');
+      plane.render({ network: r.network, off: r.off, version: `${session.version}:${changesVersion}`, examples: session.data.examples, held: session.split.held, highlight: indexInData, selected: state.selectedRow, force: planeForce, map, label });
       planeForce = false;
     } else {
       const sensorsCount = (recording ? DEFAULT_SENSORS : session.sensors).count;

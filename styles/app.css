@@ -1103,6 +1103,17 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Tarjeta completa de Inspeccionar: la lista nunca con menos de cuatro filas de alto (D17). */
 .inspect-card:not(.lab-card) .inspect-rows-scroll { min-height: calc(22px + 4 * 31px); }
 .inspect-card[data-view="response"] .inspect-rows-scroll, .inspect-card[data-view="response"] .inspect-foot-block { display: none; }
+.inspect-card[data-view="response"] .lab-card-bias { display: none; }
+/* Historia de un peso (D12) */
+.history { padding-top: var(--space-1); border-top: 1px solid var(--color-border); }
+.history-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.history-title { margin: 0; font-size: 13px; font-weight: 600; }
+.history-title:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.history-now { font-size: 13px; }
+.history-empty { margin: 4px 0 0; }
+.history-empty[hidden] { display: none; }
+.history-graph { display: block; width: 100%; height: auto; margin-top: 4px; overflow: visible; }
+.history-mark { fill: var(--color-text); stroke: var(--color-bg); stroke-width: 1; }
 .inspect-card-views { flex: 0 0 auto; margin: var(--space-1) var(--space-2) 0; align-self: flex-start; }
 .inspect-card-views[hidden] { display: none; }
 .inspect-card-views .segment { min-height: 26px; }

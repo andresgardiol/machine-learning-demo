@@ -26,6 +26,29 @@ export function planeGrid(net, n = PLANE_GRID, off = null) {
 /** Color y opacidad del fondo para una respuesta: la clase que elegiría y la seguridad (0 en 0,5, 1 en 0 o 1). */
 export const cellShade = (y) => ({ cls: y > 0.5 ? 'a' : 'b', alpha: Math.min(1, Math.abs(y - 0.5) * 2) });
 
+/**
+ * Valor de una neurona oculta llevado a la escala del plano (0 a 1, con 0,5 en el medio), para pintar su
+ * mapa con los mismos colores (vista-de-la-red D12): tanh va de −1 a 1, sigmoide de 0 a 1, y ReLU de 0
+ * a su mayor valor en el plano (`max`).
+ */
+export function mapShade(value, activation, max = 1) {
+  if (activation === 'tanh') return (value + 1) / 2;
+  if (activation === 'relu') return max > 0 ? 0.5 + 0.5 * Math.min(1, value / max) : 0.5;
+  return value; // sigmoide (y la salida)
+}
+
+/** Dónde se enciende más un mapa: 'top-left', 'top', …, 'center', …, 'bottom-right' (para el lector de pantalla). */
+export function brightestRegion(values, size) {
+  let best = 0;
+  for (let k = 1; k < values.length; k++) if (values[k] > values[best]) best = k;
+  const row = Math.floor(best / size);
+  const col = best % size;
+  const third = (v) => (v < size / 3 ? 0 : v < (2 * size) / 3 ? 1 : 2);
+  const v = ['top', '', 'bottom'][third(row)];
+  const h = ['left', '', 'right'][third(col)];
+  return v && h ? `${v}-${h}` : v || h || 'center';
+}
+
 const hexToRgb = (hex) => {
   const h = hex.replace('#', '').trim();
   const v = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
@@ -72,7 +95,24 @@ export function createPlaneView({ container, doc = document, now = () => perform
   observer.observe(container);
   resize();
 
-  function paintGrid(net, off) {
+  /** Pinta `values` (respuestas de 0 a 1 por celda) en `img` con los colores del plano. */
+  function paintValues(img, values, toY = (v) => v) {
+    const A = hexToRgb(colors.a);
+    const B = hexToRgb(colors.b);
+    const BG = hexToRgb(colors.bg);
+    for (let k = 0; k < values.length; k++) {
+      const { cls, alpha } = cellShade(toY(values[k]));
+      const C = cls === 'a' ? A : B;
+      const a = 0.12 + 0.5 * alpha;
+      img.data[k * 4] = Math.round(BG[0] + (C[0] - BG[0]) * a);
+      img.data[k * 4 + 1] = Math.round(BG[1] + (C[1] - BG[1]) * a);
+      img.data[k * 4 + 2] = Math.round(BG[2] + (C[2] - BG[2]) * a);
+      img.data[k * 4 + 3] = 255;
+    }
+  }
+
+  function paintGrid(net, off, map) {
+    if (map) { paintValues(image, map.values, map.toY); gctx.putImageData(image, 0, 0); return; }
     const values = planeGrid(net, PLANE_GRID, off);
     const A = hexToRgb(colors.a);
     const B = hexToRgb(colors.b);
@@ -98,13 +138,17 @@ export function createPlaneView({ container, doc = document, now = () => perform
    * @param {number|null} [state.highlight] índice del ejemplo en curso
    * @param {boolean} [state.force] repintar el fondo ya
    * @param {number|null} [state.selected] índice del punto elegido en la tabla de datos (anillo continuo)
+   * @param {{key:string, values:Float32Array, toY:(v:number)=>number}|null} [state.map] mapa de una neurona
+   *   oculta para el fondo, en lugar de lo que contesta la red (D12)
+   * @param {string} [state.label] rótulo sobre el plano: de quién es el fondo
    */
   function render(state) {
     if (size.w <= 1) resize();
     const t = now();
-    const key = state.version;
-    if (state.force || (key !== gridKey && t - lastGrid >= 1000 / PLANE_FPS)) {
-      paintGrid(state.network, state.off ?? null);
+    const key = `${state.version}|${state.map?.key ?? 'red'}`;
+    const mapChanged = gridKey !== null && String(gridKey).split('|')[1] !== (state.map?.key ?? 'red');
+    if (state.force || mapChanged || (key !== gridKey && t - lastGrid >= 1000 / PLANE_FPS)) {
+      paintGrid(state.network, state.off ?? null, state.map ?? null);
       gridKey = key;
       lastGrid = t;
     }
@@ -154,6 +198,21 @@ export function createPlaneView({ container, doc = document, now = () => perform
       ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2);
       ctx.stroke();
     }
+    if (state.label) {
+      // Rótulo: de quién es el fondo (D12). Es lo que evita un modo oculto.
+      ctx.font = `600 12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+      const tw = ctx.measureText(state.label).width + 12;
+      const bx = ox + 6;
+      const by = oy + 6;
+      ctx.globalAlpha = 0.88;
+      ctx.fillStyle = colors.bg;
+      ctx.fillRect(bx, by, Math.min(tw, side - 12), 20);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = colors.text;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(state.label, bx + 6, by + 10.5, side - 24);
+    }
     if (state.highlight !== null && state.highlight !== undefined && state.examples[state.highlight]) {
       const ex = state.examples[state.highlight];
       const p = toPx(ex.inputs[0], ex.inputs[1]);
@@ -167,9 +226,18 @@ export function createPlaneView({ container, doc = document, now = () => perform
     }
   }
 
+  /** Pinta el mapa de una neurona en `target` (un canvas de PLANE_GRID × PLANE_GRID), con los colores del plano. */
+  function paintMap(target, values, toY) {
+    const c = target.getContext('2d');
+    const img = c.createImageData(PLANE_GRID, PLANE_GRID);
+    paintValues(img, values, toY);
+    c.putImageData(img, 0, 0);
+  }
+
   return {
     canvas,
     render,
+    paintMap,
     refreshColors() { colors = readColors(); gridKey = null; },
     dispose() { observer.disconnect(); canvas.remove(); },
   };
