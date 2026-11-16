@@ -408,9 +408,21 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const zoomIn = el('button', { class: 'tool small inspect-zoom', i18n: 'camera.zoomIn', help: 'inspect.zoomIn', i18nAttr: 'aria-label:camera.zoomIn.label', attrs: { type: 'button' }, on: { click: () => inspector.zoomIn() } });
   const zoomReset = el('button', { class: 'tool small inspect-zoom-reset', i18n: 'inspect.zoomReset', help: 'inspect.zoomReset', attrs: { type: 'button' }, on: { click: () => inspector.resetView() } });
   const zoomGroup = el('div', { class: 'inspect-zoom-group', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.zoom.label' }, zoomOut, zoomIn, zoomReset);
-  const controls = el('div', { class: 'inspect-controls' },
-    el('div', { class: 'inspect-row' }, netTitle, viewGroup, filterGroup),
-    el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetButton, originalButton), zoomGroup));
+  const topRow = el('div', { class: 'inspect-row' }, netTitle, viewGroup, filterGroup);
+  const editsRow = el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetButton, originalButton), zoomGroup);
+  const controls = el('div', { class: 'inspect-controls' }, topRow, editsRow);
+  // Ventana angosta (D18): con la red por debajo de 600 px, los botones de acercar pasan detrás del
+  // filtro de conexiones, así los dos grupos comparten renglón cuando la barra se parte. Desde 600 px,
+  // vuelven al segundo renglón (la barra en dos renglones, como siempre).
+  const NARROW_BAR = 600;
+  const placeZoom = () => {
+    const narrow = controls.clientWidth > 0 && controls.getBoundingClientRect().width < NARROW_BAR;
+    const parent = narrow ? topRow : editsRow;
+    if (zoomGroup.parentElement !== parent) parent.append(zoomGroup);
+    setData(controls, 'narrow', String(narrow));
+  };
+  const barObserver = new ResizeObserver(() => placeZoom());
+  barObserver.observe(controls);
 
   // Red: diagrama y tabla, en la misma zona.
   const area = el('div', {
@@ -1058,6 +1070,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       picker.dispose();
       scenario.dispose();
       description.dispose();
+      barObserver.disconnect();
       inspector.dispose();
       table.dispose();
       sceneView.dispose();

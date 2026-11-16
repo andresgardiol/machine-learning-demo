@@ -316,6 +316,14 @@ entrada va de 0 a 1 y las demás quedan como están.
   - la cuenta escrita sigue en un segundo renglón en vez de cortarse;
   - la tarjeta no deja salir nada de su borde;
   - los botones del detalle miden 24 px de alto o más (hoy 18 y 22).
+- **Deslizador de cada fila (segunda vuelta, mirando las capturas de la
+  4.10):** con las filas en un renglón el deslizador del peso quedó sin
+  recorrido (unos 20 px en un panel de 268). Pasa a un segundo renglón que
+  se abre solo en la fila cuyo peso tiene el foco o recibió un clic, a todo
+  el ancho de la fila (120 px o más). El deslizador de cada fila sigue
+  estando para el teclado: llegar con Tab abre su renglón. Una sola fila
+  abierta por vez. La barra del producto va debajo o al costado del número,
+  no encima.
 - **Dibujo:** el gráfico compartido, o un dibujo propio chico si el
   compartido no admite la línea del cero y el punto arrastrable.
 
@@ -330,8 +338,16 @@ de tablero, la escena en 155 px, los botones de decisión en dos columnas de
 - El mínimo de la red pasa a ser el menor entre 600 y lo que deja la ventana
   con el tablero en 280 px, sin bajar de 440. Las neuronas ya se achican con
   el lugar (D3).
-- **[Sin medir]** Cómo queda la barra de arriba de la red entre 440 y 600
-  px. Se mide en la 4.10; si pasa de tres renglones, se consulta.
+- **Medido en la 4.10:** a 1100×800 quedan red 508, tablero 280 y panel
+  300 (antes 600 y 188); a 960×800, red 440 y tablero 208 (antes 600 y 48).
+  A 960 los tres mínimos no entran (440 + 280 + 300 = 1020 contra 948
+  útiles): el escenario "Ventana angosta" vale desde 1032 px; más angosto,
+  el tablero se queda con lo que sobra.
+- **Barra de arriba:** a 508 px ocupaba 4 renglones en español porque los
+  botones de acercar caían solos al último. Van en el mismo renglón que el
+  filtro de conexiones (215 + 149 px, entran hasta en 440): tres renglones
+  desde 500 px de red, cuatro a 440. No se mueve ningún control a otro
+  lugar ni cambia ningún texto.
 
 ### D19. Lo que está en curso es del tamaño del paso
 

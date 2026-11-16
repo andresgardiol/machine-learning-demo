@@ -58,6 +58,7 @@ El resto de las notas de este archivo no tiene orden fijo.
   así que lo que se mejore sirve a las dos pestañas.
 
 - **Vista de la red: ideas sin medir.** Del cambio `vista-de-la-red`:
+  - Laboratorio en ventana angosta: tiene el mismo mínimo de 600 px de red que Inspeccionar tenía antes de D18 y no se midió angosto (consulta 4.10).
   - Elegir líneas en un cruce: preferir la más visible (mayor |peso| o brillo) entre las que quedan a menos de 1,5 px de la más cercana (consulta 3.5, alternativa B; no se implementó).
 
 - **Inspeccionar: lo que quedó sin medir o consultado.** Del cambio

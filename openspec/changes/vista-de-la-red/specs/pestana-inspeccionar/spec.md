@@ -56,8 +56,16 @@ red MUST ceder ancho antes de que el tablero deje de leerse.
 - **THEN** el foco pasa por la red y sus controles, después por el tablero y al final por el panel
 
 #### Scenario: Ventana angosta
-- **WHEN** la ventana mide entre 960 y 1240 píxeles de ancho
+- **WHEN** la ventana mide entre 1032 y 1240 píxeles de ancho
 - **THEN** el tablero mide al menos 280 píxeles, la red cede ancho sin bajar de 440, y los nombres de las cuatro decisiones se leen enteros
+
+#### Scenario: Ventana en su mínimo
+- **WHEN** la ventana mide entre 960 y 1032 píxeles de ancho
+- **THEN** la red mide 440 píxeles, el tablero se queda con lo que sobra, no menos de 200, y los nombres de las cuatro decisiones se leen enteros
+
+#### Scenario: Barra de arriba en ventana angosta
+- **WHEN** la zona de la red mide entre 500 y 600 píxeles de ancho, en español o en inglés
+- **THEN** sus controles de arriba ocupan tres renglones o menos, con los botones de acercar en el mismo renglón que el filtro de conexiones; con 440 píxeles, cuatro o menos
 
 ### Requirement: Tarjeta de la neurona
 Con una neurona elegida, el panel SHALL mostrar su cuenta real, y es donde
@@ -129,6 +137,14 @@ valores SHALL actualizarse en el momento.
 #### Scenario: Nada se encima
 - **WHEN** el panel muestra cualquier detalle, con cualquier ancho de panel y alto de ventana que la aplicación permita
 - **THEN** ninguna parte del detalle tapa a otra ni a las misiones, y nada sale del borde de la tarjeta
+
+#### Scenario: Deslizador que se puede usar
+- **WHEN** la persona hace clic en el peso de una fila o llega a él con Tab
+- **THEN** esa fila muestra debajo un deslizador de al menos 120 píxeles de ancho, y las demás filas siguen en un renglón
+
+#### Scenario: Barra y número
+- **WHEN** la persona mira el producto de una fila
+- **THEN** la barra de lo que aporta no pasa por encima del número
 
 #### Scenario: Controles que se pueden apuntar
 - **WHEN** la persona mira los botones del detalle de una neurona o de una conexión
