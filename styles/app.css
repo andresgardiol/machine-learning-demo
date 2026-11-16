@@ -1381,8 +1381,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .lab-card [hidden] { display: none; }
 .lab-card-input { margin: var(--space-2); }
 .lab-card-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-.lab-card-rows thead th:nth-child(1) { width: 30%; }
-.lab-card-rows thead th:nth-child(3) { width: 4.2em; }
+.lab-card-rows thead th:nth-child(1) { width: 55%; }
+.lab-card-slider-box { display: flex; align-items: center; gap: var(--space-2); }
+.lab-card-slider-box input[type="range"] { flex: 1 1 auto; min-width: 120px; height: 24px; margin: 0; accent-color: var(--color-accent); }
 .lab-card-slider input[type="range"] { display: block; width: 100%; height: 24px; margin: 0; accent-color: var(--color-accent); }
 .lab-card-field { width: 4.2em; min-height: 24px; box-sizing: border-box; padding: 1px 3px; font: inherit; font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-control-border); border-radius: 4px; }
 .lab-card-bias { flex: 0 0 auto; display: grid; grid-template-columns: auto minmax(0, 1fr) 4.2em; align-items: center; gap: var(--space-2); padding: 4px var(--space-2); border-top: 1px solid var(--color-border); font-size: 13px; }

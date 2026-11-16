@@ -418,8 +418,7 @@ export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onB
   const table = el('table', { class: 'inspect-rows lab-card-rows', attrs: { 'aria-labelledby': titleId } },
     el('thead', {}, el('tr', {},
       el('th', { attrs: { scope: 'col' }, i18n: 'inspect.card.from', help: 'inspect.card.from' }),
-      el('th', { attrs: { scope: 'col' }, i18n: 'inspect.card.weight', help: 'lab.card.weight' }),
-      el('th', { class: 'num', attrs: { scope: 'col' } }, el('span', { class: 'sr-only', i18n: 'lab.card.typed' })),
+      el('th', { class: 'num', attrs: { scope: 'col' }, i18n: 'inspect.card.weight', help: 'lab.card.weight' }),
       el('th', { class: 'inspect-col-off', attrs: { scope: 'col' } }, el('span', { class: 'sr-only', i18n: 'inspect.card.offColumn' })))),
     tbody);
   const scroller = el('div', { class: 'inspect-rows-scroll lab-card-scroll' }, table);
@@ -454,10 +453,17 @@ export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onB
   }
   wire(biasSlider, biasField, () => `b:${key}`, (v, info) => onBias(v, info));
 
+  let openInput = null;
+  function openRow(i) {
+    if (openInput === i) return;
+    openInput = i;
+    rows.forEach((r, k) => { r.sliderRow.hidden = k !== i; r.weightButton.setAttribute('aria-expanded', String(k === i)); });
+  }
   function build(state) {
     const { target, sizes } = state;
     tbody.replaceChildren();
     rows = [];
+    openInput = null;
     if (target.layer === 0) return;
     for (let i = 0; i < sizes[target.layer - 1]; i++) {
       const from = el('th', { attrs: { scope: 'row' }, class: 'inspect-from' });
@@ -468,10 +474,23 @@ export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onB
         class: 'inspect-row-off', help: 'lab.card.connectionOff', dataset: { focus: 'keep' },
         attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => onToggleConnection(i) },
       }, el('span', { attrs: { 'aria-hidden': 'true' } }, '⏻'));
-      const row = el('tr', { dataset: { input: String(i) } }, from, el('td', { class: 'lab-card-slider' }, slider), el('td', { class: 'num' }, field), el('td', { class: 'inspect-col-off' }, off));
+      // Como en Inspeccionar (vista-de-la-red D17, 4.12): el peso es un botón; al hacerle clic o llegar con
+      // Tab, la fila abre debajo un renglón con su deslizador a todo el ancho y su campo. Una por vez.
+      const weightNum = el('span', { class: 'num inspect-weight-num' });
+      const weightButton = el('button', {
+        class: 'inspect-weight-open', help: 'inspect.weight.open', dataset: { focus: 'keep' },
+        attrs: { type: 'button', 'aria-expanded': 'false', 'aria-controls': `${idPrefix}-w-row-${i}` },
+        on: { click: () => { openRow(i); slider.focus({ preventScroll: true }); }, focus: () => openRow(i) },
+      }, el('span', { class: 'inspect-weight-line' }, weightNum));
+      slider.addEventListener('focus', () => openRow(i));
+      field.addEventListener('focus', () => openRow(i));
+      const row = el('tr', { dataset: { input: String(i) } }, from, el('td', { class: 'inspect-weight' }, weightButton), el('td', { class: 'inspect-col-off' }, off));
+      const sliderRow = el('tr', { class: 'inspect-slider-row', attrs: { id: `${idPrefix}-w-row-${i}` } },
+        el('td', { attrs: { colspan: '3' } }, el('div', { class: 'lab-card-slider-box' }, slider, field)));
+      sliderRow.hidden = true;
       wire(slider, field, () => `w:${key}:${i}`, (v, info) => onWeight(i, v, info));
-      tbody.append(row);
-      rows.push({ row, from, slider, field, off });
+      tbody.append(row, sliderRow);
+      rows.push({ row, sliderRow, weightButton, weightNum, from, slider, field, off });
     }
     i18n.translateTree(table);
   }
@@ -507,6 +526,8 @@ export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onB
     rows.forEach((r, i) => {
       const w = layer.weights[target.neuron][i];
       write(r.from, names(target.layer - 1, i));
+      write(r.weightNum, fmt(w));
+      setAttr(r.weightButton, 'aria-label', t('inspect.weight.openLabel', { from: names(target.layer - 1, i), value: fmt(w) }));
       const range = weightRange(w, base);
       setAttr(r.slider, 'min', String(range.min));
       setAttr(r.slider, 'max', String(range.max));

@@ -1696,7 +1696,6 @@ export default {
   'lab.card.inputNote': 'An input has no weights of its own: it receives a value. The weights going out of it are in the next layer’s neurons.',
   'help.lab.card.weight.what': 'The weight of each connection reaching this neuron. Change it with the slider, from −3 to 3, or by typing it.',
   'help.lab.card.weight.why': 'Changing a weight is what learning does, but by hand: you see what happens and how the network corrects it again.',
-  'lab.card.typed': 'Typed value',
   'help.lab.card.slider.what': 'Changes this weight by hand, from −3 to 3. With the arrows, 0.01 at a time. It applies to the learning network.',
   'help.lab.card.slider.why': 'While you move it the plane and the table change; if the network is learning, it keeps correcting from that value.',
   'help.lab.card.field.what': 'Type a number and press Enter to set that exact value.',

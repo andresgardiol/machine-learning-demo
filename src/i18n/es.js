@@ -1696,7 +1696,6 @@ export default {
   'lab.card.inputNote': 'Una entrada no tiene pesos propios: recibe un dato. Los pesos que salen de ella están en las neuronas de la capa siguiente.',
   'help.lab.card.weight.what': 'El peso de cada conexión que llega a esta neurona. Se cambia con el deslizador, de −3 a 3, o escribiéndolo.',
   'help.lab.card.weight.why': 'Cambiar un peso es lo que hace el aprendizaje, pero a mano: se ve qué pasa y cómo la red lo vuelve a corregir.',
-  'lab.card.typed': 'Valor escrito',
   'help.lab.card.slider.what': 'Cambia este peso a mano, de −3 a 3. Con las flechas, de a 0,01. Se aplica a la red que aprende.',
   'help.lab.card.slider.why': 'Mientras se mueve cambian el plano y la tabla; si la red aprende, lo sigue corrigiendo desde ese valor.',
   'help.lab.card.field.what': 'Escribí un número y apretá Enter para poner ese valor exacto.',
