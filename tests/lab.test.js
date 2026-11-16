@@ -256,3 +256,23 @@ test('curvas: con miles de épocas se dibujan como mucho unos 300 puntos, con la
   assert.ok(p.some((e) => e.epoch === 4321));
   assert.equal(chartPoints(h.slice(0, 50)).length, 50);
 });
+
+test('filtro de conexiones del Laboratorio (vista-de-la-red D21): con 1, cada neurona conserva una sola conexión de entrada, la de mayor peso', async () => {
+  const { topConnections } = await import('../src/core/network-changes.js');
+  const { createNetwork } = await import('../src/core/network.js');
+  const { createRandom } = await import('../src/core/random.js');
+  const net = createNetwork({ inputs: 2, hidden: [4], outputs: 1, activation: 'tanh', random: createRandom(5) });
+  const top = topConnections(net, null, 1);
+  for (let l = 1; l < net.sizes.length; l++) {
+    top[l].forEach((set, j) => {
+      assert.equal(set.size, 1);
+      const row = net.layers[l - 1].weights[j].map(Math.abs);
+      assert.ok(set.has(row.indexOf(Math.max(...row))));
+    });
+  }
+  // Sigue a los pesos: si otra conexión pasa a ser la mayor, el filtro la toma.
+  const before = [...topConnections(net, null, 1)[1][0]][0];
+  net.layers[0].weights[0][1 - before] = 10;
+  assert.equal([...topConnections(net, null, 1)[1][0]][0], 1 - before);
+  assert.equal(topConnections(net, null, 'all'), null);
+});

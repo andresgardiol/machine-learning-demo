@@ -349,6 +349,21 @@ de tablero, la escena en 155 px, los botones de decisión en dos columnas de
   desde 500 px de red, cuatro a 440. No se mueve ningún control a otro
   lugar ni cambia ningún texto.
 
+### D21. El filtro de conexiones no llegaba al diagrama del Laboratorio
+
+Visto por el dueño el 16 de noviembre de 2026: en el Laboratorio, pasar de
+"Todas" a 5, 3 o 1 no cambia nada. Causa, leída en el código:
+`src/tabs/lab/index.js` arma lo que le pasa al inspector con `top: null` y
+sin `filter`; solo la tabla recibe `filter`. Ya era así en `main`: el
+control estaba desde que se hizo el Laboratorio y nunca tuvo efecto en el
+diagrama.
+
+- El Laboratorio calcula las conexiones de mayor peso igual que
+  Inspeccionar (`topConnections`) con la red de ahora, y le pasa al
+  inspector `top` y `filter`. Se recalcula cuando cambian los pesos.
+- Con una red por defecto de 2, 4 y 1, "5" no puede cambiar nada: ninguna
+  neurona tiene más de 5 entradas. Es lo esperado; se nota con 1 y con 3.
+
 ### D20. En el Laboratorio, la curva va al tablero
 
 Decisión del dueño el 16 de noviembre de 2026, sobre la consulta 9.6. Con

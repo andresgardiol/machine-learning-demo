@@ -121,6 +121,32 @@ nombre, deslizador y valor. Nada MUST encimarse ni salir de su caja.
 - **WHEN** la persona elige una conexión, con puntos o con tu manejo
 - **THEN** el detalle de la conexión se ve entero en el panel, con todos los ajustes a la vista
 
+### Requirement: Filtro de conexiones en el Laboratorio
+El filtro de conexiones del Laboratorio SHALL valer en el diagrama igual que
+en la tabla de pesos: con 5, 3 o 1, cada neurona muestra con su aspecto solo
+sus conexiones de entrada de mayor peso y las demás quedan atenuadas. MUST
+seguir a los pesos mientras la red aprende.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña
+- **THEN** el filtro está en todas y ninguna conexión está atenuada por el filtro
+
+#### Scenario: La más importante
+- **WHEN** la red es de 2, 4 y 1 y la persona elige 1
+- **THEN** en el diagrama cada neurona oculta conserva una sola conexión de entrada con su aspecto y la salida una sola, y las otras se ven atenuadas
+
+#### Scenario: Sin efecto, se nota
+- **WHEN** la persona elige 5 y ninguna neurona tiene más de 5 entradas
+- **THEN** el diagrama no cambia, que es lo esperado, y el tooltip del filtro dice que deja las de mayor peso de cada neurona
+
+#### Scenario: Sigue al aprendizaje
+- **WHEN** el filtro está en 1 y la red aprende hasta que otra conexión de una neurona pasa a ser la de mayor peso
+- **THEN** el diagrama pasa a mostrar esa
+
+#### Scenario: Con algo elegido
+- **WHEN** hay una neurona elegida y el filtro está en 3
+- **THEN** el camino hacia atrás se limita a las 3 que más aportan, igual que en Inspeccionar
+
 ### Requirement: Detalle de una conexión en el Laboratorio
 Al elegir una conexión, el panel SHALL mostrar su detalle en el lugar de la
 tarjeta: de dónde a dónde va, su peso para cambiarlo, apagarla o encenderla,

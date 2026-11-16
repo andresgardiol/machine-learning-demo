@@ -50,6 +50,7 @@ import { createDataTable } from './data-table.js';
 import { createManualChanges } from './manual-changes.js';
 import { createCompactNeuronCard, weightRange } from '../shared/neuron-card.js';
 import { neuronGrid } from '../../core/backprop.js';
+import { topConnections } from '../../core/network-changes.js';
 import { createResponseCurve } from '../shared/response-curve.js';
 import { createConnectionDetail } from '../shared/connection-detail.js';
 import { createWeightHistory } from '../shared/weight-history.js';
@@ -1118,7 +1119,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     displayed.trace = trace;
     displayed.learning = learning;
     const forwardAnim = anim ? { items: anim.items.filter((x) => x.phase === 'forward') } : null;
-    const common = { sizes, trace, cursor, selected: state.selected, collapsed: state.collapsed, top: null, labels, learning };
+    // Filtro de conexiones (vista-de-la-red D21): las de mayor peso de cada neurona, con la red de ahora
+    // (sigue a los pesos mientras aprende). Antes no llegaba al diagrama.
+    const top = topConnections(a ? r.shownNetwork() : r.network, null, state.filter);
+    const common = { sizes, trace, cursor, selected: state.selected, collapsed: state.collapsed, top, filter: state.filter, labels, learning };
     const sel = state.selected;
     const pill = sel && sel.input !== undefined ? {
       ...weightRange(r.network.layers[sel.layer - 1].weights[sel.neuron][sel.input], 3),

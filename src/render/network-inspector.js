@@ -144,6 +144,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
   let flowLast = null;
   let pillInfo = null; // { target, value, min, max, name }
   let relatedNow = new Set(); // conexiones relacionadas en el último dibujo (verificación)
+  let filteredNow = 0; // conexiones atenuadas por el filtro en el último dibujo (verificación)
 
   function readColors() {
     const style = getComputedStyle(doc.documentElement);
@@ -438,6 +439,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     for (let l = 1; l < C; l++) trace.layers[l].neurons.forEach((n, j) => { if (computedProducts(l, j)) for (const p of n.products) { const a = Math.abs(p); if (a > maxProduct) maxProduct = a; } });
     const groups = new Map();
     relatedNow = new Set();
+    filteredNow = 0;
     const zeroSegs = [];
     const offSegs = [];
     const changedAt = [];
@@ -467,6 +469,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
           const offConn = n.offConnections?.[i] || trace.layers[l - 1].neurons[i].off;
           if (offConn) { offSegs.push(a.x, a.y, b.x, b.y); continue; }
           const filtered = top && top[l] && !top[l][j].has(i);
+          if (filtered && !related) filteredNow += 1;
           const role = related ? 'related' : anyFocus ? 'unrelated' : filtered ? 'filtered' : 'normal';
           const look = linkLook({
             weight: n.weights[i], maxWeight, product: shown ? n.products[i] : null, maxProduct,
@@ -1109,6 +1112,8 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     get flow() { return lastState?.flow ?? 'off'; },
     /** Conexiones que se dibujaron como relacionadas en el último cuadro ('l:j:i'; verificación desde la consola). */
     get related() { return new Set(relatedNow); },
+    /** Cuántas conexiones se dibujaron atenuadas por el filtro en el último cuadro (verificación). */
+    get filteredCount() { return filteredNow; },
     /** Lo que está bajo el cursor (vista previa), o null. */
     get hover() { return hover; },
     /** Simula el cursor en un punto de la zona (verificación desde la consola). */
