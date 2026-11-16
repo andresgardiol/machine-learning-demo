@@ -63,26 +63,39 @@ export function flowCounts(products, total = FLOW.marks) {
 
 /**
  * Lo que está en curso en un recorrido paso a paso, del tamaño del paso (D19), y las conexiones que
- * cuentan como relacionadas por eso. Con operación o neurona, la neurona de `cursor.next`; con capa, su
- * capa entera; con cuadro, nada (ni durante su animación). Durante la animación de un paso, también las
- * conexiones que entran a cada neurona que se anima. Puro, para las pruebas.
- * @param {{sizes:number[], cursor:object|null, stepSize?:string, animation?:{items:{layer:number, neuron:number}[]}|null}} p
- * @returns {{current:{kind:'neuron', layer:number, neuron:number}|{kind:'layer', layer:number}|null, links:Set<string>}}
+ * cuentan como relacionadas por eso. Con neurona, la neurona de `cursor.next`; con capa, su capa entera;
+ * con cuadro, nada (ni durante su animación). Con operación y un cursor que dice qué entradas van hechas
+ * (`terms`), una sola conexión cuando la próxima es multiplicar o sumar (operacion-por-operacion D5); si
+ * no, la neurona. Durante la animación de un paso, también las conexiones de lo que se anima. Puro, para
+ * las pruebas.
+ * @param {{sizes:number[], cursor:object|null, stepSize?:string, animation?:{items:{layer:number, neuron:number, op?:string, input?:number}[]}|null}} p
+ * @returns {{current:{kind:'neuron', layer:number, neuron:number}|{kind:'layer', layer:number}|{kind:'connection', layer:number, neuron:number, input:number}|null, links:Set<string>}}
  */
 export function inProgress({ sizes, cursor, stepSize, animation = null }) {
   const links = new Set();
   if (stepSize === 'frame') return { current: null, links }; // de a cuadros nada se atenúa por el recorrido
   const incoming = (l, j) => { if (l >= 1 && l < sizes.length) for (let i = 0; i < sizes[l - 1]; i++) links.add(`${l}:${j}:${i}`); };
+  const fine = stepSize === 'operation' && typeof cursor?.terms === 'function';
   let current = null;
   if (cursor && !cursor.done) {
     const next = cursor.next;
-    current = stepSize === 'layer' ? { kind: 'layer', layer: next.layer } : { kind: 'neuron', layer: next.layer, neuron: next.neuron };
+    if (stepSize === 'layer') current = { kind: 'layer', layer: next.layer };
+    else if (fine && (next.op === 'multiply' || next.op === 'add')) current = { kind: 'connection', layer: next.layer, neuron: next.neuron, input: next.input };
+    else current = { kind: 'neuron', layer: next.layer, neuron: next.neuron };
   }
   if (current?.kind === 'layer') for (let j = 0; j < sizes[current.layer]; j++) incoming(current.layer, j);
+  else if (current?.kind === 'connection') links.add(`${current.layer}:${current.neuron}:${current.input}`);
   else if (current) incoming(current.layer, current.neuron);
-  for (const it of animation?.items ?? []) incoming(it.layer, it.neuron);
+  for (const it of animation?.items ?? []) {
+    if (it.input !== undefined && (it.op === 'multiply' || it.op === 'add')) links.add(`${it.layer}:${it.neuron}:${it.input}`);
+    else if (it.inputs) for (const i of it.inputs) links.add(`${it.layer}:${it.neuron}:${i}`);
+    else incoming(it.layer, it.neuron);
+  }
   return { current, links };
 }
+
+/** Suma de los aportes de las primeras `k` entradas, en orden (la suma hasta acá). */
+export const partialSum = (n, k) => { let x = 0; for (let q = 0; q < k; q++) x += n.products[q]; return x; };
 
 /** Mismo blanco: dos elecciones (neurona o conexión) iguales. */
 export const sameTarget = (a, b) => Boolean(a && b) && a.layer === b.layer && a.neuron === b.neuron && (a.input ?? null) === (b.input ?? null);
@@ -397,14 +410,23 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     const C = sizes.length;
     const selected = state.selected ?? null;
     if (hover && !trace.layers[hover.layer]?.neurons[hover.neuron]) hover = null;
-    const focus = hover ?? selected; // vista previa: como si estuviera elegida, sin perder lo elegido
     const progress = inProgress({ sizes, cursor, stepSize: state.stepSize, animation: state.animation });
     const current = progress.current;
+    // Vista previa: como si estuviera elegida, sin perder lo elegido. De a operaciones, la neurona en curso
+    // (que la tarjeta sigue) no destaca todas sus conexiones: solo la de la operación (D5).
+    const sameAsCurrent = (t) => current?.kind === 'connection' && t && t.input === undefined && t.layer === current.layer && t.neuron === current.neuron;
+    const focus = hover ?? (sameAsCurrent(selected) ? null : selected);
     const top = state.top ?? null;
     const marks = state.marks ?? { changedWeights: new Set(), changedBiases: new Set() };
     const animated = new Map();
     for (const it of state.animation?.items ?? []) animated.set(`${it.layer}:${it.neuron}`, it);
     const computedProducts = (l, j) => !cursor || cursor.opsDone(l, j) > 0;
+    // Con un cursor que dice qué entradas van multiplicadas (operacion-por-operacion D5), el aporte de
+    // cada conexión se ve desde que se multiplica; sin él (Laboratorio), todos juntos como siempre.
+    const termsOf = typeof cursor?.terms === 'function' ? (l, j) => cursor.terms(l, j) : null;
+    const linkShown = (l, j, i) => (termsOf ? !cursor || i < termsOf(l, j).multiplied : computedProducts(l, j));
+    // La neurona de la conexión en curso: sus demás conexiones no se atenúan.
+    const curLinkNeuron = current?.kind === 'connection' ? `${current.layer}:${current.neuron}` : null;
 
     // Relacionado con lo que se mira (D2, D5 y D9).
     const direct = new Set(); // 'l:j:i' de las conexiones directas de lo enfocado
@@ -436,7 +458,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     // Conexiones
     const maxWeight = maxWeightOfTrace(trace);
     let maxProduct = 0;
-    for (let l = 1; l < C; l++) trace.layers[l].neurons.forEach((n, j) => { if (computedProducts(l, j)) for (const p of n.products) { const a = Math.abs(p); if (a > maxProduct) maxProduct = a; } });
+    for (let l = 1; l < C; l++) trace.layers[l].neurons.forEach((n, j) => { n.products.forEach((p, i) => { if (linkShown(l, j, i)) { const a = Math.abs(p); if (a > maxProduct) maxProduct = a; } }); });
     const groups = new Map();
     relatedNow = new Set();
     filteredNow = 0;
@@ -455,8 +477,9 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       const density = sizes[l] * sizes[l - 1];
       for (let j = 0; j < neurons.length; j++) {
         const n = neurons[j];
-        const shown = computedProducts(l, j);
+        const sameNeuron = curLinkNeuron === `${l}:${j}`;
         for (let i = 0; i < n.weights.length; i++) {
+          const shown = linkShown(l, j, i);
           const key = `${l}:${j}:${i}`;
           const isDirect = direct.has(key);
           const importance = back?.links.get(key);
@@ -470,7 +493,9 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
           if (offConn) { offSegs.push(a.x, a.y, b.x, b.y); continue; }
           const filtered = top && top[l] && !top[l][j].has(i);
           if (filtered && !related) filteredNow += 1;
-          const role = related ? 'related' : anyFocus ? 'unrelated' : filtered ? 'filtered' : 'normal';
+          // De a operaciones, las demás conexiones de la neurona en curso se ven normales: las sumadas con su
+          // aporte y las que faltan como sin calcular (D5).
+          const role = related ? 'related' : sameNeuron ? (filtered ? 'filtered' : 'normal') : anyFocus ? 'unrelated' : filtered ? 'filtered' : 'normal';
           const look = linkLook({
             weight: n.weights[i], maxWeight, product: shown ? n.products[i] : null, maxProduct,
             // Lo que está en el camino hacia atrás no se atenúa por el filtro, aunque no esté entre las de
@@ -504,21 +529,25 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
 
     drawFlow(state.flow ?? 'off', flowLinks);
 
-    // Animación de los productos: una marca por conexión que viaja hasta la neurona (D7b).
+    // Animación de los aportes: una marca por conexión que viaja hasta la neurona (D7b). De a operaciones,
+    // por una sola conexión: multiplicar la lleva hasta la neurona; sumar la hace entrar.
     for (const it of animated.values()) {
-      if (it.op !== 'products' && it.op !== 'sum') continue;
+      const fineOp = it.op === 'multiply' || it.op === 'add';
+      if (it.op !== 'products' && it.op !== 'sum' && !fineOp) continue;
       const n = trace.layers[it.layer]?.neurons[it.neuron];
       if (!n) continue;
       const to = P[it.layer][it.neuron];
-      const k = it.op === 'products' ? it.p : 1;
-      for (let i = 0; i < n.products.length; i++) {
+      const entering = it.op === 'sum' || it.op === 'add';
+      const k = entering ? 1 : it.p;
+      const which = fineOp ? [it.input] : (it.inputs ?? n.products.map((_, q) => q));
+      for (const i of which) {
         const prod = n.products[i];
         if (prod === 0 && (n.offConnections?.[i])) continue;
         const from = P[it.layer - 1][i];
-        const at = it.op === 'sum' ? { x: to.x + (from.x - to.x) * (1 - it.p) * 0.15, y: to.y + (from.y - to.y) * (1 - it.p) * 0.15 }
+        const at = entering ? { x: to.x + (from.x - to.x) * (1 - it.p) * 0.15, y: to.y + (from.y - to.y) * (1 - it.p) * 0.15 }
           : { x: from.x + (to.x - from.x) * k, y: from.y + (to.y - from.y) * k };
-        const size = 1.5 + Math.min(5, Math.sqrt(Math.abs(prod)) * 5);
-        ctx.globalAlpha = it.op === 'sum' ? 1 - it.p * 0.8 : 0.95;
+        const size = (fineOp ? 3 : 1.5) + Math.min(5, Math.sqrt(Math.abs(prod)) * 5);
+        ctx.globalAlpha = entering ? 1 - it.p * 0.8 : 0.95;
         ctx.fillStyle = prod < 0 ? colors.negative : colors.positive;
         ctx.beginPath();
         ctx.arc(at.x, at.y, size, 0, Math.PI * 2);
@@ -538,15 +567,16 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
         const ops = cursor ? cursor.opsDone(c, i) : 4;
         const anim = animated.get(`${c}:${i}`);
         const computed = ops === 4;
+        const filling = anim && (anim.op === 'activation' || anim.op === 'read');
         let level = computed ? activity(n.output) : 0;
-        if (anim && anim.op === 'activation') level = activity(n.output) * anim.p;
+        if (filling) level = activity(n.output) * anim.p;
         const bias = c === 0 ? undefined : n.bias;
-        const st = { computed: computed || (anim && anim.op === 'activation'), biasShown: c > 0 && (ops >= 3 || (anim && anim.op === 'bias')) };
+        const st = { computed: computed || filling, biasShown: c > 0 && (ops >= 3 || (anim && anim.op === 'bias')) };
         if (col.collapsed) drawSquare(p, col.side * z, level, bias, n, st, maxWeight);
         else {
           const map = state.maps && c > 0 && c < C - 1 && r >= INSIDE.map ? state.maps(c, i) : null;
-          drawNode(p, r, level, bias, n, st, anim, maxWeight, map);
-          if (computed || c === 0) drawInside(p, r, n, c, level, Boolean(map));
+          drawNode(p, r, level, bias, n, st, filling ? { ...anim, op: 'activation' } : anim, maxWeight, map);
+          if (computed) drawInside(p, r, n, c, level, Boolean(map));
         }
         if (n.off) {
           const rr = col.collapsed ? (col.side * z) / 2 : r;
@@ -560,11 +590,16 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
         }
         if (c > 0 && marks.changedBiases.has(`${c}:${i}`)) diamond({ x: p.x + r * 0.75, y: p.y - r * 0.75 }, 4.5, colors.text);
         if (anim && anim.op === 'sum') {
-          // La suma que se va juntando: los productos ya sumados, en orden (los reales).
-          const k = Math.round(anim.p * n.products.length);
-          let partial = 0;
-          for (let q = 0; q < k; q++) partial += n.products[q];
-          labelBox(fmt(partial), { x: p.x, y: p.y - r - 12 });
+          // La suma que se va juntando: los aportes ya sumados, en orden (los reales).
+          const first = anim.inputs?.[0] ?? 0;
+          const count = anim.inputs?.length ?? n.products.length;
+          labelBox(fmt(partialSum(n, first + Math.round(anim.p * count))), { x: p.x, y: p.y - r - 12 });
+        } else if (termsOf && c > 0 && !col.collapsed) {
+          // De a operaciones: la suma hasta acá junto a la neurona, desde el primer sumar hasta el sesgo (D5).
+          const tm = termsOf(c, i);
+          let added = tm.added;
+          if (anim && anim.op === 'add' && anim.p >= 0.5) added = anim.input + 1; // la marca entró: el rótulo cambia
+          if (added >= 1 && !tm.bias && !(anim && anim.op === 'bias')) sumLabel(i18n.t('inspect.diagram.partial', { value: fmt(partialSum(n, added)) }), { x: p.x, y: p.y - r - 12 });
         }
       }
     }
@@ -587,6 +622,11 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       ctx.setLineDash([]);
     };
     if (current?.kind === 'neuron') ring(current, colors.current, [4, 3], 7);
+    if (current?.kind === 'connection') {
+      // Una sola conexión en curso, con sus dos extremos (D5).
+      ring({ layer: current.layer, neuron: current.neuron }, colors.current, [4, 3], 7);
+      ring({ layer: current.layer - 1, neuron: current.input }, colors.current, [4, 3], 5, 2);
+    }
     if (current?.kind === 'layer') {
       // Capa en curso: un solo marco punteado alrededor de la columna (D19).
       const col = layout.columns[current.layer];
@@ -632,7 +672,8 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       ctx.fillText(labels ? labels.output(lab.index) : i18n.t(`network.output.${lab.key}`), p.x + r + 8, p.y);
     }
     if (state.learning) drawLearning(state.learning, P, r, C, layout, z);
-    drawLinkNumbers(selected, trace, P, layout, Boolean(state.pill));
+    drawLinkNumbers(selected, trace, P, layout, Boolean(state.pill), termsOf);
+    if (current?.kind === 'connection') drawLinkMath(current, trace, P, layout, cursor);
     placePill(state, P, trace);
     if (state.banner) bannerBox(state.banner);
     drawReadout(state, P, r, cursor, labels);
@@ -740,11 +781,21 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     ctx.globalAlpha = 1;
   }
 
-  /** Números sobre las conexiones de lo elegido (D?): los pesos, sin encimarse; los que no entran se leen con el cursor. */
-  function drawLinkNumbers(selected, trace, P, lay, hasPill) {
+  /**
+   * Números sobre las conexiones de lo elegido: los pesos, sin encimarse; los que no entran se leen con el
+   * cursor. De a operaciones, en una neurona a medio calcular (operacion-por-operacion D5), los aportes de
+   * las ya multiplicadas y nada en las que faltan; la conexión en curso lleva su cuenta aparte.
+   */
+  function drawLinkNumbers(selected, trace, P, lay, hasPill, termsOf = null) {
     if (!selected) return;
     const items = [];
-    if (selected.input !== undefined) {
+    const midway = termsOf && selected.input === undefined && selected.layer > 0 ? termsOf(selected.layer, selected.neuron) : null;
+    if (midway && midway.multiplied > 0 && !midway.activation) {
+      if (lay.columns[selected.layer].collapsed || lay.columns[selected.layer - 1].collapsed) return;
+      const n = trace.layers[selected.layer].neurons[selected.neuron];
+      // Las ya sumadas, con su aporte; la que se multiplicó y falta sumar lleva la cuenta en curso.
+      for (let i = 0; i < midway.added; i++) items.push({ a: P[selected.layer - 1][i], b: P[selected.layer][selected.neuron], w: n.products[i] });
+    } else if (selected.input !== undefined) {
       if (hasPill) return; // la pastilla ya muestra su peso
       const n = trace.layers[selected.layer]?.neurons[selected.neuron];
       if (n) items.push({ a: P[selected.layer - 1][selected.input], b: P[selected.layer][selected.neuron], w: n.weights[selected.input] });
@@ -783,6 +834,66 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       ctx.fillText(text, x, y + 0.5);
     }
     ctx.textAlign = 'left';
+  }
+
+  /**
+   * La cuenta sobre la conexión en curso (operacion-por-operacion D5): "valor × peso" mientras falta
+   * multiplicar y el aporte cuando ya se multiplicó. En una capa resumida no se escribe.
+   */
+  function drawLinkMath(current, trace, P, lay, cursor) {
+    const { layer, neuron, input } = current;
+    if (lay.columns[layer]?.collapsed || lay.columns[layer - 1]?.collapsed) return;
+    const n = trace.layers[layer]?.neurons[neuron];
+    if (!n) return;
+    const multiplied = cursor.terms(layer, neuron).multiplied > input;
+    const text = multiplied ? i18n.t('inspect.diagram.contribution', { value: fmt(n.products[input]) }) : `${fmt(n.from[input])} × ${fmt(n.weights[input])}`;
+    const a = P[layer - 1][input];
+    const b = P[layer][neuron];
+    // Al costado de la línea (del lado de arriba), para que la marca que viaja por ella se vea.
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const side = dx >= 0 ? 1 : -1;
+    const x = a.x + dx * 0.5 + (dy / len) * 14 * side;
+    const y = a.y + dy * 0.5 - (dx / len) * 14 * side;
+    ctx.font = `600 12px ${FONT}`;
+    const w = ctx.measureText(text).width + 12;
+    const box = { x: Math.max(2, Math.min(viewport.width - w - 2, x - w / 2)), y: Math.max(2, Math.min(viewport.height - 22, y - 10)), w, h: 20 };
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = colors.bg;
+    ctx.fillRect(box.x, box.y, box.w, box.h);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = colors.current;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(box.x + 1, box.y + 1, box.w - 2, box.h - 2);
+    ctx.setLineDash([]);
+    ctx.fillStyle = colors.text;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, box.x + box.w / 2, box.y + box.h / 2 + 0.5);
+    ctx.textAlign = 'left';
+  }
+
+  /** Rótulo de la suma hasta acá junto a una neurona: con borde punteado, para no confundirlo con un peso. */
+  function sumLabel(text, p) {
+    ctx.font = `12px ${FONT}`;
+    const w = ctx.measureText(text).width + 10;
+    const x = Math.max(2, Math.min(viewport.width - w - 2, p.x - w / 2));
+    const y = Math.max(2, Math.min(viewport.height - 20, p.y - 9));
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = colors.bg;
+    ctx.fillRect(x, y, w, 18);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = colors.text;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 2]);
+    ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 17);
+    ctx.setLineDash([]);
+    ctx.fillStyle = colors.text;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + 5, y + 9.5);
   }
 
   /** Pastilla sobre la conexión elegida (D8), en su punto medio. */
@@ -839,17 +950,17 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     const nameOf = (x) => (labels?.neuron ? labels.neuron(x) : neuronName(x, sizes));
     if (t.input !== undefined) {
       const n = trace.layers[t.layer].neurons[t.neuron];
-      const shown = !cursor || cursor.opsDone(t.layer, t.neuron) > 0;
+      const shown = !cursor || (typeof cursor.terms === 'function' ? t.input < cursor.terms(t.layer, t.neuron).multiplied : cursor.opsDone(t.layer, t.neuron) > 0);
       return i18n.t('inspect.readout.link', {
         from: nameOf({ layer: t.layer - 1, neuron: t.input }), to: nameOf({ layer: t.layer, neuron: t.neuron }),
         weight: fmt(n.weights[t.input]), product: shown ? fmt(n.products[t.input]) : '–',
       });
     }
     const n = trace.layers[t.layer].neurons[t.neuron];
-    const done = t.layer === 0 || !cursor || cursor.opsDone(t.layer, t.neuron) === 4;
+    const done = !cursor || cursor.opsDone(t.layer, t.neuron) === 4;
     const blame = learning?.blame(t.layer, t.neuron);
     const extra = blame === null || blame === undefined ? '' : ` · ${i18n.t('lab.term.blame')} ${fmt(blame)}`;
-    if (t.layer === 0) return i18n.t('inspect.readout.input', { name: nameOf(t), value: fmt(n.output) }) + extra;
+    if (t.layer === 0) return i18n.t('inspect.readout.input', { name: nameOf(t), value: done ? fmt(n.output) : '–' }) + extra;
     return i18n.t('inspect.readout.neuron', {
       name: nameOf(t), value: done ? fmt(n.output) : '–', sum: done ? fmt(n.sum) : '–', bias: fmt(n.bias),
     }) + extra;
@@ -1032,9 +1143,10 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     ctx.beginPath();
     ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
     if (bias === undefined) {
+      // Una entrada: contorno liso; sin leer todavía, punteado como lo que falta calcular.
       ctx.strokeStyle = colors.node;
-      ctx.lineWidth = 1;
-      ctx.setLineDash([]);
+      ctx.lineWidth = computed ? 1 : 1.2;
+      ctx.setLineDash(computed ? [] : [2, 3]);
     } else if (!computed && !biasShown) {
       ctx.strokeStyle = colors.node;
       ctx.lineWidth = 1.2;
@@ -1064,7 +1176,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     ctx.lineWidth = 1;
     if (bias === undefined || !computed) {
       ctx.strokeStyle = colors.node;
-      ctx.setLineDash(computed || bias === undefined ? [] : [2, 2]);
+      ctx.setLineDash(computed ? [] : [2, 2]);
     } else {
       const s = biasStroke(bias, maxWeight);
       ctx.strokeStyle = s.color;

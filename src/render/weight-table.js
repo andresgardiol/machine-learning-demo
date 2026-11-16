@@ -150,9 +150,12 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
         if (thead.hidden !== isCollapsed) thead.hidden = isCollapsed;
         trace.layers[0].neurons.forEach((n, i) => {
           const s = T.strip[i];
-          const h = `${Math.round(activity(n.output) * 100)}%`;
+          // Una entrada sin leer todavía (operacion-por-operacion D3) se ve sin valor.
+          const read = !cursor || cursor.opsDone(0, i) === 4;
+          const h = `${Math.round((read ? activity(n.output) : 0) * 100)}%`;
           if (s.fill.style.height !== h) s.fill.style.height = h;
-          write(s.text, isCollapsed ? '' : fmt(n.output));
+          write(s.text, isCollapsed ? '' : read ? fmt(n.output) : '–');
+          setData(s.cell, 'state', cursor ? cursor.stateOf(0, i) : 'done');
           setData(s.cell, 'off', String(Boolean(n.off)));
           setData(s.cell, 'manual', String(Boolean(state.manual?.[i])));
           setData(s.cell, 'selected', String(Boolean(selected && selected.layer === 0 && selected.neuron === i)));
@@ -167,7 +170,7 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
       // Tira de actividad de las entradas de esta capa.
       const fromNeurons = trace.layers[l - 1].neurons;
       T.strip.forEach((s, i) => {
-        const v = l - 1 === 0 || !cursor || cursor.opsDone(l - 1, i) === 4 ? activity(fromNeurons[i].output) : 0;
+        const v = !cursor || cursor.opsDone(l - 1, i) === 4 ? activity(fromNeurons[i].output) : 0;
         const h = `${Math.round(v * 100)}%`;
         if (s.fill.style.height !== h) s.fill.style.height = h;
         setData(s.cell, 'off', String(Boolean(fromNeurons[i].off)));
@@ -221,6 +224,12 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
         setData(r.tr, 'selected', String(here && link < 0));
         r.nameButton.setAttribute('aria-pressed', String(here && link < 0));
         r.cells.forEach((td, i) => setData(td, 'selected', String(i === link)));
+        // De a operaciones, en la neurona a medio calcular: la celda en curso y las que faltan (D5).
+        const fine = state.stepSize === 'operation' && typeof cursor?.terms === 'function' && cursor.stateOf(l, j) === 'current';
+        const tm = fine ? cursor.terms(l, j) : null;
+        const next = fine ? cursor.next : null;
+        const curInput = next && next.layer === l && next.neuron === j && (next.op === 'multiply' || next.op === 'add') ? next.input : -1;
+        r.cells.forEach((td, i) => setData(td, 'op', !tm ? 'none' : i === curInput ? 'current' : i < tm.added ? 'done' : 'pending'));
       });
     }
   }

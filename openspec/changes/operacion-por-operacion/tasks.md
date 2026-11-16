@@ -36,11 +36,16 @@ controles, franja y barra) y el de la franja. Anotarlo acá.
 
 ## 3. El diagrama y la tabla
 
-- [ ] 3.1 `network-inspector.js`: con `terms`, aportes por conexión (sumada, en curso, sin calcular), `inProgress` con `kind: 'connection'`, pastilla "valor × peso" y aporte, rótulo de la suma hasta acá, entradas sin leer (D5). Pruebas en `tests/in-progress.test.js`. Verificar los escenarios nuevos de "Actividad en el momento".
-- [ ] 3.2 Animación de `read`, `multiply` y `add`; capa resumida; menos movimiento. Verificar "Paso animado".
-- [ ] 3.3 `weight-table.js`: celda en curso y celdas sin calcular. Verificar "Vista de pesos".
-- [ ] 3.4 El rayo del sensor que se lee, destacado en la escena. Verificar "La entrada que se lee, en la escena".
-- [ ] 3.5 Laboratorio en el navegador: la ida de un ejemplo, de a neuronas y de a fases, se ve como antes. Verificar "Sin detalle fino". `tests/lab*.test.js` en verde sin tocar lo que afirman.
+- [x] 3.1 `network-inspector.js`: con `terms`, aportes por conexión (sumada, en curso, sin calcular), `inProgress` con `kind: 'connection'`, pastilla "valor × peso" y aporte, rótulo de la suma hasta acá, entradas sin leer (D5). Pruebas en `tests/in-progress.test.js`. Verificar los escenarios nuevos de "Actividad en el momento".
+  *Hecho. Con `terms`, cada conexión muestra su aporte desde que se multiplica; `inProgress` da `kind: 'connection'` si la próxima es multiplicar o sumar, y solo esa conexión cuenta como relacionada, con anillos en sus dos extremos. Las demás de esa neurona se ven normales (las sumadas con su aporte escrito, las que faltan sin calcular); el resto se atenúa. Como la tarjeta elige la neurona en curso, esa elección no destaca todas sus conexiones mientras va de a operaciones. Sobre la conexión en curso, "0,00 × −0,07" o "aporte −0,10", al costado de la línea; junto a la neurona, "suma hasta acá …" desde el primer sumar hasta el sesgo. Entradas sin leer: contorno punteado y sin número. 5 pruebas nuevas en `tests/in-progress.test.js`, incluida "Sin detalle fino". Verificado sin ventana a 1440×900: capturas `op-3.1-*.png`.*
+- [x] 3.2 Animación de `read`, `multiply` y `add`; capa resumida; menos movimiento. Verificar "Paso animado".
+  *Hecho. Leer: el relleno de la entrada crece. Multiplicar: una marca por esa sola conexión. Sumar: entra a la neurona y el rótulo pasa al valor nuevo a mitad del paso. Sesgo y activación, como antes. Capa resumida: la conexión en curso va a su cuadrito, sin cuenta escrita. Con menos movimiento no hay animación (sin cambios: `afterAdvance` no la crea). Capturas `op-3.2-multiplicar-animando.png`, `op-3.2-sumar-animando.png` y `op-3.2-capa-resumida.png`.*
+- [x] 3.3 `weight-table.js`: celda en curso y celdas sin calcular. Verificar "Vista de pesos".
+  *Hecho. Celdas de la neurona en curso con `data-op` current (borde punteado amarillo y negrita), done o pending (opacidad 0,4); las entradas sin leer muestran "–" y la que se lee lleva la marca de en curso. Medido: en la neurona 2 yendo por la tercera entrada, la fila da `d d c p p p`. Captura `op-3.3-tabla.png`.*
+- [x] 3.4 El rayo del sensor que se lee, destacado en la escena. Verificar "La entrada que se lee, en la escena".
+  *Hecho. Mientras la última operación es leer un sensor (de a operaciones o de a neuronas), su rayo va en el color de lo que se calcula, con 4 px, y los demás al 35 %. La velocidad no tiene rayo: un aviso en la escena dice "Se lee la velocidad: 1,00". La entrada a mano ya la dice la frase de la franja (2.1). Capturas `op-3.4-lee-sensor-2.png` y `op-3.4-lee-velocidad.png`.*
+- [x] 3.5 Laboratorio en el navegador: la ida de un ejemplo, de a neuronas y de a fases, se ve como antes. Verificar "Sin detalle fino". `tests/lab*.test.js` en verde sin tocar lo que afirman.
+  *Verificado. Laboratorio sin ventana a 1440×900, desde los pesos iniciales, con el código de `d09b03c` (servido desde una copia, interceptando las peticiones) y con el de ahora: de a neuronas en la ida, de a fase, en la vuelta y con la tarjeta de una neurona; el resumen de los píxeles del lienzo, el lugar de la cuenta y el texto de la tarjeta dan iguales en los cuatro. Las pruebas `tests/lab*.test.js` pasan sin tocarlas. Capturas `op-3.5-lab-*-antes.png` y `-despues.png`.*
 
 ## 4. La tarjeta
 

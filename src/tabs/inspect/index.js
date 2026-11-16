@@ -636,7 +636,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const manualBadge = el('div', { class: 'stage-badge inspect-manual-badge', attrs: { role: 'status' } }, manualText, releaseButton);
   const crashBadge = el('div', { class: 'stage-badge crash-badge', attrs: { role: 'status' }, i18n: 'inspect.crash' });
   const pausedBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'inspect.paused' });
-  scene.append(el('div', { class: 'inspect-scene-badges' }, manualBadge, crashBadge, pausedBadge));
+  // La entrada que se lee (operacion-por-operacion, "La entrada que se lee, en la escena"): un sensor se ve
+  // en su rayo; la velocidad, en este aviso.
+  const speedBadge = el('div', { class: 'stage-badge inspect-speed-badge' });
+  scene.append(el('div', { class: 'inspect-scene-badges' }, manualBadge, crashBadge, pausedBadge, speedBadge));
   const description = stageDescription({ stage: scene });
   const decision = actionBlock();
   const decisionNote = el('p', { class: 'caption inspect-decision-note' });
@@ -894,7 +897,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // paso, durante la animación de un paso ni con menos movimiento.
     const flow = !flowOn || reducedMotion() || playback.size !== 'frame' || anim ? 'off' : playback.playing ? 'run' : 'frozen';
     inspector.render({ ...common, pill, flow, animation: anim, stepSize: playback.size, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
-    table.render({ ...common, visible: state.view === 'table', changesVersion: changes.version, filter: state.filter });
+    table.render({ ...common, visible: state.view === 'table', changesVersion: changes.version, filter: state.filter, stepSize: playback.size });
     placeOverlay();
     // Nombres accesibles de las neuronas (capa, nombre, valor y estado): dos veces por segundo.
     if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
@@ -915,10 +918,16 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
     const raysOff = Array.from({ length: sensors }, (_, i) => trace.layers[0].neurons[i].off);
     const paused = !playback.playing;
+    // La entrada que se acaba de leer, de a operaciones o de a neuronas, hasta el paso siguiente.
+    const lastOp = !realTime && (playback.size === 'operation' || playback.size === 'neuron') ? cursor.position : null;
+    const reading = lastOp && lastOp.op === 'read' ? lastOp.neuron : null;
+    const highlight = reading === null && sel && sel.layer === 0 && sel.neuron < sensors ? sel.neuron : null;
+    show(speedBadge, reading !== null && reading >= sensors);
+    if (reading !== null && reading >= sensors) write(speedBadge, t('inspect.scene.speed', { value: fmt(trace.inputs[reading]) }));
     sceneView.render(world, {
       showSensors: true,
       rays: {
-        looks: rayLooks, off: raysOff, highlight: sel && sel.layer === 0 && sel.neuron < sensors ? sel.neuron : null,
+        looks: rayLooks, off: raysOff, highlight, reading: reading !== null && reading < sensors ? reading : null,
         handles: paused ? { readings: trace.inputs.slice(0, sensors), onDrag: (i, v) => setManual(i, v) } : null,
       },
     });

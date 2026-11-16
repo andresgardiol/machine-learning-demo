@@ -67,6 +67,7 @@ const COLOR_VARS = {
   weightNegative: '--color-weight-negative',
   handle: '--color-text', // manijas de las entradas a mano: color del texto (vista-de-la-red D11)
   highlight: '--color-accent',
+  reading: '--color-network-current', // el rayo que se lee de a operaciones (operacion-por-operacion)
 };
 
 /** Manijas de los rayos (pestana-inspeccionar D9): radio dibujado y distancia para agarrarlas (px). */
@@ -684,7 +685,9 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
    * (magnitud) de un peso, apagado (atenuado y tachado) o destacado; y, en pausa, una manija por rayo
    * donde detecta algo (en la punta si no detecta nada) o en la lectura puesta a mano.
    * @param {{looks?:({sign:string, level:number, dashed:boolean, off?:boolean}|null)[]|null, off?:boolean[],
-   *   highlight?:number|null, handles?:{readings:number[], onDrag:(i:number, reading:number)=>void}|null}} spec
+   *   highlight?:number|null, reading?:number|null, handles?:{readings:number[], onDrag:(i:number, reading:number)=>void}|null}} spec
+   *   reading: el rayo que se está leyendo en el paso a paso; se dibuja en el color de lo que se calcula
+   *   y los demás se atenúan.
    */
   function drawCustomRays(rays, px, spec) {
     const looks = spec.looks ?? null;
@@ -692,7 +695,8 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
       const look = looks?.[i] ?? null;
       const off = Boolean(spec.off?.[i] || look?.off);
       const reach = r.hit ?? r.end;
-      ctx.globalAlpha = off ? 0.3 : 1;
+      const reading = spec.reading ?? null;
+      ctx.globalAlpha = (off ? 0.3 : 1) * (reading !== null && reading !== i ? 0.35 : 1);
       if (look && look.level > 0) {
         ctx.strokeStyle = look.sign === 'negative' ? colors.weightNegative : colors.weightPositive;
         ctx.lineWidth = (0.8 + look.level * 0.9) * px;
@@ -703,6 +707,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
         ctx.setLineDash([]);
       }
       if (spec.highlight === i) { ctx.strokeStyle = colors.highlight; ctx.lineWidth = 4 * px; ctx.setLineDash([]); }
+      if (reading === i) { ctx.strokeStyle = colors.reading; ctx.lineWidth = 4 * px; ctx.setLineDash([]); }
       ctx.beginPath();
       ctx.moveTo(r.origin.x, r.origin.y);
       ctx.lineTo(reach.x, reach.y);
