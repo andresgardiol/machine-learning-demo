@@ -33,33 +33,36 @@ El resto de las notas de este archivo no tiene orden fijo.
 
 ## Próximo
 
-- **Inspeccionar: la vista de la red tiene que mejorar mucho.** Dicho por el
-  dueño al probar la pestaña (14 de noviembre de 2026): "la visualización
-  está correcta, pero podría mejorar mucho"; "hoy se siente incompleta y
-  tosca"; la quiere "súper completa e intuitiva, con todas las features
-  posibles". Lo que señaló:
-  - Hay conexiones que directamente no se muestran.
-  - No se puede deseleccionar una neurona.
-  - Las neuronas se ven chicas por defecto y no aprovechan el espacio.
-  - Resumir una capa tendría que dejar ver las otras más grandes, y hoy casi
-    no cambia nada.
-  - El esquema de colores no lo convence (él mismo lo marca como más
-    subjetivo).
-  Para investigar al proponerlo, sin verificar todavía:
-  - Si las conexiones que no se ven son las de peso chico (el grosor y la
-    opacidad dependen de la magnitud) o las que el filtro atenúa.
-  - La spec pide que siempre haya una neurona elegida, para que la tarjeta no
-    quede vacía: eso es lo que impide deseleccionar, y hay que rediseñarlo.
-  - El radio de las neuronas tiene un tope heredado del diagrama chico de
-    Entrenar; con la zona grande sobra lugar.
-  - El ancho que libera una capa resumida no se reparte entre las demás.
-  Conviene hacerlo con una crítica de diseño sobre capturas reales y con
-  bocetos antes de escribir la spec. La vista se reutiliza en Laboratorio,
-  así que lo que se mejore sirve a las dos pestañas.
-
-- **Vista de la red: ideas sin medir.** Del cambio `vista-de-la-red`:
-  - Laboratorio en ventana angosta: tiene el mismo mínimo de 600 px de red que Inspeccionar tenía antes de D18 y no se midió angosto (consulta 4.10).
-  - Elegir líneas en un cruce: preferir la más visible (mayor |peso| o brillo) entre las que quedan a menos de 1,5 px de la más cercana (consulta 3.5, alternativa B; no se implementó).
+- **Vista de la red: lo que quedó sin medir, sin probar o fuera de alcance.**
+  Del cambio `vista-de-la-red` (16 de noviembre de 2026):
+  - Fluidez en cuadros por segundo con el navegador a la vista (tarea 11.2):
+    el panel del navegador estuvo oculto. Medido sin ventana, como sustituto:
+    60 cuadros por segundo con la red más grande, el flujo y una salida
+    elegida (dibujo de 0,9 ms de mediana); 60 en el Laboratorio con tres capas
+    de 8 y los mapas (la grilla, 2,3 ms, como mucho 15 veces por segundo).
+  - Elegir líneas en un cruce: preferir la más visible (mayor |peso| o
+    brillo) entre las que quedan a menos de 1,5 px de la más cercana
+    (consulta 3.5, alternativa B; no se implementó). Medido: a ciegas 6 de
+    10 en la red más grande; con la vista previa, 9 de 10.
+  - Laboratorio en ventana angosta: tiene el mismo mínimo de 600 px de red
+    que Inspeccionar tenía antes de D18 y no se midió angosto (consulta 4.10).
+  - La red más grande sigue cargada entre las capas ocultas aun con el
+    grosor máximo de 4 px (consulta 2.6); se miró con cerebros de prueba con
+    pesos al azar, no con uno grande entrenado.
+  - Con el tablero en 280 px o menos, la leyenda de Inspeccionar pasa de
+    cinco renglones a seis u ocho líneas; con el panel en 300 px, los
+    nombres "Neuronas de la capa 1" y "Tasa de aprendizaje" del Laboratorio
+    se parten en dos líneas dentro de su renglón.
+  - Con el filtro de conexiones y una neurona elegida, el camino hacia atrás
+    elige por lo que aporta cada conexión, y sin elección el filtro elige por
+    |peso|: cada escenario se cumple en su caso, pero son dos criterios.
+  - En Competir (fuera de este cambio): "Choques" sale 6 px de su caja y, a
+    1236×863, el nombre de la pista se corta (117 de 97 px).
+  - Sin probar: lector de pantalla real, Safari y Firefox, y una persona
+    eligiendo líneas (la prueba de la 3.5 fue una simulación).
+  - Fuera de alcance: minimapa, histogramas de pesos por capa, ordenar o
+    arrastrar neuronas, comparar dos neuronas, exportar la red como imagen,
+    historia de la actividad de una neurona y mapas en Inspeccionar.
 
 - **Inspeccionar: lo que quedó sin medir o consultado.** Del cambio
   `pestana-inspeccionar`:
@@ -103,7 +106,7 @@ El resto de las notas de este archivo no tiene orden fijo.
   - Fuera de alcance: lotes, momento y otros optimizadores, regularización,
     dibujar puntos a mano, aprender con recompensas en vez de ejemplos (el
     aprendizaje por refuerzo con backpropagation), guardar o cargar los
-    ejemplos grabados, y la mejora de la vista de la red (anotada arriba).
+    ejemplos grabados.
 
 - **Fluidez con paisaje y circuitos sin medir.** La tarea 10.1 de
   `circuitos-y-paisaje` quedó sin hacer porque el panel del navegador estuvo
