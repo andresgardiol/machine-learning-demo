@@ -57,6 +57,9 @@ El resto de las notas de este archivo no tiene orden fijo.
   bocetos antes de escribir la spec. La vista se reutiliza en Laboratorio,
   así que lo que se mejore sirve a las dos pestañas.
 
+- **Vista de la red: ideas sin medir.** Del cambio `vista-de-la-red`:
+  - Elegir líneas en un cruce: preferir la más visible (mayor |peso| o brillo) entre las que quedan a menos de 1,5 px de la más cercana (consulta 3.5, alternativa B; no se implementó).
+
 - **Inspeccionar: lo que quedó sin medir o consultado.** Del cambio
   `pestana-inspeccionar`:
   - Fluidez sin medir en cuadros por segundo (tareas 2.3, 4.6 y 6.6): el panel
