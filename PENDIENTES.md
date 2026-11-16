@@ -270,13 +270,13 @@ El resto de las notas de este archivo no tiene orden fijo.
     ninguna dependencia nueva.
 
 - **Tooltips: lo que quedó del cambio `tooltips-con-calma`** (14 de noviembre de
-  2026). Ya no aparecen al apretar ni al arrastrar, esperan 0,7 s y la guía
-  apagada los calla al posar el cursor (con Tab siguen apareciendo).
+  2026). Ya no aparecen al apretar ni al arrastrar y esperan 0,7 s. Desde
+  `interruptor-de-ayudas` los gobierna su propio interruptor, "Ayudas", y no
+  la guía.
   - Sin medir: que 0,7 s sea la espera que deja de molestar. Es una constante
     (`SHOW_DELAY_MS`); el dueño la prueba.
-  - Fuera de alcance: un interruptor propio para los tooltips separado de
-    "Guía" (la alternativa de su design.md), tooltips que se cansan solos,
-    tooltips en dos tamaños y una tecla o un modo "¿qué es esto?".
+  - Fuera de alcance: tooltips que se cansan solos, tooltips en dos tamaños y
+    una tecla o un modo "¿qué es esto?".
   - Sin probar: con un lector de pantalla real; el arrastre de dos segundos se
     probó con eventos de puntero simulados, no con el mouse.
 
@@ -346,3 +346,13 @@ El resto de las notas de este archivo no tiene orden fijo.
   - "Eliminar" en la biblioteca pasa el foco a "Cancelar" y no lleva
     `data-focus="keep"`. Por el mismo camino que "Renombrar", un clic con el
     mouse devolvería el foco al escenario; no se probó.
+- **Lo que quedó de `interruptor-de-ayudas`.**
+  - Con las ayudas apagadas, un lector de pantalla lee el nombre de cada
+    control y no su explicación: el tooltip es la descripción accesible
+    (`aria-describedby`) solo mientras está a la vista. Por defecto están
+    encendidas.
+  - A 1032 px de ancho la barra de pestañas sigue desplazándose por dentro: 66
+    px en español y 11 en inglés quedan fuera (antes de "Ayudas", 67 y 21).
+    Salidas posibles: un segundo renglón para las herramientas o un menú de
+    preferencias.
+  - Sin probar: lector de pantalla real, Safari y Firefox.
