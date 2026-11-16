@@ -48,7 +48,7 @@ import { shortcutFor } from './shortcuts.js';
 import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS } from './defaults.js';
 import { createDataTable } from './data-table.js';
 import { createManualChanges } from './manual-changes.js';
-import { createCompactNeuronCard } from '../shared/neuron-card.js';
+import { createCompactNeuronCard, weightRange } from '../shared/neuron-card.js';
 
 /** Semilla del tráfico de la escena (con tu manejo). */
 export const SEED = 1;
@@ -174,6 +174,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     container: diagram, i18n,
     onSelect: (target) => select(target),
     onViewChange: () => { layoutKey = ''; },
+    // Pastilla sobre la conexión elegida (D8): un arrastre es un solo cambio a mano, que se deshace.
+    onPill: {
+      change: (value, info) => {
+        const sel = state.selected;
+        if (!sel || sel.input === undefined) return;
+        manualChange(() => run().setWeight(sel.layer, sel.neuron, sel.input, value), info.gesture);
+      },
+      end: () => state.manual.end(),
+    },
   });
   const headerLayer = el('div', { class: 'inspect-headers' });
   const neuronLayer = el('div', { class: 'inspect-neurons', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.neurons.label', on: { keydown: (e) => onNeuronKey(e) } });
@@ -1026,7 +1035,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     displayed.learning = learning;
     const forwardAnim = anim ? { items: anim.items.filter((x) => x.phase === 'forward') } : null;
     const common = { sizes, trace, cursor, selected: state.selected, collapsed: state.collapsed, top: null, labels, learning };
-    inspector.render({ ...common, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
+    const sel = state.selected;
+    const pill = sel && sel.input !== undefined ? {
+      ...weightRange(r.network.layers[sel.layer - 1].weights[sel.neuron][sel.input], 3),
+      name: t('inspect.pill.label', { from: nameOf(sel.layer - 1, sel.input), to: nameOf(sel.layer, sel.neuron) }),
+      help: 'inspect.pill',
+    } : null;
+    inspector.render({ ...common, pill, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
     table.render({ ...common, visible: state.view === 'table', changesVersion: `${changesVersion}|${anim ? now : ''}`, filter: state.filter });
     placeOverlay();
     if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));

@@ -45,7 +45,7 @@
 
 ## 5. Cambiar en el lugar
 
-- [ ] 5.1 Pastilla sobre la conexión elegida: arrastre, flechas, límites y un solo cambio por arrastre. Verificar "Cambiar un peso en el lugar", en Inspeccionar y en el Laboratorio.
+- [x] 5.1 Pastilla sobre la conexión elegida: arrastre, flechas, límites y un solo cambio por arrastre. Verificar "Cambiar un peso en el lugar", en Inspeccionar y en el Laboratorio. *Verificado con mouse y teclado en Chrome sin ventana. Inspeccionar: arrastre de 80 px hacia arriba, de 0,03 a 0,23, con el detalle y su deslizador en el mismo valor a mitad del arrastre; un cambio; flecha +0,01 y Mayús −0,1; deshacer vuelve a 0,03. Laboratorio: un arrastre es un cambio a mano y el deslizador de la tarjeta sigue a la pastilla; rango de −3 a 3. La pastilla se anuncia como deslizador con "Peso de Sensor 1 a neurona 2" y su valor. Auditoría de tooltips sin faltantes.*
 
 ## 6. De dónde viene
 

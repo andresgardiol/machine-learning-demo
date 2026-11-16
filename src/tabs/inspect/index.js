@@ -42,7 +42,7 @@ import { createStepAnimation, displayCursor, stepDuration } from './step-animati
 import { describeStep, whereText, layerName, neuronLabel, placeName } from './describe.js';
 import { createInspectMissions } from './missions.js';
 import { shortcutFor } from './shortcuts.js';
-import { createNeuronCard } from './card.js';
+import { createNeuronCard, weightRange } from './card.js';
 import { createConnectionDetail, linkShare } from '../shared/connection-detail.js';
 import { createResponseCurve } from '../shared/response-curve.js';
 import { OUTPUT_KEYS } from '../../render/network-view.js';
@@ -437,6 +437,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     container: diagram, i18n,
     onSelect: (target) => select(target),
     onViewChange: () => { layoutKey = ''; },
+    // Pastilla sobre la conexión elegida (D8): el mismo cambio que el deslizador del detalle.
+    onPill: {
+      change: (value) => { if (state.selected && state.connection !== null && !originalHeld) setWeight(state.connection, value); },
+      end: () => {},
+    },
   });
   // Encabezados de capa sobre el diagrama (D6): botones de verdad que siguen a su columna.
   const headerLayer = el('div', { class: 'inspect-headers' });
@@ -821,7 +826,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       sizes: net.sizes, trace, cursor: shownCursor, selected: picked(), collapsed: state.collapsed, top, marks, filter: state.filter,
       manual: state.manual ? state.manual.map((v) => v !== null) : null,
     };
-    inspector.render({ ...common, animation: anim, stepSize: playback.size, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
+    const pillLink = !originalHeld && state.selected && state.connection !== null ? state.selected : null;
+    const pill = pillLink ? {
+      ...weightRange(net.layers[pillLink.layer - 1].weights[pillLink.neuron][state.connection]),
+      name: t('inspect.pill.label', { from: neuronLabel(t, net.sizes, pillLink.layer - 1, state.connection), to: neuronLabel(t, net.sizes, pillLink.layer, pillLink.neuron) }),
+      help: 'inspect.pill',
+    } : null;
+    inspector.render({ ...common, pill, animation: anim, stepSize: playback.size, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
     table.render({ ...common, visible: state.view === 'table', changesVersion: changes.version, filter: state.filter });
     placeOverlay();
     // Nombres accesibles de las neuronas (capa, nombre, valor y estado): dos veces por segundo.
