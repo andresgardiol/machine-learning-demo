@@ -19,7 +19,8 @@
 
 ## 2. Componente de la tarjeta
 
-- [ ] 2.1 `src/tabs/shared/consigna-card.js` (D1): región con título oculto, consigna y misión con la clase `guide`, y lugar para `run`. `setConsigna` y `setMission` escriben con `createTextSetter`. Si el armado se puede probar sin DOM, con su prueba. Verificación: `npm test`.
+- [x] 2.1 `src/tabs/shared/consigna-card.js` (D1): región con título oculto, consigna y misión con la clase `guide`, y lugar para `run`. `setConsigna` y `setMission` escriben con `createTextSetter`. Si el armado se puede probar sin DOM, con su prueba. Verificación: `npm test`.
+  *Hecho. `createConsignaCard({ i18n, run })` arma `<section class="consigna-card" aria-labelledby>` con el título oculto (`consigna.title`), la consigna y la misión con `guide`, y `run` sin `guide`. Suma `writeMissionRow`, que escribe la fila de la lista desde la misma vista que la tarjeta y le pone `data-current`, y `missionState`, sin DOM. Medido: `tests/consigna-card.test.js` (7 pruebas, con un documento mínimo como el de `library-view.test.js`) y `npm test` pasan.*
 - [ ] 2.2 Estilos de la tarjeta y del texto largo de la guía en `styles/app.css` (D5), y la marca de la misión en curso en la lista (`data-current`: "▸" y negrita). Verificación: el contorno de los controles sobre `--color-surface-2` sigue pasando `tests/control-contrast.test.js`, y en el navegador la marca se ve en escala de grises.
 
 ## 3. La tarjeta en cada pestaña

@@ -327,10 +327,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .panel-heading { margin: 0 0 var(--space-2); font-size: 15px; }
 .panel-subheading { margin: var(--space-2) 0 var(--space-1); font-size: 13px; color: var(--color-text-muted); font-weight: 600; }
 .caption { margin: var(--space-1) 0 0; font-size: 13px; color: var(--color-text-muted); }
-.drive-intro p { margin: 0 0 var(--space-1); font-size: 14px; }
+.drive-intro p { margin: 0 0 var(--space-1); font-size: 13px; color: var(--color-text-muted); }
 .drive-run { display: grid; gap: var(--space-2); }
 .drive-intro p:last-child { margin-bottom: 0; }
-.drive-keys { color: var(--color-text-muted); }
 
 
 
@@ -342,6 +341,24 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .mission-bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--color-surface-2); overflow: hidden; }
 .mission-fill { display: block; height: 100%; width: 0; background: var(--color-accent); }
 .mission[data-done="true"] .mission-fill { background: var(--color-car); }
+
+/* Tarjeta de consigna (tarjeta-de-consigna D5): abre el panel con la consigna, la marcha y la misión en
+   curso. El texto largo de la guía queda debajo, en 13 px y --color-text-muted (8:1 sobre --color-surface). */
+.consigna-card {
+  display: grid; gap: var(--space-2); flex: 0 0 auto;
+  padding: 12px; background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius);
+}
+.consigna-text { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--color-text); }
+.consigna-mission { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-2); font-size: 13px; }
+.consigna-mission[hidden] { display: none; }
+.consigna-mission-status { font-variant-numeric: tabular-nums; color: var(--color-text-muted); white-space: nowrap; }
+.consigna-mission[data-done="true"] .consigna-mission-name { color: var(--color-car); font-weight: 700; }
+/* Sobre --color-surface-2 la pista de la barra va en --color-bg, para que se vea dónde termina. */
+.consigna-card .mission-bar { background: var(--color-bg); }
+.consigna-card .mission-bar[hidden] { display: none; }
+/* La misión en curso, marcada en la lista sin depender del color: "▸" y negrita. */
+.mission[data-current="true"] .mission-name { font-weight: 700; }
+.mission[data-current="true"] .mission-name::before { content: "▸ "; }
 
 .switch-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 /* Entrenar: "Sensores" y "Ver como la máquina" en un solo renglón a 360 px (circuitos-y-paisaje D13). */
@@ -493,7 +510,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .chart-readout, .chart-note, .chart-empty { font-size: 12px; margin: var(--space-1) 0 0; }
 
 /* Pestaña Entrenar: panel (design.md D9) */
-.train-intro { margin: 0; font-size: 14px; }
+.train-intro { margin: 0; font-size: 13px; color: var(--color-text-muted); }
 .train-run { display: grid; gap: var(--space-2); }
 .run-main, .run-secondary { display: flex; gap: var(--space-2); }
 /* La secundaria conserva su alto: la principal de la fila se ve más grande (jerarquia-de-botones D2.1). */
@@ -702,7 +719,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .rules-io .action-keys { flex: 0 0 auto; width: 184px; align-self: center; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .sensor-name, .speed-name { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 11px; color: var(--color-sensor); }
 /* Panel */
-.rules-intro p { margin: 0; font-size: 14px; }
+.rules-intro p { margin: 0; font-size: 13px; color: var(--color-text-muted); }
 .rules-program-actions { display: grid; gap: var(--space-2); }
 .rules-program-actions .panel-heading { margin: 0; }
 .rules-examples { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
@@ -795,7 +812,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .panel:has(> .compete-panel) { display: flex; flex-direction: column; }
 .compete-panel { display: flex; flex-direction: column; gap: var(--space-2); flex: 1 0 auto; }
 .compete-panel > * { flex: 0 0 auto; margin: 0; }
-.compete-intro { font-size: 14px; line-height: 1.4; }
+.compete-intro { font-size: 13px; line-height: 1.4; color: var(--color-text-muted); }
 /* minmax(0, 1fr): ningún renglón de la carrera ensancha el panel (antes, el de los botones lo llevaba a 389 px). */
 .compete-run { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
 .compete-run .run-secondary { flex-wrap: wrap; }
@@ -1172,7 +1189,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Panel */
 .panel:has(.inspect-panel) { display: flex; flex-direction: column; overflow: hidden; }
 .inspect-panel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: var(--space-3); }
-.inspect-intro { margin: 0; font-size: 14px; }
+.inspect-intro { margin: 0; font-size: 13px; color: var(--color-text-muted); }
 .inspect-brain { flex: 0 0 auto; }
 .inspect-brain-head { display: flex; align-items: center; gap: var(--space-2); }
 .inspect-brain-name { flex: 1 1 auto; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
