@@ -29,7 +29,7 @@ los mismos puntos.
 
 #### Scenario: Espiral
 - **WHEN** se generan puntos de espiral sin ruido
-- **THEN** cada color forma un brazo de la espiral
+- **THEN** cada color forma un brazo de la espiral, de una vuelta y cuarto, con el otro brazo girado media vuelta
 
 #### Scenario: Mitad de cada color
 - **WHEN** se generan puntos de cualquier forma

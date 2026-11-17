@@ -25,7 +25,7 @@ nuevo. El auto SHALL manejar en una pista donde ese cerebro entrenó.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña por primera vez
-- **THEN** la red se ve como diagrama, con todas las capas abiertas, corriendo en tiempo real y con una neurona de la primera capa oculta ya elegida
+- **THEN** la red se ve como diagrama, con todas las capas abiertas, corriendo en tiempo real, sin nada elegido y con todas las conexiones a la vista
 
 #### Scenario: Misma semilla, misma escena
 - **WHEN** dos personas abren la pestaña con el mismo cerebro y los mismos ajustes
@@ -35,7 +35,8 @@ nuevo. El auto SHALL manejar en una pista donde ese cerebro entrenó.
 La pestaña SHALL mostrar la red en la zona grande de la pantalla; la escena
 del auto, chica, en el tablero, con la decisión de la red debajo; y en el
 panel, lo que se sabe y se puede cambiar de la neurona elegida. Las zonas
-conservan los divisores para cambiarles el ancho.
+conservan los divisores para cambiarles el ancho. En una ventana angosta la
+red MUST ceder ancho antes de que el tablero deje de leerse.
 
 #### Scenario: Pantalla de 1440×900
 - **WHEN** se abre la pestaña con la ventana en 1440×900
@@ -51,7 +52,7 @@ conservan los divisores para cambiarles el ancho.
 
 #### Scenario: La red no se achica de más
 - **WHEN** la persona mueve el divisor para achicar la zona de la red
-- **THEN** la red no baja de 600 píxeles de ancho, y sus controles de arriba siguen en dos renglones
+- **THEN** la red no baja de 600 píxeles de ancho mientras la ventana deje 280 para el tablero, y sus controles de arriba siguen en dos renglones
 
 #### Scenario: Anchos propios
 - **WHEN** la persona cambia el ancho de la red en Inspeccionar y pasa a otra pestaña
@@ -60,6 +61,18 @@ conservan los divisores para cambiarles el ancho.
 #### Scenario: Orden del foco
 - **WHEN** la persona recorre la pestaña con Tab
 - **THEN** el foco pasa por la red y sus controles, después por el tablero y al final por el panel
+
+#### Scenario: Ventana angosta
+- **WHEN** la ventana mide entre 1032 y 1240 píxeles de ancho
+- **THEN** el tablero mide al menos 280 píxeles, la red cede ancho sin bajar de 440, y los nombres de las cuatro decisiones se leen enteros
+
+#### Scenario: Ventana en su mínimo
+- **WHEN** la ventana mide entre 960 y 1032 píxeles de ancho
+- **THEN** la red mide 440 píxeles, el tablero se queda con lo que sobra, no menos de 200, y los nombres de las cuatro decisiones se leen enteros
+
+#### Scenario: Barra de arriba en ventana angosta
+- **WHEN** la zona de la red mide entre 500 y 600 píxeles de ancho, en español o en inglés
+- **THEN** sus controles de arriba ocupan tres renglones o menos, con los botones de acercar en el mismo renglón que el filtro de conexiones; con 440 píxeles, cuatro o menos
 
 ### Requirement: Escena del auto en segundo plano
 La escena SHALL mostrar al auto con sus sensores, encuadrado de modo que se
@@ -113,9 +126,9 @@ SHALL verse también sobre la red.
 
 ### Requirement: Barra de reproducción junto a la red
 Debajo de la red SHALL haber una barra de reproducción con: reproducir o
-pausar, un paso, de a cuánto avanza cada paso (cuadro, capa, neurona u
-operación), el ritmo, y el lugar por donde va la cuenta. Un cuadro es un paso
-de la simulación: percibir, calcular la red y mover el auto.
+pausar, un paso, un paso atrás, de a cuánto avanza cada paso (cuadro, capa,
+neurona u operación), el ritmo, y el lugar por donde va la cuenta. Un cuadro
+es un paso de la simulación: percibir, calcular la red y mover el auto.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña
@@ -126,12 +139,20 @@ de la simulación: percibir, calcular la red y mover el auto.
 - **THEN** el auto y la red se detienen en el cuadro en curso, con la cuenta completa a la vista
 
 #### Scenario: Lugar de la cuenta
-- **WHEN** el paso a paso va por la suma de la tercera neurona de la primera capa oculta
-- **THEN** la barra lo dice con palabras: el cuadro, la capa, la neurona y la operación
+- **WHEN** el paso a paso acaba de multiplicar la tercera entrada de la segunda neurona de la primera capa oculta
+- **THEN** la barra lo dice con palabras: el cuadro, la capa, la neurona, de qué entrada se trata y la operación
 
 #### Scenario: Controles junto a lo que mueven
 - **WHEN** la persona mira la red
 - **THEN** la barra de reproducción está pegada a la red, no en el panel
+
+#### Scenario: Paso atrás a la vista
+- **WHEN** la persona mira la barra en pausa con la red de 600 píxeles de ancho o más
+- **THEN** "Atrás" está al lado de "Paso", con su atajo en el nombre
+
+#### Scenario: Barra en ventana angosta
+- **WHEN** la red mide menos de 600 píxeles de ancho, en español o en inglés
+- **THEN** "Reproducir", "Paso" y "Atrás" se leen sin el atajo en el nombre, que sigue en su explicación, y la barra no ocupa más renglones que antes de tener "Atrás"
 
 ### Requirement: Ritmo de la reproducción
 El ritmo SHALL poder bajarse desde tiempo real hasta un paso por segundo, y
@@ -158,22 +179,24 @@ cuadro sigue con el siguiente.
 
 ### Requirement: Avance paso a paso
 Con la reproducción en pausa, "Paso" SHALL avanzar la cuenta una vez, del
-tamaño elegido: una operación, una neurona, una capa o un cuadro, con su
-animación en la red. Al
-completarse la cuenta de un cuadro, el paso siguiente SHALL mover el auto con
-esa decisión y empezar la cuenta del cuadro nuevo.
+tamaño elegido, con su animación en la red. Una operación es una sola cuenta:
+leer una entrada, multiplicar un valor por su peso, sumar un aporte, sumar el
+sesgo o aplicar la activación. La cuenta de un cuadro empieza por las
+entradas. Al completarse, el paso siguiente SHALL mover el auto con esa
+decisión y empezar la cuenta del cuadro nuevo. "Atrás" SHALL deshacer el
+último paso dentro del cuadro.
 
 #### Scenario: Una operación
 - **WHEN** la persona avanza de a una operación
-- **THEN** se hace una sola operación de una neurona (productos, suma, sesgo o activación), y la red y la tarjeta la muestran
+- **THEN** se hace una sola cuenta con dos números como mucho y un resultado, y la red, la franja y la tarjeta la muestran
 
 #### Scenario: Una neurona
 - **WHEN** la persona avanza de a una neurona
-- **THEN** se completa la neurona en curso y la siguiente pasa a ser la que se calcula
+- **THEN** se completa la neurona en curso y la siguiente pasa a ser la que se calcula; en la capa de entradas, cada paso lee una entrada
 
 #### Scenario: Una capa
 - **WHEN** la persona avanza de a una capa
-- **THEN** se completan todas las neuronas de la capa en curso
+- **THEN** se completan todas las neuronas de la capa en curso; el primer paso de un cuadro lee todas las entradas
 
 #### Scenario: Un cuadro
 - **WHEN** la persona avanza de a un cuadro
@@ -191,27 +214,53 @@ esa decisión y empezar la cuenta del cuadro nuevo.
 - **WHEN** la persona pasa de operaciones a capas con una neurona a medio hacer
 - **THEN** el paso siguiente completa la capa en curso, sin perder lo ya hecho
 
+#### Scenario: Orden dentro de una neurona
+- **WHEN** la persona avanza de a una operación por una neurona con seis entradas
+- **THEN** da catorce pasos en este orden: por cada entrada, multiplicar y después sumar; al final, el sesgo y la activación
+
+#### Scenario: Leer una entrada
+- **WHEN** empieza la cuenta de un cuadro y la persona avanza de a una operación
+- **THEN** el primer paso lee la primera entrada, que muestra su valor; las demás entradas se ven sin leer
+
+#### Scenario: El sesgo, una vez por neurona
+- **WHEN** la persona sigue la cuenta de una neurona
+- **THEN** el sesgo se suma una sola vez, después del último aporte; las entradas no tienen sesgo ni peso propio
+
+#### Scenario: Atrás
+- **WHEN** la persona dio tres pasos de a una operación y presiona "Atrás"
+- **THEN** la cuenta vuelve a como estaba después del segundo paso, y la red, la franja y la tarjeta lo muestran
+
+#### Scenario: Atrás con otro tamaño
+- **WHEN** la persona va por la mitad de una neurona y presiona "Atrás" de a neuronas
+- **THEN** la cuenta vuelve al principio de esa neurona
+
+#### Scenario: Atrás al principio del cuadro
+- **WHEN** la cuenta del cuadro todavía no empezó
+- **THEN** "Atrás" no hace nada y su explicación dice que el auto ya se movió y ese cuadro no se puede deshacer
+
 ### Requirement: Operación en curso
 En pausa y al reproducir de a capas, neuronas u operaciones, la pestaña SHALL
-mostrar, entre la red y la barra de reproducción, la operación que se acaba
-de hacer, escrita con sus números: los productos, la suma, el sesgo o la
-activación. Al reproducir de a cuadros en tiempo real no se muestra.
+mostrar, entre la red y la barra, el paso que se acaba de hacer. De a
+operaciones MUST ser una sola cuenta, con el nombre de cada número debajo (de
+qué entrada es el valor, peso, aporte, suma hasta acá, sesgo, total, salida),
+el resultado marcado, una frase que dice qué se hizo y por dónde va la
+neurona. Al reproducir de a cuadros en tiempo real no se muestra.
 
 #### Scenario: Productos
-- **WHEN** se avanza la operación de productos de una neurona con tres entradas
-- **THEN** se leen los tres productos, cada uno como valor por peso igual a producto
+- **WHEN** se multiplica la tercera entrada de una neurona
+- **THEN** se lee una sola cuenta: el valor, con el nombre de la entrada de la que viene, por el peso de esa conexión, igual al aporte de esa entrada
 
 #### Scenario: Suma
-- **WHEN** se avanza la suma
-- **THEN** se lee la suma de los productos con su resultado
+- **WHEN** se suma el aporte de la tercera entrada
+- **THEN** se lee la suma hasta acá más ese aporte, igual a la suma nueva; en la primera entrada la suma arranca en cero y la frase lo dice
 
 #### Scenario: Sesgo
 - **WHEN** se avanza el sesgo
-- **THEN** se lee la suma más el sesgo y el total
+- **THEN** se lee la suma de todos los aportes más el sesgo de la neurona, igual al total, y la frase dice que se suma una sola vez
 
 #### Scenario: Activación
 - **WHEN** se avanza la activación de una neurona con tanh
-- **THEN** se lee la función con su nombre, el total que recibe y la salida que da
+- **THEN** se lee la función con su nombre, el total que recibe y la salida que da, cada número con su nombre, y la frase dice qué hace esa función
 
 #### Scenario: Salida
 - **WHEN** se avanza la activación de una neurona de salida
@@ -219,7 +268,7 @@ activación. Al reproducir de a cuadros en tiempo real no se muestra.
 
 #### Scenario: Muchas entradas
 - **WHEN** la neurona tiene 21 entradas
-- **THEN** se leen los productos más grandes y cuántos más hay, sin pasar de dos renglones; la cuenta completa está en la tarjeta
+- **THEN** cada paso sigue siendo una sola cuenta; el recorrido de la neurona se resume para entrar en un renglón: cuántas entradas van de cuántas, el sesgo y la activación
 
 #### Scenario: De a neuronas o capas
 - **WHEN** se avanza de a una neurona o de a una capa
@@ -231,14 +280,46 @@ activación. Al reproducir de a cuadros en tiempo real no se muestra.
 
 #### Scenario: Lector de pantalla
 - **WHEN** la persona avanza un paso a mano
-- **THEN** un lector de pantalla anuncia la operación escrita; al reproducir sola no anuncia cada paso
+- **THEN** un lector de pantalla anuncia la cuenta con el nombre de cada número; al reproducir sola no anuncia cada paso
+
+#### Scenario: Leer una entrada
+- **WHEN** se lee el segundo sensor, que mide 0,04
+- **THEN** se lee el valor con su nombre y una frase que dice qué significa: el rayo ve algo casi al final de su alcance, y que una entrada no calcula nada
+
+#### Scenario: Leer la velocidad
+- **WHEN** se lee la entrada de velocidad
+- **THEN** la frase dice que es la velocidad del auto respecto de la máxima
+
+#### Scenario: Por dónde va la neurona
+- **WHEN** la cuenta va por la tercera de seis entradas
+- **THEN** debajo de la cuenta se ven las seis entradas, el sesgo y la activación en orden: las dos primeras hechas, la tercera en curso y el resto sin hacer, y el número de paso de esa neurona
+
+#### Scenario: Conexión apagada
+- **WHEN** se multiplica una entrada cuya conexión está apagada
+- **THEN** el aporte es 0 y la frase dice que la conexión está apagada
+
+#### Scenario: Neurona apagada
+- **WHEN** se avanza la activación de una neurona apagada
+- **THEN** la salida es 0 y la frase dice que la neurona está apagada
+
+#### Scenario: Alto que no salta
+- **WHEN** la persona avanza veinte operaciones seguidas
+- **THEN** la franja no cambia de alto y la red no se mueve
+
+#### Scenario: Sin depender del color
+- **WHEN** la persona mira la cuenta sin distinguir colores
+- **THEN** el resultado y el paso en curso se reconocen por un borde y por su lugar, no solo por el color
+
+#### Scenario: Nombres iguales en todos lados
+- **WHEN** la persona compara la franja con la tarjeta
+- **THEN** valor, peso, aporte, suma, sesgo, total y salida se llaman igual en las dos, con la misma explicación al posar el cursor
 
 ### Requirement: Tarjeta de la neurona
-El panel SHALL mostrar la cuenta real de la neurona elegida, y es el lugar
-donde se la cambia: una fila por entrada, con de dónde viene, su valor, su
-peso y su producto; y al pie, siempre a la vista, la suma, el sesgo, la
-activación y la salida. Muestra una sola neurona por vez. Los valores SHALL
-actualizarse en el momento. Nunca MUST quedar vacía.
+Con una neurona elegida, el panel SHALL mostrar su cuenta real, y es donde
+se la cambia: una fila por entrada, con de dónde viene, su valor, su peso, su
+producto y una barra con signo de lo que aporta; y al pie, siempre a la vista,
+la suma, el sesgo, la activación y la salida, escritas como una cuenta. Los
+valores SHALL actualizarse en el momento.
 
 #### Scenario: Neurona de una capa oculta
 - **WHEN** la persona elige una neurona de la primera capa oculta de un cerebro de 5 sensores
@@ -275,6 +356,46 @@ actualizarse en el momento. Nunca MUST quedar vacía.
 #### Scenario: Qué mira la neurona
 - **WHEN** la neurona elegida recibe directamente los sensores
 - **THEN** en la escena cada rayo lleva el color y el grosor del peso con que esa neurona lo mira
+
+#### Scenario: Barras de lo que aporta
+- **WHEN** la persona mira las filas de una neurona
+- **THEN** cada fila tiene una barra que sale del centro hacia la derecha si su producto suma y hacia la izquierda si resta, con un largo proporcional, y se ve de un vistazo qué entrada empuja más
+
+#### Scenario: La cuenta escrita
+- **WHEN** la persona mira el pie de la tarjeta
+- **THEN** lee la suma más el sesgo, el total, el nombre de la activación y la salida, en ese orden
+
+#### Scenario: Elegir una fila
+- **WHEN** la persona hace clic en el nombre de una entrada en una fila
+- **THEN** queda elegida esa conexión, en la red y en el panel
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña
+- **THEN** no hay neurona elegida y el panel muestra qué elegir, no una tarjeta vacía
+
+#### Scenario: Filas a la vista
+- **WHEN** la persona elige una neurona de 6 entradas con la ventana en 1366×768 o más grande, en español o en inglés
+- **THEN** las seis filas se ven sin desplazar nada, con el pie debajo
+
+#### Scenario: La cuenta entera
+- **WHEN** la cuenta escrita no entra en un renglón del panel
+- **THEN** sigue en un segundo renglón y se lee hasta la salida, sin puntos suspensivos
+
+#### Scenario: Nada se encima
+- **WHEN** el panel muestra cualquier detalle, con cualquier ancho de panel y alto de ventana que la aplicación permita
+- **THEN** ninguna parte del detalle tapa a otra ni a las misiones, y nada sale del borde de la tarjeta
+
+#### Scenario: Deslizador que se puede usar
+- **WHEN** la persona hace clic en el peso de una fila o llega a él con Tab
+- **THEN** esa fila muestra debajo un deslizador de al menos 120 píxeles de ancho, y las demás filas siguen en un renglón
+
+#### Scenario: Barra y número
+- **WHEN** la persona mira el producto de una fila
+- **THEN** la barra de lo que aporta no pasa por encima del número
+
+#### Scenario: Controles que se pueden apuntar
+- **WHEN** la persona mira los botones del detalle de una neurona o de una conexión
+- **THEN** cada uno mide al menos 24 píxeles de alto
 
 ### Requirement: Decisión de la red
 El tablero SHALL mostrar, debajo de la escena, la decisión del cuadro en
@@ -432,7 +553,7 @@ está viendo, una leyenda de cómo se lee la red (colores, trazos y relleno) y
 tres misiones con su progreso: seguir la cuenta de una neurona paso a paso,
 cambiar una decisión de la red moviendo una entrada a mano, y apagar una
 neurona y ver qué cambia. Las misiones SHALL ocupar tres renglones, uno cada
-una, y MUST NOT bloquear nada.
+una, y MUST NOT bloquear nada. Con algo elegido, el texto cede su lugar.
 
 #### Scenario: Guía visible
 - **WHEN** la guía está activa
@@ -462,6 +583,14 @@ una, y MUST NOT bloquear nada.
 - **WHEN** la persona posa el cursor sobre "sesgo", "activación" o "tabla de pesos"
 - **THEN** un tooltip dice qué es con palabras llanas y con su nombre técnico
 
+#### Scenario: Con algo elegido
+- **WHEN** hay una neurona o una conexión elegida
+- **THEN** el texto de arriba del panel no se muestra, las misiones siguen a la vista y el detalle usa ese lugar
+
+#### Scenario: Leyenda corta
+- **WHEN** la guía está activa
+- **THEN** la leyenda ocupa cinco renglones o menos: el signo, el grosor, el brillo y el relleno, el sesgo, y un renglón con las marcas de elegida, en curso, apagada y cambiada
+
 ### Requirement: Estado conservado
 Al salir de la pestaña y volver, la pestaña SHALL conservar el cerebro, la
 vista, las capas resumidas, el filtro de conexiones, la neurona elegida, el
@@ -479,8 +608,8 @@ mientras la pestaña no está a la vista.
 ### Requirement: Atajos de la pestaña
 La pestaña SHALL usar los atajos de las demás con el mismo significado:
 espacio para reproducir o pausar, N para un paso, R para reiniciar el intento
-y V para restablecer la vista, acá la de la red. MUST respetar el interruptor
-de atajos y no actuar mientras se escribe en un campo.
+y V para restablecer la vista, acá la de la red; y B para un paso atrás. MUST
+respetar el interruptor de atajos y no actuar mientras se escribe en un campo.
 
 #### Scenario: Paso con N
 - **WHEN** la persona presiona N en pausa
@@ -492,7 +621,15 @@ de atajos y no actuar mientras se escribe en un campo.
 
 #### Scenario: Atajos apagados
 - **WHEN** los atajos de una tecla están apagados
-- **THEN** espacio, N, R y V no hacen nada y todo sigue pudiéndose hacer con los botones
+- **THEN** espacio, N, B, R y V no hacen nada y todo sigue pudiéndose hacer con los botones
+
+#### Scenario: Atrás con B
+- **WHEN** la persona presiona B en pausa con la cuenta empezada
+- **THEN** la cuenta vuelve un paso del tamaño elegido
+
+#### Scenario: B reproduciendo
+- **WHEN** la persona presiona B con la reproducción en marcha
+- **THEN** la reproducción se pausa y la cuenta vuelve un paso
 
 ### Requirement: Pestaña a la vista sin desplazarse
 Con la ventana en 1440×900 y la guía activa, el panel de Inspeccionar SHALL
@@ -537,3 +674,199 @@ MUST anunciarse. Arrastrar nunca MUST ser la única forma de hacer algo.
 #### Scenario: Objetivos
 - **WHEN** se miden los botones y las manijas de la pestaña
 - **THEN** todos miden al menos 24 píxeles de lado
+
+### Requirement: Detalle de una conexión
+Con una conexión elegida, el panel SHALL mostrar de dónde a dónde va, su
+peso para cambiarlo con un deslizador o escribiendo, su valor original si
+está cambiado, lo que pasa por ella ahora (entrada por peso igual a producto)
+y qué parte es de lo que recibe su neurona. SHALL permitir apagarla y pasar a
+cualquiera de sus dos neuronas.
+
+#### Scenario: Conexión elegida
+- **WHEN** la persona elige la conexión del sensor 2 a la primera neurona oculta
+- **THEN** el panel muestra sus dos extremos con nombre, su peso, la entrada de ahora, el producto y qué parte del total de esa neurona representa
+
+#### Scenario: Cambiar el peso
+- **WHEN** la persona mueve el deslizador del peso
+- **THEN** el producto, la línea de la red y el auto que maneja cambian mientras lo mueve
+
+#### Scenario: Valor original
+- **WHEN** el peso está cambiado
+- **THEN** el panel muestra el valor nuevo y el original
+
+#### Scenario: Apagar la conexión
+- **WHEN** la persona apaga la conexión desde el panel
+- **THEN** su producto pasa a cero y la línea se ve apagada
+
+#### Scenario: Ir a una de sus neuronas
+- **WHEN** la persona hace clic en el nombre de la neurona de destino
+- **THEN** queda elegida esa neurona y el panel muestra su tarjeta
+
+#### Scenario: Vuelta atrás
+- **WHEN** la persona deshace después de cambiar el peso
+- **THEN** el peso vuelve a su valor anterior, en la red y en el panel
+
+#### Scenario: Tooltips y textos
+- **WHEN** la persona posa el cursor o llega con Tab a un control del detalle, en español o en inglés
+- **THEN** un tooltip dice qué hace y por qué importa
+
+### Requirement: Panel sin nada elegido
+Sin nada elegido, el lugar del detalle SHALL decir con una frase que se puede
+elegir una neurona o una conexión, y ofrecer como atajos las tres conexiones
+por las que pasa más señal ahora y la salida que la red está decidiendo. No
+MUST quedar un hueco vacío.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña
+- **THEN** el panel muestra la frase y los atajos
+
+#### Scenario: Usar un atajo
+- **WHEN** la persona hace clic en uno de los atajos
+- **THEN** esa conexión o esa neurona queda elegida y el panel muestra su detalle
+
+#### Scenario: Atajos al día
+- **WHEN** el auto maneja y cambia por dónde pasa más señal
+- **THEN** los atajos se actualizan, como mucho dos veces por segundo, para poder hacerles clic
+
+#### Scenario: Soltar
+- **WHEN** la persona suelta lo que tenía elegido
+- **THEN** el panel vuelve a mostrar la frase y los atajos
+
+### Requirement: Comparar con el original
+Con cambios a mano, sobre la red SHALL haber un botón que, mientras se
+mantiene apretado, muestra la red y la decisión sin esos cambios, y al
+soltarlo vuelve a mostrarlos. MUST NOT deshacer nada. Sin cambios, se ve sin
+acción y lo explica. SHALL tener tooltip y textos en español y en inglés.
+
+#### Scenario: Mantener apretado
+- **WHEN** la persona cambió dos pesos y mantiene apretado "Ver original"
+- **THEN** la red, la decisión y el detalle muestran los valores del cerebro, y un rótulo dice que se está viendo el original
+
+#### Scenario: Soltar
+- **WHEN** la persona suelta el botón
+- **THEN** todo vuelve a mostrar la red con sus cambios, que siguen ahí
+
+#### Scenario: Con el teclado
+- **WHEN** el botón tiene el foco y la persona mantiene apretada la barra espaciadora
+- **THEN** se ve el original hasta que la suelta
+
+#### Scenario: Sin cambios
+- **WHEN** la red no tiene cambios
+- **THEN** el botón está a la vista, sin acción, y su tooltip dice que no hay cambios que comparar
+
+### Requirement: Flujo de la señal en Inspeccionar
+Sobre la red SHALL haber un interruptor "Flujo", encendido por defecto, que
+muestra u oculta las marcas que viajan por las conexiones mientras la red se
+reproduce. Su estado SHALL recordarse hasta cerrar la aplicación. SHALL tener
+tooltip y textos en español y en inglés.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña con el auto manejando
+- **THEN** se ven marcas que viajan de los sensores hacia las salidas
+
+#### Scenario: Apagar el flujo
+- **WHEN** la persona apaga "Flujo"
+- **THEN** las marcas dejan de verse y todo lo demás sigue igual
+
+#### Scenario: Recordado
+- **WHEN** la persona apaga el flujo, abre otra pestaña y vuelve
+- **THEN** el flujo sigue apagado
+
+### Requirement: Curva de respuesta
+El detalle de una neurona oculta o de salida SHALL tener dos vistas, "Cuenta"
+y "Respuesta". "Respuesta" muestra cómo cambia su suma cuando una entrada de
+la red recorre su rango y las demás quedan como están. La entrada se elige; un
+punto marca su valor de ahora, una línea marca dónde la neurona cambia de
+salida, y una frase lo dice con palabras. SHALL tener tooltips y textos en
+español y en inglés.
+
+#### Scenario: Estado por defecto
+- **WHEN** la persona elige una neurona oculta por primera vez
+- **THEN** el detalle muestra la vista "Cuenta", con "Respuesta" a un clic
+
+#### Scenario: Abrir la respuesta
+- **WHEN** la persona pasa a "Respuesta"
+- **THEN** la curva ocupa el lugar de las filas y del pie, y muestra la entrada que más le aporta ahora, sin que la persona elija nada
+
+#### Scenario: Vista recordada
+- **WHEN** la persona está en "Respuesta" y elige otra neurona
+- **THEN** el detalle de la otra neurona se abre en "Respuesta"
+
+#### Scenario: Entra en el panel
+- **WHEN** la vista "Respuesta" está abierta con la ventana en 1366×768 o más grande
+- **THEN** los botones de entrada, el gráfico y la frase se ven enteros, sin desplazar nada
+
+#### Scenario: Elegir la entrada
+- **WHEN** la persona elige otra entrada entre los botones de la curva
+- **THEN** la curva pasa a mostrar la respuesta a esa entrada
+
+#### Scenario: Recta en la primera capa
+- **WHEN** la neurona es de la primera capa oculta
+- **THEN** la curva es una recta, y la frase dice que su inclinación es el peso de esa conexión, con su valor
+
+#### Scenario: Escalones en una salida
+- **WHEN** la neurona es una salida
+- **THEN** la curva tiene escalones, y la frase dice que cada salto es una neurona oculta que se enciende o se apaga
+
+#### Scenario: Dónde cambia la salida
+- **WHEN** la curva cruza el cero
+- **THEN** una línea y dos rótulos muestran de qué lado la neurona sale 1 y de cuál sale 0, sin depender solo del color
+
+#### Scenario: En vivo
+- **WHEN** el auto maneja y las otras entradas cambian
+- **THEN** la curva se mueve con ellas y el punto sigue el valor de la entrada elegida
+
+#### Scenario: Arrastrar el punto
+- **WHEN** en pausa la persona arrastra el punto, o lo mueve con las flechas
+- **THEN** esa entrada pasa a ese valor como una entrada a mano, y la red y el auto lo reflejan
+
+#### Scenario: Vuelta atrás
+- **WHEN** la persona quita las entradas a mano
+- **THEN** el punto vuelve al valor que lee el auto
+
+#### Scenario: Peso cambiado
+- **WHEN** la persona cambia el peso de la conexión con la entrada elegida
+- **THEN** la inclinación de la curva cambia mientras lo mueve
+
+#### Scenario: Neurona de entrada
+- **WHEN** la persona elige una neurona de entrada
+- **THEN** no hay vista "Respuesta" ni botones para cambiar de vista
+
+#### Scenario: Lector de pantalla
+- **WHEN** un lector de pantalla llega a la curva
+- **THEN** lee la frase: la entrada, su valor de ahora, la suma, qué sale y en qué valor cambia la salida, si cambia
+
+### Requirement: La tarjeta sigue la cuenta de a una operación
+Al avanzar de a operaciones, la tarjeta de la neurona en curso SHALL mostrar
+su cuenta fila por fila: una fila sin hacer no muestra aporte, la que se
+multiplicó lo muestra, y la que ya se sumó queda marcada como sumada. La fila
+en curso MUST estar marcada y a la vista, y el pie MUST mostrar la suma hasta
+acá.
+
+#### Scenario: Fila en curso
+- **WHEN** la cuenta acaba de multiplicar la tercera entrada
+- **THEN** en la tarjeta las dos primeras filas están sumadas, la tercera muestra su aporte y lleva la marca de en curso, y las demás no muestran aporte
+
+#### Scenario: Suma hasta acá
+- **WHEN** la cuenta sumó tres de seis aportes
+- **THEN** el pie de la tarjeta muestra la suma de esos tres, y el sesgo, el total y la salida todavía sin hacer
+
+#### Scenario: Fila fuera de las que se muestran
+- **WHEN** la entrada en curso no está entre las filas que la tarjeta muestra por el filtro de conexiones
+- **THEN** su fila se ve igual mientras está en curso
+
+#### Scenario: Una entrada
+- **WHEN** la cuenta lee una entrada
+- **THEN** la tarjeta muestra esa entrada con su valor
+
+### Requirement: La entrada que se lee, en la escena
+Al leer una entrada de a operaciones o de a neuronas, la escena SHALL marcar
+de dónde sale ese número: el rayo de ese sensor, o la velocidad del auto.
+
+#### Scenario: Sensor
+- **WHEN** la cuenta lee el segundo sensor
+- **THEN** en la escena el segundo rayo se ve destacado hasta el paso siguiente
+
+#### Scenario: Entrada puesta a mano
+- **WHEN** la entrada que se lee está puesta a mano
+- **THEN** la frase de la franja dice que el valor lo puso la persona y no el auto

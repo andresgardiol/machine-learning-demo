@@ -140,39 +140,12 @@ recordarse en el mismo navegador.
 - **WHEN** la persona agrandó el panel y vuelve a abrir la aplicación en el mismo navegador
 - **THEN** el panel tiene el ancho que había elegido
 
-### Requirement: Interruptor de guía
-La aplicación SHALL ofrecer un interruptor que muestra u oculta, en toda la
-aplicación, los textos de guía, las misiones y los tooltips que aparecen al
-posar el cursor. La guía SHALL estar visible por
-defecto. El interruptor SHALL tener un tooltip que diga qué hace y por qué
-importa, en español y en inglés.
-
-#### Scenario: Guía visible por defecto
-- **WHEN** una persona abre la aplicación por primera vez
-- **THEN** los textos de guía y las misiones están visibles
-
-#### Scenario: Ocultar la guía
-- **WHEN** la persona apaga el interruptor de guía
-- **THEN** los textos de guía y las misiones desaparecen y el resto de la pestaña sigue funcionando igual
-
-#### Scenario: Volver a mostrar la guía
-- **WHEN** la persona vuelve a encender el interruptor de guía
-- **THEN** los textos de guía y las misiones reaparecen con el progreso que tenían
-
-#### Scenario: La guía apagada calla los tooltips
-- **WHEN** la persona apaga el interruptor de guía y posa el cursor sobre un control habilitado
-- **THEN** no aparece su tooltip
-
-#### Scenario: El tooltip del interruptor dice lo que gobierna
-- **WHEN** la persona posa el cursor sobre el interruptor de guía, encendido o apagado
-- **THEN** su tooltip nombra los textos de guía, las misiones y las ayudas al posar el cursor, y dice que con Tab siguen apareciendo
-
 ### Requirement: Preferencias recordadas
 La aplicación SHALL recordar en el mismo navegador el idioma elegido, el
-estado del interruptor de guía y la velocidad máxima del auto entre visitas.
-La velocidad máxima del auto SHALL ser una sola para todas las pestañas. Si el navegador no permite
-guardar preferencias, la aplicación MUST funcionar igual con los valores por
-defecto.
+estado del interruptor de guía, el del interruptor de ayudas y la velocidad
+máxima del auto entre visitas. La velocidad máxima del auto SHALL ser una sola
+para todas las pestañas. Si el navegador no permite guardar preferencias, la
+aplicación MUST funcionar igual con los valores por defecto.
 
 #### Scenario: Segunda visita
 - **WHEN** una persona eligió inglés y apagó la guía, y vuelve a abrir la aplicación en el mismo navegador
@@ -181,6 +154,14 @@ defecto.
 #### Scenario: Navegador sin almacenamiento
 - **WHEN** el navegador impide guardar o leer preferencias
 - **THEN** la aplicación abre con los valores por defecto y no muestra ningún error
+
+#### Scenario: Ayudas apagadas en la segunda visita
+- **WHEN** una persona apagó las ayudas y vuelve a abrir la aplicación en el mismo navegador
+- **THEN** la aplicación abre con las ayudas apagadas
+
+#### Scenario: Quien tenía la guía apagada
+- **WHEN** una persona que tenía la guía apagada abre la aplicación por primera vez con el interruptor de ayudas
+- **THEN** las ayudas abren apagadas, como las tenía, y la guía sigue apagada
 
 ### Requirement: Créditos
 La aplicación SHALL dar crédito visible, accesible desde cualquier pestaña, al
@@ -336,3 +317,64 @@ repetirse como título visible, y SHALL seguir para lectores de pantalla.
 #### Scenario: Sin secciones plegables
 - **WHEN** la persona busca cualquier ajuste de cualquier pestaña
 - **THEN** lo encuentra a la vista, en la barra de escenario o en una vista del panel, sin desplegar nada
+
+### Requirement: Interruptor de guía sin tooltips
+La aplicación SHALL ofrecer un interruptor que muestra u oculta, en toda la
+aplicación, los textos de guía y las misiones. La guía SHALL estar visible por
+defecto. El interruptor SHALL tener un tooltip que diga qué hace y por qué
+importa, en español y en inglés. MUST NOT cambiar si aparecen los tooltips.
+
+#### Scenario: Guía visible por defecto
+- **WHEN** una persona abre la aplicación por primera vez
+- **THEN** los textos de guía y las misiones están visibles
+
+#### Scenario: Ocultar la guía
+- **WHEN** la persona apaga el interruptor de guía
+- **THEN** los textos de guía y las misiones desaparecen y el resto de la pestaña sigue funcionando igual
+
+#### Scenario: Volver a mostrar la guía
+- **WHEN** la persona vuelve a encender el interruptor de guía
+- **THEN** los textos de guía y las misiones reaparecen con el progreso que tenían
+
+#### Scenario: La guía apagada no calla los tooltips
+- **WHEN** la persona apaga el interruptor de guía con las ayudas encendidas y posa el cursor sobre un control
+- **THEN** aparece su tooltip
+
+#### Scenario: El tooltip del interruptor dice lo que gobierna
+- **WHEN** la persona posa el cursor sobre el interruptor de guía, encendido o apagado
+- **THEN** su tooltip nombra los textos de guía y las misiones, y no nombra los tooltips
+
+### Requirement: Interruptor de ayudas
+La aplicación SHALL ofrecer, en la barra de arriba, entre "Guía" y "Atajos",
+un interruptor "Ayudas" que enciende o apaga los tooltips en toda la
+aplicación. SHALL estar encendido por defecto, a la vista en todas las
+pestañas, y tener un tooltip que diga qué hace y por qué importa, en español
+y en inglés, que aparece también con las ayudas apagadas.
+
+#### Scenario: A la vista
+- **WHEN** la persona mira la barra de arriba en cualquier pestaña
+- **THEN** ve el interruptor "Ayudas" con su estado
+
+#### Scenario: Apagar
+- **WHEN** la persona apaga "Ayudas"
+- **THEN** desde ese momento ningún control muestra su tooltip, sin recargar
+
+#### Scenario: Encender
+- **WHEN** la persona enciende "Ayudas"
+- **THEN** los tooltips vuelven a aparecer como siempre
+
+#### Scenario: Con el teclado
+- **WHEN** la persona llega al interruptor con Tab y presiona Espacio o Enter
+- **THEN** cambia de estado y un lector de pantalla lee el estado nuevo
+
+#### Scenario: Barra de arriba sin desbordar
+- **WHEN** la ventana mide 1236 píxeles de ancho o más, en español o en inglés
+- **THEN** la barra de arriba entra en un renglón con las seis pestañas enteras y los tres interruptores con su nombre, sin cortar ningún texto
+
+#### Scenario: Interruptores con nombre
+- **WHEN** la ventana tiene cualquier ancho
+- **THEN** "Guía", "Ayudas" y "Atajos" se leen con su nombre al lado del interruptor, no solo con su dibujo
+
+#### Scenario: Ventana de 1032 píxeles
+- **WHEN** la ventana mide 1032 píxeles de ancho, en español o en inglés
+- **THEN** la barra de pestañas no queda más cortada que antes de existir "Ayudas"

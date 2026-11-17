@@ -90,8 +90,9 @@ desde cero, con la misma red.
 ### Requirement: Plano de puntos
 Con puntos, el tablero SHALL mostrar el plano con cada punto en su lugar y con
 su color, y el fondo pintado con lo que la red contesta en cada lugar: el
-color que elegiría y, con la intensidad, cuán segura está. El fondo SHALL
-actualizarse mientras la red aprende. Los puntos apartados MUST distinguirse
+color que elegiría y, con la intensidad, cuán segura está. Con una neurona
+oculta elegida, el fondo muestra lo que detecta esa neurona, y un rótulo lo
+dice. El fondo SHALL actualizarse mientras la red aprende. Los puntos apartados MUST distinguirse
 de los de práctica sin depender solo del color.
 
 #### Scenario: El fondo sigue a la red
@@ -113,6 +114,18 @@ de los de práctica sin depender solo del color.
 #### Scenario: Descripción en texto
 - **WHEN** un lector de pantalla llega al plano
 - **THEN** anuncia la forma, cuántos puntos hay y qué parte de los apartados acierta la red
+
+#### Scenario: Neurona elegida
+- **WHEN** la persona elige una neurona oculta
+- **THEN** el fondo del plano pasa a mostrar dónde se enciende esa neurona, con los puntos encima, y un rótulo sobre el plano dice de qué neurona es
+
+#### Scenario: Volver a la red
+- **WHEN** la persona suelta la neurona, o elige la de salida
+- **THEN** el fondo vuelve a mostrar lo que contesta la red y el rótulo lo dice
+
+#### Scenario: Vista previa
+- **WHEN** la persona posa el cursor sobre una neurona oculta sin elegirla
+- **THEN** el plano muestra el mapa de esa neurona mientras el cursor está encima
 
 ### Requirement: Reproducción del aprendizaje
 Debajo de la red SHALL haber una barra de reproducción con: reproducir o
@@ -182,8 +195,10 @@ cambia. Cada paso SHALL verse animado en la red.
 ### Requirement: Operación en curso del aprendizaje
 En pausa y al reproducir de a fases, capas o neuronas, la pestaña SHALL
 mostrar, entre la red y la barra de reproducción, la operación que se acaba de
-hacer, escrita con sus números. De corrido, de a épocas o ejemplos, no se
-muestra.
+hacer, escrita con sus números. De corrido, de a épocas o ejemplos, la
+operación no se muestra. Con puntos, cuando la red no muestra la cuenta de un
+ejemplo, ese lugar SHALL decir que muestra el punto de prueba, con sus
+coordenadas y la respuesta.
 
 #### Scenario: Error
 - **WHEN** se avanza la fase del error con una salida
@@ -204,6 +219,14 @@ muestra.
 #### Scenario: Números redondeados
 - **WHEN** la persona mira la operación en curso
 - **THEN** los números son los de verdad, redondeados recién al mostrarlos, y un renglón lo dice
+
+#### Scenario: Sin ejemplo en curso
+- **WHEN** los datos son puntos y la red no muestra la cuenta de un ejemplo, en pausa o aprendiendo de a épocas
+- **THEN** se lee que la red muestra el punto de prueba, sus dos coordenadas, qué color contesta y con cuánta seguridad
+
+#### Scenario: De quién es la cuenta
+- **WHEN** la persona mira los números de las neuronas en cualquier momento
+- **THEN** un texto junto a la red dice si son los del punto de prueba o los de un ejemplo, y cuál
 
 ### Requirement: Ejemplo en curso
 El tablero SHALL mostrar el ejemplo con el que la red está aprendiendo cuando
@@ -754,3 +777,285 @@ con el teclado. Los avisos que cambian solos MUST anunciarse una vez.
 #### Scenario: Objetivos
 - **WHEN** se miden los botones de la pestaña
 - **THEN** todos miden al menos 24 píxeles de lado
+
+### Requirement: Qué detecta cada neurona
+Con puntos, cada neurona oculta SHALL llevar adentro un mapa chico de dónde se
+enciende en el plano, con los colores del plano, actualizado mientras la red
+aprende. Con tu manejo no hay plano: el tablero SHALL mostrar, debajo de la
+escena, la curva de respuesta de la neurona elegida a la entrada que se
+elija, con las demás como en el ejemplo en curso.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña con puntos
+- **THEN** cada una de las 4 neuronas ocultas muestra su mapa, y los mapas cambian mientras la red aprende
+
+#### Scenario: Se ve cómo se combinan
+- **WHEN** la red aprendió el círculo
+- **THEN** cada neurona oculta muestra un corte recto del plano y el plano de la red, la zona cerrada que forman entre todos
+
+#### Scenario: Dos capas ocultas
+- **WHEN** la red tiene dos capas ocultas
+- **THEN** los mapas de la segunda capa muestran formas armadas con los de la primera
+
+#### Scenario: Capa resumida
+- **WHEN** la persona resume una capa oculta
+- **THEN** sus cuadritos no llevan mapa
+
+#### Scenario: Con tu manejo
+- **WHEN** los datos son de manejo y la persona elige una neurona oculta
+- **THEN** el tablero muestra, debajo de la escena, la curva de cómo responde a una entrada, con el nombre de la neurona, botones para elegir cuál entrada, un punto en el valor del ejemplo en curso y una frase que la lee
+
+#### Scenario: La tarjeta solo lleva la cuenta
+- **WHEN** los datos son de manejo y la persona elige una neurona
+- **THEN** la tarjeta del panel muestra sus filas y su sesgo, sin botones para cambiar de vista
+
+#### Scenario: Sin neurona elegida
+- **WHEN** los datos son de manejo y no hay una neurona oculta o de salida elegida
+- **THEN** el tablero no muestra la curva, y con la guía activa un renglón dice que al elegir una neurona se ve ahí su respuesta
+
+#### Scenario: Curva en poco lugar
+- **WHEN** entre la escena y las curvas de error no entra la curva completa
+- **THEN** se muestra en su forma chica, con el gráfico más bajo y solo la primera frase, entera y sin tapar las curvas de error
+
+#### Scenario: La curva cambia al aprender
+- **WHEN** la red aprende con una neurona elegida
+- **THEN** la curva se va moviendo con los pesos
+
+#### Scenario: Con puntos no hay curva
+- **WHEN** los datos son puntos y la persona elige una neurona
+- **THEN** la tarjeta no muestra la curva: el mapa del plano ya dice qué detecta
+
+#### Scenario: Sin depender del color
+- **WHEN** un lector de pantalla llega a una neurona con mapa
+- **THEN** anuncia su valor y en qué parte del plano se enciende más
+
+#### Scenario: Vuelta atrás
+- **WHEN** la persona reinicia los pesos
+- **THEN** los mapas vuelven a mostrar una red que no sabe nada
+
+### Requirement: Panel del Laboratorio con algo elegido
+Con una neurona o una conexión elegida, el panel SHALL seguir mostrando todos
+los ajustes de la red y del aprendizaje, sin plegar ninguno, y su detalle
+debajo. Para darle lugar, cada ajuste con deslizador MUST ocupar un renglón:
+nombre, deslizador y valor. Nada MUST encimarse ni salir de su caja.
+
+#### Scenario: Ajustes en un renglón
+- **WHEN** la persona mira "Neuronas de la capa", "Tasa de aprendizaje" o "Apartados", con puntos o con tu manejo
+- **THEN** cada uno ocupa un renglón, con un deslizador de al menos 120 píxeles de ancho
+
+#### Scenario: Con tu manejo a 1440×900
+- **WHEN** los datos son de manejo, la ventana está en 1440×900 y la persona elige una neurona de 6 entradas, en español o en inglés
+- **THEN** se ven todos los ajustes, las seis filas de la tarjeta y su sesgo sin desplazar nada, y la curva completa en el tablero
+
+#### Scenario: Con tu manejo a 1366×768
+- **WHEN** los datos son de manejo, la ventana está en 1366×768 y la persona elige una neurona de 6 entradas
+- **THEN** se ven todos los ajustes y al menos cinco de las seis filas, la que falta se desplaza dentro de la tarjeta, el panel no se desplaza y la curva entra en el tablero
+
+#### Scenario: Con una conexión elegida
+- **WHEN** la persona elige una conexión, con puntos o con tu manejo
+- **THEN** el detalle de la conexión se ve entero en el panel, con todos los ajustes a la vista
+
+### Requirement: Filtro de conexiones en el Laboratorio
+El filtro de conexiones del Laboratorio SHALL valer en el diagrama igual que
+en la tabla de pesos: con 5, 3 o 1, cada neurona muestra con su aspecto solo
+sus conexiones de entrada de mayor peso y las demás quedan atenuadas. MUST
+seguir a los pesos mientras la red aprende.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña
+- **THEN** el filtro está en todas y ninguna conexión está atenuada por el filtro
+
+#### Scenario: La más importante
+- **WHEN** la red es de 2, 4 y 1 y la persona elige 1
+- **THEN** en el diagrama cada neurona oculta conserva una sola conexión de entrada con su aspecto y la salida una sola, y las otras se ven atenuadas
+
+#### Scenario: Sin efecto, se nota
+- **WHEN** la persona elige 5 y ninguna neurona tiene más de 5 entradas
+- **THEN** el diagrama no cambia, que es lo esperado, y el tooltip del filtro dice que deja las de mayor peso de cada neurona
+
+#### Scenario: Sigue al aprendizaje
+- **WHEN** el filtro está en 1 y la red aprende hasta que otra conexión de una neurona pasa a ser la de mayor peso
+- **THEN** el diagrama pasa a mostrar esa
+
+#### Scenario: Con algo elegido
+- **WHEN** hay una neurona elegida y el filtro está en 3
+- **THEN** el camino hacia atrás se limita a las 3 que más aportan, igual que en Inspeccionar
+
+### Requirement: Detalle de una conexión en el Laboratorio
+Al elegir una conexión, el panel SHALL mostrar su detalle en el lugar de la
+tarjeta: de dónde a dónde va, su peso para cambiarlo, apagarla o encenderla,
+y la historia de su peso. El cambio va a la red que aprende, como los de la
+tarjeta, y cuenta como un cambio a mano. SHALL tener tooltips y textos en
+español y en inglés.
+
+#### Scenario: Elegir una conexión
+- **WHEN** la persona hace clic en una línea de la red
+- **THEN** el panel muestra el detalle de esa conexión, y la guía y las misiones dejan de mostrarse como con la tarjeta
+
+#### Scenario: Cambiar el peso en el lugar
+- **WHEN** la persona arrastra la pastilla de la conexión elegida
+- **THEN** el peso cambia en la red que aprende, el plano se repinta mientras la mueve y el contador de cambios a mano sube en uno al soltar
+
+#### Scenario: Deshacer
+- **WHEN** la persona deshace
+- **THEN** la red vuelve a los pesos de justo antes de ese cambio
+
+#### Scenario: Soltar
+- **WHEN** la persona suelta la conexión
+- **THEN** el detalle desaparece y el panel queda como al abrir
+
+### Requirement: Historia de un peso
+El detalle de una conexión SHALL mostrar una línea con el valor de su peso a
+lo largo de las épocas, con el valor de ahora en números y una marca donde
+hubo un cambio a mano. La línea SHALL crecer mientras la red aprende.
+
+#### Scenario: Peso que se acomoda
+- **WHEN** la red aprendió 100 épocas y la persona elige una conexión
+- **THEN** ve cómo ese peso se movió desde su valor al azar hasta el de ahora
+
+#### Scenario: Cambio a mano en la historia
+- **WHEN** la persona cambió ese peso a mano en la época 60
+- **THEN** la línea muestra el salto y una marca en esa época
+
+#### Scenario: Sin épocas
+- **WHEN** la red no completó ninguna época
+- **THEN** en lugar de la línea, un texto dice que la historia aparece al terminar la primera época
+
+#### Scenario: Descripción en texto
+- **WHEN** un lector de pantalla llega a la historia
+- **THEN** anuncia el valor inicial, el de ahora y cuántas épocas lleva
+
+### Requirement: Lo que el Laboratorio no usa de la vista
+En el Laboratorio MUST NOT mostrarse el interruptor de flujo ni el botón de
+comparar con el original: el aprendizaje ya anima la red, y acá no hay un
+cerebro original con el que comparar.
+
+#### Scenario: Controles que no están
+- **WHEN** la persona mira los controles de arriba de la red en el Laboratorio
+- **THEN** no encuentra "Flujo" ni "Ver original"
+
+### Requirement: La espiral se puede aprender
+La espiral SHALL ser la forma difícil del Laboratorio, pero aprendible sin
+buscar una combinación exacta: con dos capas ocultas y lo demás por defecto
+la red MUST aprenderla en un tiempo que se puede esperar mirando, y con la
+red por defecto no. El tooltip de la forma SHALL decir qué pide.
+
+#### Scenario: Con dos capas de 8
+- **WHEN** la persona elige la espiral, con 200 puntos y ruido 10 %, arma dos capas de 8 con tanh y deja la tasa por defecto
+- **THEN** la red llega a 90 % de aciertos en práctica y en apartados en menos de 200 épocas, con cada una de cinco semillas de pesos
+
+#### Scenario: Con dos capas de 7
+- **WHEN** hace lo mismo con dos capas de 7
+- **THEN** la red llega a 90 % en menos de 200 épocas, con cada una de cinco semillas
+
+#### Scenario: Con la red por defecto
+- **WHEN** la persona elige la espiral con la red por defecto, una capa de 4
+- **THEN** la red no llega a 90 % en 600 épocas con ninguna de cinco semillas, y el plano muestra que una sola capa no alcanza
+
+#### Scenario: Tooltip de la forma
+- **WHEN** la persona posa el cursor sobre la espiral, en español o en inglés
+- **THEN** el tooltip dice que es la difícil y que pide dos capas ocultas, sin nombrar una tasa
+
+#### Scenario: Miniatura
+- **WHEN** la persona mira la miniatura de la espiral en la barra
+- **THEN** muestra la forma que se genera
+
+### Requirement: Punto de prueba en el plano
+Con puntos, el plano SHALL tener un punto de prueba: un marcador que la
+persona pone donde quiere para preguntarle a la red qué contesta ahí. SHALL
+moverse arrastrándolo, con un clic en cualquier lugar del plano y con las
+flechas del teclado. MUST verse distinto de los ejemplos, y la red MUST NOT
+aprender de él. Está siempre disponible, aprendiendo o en pausa, sin entrar
+en ningún modo.
+
+#### Scenario: Al abrir
+- **WHEN** se abre el Laboratorio con puntos
+- **THEN** el punto de prueba está en el centro del plano, a la vista, y la red muestra su cuenta
+
+#### Scenario: Arrastrar
+- **WHEN** la persona arrastra el punto de prueba por el plano
+- **THEN** el marcador sigue al cursor y la respuesta se actualiza mientras arrastra, sin esperar a soltar
+
+#### Scenario: Clic en el plano
+- **WHEN** la persona hace clic en un lugar del plano
+- **THEN** el punto de prueba va a ese lugar, sin necesidad de arrastrar
+
+#### Scenario: Con el teclado
+- **WHEN** la persona llega al punto de prueba con Tab y presiona una flecha
+- **THEN** el punto se mueve 0,05 en esa dirección, o 0,01 con Mayúsculas, y un lector de pantalla lee las coordenadas nuevas y la respuesta
+
+#### Scenario: Dentro del plano
+- **WHEN** la persona arrastra el punto más allá del borde
+- **THEN** el punto queda en el borde: sus coordenadas no salen de −1 a 1
+
+#### Scenario: No es un ejemplo
+- **WHEN** la persona mueve el punto de prueba y deja aprender a la red
+- **THEN** la cantidad de ejemplos, las curvas y los aciertos no cambian por el punto, y su explicación dice que la red no aprende de él
+
+#### Scenario: Distinto de los ejemplos
+- **WHEN** la persona mira el plano sin distinguir colores
+- **THEN** reconoce el punto de prueba por su forma y su tamaño: un aro con una cruz, más grande que cualquier ejemplo, que se ve sobre cualquier fondo
+
+#### Scenario: Respuesta junto al punto
+- **WHEN** el punto de prueba está sobre una zona donde la red contesta naranja
+- **THEN** junto al marcador se lee el color con su forma y cuán segura está, y el rótulo no tapa el marcador ni sale del plano
+
+#### Scenario: Mientras aprende
+- **WHEN** la red aprende y el punto de prueba está quieto
+- **THEN** la respuesta junto al punto cambia con la red
+
+#### Scenario: Con una neurona elegida
+- **WHEN** hay una neurona oculta elegida y el fondo muestra su mapa
+- **THEN** junto al punto se lee lo que da esa neurona en ese lugar
+
+#### Scenario: Blanco cómodo
+- **WHEN** la persona apunta al marcador con el mouse
+- **THEN** el área que lo agarra mide al menos 24 por 24 píxeles
+
+#### Scenario: Se conserva
+- **WHEN** la persona mueve el punto, cambia la forma de los datos, reinicia los pesos o sale de la pestaña y vuelve
+- **THEN** el punto de prueba sigue donde lo dejó
+
+#### Scenario: Con tu manejo
+- **WHEN** los datos son tu manejo
+- **THEN** no hay punto de prueba ni ningún control suyo a la vista
+
+### Requirement: La red muestra el punto de prueba
+Con puntos, cuando la red no muestra la cuenta de un ejemplo, el diagrama y la
+tabla de pesos SHALL mostrar la cuenta del punto de prueba: sus coordenadas en
+las dos entradas, el valor de cada neurona y la respuesta. Las tarjetas de las
+entradas x e y SHALL tener un deslizador que mueve el punto. Al avanzar paso a
+paso un ejemplo, la red muestra ese ejemplo; mover el punto de prueba en pausa
+MUST volver a mostrar el punto sin cambiar lo aprendido.
+
+#### Scenario: Entradas del punto
+- **WHEN** la persona lleva el punto de prueba a x 0,30 e y −0,45
+- **THEN** las entradas de la red muestran 0,30 y −0,45 y todas las neuronas se recalculan en el momento
+
+#### Scenario: Deslizador de una entrada
+- **WHEN** la persona elige la entrada x y mueve su deslizador, con el mouse o con las flechas
+- **THEN** el punto de prueba se mueve en horizontal en el plano y la red se recalcula
+
+#### Scenario: Ejemplo paso a paso
+- **WHEN** la persona avanza de a una fase
+- **THEN** la red pasa a mostrar la cuenta de ese ejemplo, el texto junto a la red lo dice, y el punto de prueba sigue en el plano, más tenue
+
+#### Scenario: Volver al punto
+- **WHEN** hay un ejemplo a medio corregir y la persona mueve el punto de prueba
+- **THEN** la red muestra el punto de prueba con los pesos de ese momento, y el ejemplo queda como estaba: el paso siguiente sigue su cuenta donde iba
+
+#### Scenario: Sin efecto en el aprendizaje
+- **WHEN** la persona mueve el punto de prueba cien veces con la red en pausa
+- **THEN** ningún peso ni sesgo cambia, y la época y las curvas quedan iguales
+
+#### Scenario: Reproduciendo de a ejemplos
+- **WHEN** el aprendizaje se reproduce de a ejemplos o menos
+- **THEN** la red sigue mostrando los ejemplos en curso, y la respuesta junto al punto de prueba sigue actualizándose en el plano
+
+#### Scenario: Mismo punto, misma respuesta
+- **WHEN** la persona pone dos veces el punto en el mismo lugar sin que la red aprenda entre medio
+- **THEN** la red contesta lo mismo las dos veces
+
+#### Scenario: Con cambios a mano
+- **WHEN** la persona apaga una neurona o cambia un peso a mano
+- **THEN** la respuesta del punto de prueba usa la red con esos cambios, igual que el fondo
