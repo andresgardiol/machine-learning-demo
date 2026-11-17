@@ -28,6 +28,7 @@ import { createWeightTable } from '../../render/weight-table.js';
 import { createPlaneView } from '../../render/plane-view.js';
 import { createLoop } from '../../ui/loop.js';
 import { el, setData } from '../../ui/dom.js';
+import { mainAction, applyMainAction } from '../../ui/main-action.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { createTextSetter } from '../../ui/controls.js';
 import { formatValue } from '../../ui/i18n.js';
@@ -368,7 +369,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   legend.append(flickerLegend);
   const opBody = el('div', { attrs: { 'aria-hidden': 'true' } }, opText, opNote);
   const opStrip = el('div', { class: 'lab-op' }, opBody, legend);
-  const playButton = el('button', { class: 'tool primary inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
+  const playButton = el('button', { class: 'tool inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
+  // Acción principal (jerarquia-de-botones D3): en esta pestaña es siempre la marcha.
+  applyMainAction({ run: playButton }, mainAction('lab'));
   const stepButton = el('button', { class: 'tool inspect-step', i18n: 'inspect.step', help: 'lab.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
   const sizeButtons = LEARNING_STEP_SIZES.map((s) => el('button', {
     class: 'segment', i18n: `lab.size.${s}`, help: `lab.size.${s}`,
@@ -582,7 +585,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const intro = el('p', { class: 'guide inspect-intro lab-intro' });
   // XOR sin capas ocultas, después de intentarlo (D8): el botón que agrega la capa que hace falta.
   const addHiddenButton = el('button', {
-    class: 'tool small primary lab-add-hidden', i18n: 'lab.addHidden', help: 'lab.addHidden', attrs: { type: 'button' },
+    class: 'tool small lab-add-hidden', i18n: 'lab.addHidden', help: 'lab.addHidden', attrs: { type: 'button' },
     on: { click: () => { if (session.setLayers(1)) { restarted(); announce(t('lab.guide.gates.xorHidden')); } } },
   });
   const introBlock = el('div', { class: 'lab-intro-block' }, intro, addHiddenButton);
@@ -650,7 +653,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Acciones
   const resetWeightsButton = el('button', { class: 'tool small', i18n: 'lab.resetWeights', help: 'lab.resetWeights', attrs: { type: 'button' }, on: { click: () => resetWeights() } });
   const resetNetworkButton = el('button', { class: 'tool small', i18n: 'lab.resetNetwork', help: 'lab.resetNetwork', attrs: { type: 'button' }, on: { click: () => { session.resetNetwork(); restarted(); } } });
-  const saveButton = el('button', { class: 'tool small primary lab-save', i18n: 'lab.save', attrs: { type: 'button' }, on: { click: () => saveBrain() } });
+  const saveButton = el('button', { class: 'tool small lab-save', i18n: 'lab.save', attrs: { type: 'button' }, on: { click: () => saveBrain() } });
   const saveMessage = el('p', { class: 'caption lab-save-message', attrs: { role: 'status' } });
   // Ver una solución (D9): con compuertas, pesos que aciertan los cuatro casos, como un cambio a mano.
   const solutionButton = el('button', { class: 'tool small lab-solution', i18n: 'lab.solution', help: 'lab.solution', attrs: { type: 'button' }, on: { click: () => showSolution() } });

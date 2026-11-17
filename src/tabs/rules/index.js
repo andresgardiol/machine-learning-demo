@@ -18,6 +18,7 @@ import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { button, switchButton, createTextSetter, inlineConfirm } from '../../ui/controls.js';
+import { mainAction, applyMainAction } from '../../ui/main-action.js';
 import { statStrip, boardCard } from '../../ui/board.js';
 import { createCodeEditor } from '../../ui/editor.js';
 import { downloadText, readText } from '../../ui/files.js';
@@ -451,11 +452,12 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     crashBadgeText, el('span', { class: 'crash-badge-retry', i18n: 'rules.crash.retrying' }));
   const crashBody = el('p', {});
   const crashHowto = el('p', { i18n: 'rules.crash.howto' });
+  const crashRestart = button('rules.restart', 'rules.restart', restart);
   const crashBox = el('div', { class: 'crash-box', attrs: { role: 'alert' } },
     el('h2', { i18n: 'rules.crash.title' }),
     crashBody,
     crashHowto,
-    button('rules.restart', 'rules.restart', restart, 'tool primary'));
+    crashRestart);
   const crashLayer = el('div', { class: 'crash-layer' }, crashBox);
   view.corner.append(el('div', { class: 'stage-badges' }, pauseBadge, machineBadge, crashBadge));
   stage.append(crashLayer);
@@ -512,6 +514,8 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     setText(crashHowto, circuit ? 'rules.crash.howto.circuit' : 'rules.crash.howto');
     crashBadge.hidden = !(crashed && state.autoRetry);
     crashLayer.hidden = !(crashed && !state.autoRetry);
+    // Acción principal (jerarquia-de-botones D3): la marcha, o Reiniciar del aviso con el aviso a la vista.
+    applyMainAction({ run: pauseButton, restart: crashRestart }, mainAction('rules', { crashed: !crashLayer.hidden }));
     if (crashed) {
       setText(state.autoRetry ? crashBadgeText : crashBody, crashKey, meters(session.distance));
     }

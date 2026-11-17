@@ -32,6 +32,7 @@ import { createWeightTable } from '../../render/weight-table.js';
 import { weightStyle } from '../../render/network-view.js';
 import { createLoop } from '../../ui/loop.js';
 import { el, setData } from '../../ui/dom.js';
+import { mainAction, applyMainAction } from '../../ui/main-action.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { createTextSetter } from '../../ui/controls.js';
 import { formatValue } from '../../ui/i18n.js';
@@ -677,7 +678,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     opTrack.replaceChildren(...d.track.marks.map((m) => el('li', { class: 'op-mark', dataset: { state: m.state, wide: String(Boolean(m.wide)) } },
       m.state === 'done' ? el('span', { class: 'op-tick' }, '✓') : null, el('span', {}, m.label))));
   }
-  const playButton = el('button', { class: 'tool primary inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
+  const playButton = el('button', { class: 'tool inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
+  // Acción principal (jerarquia-de-botones D3): en esta pestaña es siempre la marcha.
+  applyMainAction({ run: playButton }, mainAction('inspect'));
   const stepButton = el('button', { class: 'tool inspect-step', i18n: 'inspect.step', help: 'inspect.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
   // Paso atrás (operacion-por-operacion D7): deshace dentro del cuadro; al principio no tiene efecto.
   const backButton = el('button', { class: 'tool inspect-back', i18n: 'inspect.back', help: 'inspect.back', attrs: { type: 'button', 'aria-disabled': 'false' }, on: { click: () => stepBack() } });

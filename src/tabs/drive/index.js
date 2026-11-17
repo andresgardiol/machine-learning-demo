@@ -15,6 +15,7 @@ import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { button, switchButton, createTextSetter } from '../../ui/controls.js';
+import { mainAction, applyMainAction } from '../../ui/main-action.js';
 import { statStrip, boardCard } from '../../ui/board.js';
 import { perceptionBlock, actionBlock } from '../shared/driving-cards.js';
 import { setUnavailable } from '../shared/street-advanced.js';
@@ -188,7 +189,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
   const machineBadge = el('div', { class: 'stage-badge machine-badge', i18n: 'drive.machine.badge' });
   const crashBody = el('p', {});
-  const crashRestart = button('drive.restart', 'drive.restart', restart, 'tool primary');
+  const crashRestart = button('drive.restart', 'drive.restart', restart);
   const crashHowto = el('p', { i18n: 'drive.crash.howto' });
   const crashBox = el('div', { class: 'crash-box', attrs: { role: 'alert' } },
     el('h2', { i18n: 'drive.crash.title' }),
@@ -246,6 +247,8 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
 
     // Fin del intento
     crashLayer.hidden = !crashed;
+    // Acción principal (jerarquia-de-botones D3): la marcha, o Reiniciar del aviso con un choque a la vista.
+    applyMainAction({ run: pauseButton, restart: crashRestart }, mainAction('drive', { crashed }));
     if (crashed) {
       const edgeKey = circuit ? 'drive.crash.edge.circuit' : 'drive.crash.edge';
       setText(crashBody, world.crashCause === 'vehicle' ? 'drive.crash.vehicle' : edgeKey, meters(session.distance));

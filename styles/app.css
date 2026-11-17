@@ -1575,10 +1575,11 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .segment[aria-pressed="true"], .lang-option[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--color-selected-border); }
 .bar-track[aria-checked="true"] { box-shadow: none; }
 
-/* Acción principal (D2.1): el único relleno del color de acción, más grande que las secundarias.
+/* Acción principal (D2.1): el único relleno del color de acción, más grande que las secundarias. 40 px de
+   alto: medido en la tarea 3.3, la barra de marcha de Inspeccionar y del Laboratorio entra sin cortes a 1366×768.
    Le gana a la opción apretada: la marcha de Inspeccionar y del Laboratorio usa aria-pressed. */
 .tool.primary, .tool.primary[aria-pressed], .tool.primary:hover {
-  min-height: 36px; padding: 0 var(--space-3);
+  min-height: 40px; padding: 0 var(--space-3);
   background: var(--color-action); border-color: var(--color-action); color: var(--color-on-action);
   font-size: 15px; font-weight: 700; box-shadow: none;
 }

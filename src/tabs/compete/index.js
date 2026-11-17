@@ -36,6 +36,7 @@ import { createResults, STREET_TRAFFICS } from './results.js';
 import { createCompeteMissions } from './missions.js';
 import { createSeedSeries, seedFor } from './seeds.js';
 import { shortcutFor, mainAction } from './shortcuts.js';
+import { mainAction as primaryOf, applyMainAction } from '../../ui/main-action.js';
 import { createCountdown, COUNTDOWN_FROM } from './countdown.js';
 import { createPicker } from '../../ui/picker.js';
 
@@ -228,7 +229,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   const intro = el('p', { class: 'guide compete-intro', i18n: 'compete.guide' });
 
   // --- Panel: carrera ---------------------------------------------------------------------------
-  const mainButton = el('button', { class: 'tool primary compete-main', attrs: { type: 'button' }, on: { click: () => main() } });
+  const mainButton = el('button', { class: 'tool compete-main', attrs: { type: 'button' }, on: { click: () => main() } });
   const restartButton = button('compete.restart', 'compete.restart', restart, 'tool small');
   const anotherButton = button('compete.another', 'compete.another', anotherRace, 'tool small');
   const speeds = optionGroup({
@@ -651,7 +652,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
 
   // --- Escenario: cartel para largar y cuenta de la espera (D5 y D11) -----------------------------
   const startText = el('p', { class: 'start-card-text' });
-  const startButton = el('button', { class: 'tool primary start-card-button', i18n: 'compete.start.button', help: 'compete.start.button', attrs: { type: 'button' }, on: { click: () => start() } });
+  const startButton = el('button', { class: 'tool start-card-button', i18n: 'compete.start.button', help: 'compete.start.button', attrs: { type: 'button' }, on: { click: () => start() } });
   const startKey = el('p', { class: 'start-card-key muted', i18n: 'compete.start.key' });
   const startCard = el('div', { class: 'start-card', attrs: { role: 'group' }, i18nAttr: 'aria-label:compete.start.label' }, startText, startButton, startKey);
   const startLayer = el('div', { class: 'start-layer' }, startCard);
@@ -780,6 +781,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
 
     // Escenario: cartel para largar y cuenta de la espera.
     startLayer.hidden = phase !== 'waiting';
+    // Acción principal (jerarquia-de-botones D3): la marcha; el botón del cartel mientras se ve; con la
+    // carrera terminada, Otra carrera, que es el mismo botón de marcha con ese texto.
+    const primary = primaryOf('compete', { raceFinished: phase === 'finished', startCardVisible: !startLayer.hidden });
+    applyMainAction({ run: mainButton, startCard: startButton }, primary === 'another' ? 'run' : primary);
     syncCountdown();
     if (phase === 'waiting') {
       setText(startText, 'compete.start.text', { goal: goalText(t, { kind: g.kind, value: g.value }) });

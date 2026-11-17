@@ -46,25 +46,30 @@
 
 ## 3. Una acción principal por pestaña
 
-- [ ] 3.1 Usar `mainAction` y `applyMainAction` en El problema y Reglas a mano, con la marcha y el Reiniciar del aviso. Quitar el `primary` fijo del aviso. Verificación: escenarios "El problema en marcha" y "Choque y vuelta atrás", en las dos pestañas.
-- [ ] 3.2 Lo mismo en Entrenar:
+- [x] 3.1 Usar `mainAction` y `applyMainAction` en El problema y Reglas a mano, con la marcha y el Reiniciar del aviso. Quitar el `primary` fijo del aviso. Verificación: escenarios "El problema en marcha" y "Choque y vuelta atrás", en las dos pestañas.
+  *Hecho. El problema y Reglas a mano llaman a `applyMainAction({ run, restart }, mainAction(...))` en su `sync()`; el Reiniciar del aviso perdió el `primary` fijo. En Reglas cuenta como choque a la vista el aviso visible (con "Reintentar solo" encendido no hay aviso y la marcha sigue siendo la principal). Medido en el navegador, avanzando el mundo a mano porque el panel estaba oculto: El problema muestra "Pausar (espacio)" como única principal; con el choque, solo "Reiniciar (R)" del aviso; al reiniciar, vuelve "Pausar". En Reglas, con "Reintentar solo" apagado, lo mismo. Medido también en `capturar.mjs` (estados 01 a 05, a 1440 y 1366).*
+- [x] 3.2 Lo mismo en Entrenar:
   - marcha, en la vista de entrenamiento;
   - Elegir al líder, con la selección manual;
   - Guardar como nuevo, en la vista de cerebros;
   - Guardar campeón pasa a secundario.
 
   Verificación: escenarios "Entrenar con selección manual" y "Guardar no compite con la marcha".
-- [ ] 3.3 Lo mismo en Competir, Inspeccionar y Laboratorio:
+  *Hecho. Entrenar llama a `syncMainAction()` en `sync()` y al cambiar de vista. "Selección manual pendiente" se tomó como modo manual sin padre elegido (`training.parent` nulo), que es cuando el panel dice que falta elegir; en manual, el padre elegido sigue de una generación a la otra. Guardar campeón y Guardar como nuevo perdieron el `primary` fijo. Medido en el navegador: vista de entrenamiento, "Pausar"; ajustes, ninguna; cerebros, "Guardar como nuevo"; "Guardar campeón" con clase `tool save-quick`; en modo "Vos", "Elegir al líder (E)"; después de elegir, "Pausar" otra vez.*
+- [x] 3.3 Lo mismo en Competir, Inspeccionar y Laboratorio:
   - en Competir: marcha, cartel de largada y Otra carrera;
   - en el Laboratorio, Agregar una capa oculta y Guardar como cerebro pasan a secundarios.
 
   Medir a 1440×900 y a 1366×768 que la barra de marcha de Inspeccionar y la del Laboratorio entran sin cortes con 36 px de alto. Si sobra lugar, probar 40 px; si corta, dejar 32 px (Risks). Anotar la medida. Verificación: escenarios "Competir con el cartel de largada", "Carrera terminada" y "Laboratorio".
-- [ ] 3.4 `auditHierarchy()` en `src/ui/audit.js`, expuesta como `mlLab.auditHierarchy()` (D4). Correrla en las seis pestañas y en los estados del guion de capturas. Verificación: cero avisos; escenarios "El azul relleno es solo de la acción principal", "Al abrir la app" y "Diálogo de confirmación".
-- [ ] 3.5 Comprobar que nada cambió de comportamiento:
+  *Hecho. Competir: la marcha y el botón del cartel sin `primary` fijo; `applyMainAction` en `sync()`. Con la carrera terminada la principal es el mismo botón de marcha, que entonces dice "Otra carrera (espacio)"; el "Otra carrera" chico sigue secundario. Inspeccionar y Laboratorio: la marcha toma `primary` con `applyMainAction` al crearse; "Agregar una capa oculta" y "Guardar como cerebro" quedaron secundarios. Medido con `capturar.mjs` en los seis estados de Inspeccionar y Laboratorio, a 1440×900 y 1366×768: antes (60b4397, en un worktree aparte, ya borrado) la barra medía 69 px y el botón 28; con 36 px, la barra mide 77 y no hay cortes ni desbordes; con 40 px, 81, también sin cortes ni desbordes, y en las capturas a 1366 la red y la leyenda de arriba se ven enteras. Se dejó en **40 px**. Medido en la auditoría: 09 con "Largar" del cartel como única principal (la marcha del panel, secundaria); 10 con "Otra carrera (espacio)" como única.*
+- [x] 3.4 `auditHierarchy()` en `src/ui/audit.js`, expuesta como `mlLab.auditHierarchy()` (D4). Correrla en las seis pestañas y en los estados del guion de capturas. Verificación: cero avisos; escenarios "El azul relleno es solo de la acción principal", "Al abrir la app" y "Diálogo de confirmación".
+  *Hecho. `auditHierarchy()` en `src/ui/audit.js`, expuesta como `mlLab.auditHierarchy()`; el guion de capturas la corre en cada foto y la guarda en `auditoria.json`. Cambio respecto de D4: cuenta solo los controles (el mismo selector que `auditTooltips`). Lo que no es control y tiene el mismo azul se lista aparte en `marks`, sin contarlo como problema: las barras de los sensores (`--color-sensor`) y las de las misiones (`--color-accent`). Sin ese filtro daba 10 avisos por estado en El problema. Medido: 0 problemas en los 36 estados del guion (18 a 1440 y 18 a 1366), con exactamente una principal por estado; ninguna en Ajustes de Entrenar; en la confirmación de reemplazar el programa, "Reemplazar" adentro del diálogo y "Pausar" afuera.*
+- [x] 3.5 Comprobar que nada cambió de comportamiento:
   - cada botón que cambió de estilo hace lo mismo con el mouse y con su atajo, con el mismo texto y tooltip en español y en inglés;
   - con la misma semilla, la simulación da los mismos resultados que antes. Usar las pruebas del núcleo que ya existen; no entrenar redes para comprobar que aprenden.
 
   Verificación: `npm test` completo, escenarios "Mismo comportamiento" y "Determinismo", y `mlLab.auditTooltips()` sin problemas nuevos en los dos idiomas.
+  *Hecho. Medido: el diff contra 60b4397 en `src/` solo cambia clases (`primary` sacado, Créditos a `link-button`), agrega las llamadas a `applyMainAction` y la auditoría; ningún `i18n`, `help` ni manejador cambió, y `button()` ya usaba `tool` por defecto. En el navegador: Pausar de El problema y de Entrenar alterna con el clic y con espacio; Reproducir de Inspeccionar y del Laboratorio, igual; en Competir, espacio larga desde el cartel. `mlLab.auditTooltips()` da 0 en las seis pestañas, en español y en inglés. `npm test` pasa (1306 de 1306), incluidas las de reproducibilidad, azar, evolución y carrera (91). No se entrenó ninguna red. Sin probar: los atajos R, E, Z y N uno por uno; sus manejadores no se tocaron.*
 
 ## 4. Después y cierre
 

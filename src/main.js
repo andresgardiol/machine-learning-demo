@@ -4,7 +4,7 @@ import en from './i18n/en.js';
 import { createI18n, pickInitialLanguage } from './ui/i18n.js';
 import { createPreferences } from './ui/preferences.js';
 import { installTooltips } from './ui/tooltips.js';
-import { auditTooltips } from './ui/audit.js';
+import { auditTooltips, auditHierarchy } from './ui/audit.js';
 import { createApp } from './ui/app.js';
 import * as driveTab from './tabs/drive/index.js';
 import * as rulesTab from './tabs/rules/index.js';
@@ -49,4 +49,5 @@ app.store.subscribe((state, prev) => { if (prev.hints && !state.hints) tooltips.
 window.mlLab = {
   app, i18n, preferences, tooltips,
   auditTooltips: (root = document) => auditTooltips({ root, dictionaries }),
+  auditHierarchy: (root = document) => auditHierarchy({ root }),
 };

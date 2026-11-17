@@ -29,6 +29,7 @@ import { statStrip, boardCard } from '../../ui/board.js';
 import {
   button, switchButton, sliderRow, optionGroup, createTextSetter, inlineConfirm,
 } from '../../ui/controls.js';
+import { mainAction, applyMainAction } from '../../ui/main-action.js';
 import {
   DEFAULT_SETTINGS, SETTINGS, normalizeSettings, trainingConfig, classifyChanges, adoptBrain,
   onlyCircuits, settingsWaiting, resetPanelSettings, followingAfter, barSettings, barPatch, BAR_DEFAULTS, RESTART_GENERATION_KEYS,
@@ -328,7 +329,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const newPopulationButton = button('train.newPopulation', 'train.newPopulation', newPopulation, 'tool small');
   const toolbarConfirm = inlineConfirm({ i18n });
   // Selección manual: elegir al líder y deshacer en un renglón, con la línea de estado del padre debajo.
-  const chooseButton = button('train.choose', 'train.choose', chooseLeader, 'tool primary');
+  const chooseButton = button('train.choose', 'train.choose', chooseLeader);
   const undoButton = button('train.undo', 'train.undo', () => {
     if (undoButton.getAttribute('aria-disabled') === 'true') return;
     undoChoice();
@@ -508,7 +509,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Guardar (D4). En la vista de entrenamiento, un solo botón con su resultado en el mismo renglón:
   // guarda con el nombre sugerido o actualiza el cerebro del entrenamiento. Guardar no suma renglones.
   const quickSave = el('button', {
-    class: 'tool primary save-quick', attrs: { type: 'button' },
+    class: 'tool save-quick', attrs: { type: 'button' },
     on: { click: () => { if (canSave()) saveChampion({ update: Boolean(sourceEntry()) }); } },
   });
   /** Resultado de guardar con su acción (Renombrar o Deshacer); queda hasta el próximo guardado. */
@@ -545,7 +546,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     nameInput.value = '';
   }
   const saveButton = el('button', {
-    class: 'tool primary', i18n: 'train.save.asNew', attrs: { type: 'button' },
+    class: 'tool', i18n: 'train.save.asNew', attrs: { type: 'button' },
     on: { click: saveAsNew },
   });
   const updateButton = el('button', {
@@ -595,6 +596,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     onChange: (id, previous) => {
       currentView = id;
       cancelConfirms(previous);
+      syncMainAction();
     },
   });
   const countLibrary = () => views.setCount('brains', library ? library.list().length : 0);
@@ -670,9 +672,20 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   view.corner.append(el('div', { class: 'stage-badges' }, generationBadge, restartedBadge, pauseBadge, machineBadge));
 
   // --- Sincronizar el panel con el estado ------------------------------------------------------------
+  /**
+   * Acción principal de la vista (jerarquia-de-botones D3): la marcha; Elegir al líder con la selección
+   * manual sin padre elegido; Guardar como nuevo en la vista de cerebros; ninguna en la de ajustes.
+   */
+  function syncMainAction() {
+    const manualPending = manualWanted() && !state.training.parent;
+    applyMainAction({ run: pauseButton, chooseLeader: chooseButton, saveAsNew: saveButton },
+      mainAction('train', { manualPending, panelView: currentView }));
+  }
+
   function sync() {
     const t = state.training;
     const s = state.settings;
+    syncMainAction();
     const ind = indicators(t);
     setText(strip.values.generation, 'train.value.count', { value: ind.generation });
     setText(strip.values.alive, 'train.value.alive', { value: ind.alive, total: ind.total });
