@@ -36,6 +36,7 @@ import { createResults, STREET_TRAFFICS } from './results.js';
 import { createCompeteMissions } from './missions.js';
 import { currentMission } from '../../ui/current-mission.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createMissionReveal } from '../shared/mission-reveal.js';
 import { createGuideMore } from '../shared/guide-more.js';
 import { createSeedSeries, seedFor } from './seeds.js';
 import { shortcutFor, mainAction } from './shortcuts.js';
@@ -252,7 +253,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     el('div', { class: 'run-secondary' }, restartButton, anotherButton),
     speeds.row);
   // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la carrera y la misión en curso.
-  const card = createConsignaCard({ i18n, run: runSection });
+  // "Mostrame" (misiones-que-muestran-el-control): la Pista de la barra de escenario, o la marcha. Nunca
+  // larga la carrera: solo la marca y le pasa el foco.
+  const missionReveal = createMissionReveal({
+    tab: 'compete', i18n,
+    mission: () => currentMission(state.missions.missions),
+    nodes: { track: () => scenario.node.querySelector('.bar-group-track'), run: () => mainButton },
+  });
+  const card = createConsignaCard({ i18n, run: runSection, onReveal: missionReveal.reveal });
 
   // --- Panel: tráfico de la carrera (solo en la calle recta) -------------------------------------
   const trafficChoice = optionGroup({
@@ -761,7 +769,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
       writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
     card.setConsigna('consigna.compete');
-    card.setMission(current && !current.allDone ? describeMission(current) : current);
+    card.setMission(current && !current.allDone ? { ...describeMission(current), reveal: missionReveal.has(current.id) } : current);
 
     // Indicadores
     const time = formatFixed(Math.floor(race.time), 0, i18n.language);

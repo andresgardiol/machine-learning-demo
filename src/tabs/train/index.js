@@ -23,6 +23,7 @@ import { createLibraryView } from '../../ui/library-view.js';
 import { panelViews } from '../../ui/panel-views.js';
 import { currentMission } from '../../ui/current-mission.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createMissionReveal } from '../shared/mission-reveal.js';
 import { createGuideMore } from '../shared/guide-more.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { trainingDescription } from '../shared/stage-text.js';
@@ -371,7 +372,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'run-secondary' }, restartButton, newPopulationButton),
     toolbarConfirm.node);
   // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
-  const card = createConsignaCard({ i18n, run });
+  // "Mostrame" (misiones-que-muestran-el-control): Guardar campeón, o la función de fitness en la vista
+  // Ajustes. Solo cambia de vista del panel; no toca ningún ajuste.
+  const missionReveal = createMissionReveal({
+    tab: 'train', i18n,
+    mission: () => currentMission(state.missions.missions),
+    nodes: { save: () => quickSave, fitness: () => choices.fitness.row },
+    prepare: (target) => { if (target.view) views.select(target.view); },
+  });
+  const card = createConsignaCard({ i18n, run, onReveal: missionReveal.reveal });
 
   // Misiones. Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2).
   const describeMission = (m) => ({
@@ -749,7 +758,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     for (const m of missionList) {
       writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
-    card.setMission(current && !current.allDone ? describeMission(current) : current);
+    card.setMission(current && !current.allDone ? { ...describeMission(current), reveal: missionReveal.has(current.id) } : current);
 
     // Selección manual (según el modo deseado): elegir y deshacer, con la línea de estado del padre.
     const manual = s.selectionMode === 'manual';

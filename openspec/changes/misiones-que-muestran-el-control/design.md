@@ -53,13 +53,21 @@ Antes de llamarlo, cada pestaña resuelve lo que la tabla pide:
 - `view`: en Entrenar, `panelViews` cambia a esa vista.
 - `select`: en Inspeccionar, elegir la primera entrada o la primera neurona oculta. Usa la misma función que el clic.
 
-Después, en el cuadro siguiente, la pestaña busca los nodos (`requestAnimationFrame`), porque cambiar de vista o elegir rehace el DOM.
+Después, en el cuadro siguiente, la pestaña busca los nodos (`requestAnimationFrame`), porque cambiar de vista o elegir rehace el DOM. Lo hace `src/tabs/shared/mission-reveal.js`, igual para las seis pestañas.
+
+**Decisiones de implementación a confirmar con el dueño** (no estaban en los artefactos):
+- *Inspeccionar, "Cambiá una decisión a mano":* el valor a mano solo existe en pausa. Para que haya un control que mostrar, "Mostrame" pausa antes de elegir la entrada. No cambia ningún valor ni el resultado; se vuelve con Reproducir.
+- *Reglas a mano, el editor:* si la tarjeta del programa está plegada, "Mostrame" la abre para traerlo a la vista, como si la persona la abriera.
+- *Laboratorio, XOR antes de la explicación:* ver D1.
+- *El nombre que se anuncia* es corto: el rótulo del grupo (Pista, Función de fitness, Cantidad) o el nombre del control con el foco (el editor: "Programa del auto"). El texto visible de un grupo entero leía todas las opciones.
 
 ### D3. El anillo
 
 - **Estilo.** `[data-revealed="true"]` lleva `outline: 3px solid var(--color-reveal); outline-offset: 3px`, más un `box-shadow` del fondo entre medio, para que se separe del contorno de foco, que va adentro.
 - **El color, `--color-reveal`.** Va en `#rrggbb`. Tiene que distinguirse de `--color-accent` (el foco y la opción elegida) y dar 3:1 o más sobre `--color-bg`, `--color-surface`, `--color-surface-2` y `--color-card-bg`. Se parte del amarillo de "en curso" de la red (`--color-network-current`, `#f4e04d`), que ya significa "esto es lo que toca ahora". Se mide en `tests/control-contrast.test.js`.
 - **Movimiento.** Aparece con una transición de opacidad de 150 ms y se va con otra de 300 ms. Con menos movimiento, sin transición. No hay animación en bucle: cumple el tope de `sin-destellos-en-la-red`.
+
+*Cambio al implementar:* el anillo es un `box-shadow` (`0 0 0 4px var(--color-bg), 0 0 0 7px var(--color-reveal)`), no un `outline`. El foco ya es un `outline`, y un elemento tiene uno solo: con dos `outline`, uno tapaba al otro. La transición es del `box-shadow`, no de la opacidad, con los mismos 150 y 300 ms. Sobre los elementos de SVG no se dibuja, pero ninguno de los controles de la tabla lo es.
 
 *Alternativa descartada:* un latido o un parpadeo para llamar la atención. Choca con "sin destellos", y el foco ya lleva la vista ahí.
 

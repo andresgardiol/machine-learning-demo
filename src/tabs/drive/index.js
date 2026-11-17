@@ -22,6 +22,7 @@ import { perceptionBlock, actionBlock } from '../shared/driving-cards.js';
 import { setUnavailable } from '../shared/street-advanced.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createMissionReveal } from '../shared/mission-reveal.js';
 import { createGuideMore } from '../shared/guide-more.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { stageDescription } from '../../ui/stage-description.js';
@@ -100,7 +101,13 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   const run = el('section', { class: 'drive-run' },
     el('div', { class: 'run-main' }, pauseButton, restartButton));
   // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
-  const card = createConsignaCard({ i18n, run });
+  // "Mostrame" (misiones-que-muestran-el-control): lleva a "Ver como la máquina".
+  const missionReveal = createMissionReveal({
+    tab: 'drive', i18n,
+    mission: () => currentMission(session.missions, { available: !world.track.closed }),
+    nodes: { machineView: () => machineSwitch },
+  });
+  const card = createConsignaCard({ i18n, run, onReveal: missionReveal.reveal });
 
   // Vista: el interruptor de sensores solo decide si se dibujan los rayos; las barras siguen.
   const sensorsSwitch = switchButton('drive.sensors', 'drive.sensors', options.showSensors, () => {
@@ -241,7 +248,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
       writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
     card.setConsigna(circuit ? 'consigna.drive.circuit' : 'consigna.drive');
-    card.setMission(current && !current.allDone ? describeMission(current) : current);
+    card.setMission(current && !current.allDone ? { ...describeMission(current), reveal: missionReveal.has(current.id) } : current);
 
     // Percepción: barras y, con hasta 12 sensores, su lectura con dos decimales en el idioma activo.
     perception.update(world.perception);

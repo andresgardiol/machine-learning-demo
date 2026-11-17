@@ -28,6 +28,7 @@ import { setUnavailable } from '../shared/street-advanced.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
 import { currentMission } from '../../ui/current-mission.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createMissionReveal } from '../shared/mission-reveal.js';
 import { createGuideMore } from '../shared/guide-more.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { stageDescription } from '../../ui/stage-description.js';
@@ -292,7 +293,20 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   const run = el('section', { class: 'drive-run' },
     el('div', { class: 'run-main' }, pauseButton, button('rules.restart', 'rules.restart', restart)));
   // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
-  const card = createConsignaCard({ i18n, run });
+  // "Mostrame" (misiones-que-muestran-el-control): lleva al editor del programa o a Tráfico nuevo. Si la
+  // tarjeta del programa está plegada, la abre (traerlo a la vista), como si la persona la abriera.
+  const missionReveal = createMissionReveal({
+    tab: 'rules', i18n,
+    mission: () => currentMission(session.missions, { available: !state.world.track.closed }),
+    nodes: {
+      editor: () => {
+        if (!programCard.open) { programCard.setOpen(true); state.cards.program = true; }
+        return editor.node;
+      },
+      newTraffic: () => newTrafficButton,
+    },
+  });
+  const card = createConsignaCard({ i18n, run, onReveal: missionReveal.reveal });
 
   const sensorsSwitch = switchButton('rules.sensors', 'rules.sensors', state.showSensors, () => {
     state.showSensors = !state.showSensors;
@@ -499,7 +513,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
       writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
     card.setConsigna('consigna.rules');
-    card.setMission(current && !current.allDone ? describeMission(current) : current);
+    card.setMission(current && !current.allDone ? { ...describeMission(current), reveal: missionReveal.has(current.id) } : current);
 
     perception.update(world.perception);
     action.update(controller.controls);

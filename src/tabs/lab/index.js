@@ -47,6 +47,7 @@ import { describeLearningStep, whereText, layerName, neuronName, errorTrend } fr
 import { createLabMissions, MISSION_IDS, GATE_MISSION_IDS } from './missions.js';
 import { currentMission } from '../../ui/current-mission.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createMissionReveal } from '../shared/mission-reveal.js';
 import { createGuideMore } from '../shared/guide-more.js';
 import { gateSolution, solutionShapeOk } from './gate-solutions.js';
 import { shortcutFor } from './shortcuts.js';
@@ -684,7 +685,29 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   });
   // Tarjeta de consigna (tarjeta-de-consigna D4): sin marcha, que sigue en la barra de abajo de la red.
   // Al elegir una neurona sigue a la vista; la guía y las misiones ceden su lugar como antes.
-  const consigna = createConsignaCard({ i18n });
+  // "Mostrame" (misiones-que-muestran-el-control): con compuertas, según la compuerta y la red (el primer
+  // peso, la opción OR o XOR de la barra sin elegirla, o Agregar una capa oculta); con puntos, Paso y
+  // «De a: Fase», o Cantidad, Ruido y las capas ocultas; con tu manejo, Guardar como cerebro.
+  const missionReveal = createMissionReveal({
+    tab: 'lab', i18n,
+    mission: () => currentMission(state.missions.missionsFor(session.kind)),
+    state: () => (isGates()
+      ? { gate: session.gate, hiddenLayers: session.settings.hidden.length, addHidden: guideKey() === 'lab.guide.gates.xorLine' }
+      : {}),
+    nodes: {
+      firstWeight: () => area.querySelector('[data-help="lab.knob.weight"]'),
+      gateOr: () => gateOptions.find((b) => b.dataset.gate === 'or'),
+      gateXor: () => gateOptions.find((b) => b.dataset.gate === 'xor'),
+      addHidden: () => addHiddenButton,
+      step: () => stepButton,
+      sizePhase: () => sizeButtons.find((b) => b.dataset.size === 'phase'),
+      count: () => countSlider.node,
+      noise: () => noiseSlider.node,
+      hiddenLayers: () => layersRow,
+      saveBrain: () => saveButton,
+    },
+  });
+  const consigna = createConsignaCard({ i18n, onReveal: missionReveal.reveal });
   // Misiones
   const missionRows = [...MISSION_IDS, ...GATE_MISSION_IDS].map((id) => ({ id })).map((m) => {
     const status = el('span', { class: 'mission-status' });
@@ -1299,7 +1322,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
     consigna.setConsigna(`consigna.lab.${session.kind}`);
-    consigna.setMission(current && !current.allDone ? describeMission(current) : current);
+    consigna.setMission(current && !current.allDone ? { ...describeMission(current), reveal: missionReveal.has(current.id) } : current);
     // Con algo elegido la tarjeta cede su lugar, como en Inspeccionar (grupo 5).
     show(consigna.node, !state.selected);
     // Los controles que no sirven mientras se graba no se muestran.

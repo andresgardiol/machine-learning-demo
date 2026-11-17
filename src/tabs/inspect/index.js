@@ -49,6 +49,7 @@ import { describeStep, describeOperation, whereText, layerName, neuronLabel, pla
 import { createInspectMissions } from './missions.js';
 import { currentMission } from '../../ui/current-mission.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createMissionReveal } from '../shared/mission-reveal.js';
 import { createGuideMore } from '../shared/guide-more.js';
 import { shortcutFor } from './shortcuts.js';
 import { takesWheel, isDrivingKey } from './driver.js';
@@ -867,7 +868,27 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   });
   // Tarjeta de consigna (tarjeta-de-consigna D4): sin marcha, que sigue en la barra de abajo de la red.
   // Al elegir una neurona sigue a la vista; el texto largo cede su lugar (D17 de pestana-inspeccionar).
-  const consigna = createConsignaCard({ i18n });
+  // "Mostrame" (misiones-que-muestran-el-control): Paso y «De a: Operación»; o, eligiendo antes con la
+  // misma función que el clic, el valor a mano de la primera entrada o Apagar de la primera neurona
+  // oculta. El valor a mano solo existe en pausa: para mostrarlo, pausa (decisión a confirmar, design D2).
+  // Nunca apaga nada ni cambia un valor.
+  const missionReveal = createMissionReveal({
+    tab: 'inspect', i18n,
+    mission: () => (net ? currentMission(state.missions.missions) : null),
+    nodes: {
+      step: () => stepButton,
+      sizeOperation: () => sizeButtons.find((b) => b.dataset.size === 'operation'),
+      manualInput: () => card.node.querySelector('.inspect-input-slider'),
+      turnOff: () => card.node.querySelector('.inspect-off'),
+    },
+    prepare: (target) => {
+      if (!net || !target.select) return;
+      const want = target.select === 'firstInput' ? { layer: 0, neuron: 0 } : { layer: Math.min(1, net.sizes.length - 1), neuron: 0 };
+      if (target.select === 'firstInput' && playback.playing) pause();
+      if (!sameTarget(want, picked())) select(want);
+    },
+  });
+  const consigna = createConsignaCard({ i18n, onReveal: missionReveal.reveal });
   const missionRows = state.missions.missions.map((m) => {
     const status = el('span', { class: 'mission-status' });
     const row = el('li', { class: 'mission inspect-mission' }, el('span', { class: 'mission-name', i18n: `inspect.mission.${m.id}` }), status);
@@ -982,7 +1003,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
     consigna.setConsigna('consigna.inspect');
-    consigna.setMission(current && !current.allDone ? describeMission(current) : current);
+    consigna.setMission(current && !current.allDone ? { ...describeMission(current), reveal: Boolean(net) && missionReveal.has(current.id) } : current);
     // Con una neurona o una conexión elegida, la tarjeta cede su lugar, como el texto largo, para que la
     // cuenta entre sin desplazar; al soltar vuelve, al día (decisión del dueño, grupo 5).
     show(consigna.node, !state.selected);
