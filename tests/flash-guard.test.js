@@ -1,19 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createFlashGuard, FLASH_GUARD } from '../src/render/flash-guard.js';
+import { createFlashGuard, FLASH_GUARD, FILL } from '../src/render/flash-guard.js';
 
 /** Pasa una secuencia [[ms, nivel], …] por la guarda y devuelve lo que muestra en cada paso. */
 function run(guard, key, seq) {
   return seq.map(([t, v]) => guard.show(key, v, t));
 }
 
-/** Cuántos cambios grandes hay en lo mostrado, en el peor segundo (la misma cuenta que la medida). */
-function worstPerSecond(shown, times, swing = 0.5) {
+/**
+ * Cuántos cambios grandes hay en lo mostrado, en el peor segundo (la misma cuenta que la medida): el
+ * recorrido del brillo desde el último cambio contado, más lo que pesa el rayado si aparece o se va.
+ */
+function worstPerSecond(out, times, swing = 0.5, B = (x) => x) {
   const flips = [];
-  let ref = shown[0];
-  shown.forEach((v, k) => { if (Math.abs(v - ref) >= swing) { flips.push(times[k]); ref = v; } });
+  let lo = B(out[0].level);
+  let hi = lo;
+  let refFlicker = out[0].flicker;
+  out.forEach((o, k) => {
+    const b = B(o.level);
+    lo = Math.min(lo, b);
+    hi = Math.max(hi, b);
+    if (hi - lo + (o.flicker !== refFlicker ? FLASH_GUARD.mark : 0) >= swing) { flips.push(times[k]); lo = b; hi = b; refFlicker = o.flicker; }
+  });
   let worst = 0;
-  for (let i = 0, j = 0; i < flips.length; i++) { while (flips[i] - flips[j] >= 1000) j++; worst = Math.max(worst, i - j + 1); }
+  // Con un cuadro de margen: lo que pasa a 1 s y un poco cuenta en el mismo segundo.
+  for (let i = 0, j = 0; i < flips.length; i++) { while (flips[i] - flips[j] > 1050) j++; worst = Math.max(worst, i - j + 1); }
   return worst;
 }
 
@@ -21,7 +32,7 @@ function worstPerSecond(shown, times, swing = 0.5) {
 const everyFrame = (ms, from = 0) => Array.from({ length: Math.round(ms / (1000 / 60)) }, (_, k) => [from + k * (1000 / 60), k % 2]);
 
 test('valores de partida de D2', () => {
-  assert.deepEqual({ ...FLASH_GUARD }, { maxFlips: 3, windowMs: 1000, swing: 0.5, averageMs: 500, calmMs: 1000 });
+  assert.deepEqual({ ...FLASH_GUARD }, { maxFlips: 3, windowMs: 1000, swing: 0.5, averageMs: 500, calmMs: 1000, mark: 0.15, slackMs: 100 });
 });
 
 test('tres cambios en un segundo se ven exactos', () => {
@@ -38,9 +49,9 @@ test('el cuarto da flicker y el promedio (pesado por tiempo), sin un cuarto camb
   assert.equal(fourth.flicker, true);
   // De 0 a 400 ms: 0, 1, 0, 1 cien ms cada uno.
   assert.equal(fourth.average, 0.5);
-  // Lo último contado fue 1: el promedio (0,5) sería un cambio grande; se muestra lo más cerca que no lo es.
-  assert.ok(Math.abs(fourth.level - 0.5) <= 0.011, `muestra ${fourth.level}`);
-  assert.ok(Math.abs(fourth.level - 1) < 0.5);
+  // Lo último contado fue 1 sin rayado: el promedio (0,5) más el rayado (0,15) sería un cambio grande; se
+  // muestra lo más cerca que no lo es: a 0,34 de 1.
+  assert.ok(Math.abs(fourth.level - 0.66) < 1e-9, `muestra ${fourth.level}`);
 });
 
 test('titubeando, se ve el promedio de los últimos 500 ms', () => {
@@ -56,7 +67,7 @@ test('un escalón que cambia cada cuadro un minuto nunca pasa de tres cambios gr
   const g = createFlashGuard();
   const seq = everyFrame(60000);
   const out = run(g, 'k', seq);
-  assert.ok(worstPerSecond(out.map((o) => o.level), seq.map(([t]) => t)) <= 3);
+  assert.ok(worstPerSecond(out, seq.map(([t]) => t)) <= 3);
   // Y casi todo el tiempo se ve rayado.
   assert.ok(out.filter((o) => o.flicker).length > seq.length * 0.95);
 });
@@ -74,7 +85,7 @@ test('ráfagas irregulares (cambia y se queda, a ritmos distintos) tampoco pasan
     seq.push([t, v]);
   }
   const out = run(g, 'k', seq);
-  assert.ok(worstPerSecond(out.map((o) => o.level), seq.map(([x]) => x)) <= 3);
+  assert.ok(worstPerSecond(out, seq.map(([x]) => x)) <= 3);
 });
 
 test('sale de flicker tras 1 s sin cambios grandes y vuelve a lo exacto', () => {
@@ -159,4 +170,27 @@ test('lados: lo de hace más de un segundo no cuenta', () => {
   g.show('k', 1, 0);
   for (let t = 100; t <= 2000; t += 100) g.show('k', 0, t);
   assert.deepEqual(g.sides('k', 2000), { low: 0, high: 0, highShare: 1 });
+});
+
+test('relleno de neurona: los cambios se miden en brillo (de 0 a 0,42 ya es medio rango)', () => {
+  assert.equal(FILL.brightness(0), 0);
+  assert.ok(Math.abs(FILL.brightness(0.42) - 0.507) < 1e-9);
+  assert.equal(FILL.brightness(1), 1);
+  for (const b of [0, 0.1, 0.15, 0.4, 1]) assert.ok(Math.abs(FILL.brightness(FILL.levelOf(b)) - Math.max(b, b > 0 ? 0.15 : 0)) < 1e-5);
+  // Un sensor que salta entre 0 y 0,42 cada cuadro: sin la cuenta en brillo, nunca titubearía.
+  const g = createFlashGuard({ fill: FILL });
+  const seq = Array.from({ length: 600 }, (_, k) => [k * (1000 / 60), k % 2 ? 0.42 : 0]);
+  const out = seq.map(([t, v]) => g.show('n:0:1', v, t));
+  assert.ok(out.some((o) => o.flicker));
+  // En brillo, con el rayado, nunca más de tres cambios grandes en un segundo.
+  assert.ok(worstPerSecond(out, seq.map(([t]) => t), 0.5, FILL.brightness) <= 3);
+});
+
+test('una oscilación que no se aleja 0,5 de ningún nivel fijo pero sí de un cuadro al otro también titubea', () => {
+  // De 0,34 a 0,88 y de vuelta cada cuadro: contra 0,6 nunca hay 0,5, pero el recorrido es 0,54.
+  const g = createFlashGuard();
+  const seq = Array.from({ length: 300 }, (_, k) => [k * (1000 / 60), k === 0 ? 0.6 : k % 2 ? 0.34 : 0.88]);
+  const out = run(g, 'k', seq);
+  assert.ok(out.some((o) => o.flicker));
+  assert.ok(worstPerSecond(out, seq.map(([t]) => t)) <= 3);
 });

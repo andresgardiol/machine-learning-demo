@@ -573,6 +573,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const isSel = Boolean(state.selected) && state.connection === null && state.selected.layer === l && state.selected.neuron === j;
     if (isSel) flags.push(t('inspect.aria.selected'));
     if (n.off) flags.push(t('inspect.aria.off'));
+    if (inspector.flickering({ layer: l, neuron: j })) flags.push(t('inspect.aria.flicker'));
     if (l > 0 && (changes.has({ kind: 'bias', layer: l, neuron: j }) || n.weights.some((_, i) => changes.has({ kind: 'weight', layer: l, neuron: j, input: i })))) flags.push(t('inspect.aria.changed'));
     if (l === 0 && state.manual?.[j] !== null && state.manual?.[j] !== undefined) flags.push(t('inspect.aria.manual'));
     const label = t('inspect.aria.neuron', { layer: layerName(t, l, net.sizes.length), name: neuronLabel(t, net.sizes, l, j), value })
@@ -670,15 +671,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const speedBadge = el('div', { class: 'stage-badge inspect-speed-badge' });
   scene.append(el('div', { class: 'inspect-scene-badges' }, manualBadge, crashBadge, pausedBadge, speedBadge));
   const description = stageDescription({ stage: scene });
-  const decision = actionBlock();
+  const decision = actionBlock({ i18n });
   const decisionNote = el('p', { class: 'caption inspect-decision-note' });
   const decisionBlock = el('section', { class: 'inspect-decision', attrs: { 'aria-labelledby': 'inspect-decision-title' } },
     el('h2', { class: 'panel-heading', i18n: 'inspect.decision.title', help: 'inspect.decision', attrs: { id: 'inspect-decision-title', tabindex: '0' } }),
     decision.node, decisionNote);
-  // Leyenda de cinco renglones (D11): signo; grosor; brillo y relleno; sesgo; y las cuatro marcas.
+  // Leyenda de cinco renglones (D11): signo; grosor; brillo y relleno; sesgo; y las marcas.
   const swatches = (...classes) => el('span', { class: 'inspect-legend-swatches', attrs: { 'aria-hidden': 'true' } }, classes.map((c) => el('span', { class: c })));
   const legendItem = (sw, key) => el('li', { class: 'inspect-legend-item' }, sw, el('span', { i18n: key }));
-  const mark = (cls, key) => el('span', { class: `lg-mark ${cls}` }, el('i', { attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: key }));
+  const mark = (cls, key, help) => el('span', { class: `lg-mark ${cls}`, ...(help ? { help, attrs: { tabindex: '0' } } : {}) }, el('i', { attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: key }));
   const legend = el('section', { class: 'guide inspect-legend', attrs: { 'aria-labelledby': 'inspect-legend-title' } },
     el('h2', { class: 'panel-heading', i18n: 'inspect.legend.title', attrs: { id: 'inspect-legend-title' } }),
     el('ul', { class: 'inspect-legend-list' },
@@ -688,7 +689,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       legendItem(swatches('lg-bias'), 'inspect.legend.bias'),
       el('li', { class: 'inspect-legend-item inspect-legend-marks' },
         mark('lg-selected', 'inspect.legend.mark.selected'), mark('lg-current', 'inspect.legend.mark.current'),
-        mark('lg-off', 'inspect.legend.mark.off'), mark('lg-changed', 'inspect.legend.mark.changed'))));
+        mark('lg-off', 'inspect.legend.mark.off'), mark('lg-changed', 'inspect.legend.mark.changed'),
+        // Lo que titubea (sin-destellos-en-la-red D4): en el renglón de las marcas, para seguir en cinco.
+        mark('lg-flicker', 'inspect.legend.mark.flicker', 'flicker'))));
   const announcer = el('p', { class: 'sr-only', attrs: { role: 'status', 'aria-live': 'polite' } });
   function announce(text) { announcer.textContent = ''; announcer.textContent = text ?? ''; }
   board.append(scene, decisionBlock, legend, announcer);
@@ -925,8 +928,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Flujo: corre mientras la reproducción avanza sola de a cuadros; quieto en pausa; no se ve en el paso a
     // paso, durante la animación de un paso ni con menos movimiento.
     const flow = !flowOn || reducedMotion() || playback.size !== 'frame' || anim ? 'off' : playback.playing ? 'run' : 'frozen';
-    inspector.render({ ...common, pill, flow, animation: anim, stepSize: playback.size, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
-    table.render({ ...common, visible: state.view === 'table', changesVersion: changes.version, filter: state.filter, stepSize: playback.size });
+    // La red corre de corrido (sin-destellos-en-la-red D3): lo que titubea se ve quieto; en pausa o paso a
+    // paso, todo exacto.
+    const live = playback.playing && playback.size === 'frame';
+    inspector.render({ ...common, pill, flow, live, animation: anim, stepSize: playback.size, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
+    table.render({ ...common, live, visible: state.view === 'table', changesVersion: changes.version, filter: state.filter, stepSize: playback.size });
     placeOverlay();
     // Nombres accesibles de las neuronas (capa, nombre, valor y estado): dos veces por segundo.
     if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
@@ -971,7 +977,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Decisión: las cuatro acciones; sin decidir mientras la cuenta no llegó a las salidas.
     const outLayer = net.sizes.length - 1;
     const decided = !shownCursor || net.sizes[outLayer] === 0 || Array.from({ length: net.sizes[outLayer] }, (_, j) => shownCursor.opsDone(outLayer, j)).every((x) => x === 4);
-    decision.update(Object.fromEntries(ACTIONS.map((a) => [a, decided && trace.outputs[OUTPUT_KEYS.indexOf(a)] === 1])));
+    // De corrido, la tecla que titubea se ve quieta y rayada (sin-destellos-en-la-red D4); en pausa, exacta.
+    decision.update(Object.fromEntries(ACTIONS.map((a) => [a, decided && trace.outputs[OUTPUT_KEYS.indexOf(a)] === 1])), { live: playback.playing && playback.size === 'frame', now });
     setData(decision.node, 'undecided', String(!decided));
     setText(decisionNote, decided ? (state.manual ? 'inspect.decision.manual' : 'inspect.decision.live') : 'inspect.decision.undecided');
 
@@ -989,6 +996,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         target: sel, sizes: net.sizes, trace, changes: shownChanges, original: net, cursor: shownCursor,
         top: top && sel.layer > 0 ? top[sel.layer][sel.neuron] : null,
         paused, manual: state.manual, connection: state.connection, stepSize: playback.size,
+        flicker: inspector.sides(sel),
       });
       const hasViews = sel.layer > 0;
       show(viewSwitch, hasViews);

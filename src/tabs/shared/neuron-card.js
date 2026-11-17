@@ -154,7 +154,10 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
   const formula = el('p', { class: 'inspect-formula num' });
   const footBlock = el('div', { class: 'inspect-foot-block' }, formula, foot, outputRule, roundNote);
 
-  const node = el('section', { class: 'inspect-card', attrs: { 'aria-labelledby': 'inspect-card-title' } }, head, inputBlock, scroller, footBlock);
+  // Lo que titubea (sin-destellos-en-la-red D5): entre qué valores y cuánto del último segundo en cada uno.
+  const flickerNote = el('p', { class: 'caption inspect-flicker', help: 'flicker', attrs: { tabindex: '0' } });
+  flickerNote.hidden = true;
+  const node = el('section', { class: 'inspect-card', attrs: { 'aria-labelledby': 'inspect-card-title' } }, head, flickerNote, inputBlock, scroller, footBlock);
 
   let current = { key: null, target: null };
   let rowNodes = new Map(); // input → nodos de la fila
@@ -244,9 +247,16 @@ export function createNeuronCard({ i18n, onToggleNeuron, onToggleConnection, onW
    * @param {boolean} state.paused
    * @param {(number|null)[]} state.manual lectura a mano de cada entrada (null si no)
    * @param {number|null} state.connection conexión elegida (fila destacada)
+   * @param {{low:number, high:number, highShare:number}|null} [state.flicker] si titubea: sus dos valores y
+   *   la parte del último segundo en el mayor (sin-destellos-en-la-red D5)
    */
   function sync(state) {
     const { target, sizes, trace, changes, original, cursor, top, paused } = state;
+    const fl = state.flicker ?? null;
+    if (flickerNote.hidden === Boolean(fl)) flickerNote.hidden = !fl;
+    if (fl) {
+      write(flickerNote, t('inspect.card.flicker', { low: fmt(fl.low), high: fmt(fl.high), share: `${Math.round(fl.highShare * 100)} %` }));
+    }
     const key = `${sizes.join('-')}|${target.layer}:${target.neuron}`;
     const isInput = target.layer === 0;
     const isOutput = target.layer === sizes.length - 1;
@@ -474,7 +484,10 @@ export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onB
   const biasRow = el('div', { class: 'lab-card-bias' },
     el('label', { attrs: { for: biasId }, i18n: 'inspect.op.bias', help: 'inspect.term.bias' }), biasSlider, biasField);
   const message = el('p', { class: 'caption lab-card-message', attrs: { role: 'status' } });
-  const node = el('section', { class: 'inspect-card lab-card', attrs: { 'aria-labelledby': titleId } }, head, inputNote, inputRow, scroller, biasRow, message);
+  // Lo que titubea (sin-destellos-en-la-red D5), como en Inspeccionar.
+  const flickerNote = el('p', { class: 'caption inspect-flicker', help: 'flicker', attrs: { tabindex: '0' } });
+  flickerNote.hidden = true;
+  const node = el('section', { class: 'inspect-card lab-card', attrs: { 'aria-labelledby': titleId } }, head, flickerNote, inputNote, inputRow, scroller, biasRow, message);
 
   let key = null;
   let rows = [];
@@ -551,6 +564,9 @@ export function createCompactNeuronCard({ i18n, names, layerNames, onWeight, onB
   function sync(state) {
     lastState = state;
     const { target, sizes, network } = state;
+    const fl = state.flicker ?? null;
+    if (flickerNote.hidden === Boolean(fl)) flickerNote.hidden = !fl;
+    if (fl) write(flickerNote, t('inspect.card.flicker', { low: fmt(fl.low), high: fmt(fl.high), share: `${Math.round(fl.highShare * 100)} %` }));
     const k = `${sizes.join('-')}|${target.layer}:${target.neuron}`;
     if (k !== key) { key = k; build(state); scroller.scrollTop = 0; say(''); }
     const isInput = target.layer === 0;

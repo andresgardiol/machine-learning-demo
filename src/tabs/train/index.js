@@ -834,7 +834,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (!networkCard.open) return;
     const t = state.training;
     const leader = t.world.agents[t.leaderIndex];
-    networkView.render(t.networks[t.leaderIndex], [...leader.perception.sensors, leader.perception.speed]);
+    // Mientras corre, con la guarda de destellos (sin-destellos-en-la-red D3); en pausa, exacta.
+    networkView.render(t.networks[t.leaderIndex], [...leader.perception.sensors, leader.perception.speed], { live: !state.paused });
   }
 
   // --- Bucle ----------------------------------------------------------------------------------------

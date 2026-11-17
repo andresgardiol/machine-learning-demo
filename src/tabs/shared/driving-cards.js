@@ -4,6 +4,7 @@
 import { el } from '../../ui/dom.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { createTextSetter } from '../../ui/controls.js';
+import { createFlashGuard } from '../../render/flash-guard.js';
 
 /** Con más sensores que este, las barras se muestran sin su número (ni su nombre) debajo. */
 export const READINGS_MAX = 12;
@@ -114,17 +115,47 @@ export function perceptionBlock({ i18n, count, names = null }) {
 
 /**
  * Los cuatro controles del auto; cada uno se resalta mientras está accionado.
- * @returns {{node: HTMLElement, update:(controls:{forward:boolean, reverse:boolean, left:boolean, right:boolean}) => void}}
+ *
+ * Con la red manejando de corrido (`live`), una tecla que se encendería y apagaría más de tres veces en
+ * un segundo se ve quieta, rayada y a medio encender (`data-on="mixed"`, con la parte del último medio
+ * segundo que estuvo encendida en `--action-level`), y su nombre accesible dice que titubea
+ * (sin-destellos-en-la-red D4). Sin `live` (en pausa, paso a paso o manejando la persona), exacta.
+ * @param {{i18n?: object}} [spec] con `i18n`, el texto de "titubea" para el lector de pantalla
+ * @returns {{node: HTMLElement, update:(controls:{forward:boolean, reverse:boolean, left:boolean, right:boolean}, opts?:{live?:boolean, now?:number}) => void}}
  */
-export function actionBlock() {
-  const keys = Object.fromEntries(ACTIONS.map((a) => [a, el('span', { class: `action-key action-${a}`, dataset: { on: 'false' } },
-    el('span', { class: 'action-glyph', i18n: `drive.action.${a}.key`, attrs: { 'aria-hidden': 'true' } }),
-    el('span', { class: 'action-name', i18n: `drive.action.${a}` }))]));
+export function actionBlock({ i18n = null } = {}) {
+  const flickerText = () => (i18n ? i18n.t('flicker.action') : '');
+  const marks = {};
+  const keys = Object.fromEntries(ACTIONS.map((a) => {
+    marks[a] = el('span', { class: 'sr-only action-flicker' });
+    marks[a].hidden = true;
+    return [a, el('span', { class: `action-key action-${a}`, dataset: { on: 'false' } },
+      el('span', { class: 'action-glyph', i18n: `drive.action.${a}.key`, attrs: { 'aria-hidden': 'true' } }),
+      el('span', { class: 'action-name', i18n: `drive.action.${a}` }),
+      marks[a])];
+  }));
   const node = el('div', { class: 'action-keys' }, ACTIONS.map((a) => keys[a]));
-  function update(controls) {
+  const guard = createFlashGuard();
+  function update(controls, { live = false, now = globalThis.performance?.now() ?? 0 } = {}) {
+    if (!live) guard.reset();
     for (const a of ACTIONS) {
-      const on = String(Boolean(controls[a]));
-      if (keys[a].dataset.on !== on) keys[a].dataset.on = on;
+      const exact = Boolean(controls[a]);
+      let on = String(exact);
+      let level = null;
+      if (live) {
+        const g = guard.show(`a:${a}`, exact ? 1 : 0, now);
+        if (g.flicker) { on = 'mixed'; level = g.level; }
+      }
+      const k = keys[a];
+      if (k.dataset.on !== on) k.dataset.on = on;
+      const lv = level === null ? '' : level.toFixed(2);
+      if (k.style.getPropertyValue('--action-level') !== lv) {
+        if (lv) k.style.setProperty('--action-level', lv); else k.style.removeProperty('--action-level');
+      }
+      const mixed = on === 'mixed';
+      if (marks[a].hidden === mixed) marks[a].hidden = !mixed;
+      const say = mixed ? flickerText() : '';
+      if (marks[a].textContent !== say) marks[a].textContent = say;
     }
   }
   return { node, update };

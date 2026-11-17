@@ -385,6 +385,14 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .action-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Accionado: cambia el fondo, el borde y el peso del texto (no solo el color). */
 .action-key[data-on="true"] { background: var(--color-accent); border-color: var(--color-text); color: var(--color-bg); font-weight: 700; }
+/* Titubea (sin-destellos-en-la-red D4): quieta, rayada y a medio encender, según cuánto estuvo encendida.
+   El rayado es fijo: no se anima. */
+.action-key[data-on="mixed"] {
+  border-color: var(--color-text); border-style: dashed; color: var(--color-text); font-weight: 700;
+  background:
+    repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-text) 35%, transparent) 0 2px, transparent 2px 7px),
+    color-mix(in srgb, var(--color-accent) calc(var(--action-level, 0.5) * 100%), var(--color-surface-2));
+}
 
 .section { border: 1px solid var(--color-border); border-radius: var(--radius); }
 .section > summary { padding: var(--space-2) var(--space-3); cursor: pointer; font-weight: 600; }
@@ -1098,6 +1106,11 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .wt-input-cell { cursor: pointer; }
 .wt-value { position: relative; min-width: 3.4em; }
 .wt-value-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--color-neuron-active); opacity: 0.35; }
+/* Titubea (sin-destellos-en-la-red D4): la tira o el valor quietos en su promedio, con el rayado fijo. */
+.wt-strip-cell[data-flicker="true"]::before, .wt-value[data-flicker="true"]::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-text) 35%, transparent) 0 2px, transparent 2px 7px);
+}
 .wt-value-text { position: relative; }
 .weight-table tr[data-selected="true"] > th { box-shadow: inset 4px 0 0 var(--color-accent); }
 .weight-table tr[data-state="current"] > th { box-shadow: inset 4px 0 0 var(--color-network-current); }
@@ -1131,13 +1144,22 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .lg-bright { border-top: 2px solid var(--color-weight-positive); height: 0; width: 10px; }
 .lg-fill { width: 12px; height: 12px; border-radius: 50%; background: var(--color-neuron-active); }
 .lg-bias { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--color-weight-positive); }
-.inspect-legend-marks { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 7px; }
-.lg-mark { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+/* Cinco marcas en un renglón (con "titubea", sin-destellos-en-la-red D4): separaciones de 6 y 2 px. */
+.inspect-legend-marks { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+.lg-mark { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
 .lg-mark i { display: inline-block; flex: 0 0 auto; width: 10px; height: 10px; font-style: normal; }
 .lg-selected i { border-radius: 50%; border: 2px solid var(--color-accent); }
 .lg-current i { border: 2px dashed var(--color-network-current); }
 .lg-off i { border-radius: 50%; border: 1px solid var(--color-neuron); background: linear-gradient(45deg, transparent 42%, var(--color-text) 42%, var(--color-text) 58%, transparent 58%); }
 .lg-changed i { width: 8px; height: 8px; transform: rotate(45deg); background: var(--color-text); margin: 0 2px; }
+/* Titubea (sin-destellos-en-la-red D4): el mismo rayado fijo que en la red, sobre un relleno a medias. */
+.inspect-flicker { margin: 0 0 var(--space-1); padding: 2px 6px; border: 1px dashed var(--color-text); border-radius: var(--radius); }
+.inspect-flicker[hidden] { display: none; }
+.lg-flicker i {
+  border-radius: 50%; border: 1px solid var(--color-neuron);
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-text) 35%, transparent) 0 1.5px, transparent 1.5px 4px),
+    color-mix(in srgb, var(--color-neuron-active) 50%, var(--color-surface));
+}
 
 /* Panel */
 .panel:has(.inspect-panel) { display: flex; flex-direction: column; overflow: hidden; }

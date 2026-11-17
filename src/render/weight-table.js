@@ -6,11 +6,14 @@
 // entradas; al final de cada fila, la actividad de la neurona.
 //
 // Los pesos solo se reescriben cuando cambia la red o un cambio de prueba; en cada cuadro se
-// actualizan las tiras de actividad, la columna de valores y el estado del paso a paso.
+// actualizan las tiras de actividad, la columna de valores y el estado del paso a paso. Con la red
+// corriendo (`state.live`), las tiras y los valores pasan por la guarda de destellos
+// (sin-destellos-en-la-red D3 y D4): lo que titubea se ve quieto, rayado y con su promedio.
 import { el, setData } from '../ui/dom.js';
 import { formatValue } from '../ui/i18n.js';
 import { activity } from './network-view.js';
 import { focusOp } from '../core/pass-cursor.js';
+import { createFlashGuard } from './flash-guard.js';
 
 /** Fondo de una celda: el color del signo con una opacidad según el tamaño del peso (0,08 a 0,6). */
 export function cellLook(weight) {
@@ -55,6 +58,11 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
     next.focus({ preventScroll: false });
   }
   let built = null; // { key, tables: [{ layer, wrap, strip:[], rows:[{tr, cells:[], bias, value, name}] }] }
+  const guard = createFlashGuard();
+  let live = false;
+  let now = 0;
+  /** Nivel que se muestra de un elemento (y si titubea): exacto, salvo con la red corriendo. */
+  const shownLevel = (key, level) => (live ? guard.show(key, level, now) : { level, flicker: false, average: level });
 
   const write = (n, text) => { if (n.textContent !== text) n.textContent = text; };
 
@@ -139,6 +147,9 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
   function render(state) {
     root.hidden = state.visible === false;
     if (state.visible === false) return;
+    live = Boolean(state.live);
+    if (!live) guard.reset();
+    now = (globalThis.performance ?? Date).now();
     const { sizes, trace, cursor, selected, collapsed = [], top, marks } = state;
     const key = `${sizes.join('-')}|${i18n.language}`;
     if (!built || built.key !== key) built = { key, tables: build(sizes) };
@@ -153,9 +164,11 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
           const s = T.strip[i];
           // Una entrada sin leer todavía (operacion-por-operacion D3) se ve sin valor.
           const read = !cursor || cursor.opsDone(0, i) === 4;
-          const h = `${Math.round((read ? activity(n.output) : 0) * 100)}%`;
+          const g = shownLevel(`s:0:${i}`, read ? activity(n.output) : 0);
+          const h = `${Math.round(g.level * 100)}%`;
           if (s.fill.style.height !== h) s.fill.style.height = h;
-          write(s.text, isCollapsed ? '' : read ? fmt(n.output) : '–');
+          setData(s.cell, 'flicker', String(g.flicker));
+          write(s.text, isCollapsed ? '' : !read ? '–' : g.flicker ? `≈ ${fmt(g.average)}` : fmt(n.output));
           setData(s.cell, 'state', cursor ? cursor.stateOf(0, i) : 'done');
           setData(s.cell, 'off', String(Boolean(n.off)));
           setData(s.cell, 'manual', String(Boolean(state.manual?.[i])));
@@ -171,9 +184,10 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
       // Tira de actividad de las entradas de esta capa.
       const fromNeurons = trace.layers[l - 1].neurons;
       T.strip.forEach((s, i) => {
-        const v = !cursor || cursor.opsDone(l - 1, i) === 4 ? activity(fromNeurons[i].output) : 0;
-        const h = `${Math.round(v * 100)}%`;
+        const g = shownLevel(`s:${l}:${i}`, !cursor || cursor.opsDone(l - 1, i) === 4 ? activity(fromNeurons[i].output) : 0);
+        const h = `${Math.round(g.level * 100)}%`;
         if (s.fill.style.height !== h) s.fill.style.height = h;
+        setData(s.cell, 'flicker', String(g.flicker));
         setData(s.cell, 'off', String(Boolean(fromNeurons[i].off)));
       });
       if (isCollapsed) continue;
@@ -213,9 +227,11 @@ export function createWeightTable({ container, i18n, onSelect, headerFor, names 
         }
         const ops = cursor ? cursor.opsDone(l, j) : 4;
         const computed = ops === 4;
-        write(r.valueText, computed ? fmt(n.output) : '–');
-        const h = `${Math.round((computed ? activity(n.output) : 0) * 100)}%`;
+        const g = shownLevel(`n:${l}:${j}`, computed ? activity(n.output) : 0);
+        write(r.valueText, !computed ? '–' : g.flicker ? `≈ ${fmt((n.output < 0 ? -1 : 1) * g.average)}` : fmt(n.output));
+        const h = `${Math.round(g.level * 100)}%`;
         if (r.valueFill.style.width !== h) r.valueFill.style.width = h;
+        setData(r.value, 'flicker', String(g.flicker));
         setData(r.tr, 'state', cursor ? cursor.stateOf(l, j) : 'done');
         const blame = state.learning?.blame(l, j);
         setData(r.tr, 'blame', blame === null || blame === undefined ? 'none' : blame < 0 ? 'negative' : 'positive');

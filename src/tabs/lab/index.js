@@ -347,6 +347,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const blame = displayed.learning?.blame(l, j);
     const extra = (blame === null || blame === undefined ? '' : `. ${t('lab.aria.blame', { value: fmt(blame) })}`)
       + (run().isOff(l, j) ? `. ${t('inspect.aria.off').replace(/^./, (c) => c.toUpperCase())}` : '')
+      + (inspector.flickering({ layer: l, neuron: j }) ? `. ${t('inspect.aria.flicker').replace(/^./, (c) => c.toUpperCase())}` : '')
       + mapRegionText(l, j);
     const label = t('inspect.aria.neuron', { layer: layerName(t, l, run().network.sizes.length), name: nameOf(l, j), value }) + extra;
     if (b.getAttribute('aria-label') !== label) b.setAttribute('aria-label', label);
@@ -362,7 +363,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('span', { class: 'lab-legend-item', i18n: 'lab.legend.slope', help: 'lab.term.slope' }),
     el('span', { class: 'lab-legend-item', i18n: 'lab.legend.change' }),
     el('span', { class: 'lab-legend-item', i18n: 'lab.legend.back' }));
-  const opStrip = el('div', { class: 'lab-op' }, el('div', { attrs: { 'aria-hidden': 'true' } }, opText, opNote), legend);
+  // Lo que titubea (sin-destellos-en-la-red D4): aprendiendo de corrido es lo único de la leyenda que sirve.
+  const flickerLegend = el('span', { class: 'lab-legend-item lab-legend-flicker', i18n: 'lab.legend.flicker', help: 'flicker', attrs: { tabindex: '0' } });
+  legend.append(flickerLegend);
+  const opBody = el('div', { attrs: { 'aria-hidden': 'true' } }, opText, opNote);
+  const opStrip = el('div', { class: 'lab-op' }, opBody, legend);
   const playButton = el('button', { class: 'tool primary inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
   const stepButton = el('button', { class: 'tool inspect-step', i18n: 'inspect.step', help: 'lab.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
   const sizeButtons = LEARNING_STEP_SIZES.map((s) => el('button', {
@@ -514,8 +519,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Ejemplo en curso (D7)
   const exampleText = el('p', { class: 'lab-example-text' });
   const fan = el('div', { class: 'lab-fan', attrs: { 'aria-hidden': 'true' } });
-  const actionsExample = actionBlock();
-  const actionsNet = actionBlock();
+  const actionsExample = actionBlock({ i18n });
+  const actionsNet = actionBlock({ i18n });
   const actionsRows = el('div', { class: 'lab-actions' },
     el('div', { class: 'lab-actions-row' }, el('span', { class: 'lab-actions-name', i18n: 'lab.example.target' }), actionsExample.node),
     el('div', { class: 'lab-actions-row' }, el('span', { class: 'lab-actions-name', i18n: 'lab.example.net' }), actionsNet.node));
@@ -1402,8 +1407,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     } : null;
     const m = refreshMaps();
     const mapsFn = m ? (l, j) => m.canvases[l]?.[j] ?? null : null;
-    inspector.render({ ...common, pill, knobs: knobSpec(), maps: mapsFn, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
-    table.render({ ...common, visible: state.view === 'table', changesVersion: `${changesVersion}|${anim ? now : ''}`, filter: state.filter });
+    // Aprendiendo de corrido (de a épocas o ejemplos), la red se ve con la guarda de destellos
+    // (sin-destellos-en-la-red D3); de a fases, capas o neuronas, o en pausa, todo exacto.
+    const live = running;
+    inspector.render({ ...common, live, pill, knobs: knobSpec(), maps: mapsFn, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
+    table.render({ ...common, live, visible: state.view === 'table', changesVersion: `${changesVersion}|${anim ? now : ''}`, filter: state.filter });
     placeOverlay();
     if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
 
@@ -1411,7 +1419,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Con puntos, la franja dice siempre de quién es la cuenta (punto-de-prueba D4): el punto de prueba,
     // o el ejemplo, con su operación.
     const showOp = hasPlane() || !(playback.playing && isRunning(playback.size));
-    show(opStrip, showOp);
+    // De corrido con tu manejo no hay operación que mostrar: queda solo la marca de lo que titubea.
+    show(opStrip, showOp || live);
+    show(opBody, showOp);
+    for (const item of legend.children) show(item, item === flickerLegend ? live : showOp);
     if (showOp) {
       const exampleName = (ex) => t('lab.owner.example', { n: ex.order + 1, total: r.size });
       let text;
@@ -1432,7 +1443,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (selNow && selNow.input === undefined) {
       const probeInput = hasPlane() && selNow.layer === 0
         ? { value: selNow.neuron === 0 ? session.probe.x : session.probe.y, label: t('lab.probe.sliderLabel', { name: nameOf(0, selNow.neuron) }) } : null;
-      card.sync({ target: selNow, sizes, network: a ? r.shownNetwork() : r.network, isOff: (l, j, i = null) => r.isOff(l, j, i), probe: probeInput });
+      card.sync({ target: selNow, sizes, network: a ? r.shownNetwork() : r.network, isOff: (l, j, i = null) => r.isOff(l, j, i), probe: probeInput, flicker: inspector.sides(selNow) });
     }
     // Tablero, con tu manejo: la curva de la neurona elegida (oculta o de salida), o el renglón que dice
     // que ahí va a aparecer.
@@ -1578,6 +1589,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       write(exampleText, t('lab.example.driving', { speed: fmt(ex.inputs[ex.inputs.length - 1]) }));
       const target = Object.fromEntries(ACTIONS.map((k) => [k, ex.targets[DRIVING_OUTPUTS.indexOf(k)] === 1]));
       const netOn = Object.fromEntries(ACTIONS.map((k) => [k, fwdDone && out[DRIVING_OUTPUTS.indexOf(k)] > 0.5]));
+      // Las teclas solo se ven en pausa o de a pasos (aprendiendo de corrido, el bloque se oculta): exactas.
       actionsExample.update(target);
       actionsNet.update(netOn);
       for (const k of ACTIONS) {

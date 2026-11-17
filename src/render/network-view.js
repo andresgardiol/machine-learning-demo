@@ -6,12 +6,17 @@
 // - Sesgo: el contorno de cada neurona oculta y de salida, con la misma convención.
 // - Actividad: el relleno de cada nodo, según el valor que tomó en el cálculo actual.
 //
+// Con la red corriendo (`live`), el relleno de cada nodo pasa por la guarda de destellos
+// (sin-destellos-en-la-red D3 y D4): el que cambiaría mucho por cuarta vez en un segundo se ve quieto,
+// con su promedio y rayado.
+//
 // La disposición (columnas, nodos y qué rótulos se muestran) es una función pura que se prueba en
 // Node. Con muchas conexiones, las líneas se dibujan agrupadas por aspecto para reducir los cambios
 // de estilo. El diagrama solo muestra: no tiene controles que cambien la red.
 // Los colores salen de styles/tokens.css y los rótulos, de los diccionarios.
 import { computeDetailed } from '../core/network.js';
 import { maxWeightOf } from './link-look.js';
+import { createFlashGuard, FILL } from './flash-guard.js';
 
 export const OUTPUT_KEYS = Object.freeze(['forward', 'left', 'right', 'reverse']);
 
@@ -109,6 +114,7 @@ const COLOR_VARS = {
   node: '--color-neuron',
   label: '--color-text-muted',
   background: '--color-surface',
+  text: '--color-text',
 };
 
 /**
@@ -146,6 +152,26 @@ export function createNetworkView({ container, i18n, doc = document }) {
   }
   const observer = new win.ResizeObserver(() => resize());
   observer.observe(container);
+  const guard = createFlashGuard({ fill: FILL });
+  let stripes = null; // rayado fijo de lo que titubea, creado una vez
+  function stripePattern() {
+    if (stripes) return stripes;
+    const tile = doc.createElement('canvas');
+    tile.width = 6;
+    tile.height = 6;
+    const t = tile.getContext('2d');
+    if (!t) return null;
+    t.strokeStyle = colors.text;
+    t.globalAlpha = 0.35;
+    t.lineWidth = 1.5;
+    t.beginPath();
+    t.moveTo(-1.5, 7.5); t.lineTo(7.5, -1.5);
+    t.moveTo(-1.5, 1.5); t.lineTo(1.5, -1.5);
+    t.moveTo(4.5, 7.5); t.lineTo(7.5, 4.5);
+    t.stroke();
+    stripes = ctx.createPattern(tile, 'repeat');
+    return stripes;
+  }
 
   /** Líneas de una capa agrupadas por signo y nivel: un trazo por grupo. */
   function drawLinks(from, to, weights, maxWeight) {
@@ -176,7 +202,7 @@ export function createNetworkView({ container, i18n, doc = document }) {
   }
 
   /** Nodo: relleno según su actividad y, si tiene sesgo, contorno según el sesgo. */
-  function drawNode(p, r, level, bias, maxWeight) {
+  function drawNode(p, r, level, bias, maxWeight, flicker = false) {
     ctx.beginPath();
     ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
     ctx.fillStyle = colors.background;
@@ -187,6 +213,8 @@ export function createNetworkView({ container, i18n, doc = document }) {
       ctx.fill();
       ctx.globalAlpha = 1;
     }
+    const pattern = flicker ? stripePattern() : null;
+    if (pattern) { ctx.fillStyle = pattern; ctx.fill(); }
     if (bias === undefined) {
       ctx.strokeStyle = colors.node;
       ctx.lineWidth = 1;
@@ -204,10 +232,12 @@ export function createNetworkView({ container, i18n, doc = document }) {
 
   /**
    * Dibuja la red con la actividad del cálculo para `inputs` (lecturas de los sensores y velocidad).
-   * No modifica la red.
+   * No modifica la red. Con `live` (la red corre), la guarda de destellos; sin él, todo exacto.
    */
-  function render(network, inputs) {
+  function render(network, inputs, { live = false } = {}) {
     resize();
+    if (!live) guard.reset();
+    const now = (win.performance ?? performance).now();
     const layout = layoutNetwork({ sizes: network.sizes, width: size.width, height: size.height });
     const detail = inputs ? computeDetailed(network, inputs) : null;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -218,7 +248,11 @@ export function createNetworkView({ container, i18n, doc = document }) {
     columns.forEach((col, c) => {
       const values = detail ? detail.values[c] : null;
       const biases = c === 0 ? null : network.layers[c - 1].biases;
-      col.nodes.forEach((p, i) => drawNode(p, radius, values ? activity(values[i]) : 0, biases ? biases[i] : undefined, maxWeight));
+      col.nodes.forEach((p, i) => {
+        const level = values ? activity(values[i]) : 0;
+        const g = live && values ? guard.show(`n:${c}:${i}`, level, now) : { level, flicker: false };
+        drawNode(p, radius, g.level, biases ? biases[i] : undefined, maxWeight, g.flicker);
+      });
     });
     // Rótulos
     ctx.fillStyle = colors.label;
@@ -238,7 +272,9 @@ export function createNetworkView({ container, i18n, doc = document }) {
   return {
     canvas,
     render,
-    refreshColors() { colors = readColors(); },
+    refreshColors() { colors = readColors(); stripes = null; },
+    /** Si una neurona titubea ahora (verificación desde la consola). */
+    flickering: (layer, neuron) => guard.flickering(`n:${layer}:${neuron}`),
     dispose() { observer.disconnect(); canvas.remove(); },
   };
 }

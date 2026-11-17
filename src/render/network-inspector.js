@@ -14,7 +14,9 @@
 // marcas de lo apagado, lo cambiado y las entradas a mano; y la vuelta del aprendizaje.
 //
 // El inspector no guarda estado de la simulación: dibuja lo que se le pasa en `render(state)`. Lo
-// único propio es lo que está bajo el cursor y el reloj del flujo.
+// único propio es lo que está bajo el cursor, el reloj del flujo y la guarda de destellos
+// (sin-destellos-en-la-red D3 y D4): con la red corriendo (`state.live`), lo que cambiaría mucho de
+// brillo por cuarta vez en un segundo se ve quieto, rayado y con su promedio; si no, todo exacto.
 import { activity } from './network-view.js';
 import { linkLook, maxWeightOfTrace } from './link-look.js';
 import { layoutInspector, hitTarget, INSPECTOR_LAYOUT, knobTargets, placeKnobs, connectionCount, KNOBS } from './inspector-layout.js';
@@ -24,6 +26,7 @@ import { capToSquare } from './link-look.js';
 import { activationFunction } from '../core/network.js';
 import { upstream } from '../core/network-paths.js';
 import { formatValue } from '../ui/i18n.js';
+import { createFlashGuard, FILL } from './flash-guard.js';
 
 /** Acercamiento del diagrama: 1 es la red entera. */
 export const INSPECTOR_CAMERA = Object.freeze({ zoom: 1, minZoom: 1, maxZoom: 6, step: 1.25, anchor: Object.freeze({ x: 0.5, y: 0.5 }) });
@@ -180,10 +183,39 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
   let linkIn = []; // [capa][neurona]: adonde llega desde la capa anterior
   let collapsedStrips = []; // franjas de pantalla de las capas resumidas: { left, right }
   let filteredNow = 0; // conexiones atenuadas por el filtro en el último dibujo (verificación)
+  // Guarda de destellos (sin-destellos-en-la-red D2 a D4): una por vista, con el reloj de la página.
+  const guard = createFlashGuard({ fill: FILL }); // neuronas: el brillo de su relleno
+  const linkGuard = createFlashGuard(); // conexiones: su opacidad
+  const clock = () => (win.performance ?? performance).now();
+  let live = false;
+  let stripes = null; // patrón rayado, creado una vez (y de nuevo si cambian los colores)
+  const neuronKey = (l, j) => `n:${l}:${j}`;
+  const linkKey = (l, j, i) => `c:${l}:${j}:${i}`;
 
   function readColors() {
     const style = getComputedStyle(doc.documentElement);
     return Object.fromEntries(Object.entries(COLOR_VARS).map(([k, v]) => [k, style.getPropertyValue(v).trim()]));
+  }
+
+  /** Rayado fijo de lo que titubea (D4): diagonales del color del texto al 35 %, sin animar. */
+  function stripePattern() {
+    if (stripes) return stripes;
+    const tile = doc.createElement('canvas');
+    tile.width = 8;
+    tile.height = 8;
+    const t = tile.getContext('2d');
+    if (!t) return null;
+    t.strokeStyle = colors.text;
+    t.globalAlpha = 0.35;
+    t.lineWidth = 2;
+    t.beginPath();
+    // Diagonales que siguen de una baldosa a la otra.
+    t.moveTo(-2, 10); t.lineTo(10, -2);
+    t.moveTo(-2, 2); t.lineTo(2, -2);
+    t.moveTo(6, 10); t.lineTo(10, 6);
+    t.stroke();
+    stripes = ctx.createPattern(tile, 'repeat');
+    return stripes;
   }
 
   function resize() {
@@ -561,6 +593,10 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     // El tamaño lo lleva el ResizeObserver: leerlo en cada cuadro obligaría a recalcular la página.
     if (state.visible === false) { pill.hidden = true; for (const el of knobEls.values()) el.hidden = true; return layout; }
     if (viewport.width <= 1) resize();
+    // Con la red corriendo, la guarda (D3); en pausa o paso a paso, todo exacto y la guarda de cero.
+    live = Boolean(state.live);
+    if (!live) { guard.reset(); linkGuard.reset(); }
+    const now = clock();
     const { sizes, trace } = state;
     const cursor = state.cursor ?? null;
     const collapsed = state.collapsed ?? [];
@@ -672,7 +708,16 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
             role: filtered && !related && role !== 'unrelated' ? 'filtered' : role, density, importance: isDirect ? 1 : importance,
           });
           if (look.sign === 'zero') { zeroSegs.push(a.x, a.y, b.x, b.y); continue; }
-          addSeg(groups, { color: colors[look.sign], alpha: look.alpha, width: capToSquare(look.width * zoomWidth, squareSide), dash: look.dashed ? [5, 3.5] : [] }, a, b);
+          // Una conexión que titubea (D4): el brillo del promedio y un punteado fino fijo, más corto y más
+          // fino que el de los pesos negativos (el signo sigue en el color).
+          let alpha = look.alpha;
+          let dash = look.dashed ? [5, 3.5] : [];
+          if (live) {
+            const g = linkGuard.show(linkKey(l, j, i), alpha, now);
+            alpha = g.level;
+            if (g.flicker) dash = [1.5, 2];
+          }
+          addSeg(groups, { color: colors[look.sign], alpha, width: capToSquare(look.width * zoomWidth, squareSide), dash }, a, b);
           if (marks.changedWeights.has(key)) changedAt.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
           if (shown && n.products[i] !== 0 && !filtered) flowLinks.push({ a, b, product: n.products[i], faded: anyFocus && !related });
         }
@@ -739,13 +784,22 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
         const filling = anim && (anim.op === 'activation' || anim.op === 'read');
         let level = computed ? activity(n.output) : 0;
         if (filling) level = activity(n.output) * anim.p;
+        // Lo que titubea (D4): el relleno al promedio, rayado, y el número con "≈".
+        let approx = null;
+        let flicker = false;
+        if (live && computed && !filling) {
+          const g = guard.show(neuronKey(c, i), level, now);
+          level = g.level;
+          flicker = g.flicker;
+          if (flicker) approx = (n.output < 0 ? -1 : 1) * g.average;
+        }
         const bias = c === 0 ? undefined : n.bias;
-        const st = { computed: computed || filling, biasShown: c > 0 && (ops >= 3 || (anim && anim.op === 'bias')) };
+        const st = { computed: computed || filling, biasShown: c > 0 && (ops >= 3 || (anim && anim.op === 'bias')), flicker };
         if (col.collapsed) drawSquare(p, col.side * z, level, bias, n, st, maxWeight);
         else {
           const map = state.maps && c > 0 && c < C - 1 && r >= INSIDE.map ? state.maps(c, i) : null;
           drawNode(p, r, level, bias, n, st, filling ? { ...anim, op: 'activation' } : anim, maxWeight, map);
-          if (computed) drawInside(p, r, n, c, level, Boolean(map));
+          if (computed) drawInside(p, r, n, c, level, Boolean(map), approx);
         }
         if (n.off) {
           const rr = col.collapsed ? (col.side * z) / 2 : r;
@@ -852,15 +906,28 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
   }
 
   /** Lo que se ve adentro de una neurona según su radio (D4). */
-  function drawInside(p, r, n, layer, level, withMap) {
+  function drawInside(p, r, n, layer, level, withMap, approx = null) {
     const what = insideLevel(r);
     if (what === 'fill') return;
     const dark = !withMap && level > 0.55;
     const ink = dark ? colors.bg : colors.text;
     const isInput = layer === 0;
-    const valueText = fmt(n.output);
+    const valueText = approx === null ? fmt(n.output) : `≈ ${fmt(approx)}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    // Lo que titubea (D4): el número con la letra del color del texto y un borde fino del fondo, sin la
+    // curva (su punto saltaría de un lado al otro). Si no, el color de la letra seguiría al relleno y
+    // destellaría con él; una pastilla del fondo, como sobre un mapa, aparecería y se iría con el rayado.
+    if (approx !== null) {
+      ctx.font = `600 ${Math.round(Math.max(10, Math.min(16, r * 0.42)))}px ${FONT}`;
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = colors.bg;
+      ctx.strokeText(valueText, p.x, p.y + 0.5);
+      ctx.fillStyle = colors.text;
+      ctx.fillText(valueText, p.x, p.y + 0.5);
+      return;
+    }
     if (withMap) {
       // Sobre un mapa, el valor va sobre una pastilla del fondo para leerse.
       ctx.font = `${Math.round(Math.max(10, Math.min(15, r * 0.34)))}px ${FONT}`;
@@ -1155,8 +1222,11 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     if (!hover || !hoverPoint) return;
     const text = readoutText(hover, state.trace, cursor, labels, state.learning, state.sizes);
     ctx.font = `12px ${FONT}`;
-    const w = ctx.measureText(text).width + 12;
-    const h = 22;
+    // Sobre algo que titubea, la lectura explica el rayado (sin-destellos-en-la-red, "Qué es el rayado").
+    const flickers = live && (hover.input === undefined ? guard.flickering(neuronKey(hover.layer, hover.neuron)) : linkGuard.flickering(linkKey(hover.layer, hover.neuron, hover.input)));
+    const lines = [text, ...(flickers ? wrapText(i18n.t('flicker.readout'), Math.max(240, ctx.measureText(text).width)) : [])];
+    const w = Math.max(...lines.map((x) => ctx.measureText(x).width)) + 12;
+    const h = 22 + (lines.length - 1) * 16;
     let candidates;
     let avoid;
     if (hover.input === undefined) {
@@ -1204,7 +1274,19 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     ctx.fillStyle = colors.text;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(text, best.x + 6, best.y + h / 2 + 0.5);
+    lines.forEach((line, k) => ctx.fillText(line, best.x + 6, best.y + 11.5 + k * 16));
+  }
+
+  /** Corta un texto en renglones de hasta `max` px con la letra actual. */
+  function wrapText(text, max) {
+    const out = [];
+    let line = '';
+    for (const word of text.split(' ')) {
+      const next = line ? `${line} ${word}` : word;
+      if (line && ctx.measureText(next).width > max) { out.push(line); line = word; } else line = next;
+    }
+    if (line) out.push(line);
+    return out;
   }
 
   /**
@@ -1302,7 +1384,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
   }
 
   /** Nodo: relleno según la actividad (o su mapa); contorno según el sesgo. Sin calcular, contorno punteado gris. */
-  function drawNode(p, r, level, bias, n, { computed, biasShown }, anim, maxWeight, map) {
+  function drawNode(p, r, level, bias, n, { computed, biasShown, flicker = false }, anim, maxWeight, map) {
     ctx.globalAlpha = n.off ? 0.4 : 1;
     ctx.beginPath();
     ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
@@ -1324,6 +1406,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       ctx.fill();
       ctx.globalAlpha = n.off ? 0.4 : 1;
     }
+    if (flicker && !map) fillStripes(() => { ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); });
     ctx.beginPath();
     ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
     if (bias === undefined) {
@@ -1346,7 +1429,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     ctx.globalAlpha = 1;
   }
 
-  function drawSquare(p, side, level, bias, n, { computed }, maxWeight) {
+  function drawSquare(p, side, level, bias, n, { computed, flicker = false }, maxWeight) {
     const h = side / 2;
     ctx.globalAlpha = n.off ? 0.4 : 1;
     ctx.fillStyle = colors.background;
@@ -1356,6 +1439,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       ctx.fillStyle = colors.active;
       ctx.fillRect(p.x - h, p.y - h, side, side);
     }
+    if (flicker) { ctx.globalAlpha = n.off ? 0.4 : 1; fillStripes(() => { ctx.beginPath(); ctx.rect(p.x - h, p.y - h, side, side); }); }
     ctx.globalAlpha = n.off ? 0.4 : 1;
     ctx.lineWidth = 1;
     if (bias === undefined || !computed) {
@@ -1369,6 +1453,15 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     ctx.strokeRect(p.x - h + 0.5, p.y - h + 0.5, side - 1, side - 1);
     ctx.setLineDash([]);
     ctx.globalAlpha = 1;
+  }
+
+  /** Rellena con el rayado de lo que titubea la figura que traza `path`. */
+  function fillStripes(path) {
+    const pattern = stripePattern();
+    if (!pattern) return;
+    path();
+    ctx.fillStyle = pattern;
+    ctx.fill();
   }
 
   /** Nombre visible de una entrada (sensor o velocidad). */
@@ -1416,7 +1509,20 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     get hover() { return hover; },
     /** Simula el cursor en un punto de la zona (verificación desde la consola). */
     hoverAt(x, y) { setHover(asTarget(hitAt(x, y)), x === null ? null : { x, y }); },
-    refreshColors() { colors = readColors(); },
+    refreshColors() { colors = readColors(); stripes = null; },
+    /** Si lo que dice `target` ({layer, neuron, input?}) titubea ahora (sin-destellos-en-la-red D4). */
+    flickering(target) {
+      if (!live || !target) return false;
+      return target.input === undefined || target.input === null ? guard.flickering(neuronKey(target.layer, target.neuron)) : linkGuard.flickering(linkKey(target.layer, target.neuron, target.input));
+    },
+    /** Cuánto del último segundo estuvo una neurona de cada lado (D5); null si no titubea. */
+    sides(target) {
+      if (!live || !target) return null;
+      const key = neuronKey(target.layer, target.neuron);
+      return guard.flickering(key) ? guard.sides(key, clock()) : null;
+    },
+    /** Con la guarda en marcha (la red corre) en el último dibujo. */
+    get live() { return live; },
     neuronName,
     dispose() {
       observer.disconnect();
