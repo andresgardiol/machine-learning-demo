@@ -48,7 +48,17 @@ accesibilidad*.
 
 ## En curso
 
-Nada.
+- `misiones-que-muestran-el-control`: hecho el 17 de noviembre (commits
+  11c6034, da0750b y 046106a, sin push). Junto a la misión en curso de la
+  tarjeta, "Mostrame" lleva al control con que se cumple: cambia de vista o
+  desplaza, lo marca con un anillo amarillo quieto 4 s y le pasa el foco. Medido
+  sin ventana en las 18 misiones con control, a 1440×900 y 1366×768; la tarjeta
+  entra entera. Falta la revisión del dueño de
+  `borradores/misiones-que-muestran-el-control/comparacion.md` y archivar. Hay
+  cinco decisiones de implementación a confirmar (en la comparación y en el
+  design): pausar en Inspeccionar para mostrar el valor a mano, abrir la tarjeta
+  del programa si está plegada, el primer peso con XOR antes de la explicación,
+  el anillo como `box-shadow` y el nombre corto que se anuncia.
 
 ## Para probar a mano (dueño)
 
@@ -58,6 +68,10 @@ Nada.
   compuertas*.
 - Fluidez con el navegador a la vista: casi todas las medidas se tomaron con
   Chrome sin ventana. Lista de qué medir en *Pruebas que faltan*, más abajo.
+- "Mostrame" (`misiones-que-muestran-el-control`): con VoiceOver, que anuncie
+  «Se muestra: …» y quede sobre el control (se leyó el árbol de accesibilidad,
+  no se escuchó); con el navegador a la vista, el anillo y el desplazamiento
+  suave; Reglas a mano con la tarjeta del programa plegada (no se probó).
 
 ## Prioridad 1: que alguien que llega solo entienda la app
 
@@ -85,7 +99,7 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      está en §5.3 del informe y hay que validarla con el dueño. Choca con el
      mismo requisito que la barra plegable.
    - `misiones-que-muestran-el-control` (M): un "Mostrame" en cada misión
-     que resalta el control que hay que tocar.
+     que resalta el control que hay que tocar. Hecho (ver *En curso*).
    - `laboratorio-experimentos-a-la-vista` (M): Compuertas, Puntos y Tu
      manejo como tres experimentos con nombre; en Compuertas, arrastrar un
      peso como acción principal.
@@ -117,6 +131,13 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      mano) como ejemplo; con lo que salga, mejorar las demás.
    - Cuándo: después de `misiones-que-muestran-el-control`, que es el cambio
      que sigue del análisis de UX.
+   - Dejado por `misiones-que-muestran-el-control` para esta revisión: el color
+     del anillo de "Mostrame" (`--color-reveal`, el amarillo de "en curso" de la
+     red, que también es el del competidor 3 en la escena) y el botón compacto
+     de 24 px en la tarjeta, una excepción a "la compacta solo en las barras
+     densas". Con el botón, el nombre de la misión pasa a dos renglones en
+     Reglas a mano, Inspeccionar y el Laboratorio con puntos o tu manejo, y la
+     tarjeta crece 18 px (medido en la comparación).
    - Qué entregar: la crítica con evidencia (capturas, controles), un sistema
      de diseño (niveles de botón, tipografía, espaciado, superficies y
      estados) separado de lo propuesto para Reglas a mano, y de ahí propuestas
