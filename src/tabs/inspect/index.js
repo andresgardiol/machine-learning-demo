@@ -708,8 +708,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // ==================================================================================================
   // Tablero: escena chica, decisión y leyenda
   // ==================================================================================================
-  // La escena se enfoca: con el foco en ella, las flechas toman el volante (manejar-vos D3).
-  const scene = el('div', { class: 'inspect-scene', attrs: { tabindex: '0', role: 'group' }, i18nAttr: 'aria-label:inspect.scene.label' });
+  // La escena se enfoca con un clic o con "Manejar vos" (no con Tab, como el escenario: un tooltip sobre toda
+  // la escena estorbaría); con el foco en ella, las flechas toman el volante (manejar-vos D3).
+  const scene = el('div', { class: 'inspect-scene', attrs: { tabindex: '-1', role: 'group' }, i18nAttr: 'aria-label:inspect.scene.label' });
   const sceneView = createStageView({ container: scene, store, small: true });
   const manualText = el('span', { i18n: 'inspect.manual.badge' });
   const releaseButton = el('button', { class: 'tool small inspect-release', i18n: 'inspect.manual.release', help: 'inspect.manual.release', attrs: { type: 'button' }, on: { click: () => { releaseManual({ announceIt: true }); sync(); } } });
