@@ -55,10 +55,12 @@ export function ownsArrowKeys(target) {
 }
 
 /**
- * @param {{target?: EventTarget, doc?: EventTarget & {hidden?: boolean}}} [spec]
+ * @param {{target?: EventTarget, doc?: EventTarget & {hidden?: boolean}, accepts?: (e: KeyboardEvent) => boolean}} [spec]
  *   target: donde se escuchan las teclas y la pérdida de foco (la ventana)
+ *   accepts: filtro propio de la pestaña: con false, la tecla no maneja (por ejemplo, con el foco en
+ *     un control que usa las flechas)
  */
-export function createKeyboardController({ target = globalThis.window, doc = globalThis.document } = {}) {
+export function createKeyboardController({ target = globalThis.window, doc = globalThis.document, accepts = null } = {}) {
   const pressed = new Set(); // códigos de tecla presionados
 
   function onKeyDown(e) {
@@ -66,6 +68,7 @@ export function createKeyboardController({ target = globalThis.window, doc = glo
     if (!action || e.ctrlKey || e.metaKey || e.altKey) return;
     if (!keyAllowed(e.code)) return; // W A S D, apagadas con los atajos; las flechas siguen
     if (isTypingTarget(e.target) || ownsArrowKeys(e.target)) return;
+    if (accepts && !accepts(e)) return;
     pressed.add(e.code);
     if (e.code.startsWith('Arrow')) e.preventDefault(); // que las flechas no desplacen la página
   }

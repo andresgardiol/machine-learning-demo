@@ -6,7 +6,10 @@
 // y la leyenda; el panel, la guía, el cerebro, la tarjeta de la neurona elegida y las misiones.
 //
 // Lo que se ve y lo que maneja son la misma cuenta (D5): el auto maneja con createTraceController y
-// la vista dibuja traceNetwork con los mismos cambios de prueba. La lógica sin DOM vive en
+// la vista dibuja traceNetwork con los mismos cambios de prueba. Con "Manejar vos"
+// (manejar-vos-en-inspeccionar), el auto se maneja con el teclado y la red solo mira: el mundo usa
+// siempre un controlador con observador (core/controller.js), donde la red observa y maneja ella o
+// el teclado. La lógica sin DOM vive en
 // brains.js, playback.js, step-animation.js, describe.js, missions.js y shortcuts.js, y en el núcleo
 // (network-trace.js, pass-cursor.js y network-changes.js).
 //
@@ -14,6 +17,8 @@
 // elegida, el ritmo y los cambios de prueba (por cerebro) se conservan hasta cerrar la aplicación; la
 // reproducción queda en pausa mientras la pestaña no está a la vista.
 import { createWorld } from '../../core/world.js';
+import { createObservedController } from '../../core/controller.js';
+import { createKeyboardController } from '../../input/keyboard.js';
 import { traceNetwork, createTraceController, inputsOf } from '../../core/network-trace.js';
 import { createChanges, topConnections } from '../../core/network-changes.js';
 import { createPassCursor, STEP_SIZES } from '../../core/pass-cursor.js';
@@ -42,6 +47,7 @@ import { createStepAnimation, displayCursor, stepDuration } from './step-animati
 import { describeStep, describeOperation, whereText, layerName, neuronLabel, placeName } from './describe.js';
 import { createInspectMissions } from './missions.js';
 import { shortcutFor } from './shortcuts.js';
+import { takesWheel, isDrivingKey } from './driver.js';
 import { createNeuronCard, weightRange } from './card.js';
 import { createConnectionDetail, linkShare } from '../shared/connection-detail.js';
 import { createResponseCurve } from '../shared/response-curve.js';
@@ -88,7 +94,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       playback: createPlayback(),
       settings: null,
       changesBy: new Map(), // firma del cerebro → lista de cambios
-      manual: null,
+      manual: null, // entradas a mano (D9), no quién maneja
+      driver: 'network', // quién maneja: 'network' o 'you' (manejar-vos D2)
       missions: createInspectMissions({ completed: completedMissions }),
     };
   }
@@ -97,6 +104,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const fmt = (v) => formatValue(v, i18n.language);
   const playback = state.playback;
   playback.pause(); // se reanuda abajo: al volver, la pestaña sigue en pausa (D13 de Competir, igual acá)
+  state.driver = 'network'; // al volver a la pestaña maneja la red (manejar-vos D2)
+  // El teclado registra lo apretado siempre (también en pausa, para N de a cuadros); maneja solo con
+  // "Manejar vos". Con el foco en un control que usa las flechas, no maneja (D3).
+  const keyboard = createKeyboardController({ accepts: (e) => takesWheel(e.target) });
 
   // --- Cerebro ---------------------------------------------------------------------------------
   let candidates = [];
@@ -105,7 +116,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   let changes = null;
   let world = null;
   let cursor = null;
-  let controller = null;
+  let controller = null; // controlador con observador: la red observa; maneja la red o el teclado
   let animation = null;
   let crashTicks = 0;
   let lastStep = null; // { size, last } del último paso, para la operación en curso
@@ -161,7 +172,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function buildWorld() {
     const s = state.settings;
     // El controlador lee los cambios vigentes del estado conservado: sigue valiendo al volver a la pestaña.
-    controller = createTraceController(net, brain.sensors.count, () => state.live?.changes ?? null);
+    const traced = createTraceController(net, brain.sensors.count, () => state.live?.changes ?? null);
+    controller = createObservedController({ driver: state.driver === 'you' ? keyboard : traced, observer: traced });
     world = createWorld({
       seed: SEED, track: s.track, lanes: s.lanes, density: s.density, irregularity: s.irregularity,
       cars: [{ controller, sensors: { ...brain.sensors }, maxSpeed: s.maxSpeed }],
@@ -298,6 +310,36 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (size === 'frame' && playback.playing) cursor.complete();
     sync();
   }
+
+  // --- Quién maneja (manejar-vos-en-inspeccionar) ---------------------------------------------------
+  const driving = () => state.driver === 'you';
+  const focusScene = () => scene.focus({ preventScroll: true });
+  /** "Manejar vos": desde el cuadro siguiente el auto sigue al teclado; la reproducción pasa a tiempo real de a cuadros (D3). */
+  function takeWheel({ focus = true } = {}) {
+    if (focus) focusScene();
+    if (driving()) return;
+    state.driver = 'you';
+    controller.setDriver(keyboard);
+    if (playback.setSize('frame')) cursor.complete();
+    playback.setPace(FRAME_PACES.length - 1);
+    if (!playback.playing) play();
+    onDriverChange();
+    announce(t('inspect.drive.announce.taken'));
+    sync();
+  }
+  /** "Devolver el volante": la red maneja desde donde está el auto, sin volver a empezar el intento. */
+  function giveBack({ announceIt = true } = {}) {
+    if (!driving()) return;
+    const hadFocus = driveBadge.contains(document.activeElement);
+    state.driver = 'network';
+    controller.setDriver(controller.observer);
+    onDriverChange();
+    if (announceIt) announce(t('inspect.drive.announce.back'));
+    sync();
+    if (hadFocus) driveButton.focus({ preventScroll: true }); // el aviso se oculta: el foco no se pierde
+  }
+  const toggleDriver = () => (driving() ? giveBack() : takeWheel());
+  function onDriverChange() {}
 
   // --- Cambios de prueba ------------------------------------------------------------------------
   function changed() {
@@ -659,7 +701,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // ==================================================================================================
   // Tablero: escena chica, decisión y leyenda
   // ==================================================================================================
-  const scene = el('div', { class: 'inspect-scene' });
+  // La escena se enfoca: con el foco en ella, las flechas toman el volante (manejar-vos D3).
+  const scene = el('div', { class: 'inspect-scene', attrs: { tabindex: '0', role: 'group' }, i18nAttr: 'aria-label:inspect.scene.label' });
   const sceneView = createStageView({ container: scene, store, small: true });
   const manualText = el('span', { i18n: 'inspect.manual.badge' });
   const releaseButton = el('button', { class: 'tool small inspect-release', i18n: 'inspect.manual.release', help: 'inspect.manual.release', attrs: { type: 'button' }, on: { click: () => { releaseManual({ announceIt: true }); sync(); } } });
@@ -669,7 +712,18 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // La entrada que se lee (operacion-por-operacion, "La entrada que se lee, en la escena"): un sensor se ve
   // en su rayo; la velocidad, en este aviso.
   const speedBadge = el('div', { class: 'stage-badge inspect-speed-badge' });
-  scene.append(el('div', { class: 'inspect-scene-badges' }, manualBadge, crashBadge, pausedBadge, speedBadge));
+  // Manejar vos (D5): el aviso arriba, con "Devolver el volante"; se apila con el de entradas a mano.
+  const giveBackButton = el('button', {
+    class: 'tool small inspect-give-back', i18n: 'inspect.drive.giveBack', help: 'inspect.drive.giveBack', dataset: { focus: 'keep' },
+    attrs: { type: 'button' }, on: { click: () => giveBack() },
+  });
+  const driveBadge = el('div', { class: 'stage-badge inspect-drive-badge', attrs: { role: 'status' } },
+    el('span', { i18n: 'inspect.drive.badge' }), giveBackButton);
+  const driveButton = el('button', {
+    class: 'tool small inspect-drive', i18n: 'inspect.drive.take', help: 'inspect.drive.take', dataset: { focus: 'keep' },
+    attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => toggleDriver() },
+  });
+  scene.append(el('div', { class: 'inspect-scene-badges' }, driveBadge, manualBadge, crashBadge, pausedBadge, speedBadge), driveButton);
   const description = stageDescription({ stage: scene });
   const decision = actionBlock({ i18n });
   const decisionNote = el('p', { class: 'caption inspect-decision-note' });
@@ -896,6 +950,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       setData(r.row, 'done', String(m.done));
       setText(r.status, m.done ? 'train.mission.done' : 'train.mission.pending');
     }
+    // Quién maneja
+    setAttr(driveButton, 'aria-pressed', String(driving()));
+    show(driveBadge, driving());
+    setData(scene, 'driver', state.driver);
     scenario.sync({ ...state.settings });
   }
 
@@ -1022,7 +1080,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         off: Boolean(n.offConnections?.[i]), computed: !shownCursor || shownCursor.opsDone(sel.layer, sel.neuron) > 0,
       });
     }
-    description.set(t('inspect.scene.description', { track: t(`track.${state.settings.track}`), state: t(paused ? 'inspect.paused' : 'inspect.playing') }));
+    const sceneState = t(paused ? 'inspect.paused' : 'inspect.playing') + (driving() ? t('inspect.drive.describe') : '');
+    description.set(t('inspect.scene.description', { track: t(`track.${state.settings.track}`), state: sceneState }));
   }
 
   /** Marcas de lo cambiado, para el diagrama y la tabla. */
@@ -1109,6 +1168,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // --- Atajos y foco ----------------------------------------------------------------------------
   let handledSpace = false;
   function onKeyDown(e) {
+    // Una flecha (o W A S D con atajos) con el foco en la escena o en ningún control toma el volante (D3).
+    if (!driving() && isDrivingKey(e) && takesWheel(e.target)) {
+      try { takeWheel({ focus: false }); } catch (err) { reportError(err); }
+      return;
+    }
     const action = shortcutFor(e);
     if (!action) return;
     e.preventDefault();
@@ -1177,8 +1241,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     get brain() { return brain; },
     get state() { return state; },
     get playback() { return playback; },
+    takeWheel, giveBack, get controller() { return controller; }, get keyboard() { return keyboard; },
     play, pause, stepOnce, stepBack, restart, setSize, select, choose, undo, resetNetwork, toggleNeuron, setWeight, setBias, setManual, toggleLayer, toggleAll,
     unmount() {
+      giveBack({ announceIt: false }); // al ocultarse la pestaña, vuelve a manejar la red (D2)
+      keyboard.dispose();
       keepChanges();
       state.wasPlaying = playback.playing;
       playback.pause();
