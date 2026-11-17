@@ -55,6 +55,11 @@ El resto de las notas de este archivo no tiene orden fijo.
   - Fluidez y "fondo en el momento": medidos con Chrome sin ventana (CDP), no
     con el navegador a la vista: mediana 16,7 ms y peor 16,8 ms arrastrando
     con 2 → 8 → 8 → 8 → 1 en pausa y con 2 → 4 → 1 aprendiendo.
+  - A verificar por el dueño, a mano (pedido suyo): los escenarios que
+    dependen de que la red aprenda: "Aprende al reproducir", "Con la capa
+    oculta", "Trabada en un mínimo local", "Aprendiendo tampoco" y "De
+    corrido". Se corrieron antes de que llegara el pedido; quedan como
+    referencia, no como verificación.
   - Sin probar: lector de pantalla real (tabla de verdad, interruptores y
     pastillas de sesgo; rol, nombre y estado se leyeron del DOM), Safari y
     Firefox.
