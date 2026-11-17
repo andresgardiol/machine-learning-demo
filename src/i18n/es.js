@@ -1922,6 +1922,10 @@ export default {
   'lab.op.restarted': 'Cambiaste la red a mano: el ejemplo vuelve a empezar desde la ida.',
   // --- tarjeta-de-consigna: la tarjeta que abre el panel de cada pestaña (D3) ---
   'consigna.title': 'Qué hacer ahora',
+  // Texto largo de la guía plegado (tarjeta-de-consigna D10).
+  'guide.more': 'Más sobre esta pestaña',
+  'help.guide.more.what': 'Despliega o pliega la explicación larga de esta pestaña: qué se ve y qué probar.',
+  'help.guide.more.why': 'La tarjeta de arriba ya dice qué hacer ahora; la explicación queda a un clic para quien quiera saber más.',
   'consigna.drive': 'Manejá con las flechas o W A S D sin chocar.',
   'consigna.drive.plain': 'Manejá con las flechas sin chocar.',
   'consigna.drive.circuit': 'Manejá con las flechas o W A S D sin salirte de la pista.',
@@ -1931,7 +1935,7 @@ export default {
   'consigna.train.manual': 'Elegí al líder cuando haga algo prometedor.',
   'consigna.compete': 'Largá y mirá quién llega más lejos en cada pista.',
   'consigna.inspect': 'Pausá con el botón de abajo de la red y avanzá de a un paso.',
-  'consigna.lab.gates': 'Mové los pesos hasta que la tabla diga 4 de 4, o tocá Reproducir abajo de la red.',
+  'consigna.lab.gates': 'Mové los pesos hasta 4 de 4, o tocá Reproducir abajo de la red.',
   'consigna.lab.points': 'Tocá Reproducir, abajo de la red, y mirá cómo separa los puntos.',
   'consigna.lab.driving': 'Tocá Reproducir, abajo de la red: aprende a manejar imitando.',
   'consigna.missions.allDone': '✓ Cumpliste todas las misiones de esta pestaña.',

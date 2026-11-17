@@ -1922,6 +1922,10 @@ export default {
   'lab.op.restarted': 'You changed the network by hand: the example starts over from the forward pass.',
   // --- tarjeta-de-consigna: the card that opens each tab's panel (D3) ---
   'consigna.title': 'What to do now',
+  // Long guide text, folded (tarjeta-de-consigna D10).
+  'guide.more': 'More about this tab',
+  'help.guide.more.what': 'Opens or folds the long explanation of this tab: what you see and what to try.',
+  'help.guide.more.why': 'The card above already says what to do now; the explanation is one click away for anyone who wants more.',
   'consigna.drive': 'Drive with the arrow keys or W A S D without crashing.',
   'consigna.drive.plain': 'Drive with the arrow keys without crashing.',
   'consigna.drive.circuit': 'Drive with the arrow keys or W A S D without leaving the track.',
@@ -1931,7 +1935,7 @@ export default {
   'consigna.train.manual': 'Pick the leader when it does something promising.',
   'consigna.compete': 'Start the race and see who gets furthest on each track.',
   'consigna.inspect': 'Pause with the button below the network and go one step at a time.',
-  'consigna.lab.gates': 'Move the weights until the table says 4 of 4, or press Play below the network.',
+  'consigna.lab.gates': 'Move the weights to 4 of 4, or press Play below the network.',
   'consigna.lab.points': 'Press Play, below the network, and watch it separate the points.',
   'consigna.lab.driving': 'Press Play, below the network: it learns to drive by imitating.',
   'consigna.missions.allDone': '✓ You completed every mission in this tab.',

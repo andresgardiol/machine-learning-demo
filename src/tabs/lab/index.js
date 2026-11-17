@@ -47,6 +47,7 @@ import { describeLearningStep, whereText, layerName, neuronName, errorTrend } fr
 import { createLabMissions, MISSION_IDS, GATE_MISSION_IDS } from './missions.js';
 import { currentMission } from '../../ui/current-mission.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createGuideMore } from '../shared/guide-more.js';
 import { gateSolution, solutionShapeOk } from './gate-solutions.js';
 import { shortcutFor } from './shortcuts.js';
 import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS, DATA_KINDS } from './defaults.js';
@@ -371,10 +372,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   legend.append(flickerLegend);
   const opBody = el('div', { attrs: { 'aria-hidden': 'true' } }, opText, opNote);
   const opStrip = el('div', { class: 'lab-op' }, opBody, legend);
-  const playButton = el('button', { class: 'tool inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
+  const playButton = el('button', { class: 'tool small inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
   // Acción principal (jerarquia-de-botones D3): en esta pestaña es siempre la marcha.
   applyMainAction({ run: playButton }, mainAction('lab'));
-  const stepButton = el('button', { class: 'tool inspect-step', i18n: 'inspect.step', help: 'lab.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
+  const stepButton = el('button', { class: 'tool small inspect-step', i18n: 'inspect.step', help: 'lab.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
   const sizeButtons = LEARNING_STEP_SIZES.map((s) => el('button', {
     class: 'segment', i18n: `lab.size.${s}`, help: `lab.size.${s}`,
     attrs: { type: 'button', 'aria-pressed': 'false' }, dataset: { size: s, focus: 'keep' },
@@ -509,7 +510,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const scene = el('div', { class: 'inspect-scene lab-scene' });
   const sceneView = createStageView({ container: scene, store, small: true });
   const recordText = el('span', { class: 'lab-record-text' });
-  const finishButton = el('button', { class: 'tool small lab-finish', i18n: 'lab.record.finish', help: 'lab.record.finish', attrs: { type: 'button' }, on: { click: () => stopRecording() } });
+  const finishButton = el('button', { class: 'tool lab-finish', i18n: 'lab.record.finish', help: 'lab.record.finish', attrs: { type: 'button' }, on: { click: () => stopRecording() } });
   const recordBadge = el('div', { class: 'stage-badge lab-record-badge', attrs: { role: 'status' } }, recordText, finishButton);
   const crashBadge = el('div', { class: 'stage-badge crash-badge', attrs: { role: 'status' }, i18n: 'inspect.crash' });
   scene.append(el('div', { class: 'inspect-scene-badges' }, recordBadge, crashBadge));
@@ -587,10 +588,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const intro = el('p', { class: 'guide inspect-intro lab-intro' });
   // XOR sin capas ocultas, después de intentarlo (D8): el botón que agrega la capa que hace falta.
   const addHiddenButton = el('button', {
-    class: 'tool small lab-add-hidden', i18n: 'lab.addHidden', help: 'lab.addHidden', attrs: { type: 'button' },
+    class: 'tool lab-add-hidden', i18n: 'lab.addHidden', help: 'lab.addHidden', attrs: { type: 'button' },
     on: { click: () => { if (session.setLayers(1)) { restarted(); announce(t('lab.guide.gates.xorHidden')); } } },
   });
-  const introBlock = el('div', { class: 'lab-intro-block' }, intro, addHiddenButton);
+  // El texto, plegado (tarjeta-de-consigna D10); "Agregar una capa oculta" queda afuera, a la vista.
+  const introBlock = el('div', { class: 'lab-intro-block' }, createGuideMore(intro), addHiddenButton);
   // Red
   const layerButtons = [0, 1, 2, 3].map((n) => el('button', {
     class: 'segment', i18n: 'lab.layers.option', params: { n }, help: 'lab.layers', i18nAttr: 'aria-label:lab.layers.optionLabel',
@@ -653,23 +655,23 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'lab-slider' }, el('label', { class: 'lab-slider-label', attrs: { for: 'lab-rate' } }, el('span', { i18n: 'lab.rate', help: 'lab.term.rate' }), rateValue), rateInput),
     holdoutRow);
   // Acciones
-  const resetWeightsButton = el('button', { class: 'tool small', i18n: 'lab.resetWeights', help: 'lab.resetWeights', attrs: { type: 'button' }, on: { click: () => resetWeights() } });
-  const resetNetworkButton = el('button', { class: 'tool small', i18n: 'lab.resetNetwork', help: 'lab.resetNetwork', attrs: { type: 'button' }, on: { click: () => { session.resetNetwork(); restarted(); } } });
-  const saveButton = el('button', { class: 'tool small lab-save', i18n: 'lab.save', attrs: { type: 'button' }, on: { click: () => saveBrain() } });
+  const resetWeightsButton = el('button', { class: 'tool', i18n: 'lab.resetWeights', help: 'lab.resetWeights', attrs: { type: 'button' }, on: { click: () => resetWeights() } });
+  const resetNetworkButton = el('button', { class: 'tool', i18n: 'lab.resetNetwork', help: 'lab.resetNetwork', attrs: { type: 'button' }, on: { click: () => { session.resetNetwork(); restarted(); } } });
+  const saveButton = el('button', { class: 'tool lab-save', i18n: 'lab.save', attrs: { type: 'button' }, on: { click: () => saveBrain() } });
   const saveMessage = el('p', { class: 'caption lab-save-message', attrs: { role: 'status' } });
   // Ver una solución (D9): con compuertas, pesos que aciertan los cuatro casos, como un cambio a mano.
-  const solutionButton = el('button', { class: 'tool small lab-solution', i18n: 'lab.solution', help: 'lab.solution', attrs: { type: 'button' }, on: { click: () => showSolution() } });
+  const solutionButton = el('button', { class: 'tool lab-solution', i18n: 'lab.solution', help: 'lab.solution', attrs: { type: 'button' }, on: { click: () => showSolution() } });
   const actions = el('div', { class: 'lab-actions-panel' }, resetWeightsButton, resetNetworkButton, solutionButton, saveButton);
   // Tu manejo: de quién son los ejemplos
   const teacherName = el('span', { class: 'lab-teacher-name' });
   const changeTeacher = el('button', {
-    class: 'tool small', i18n: 'inspect.brain.change', help: 'lab.teacher.change',
+    class: 'tool', i18n: 'inspect.brain.change', help: 'lab.teacher.change',
     attrs: { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false', 'aria-controls': 'lab-picker' },
     on: { click: () => picker.toggle({ focus: 'current' }) },
   });
-  const recordButton = el('button', { class: 'tool small lab-record', i18n: 'lab.record', help: 'lab.record', attrs: { type: 'button' }, on: { click: () => (recording ? stopRecording() : startRecording()) } });
-  const useRecordedButton = el('button', { class: 'tool small', i18n: 'lab.record.use', help: 'lab.record.use', attrs: { type: 'button' }, on: { click: () => { if (session.chooseRecorded()) restarted(); } } });
-  const clearButton = el('button', { class: 'tool small', i18n: 'lab.record.clear', help: 'lab.record.clear', attrs: { type: 'button' }, on: { click: () => { const had = session.source === 'recorded'; state.recorder.clear(); session.clearRecorded(); if (had) restarted(); else sync(); } } });
+  const recordButton = el('button', { class: 'tool lab-record', i18n: 'lab.record', help: 'lab.record', attrs: { type: 'button' }, on: { click: () => (recording ? stopRecording() : startRecording()) } });
+  const useRecordedButton = el('button', { class: 'tool', i18n: 'lab.record.use', help: 'lab.record.use', attrs: { type: 'button' }, on: { click: () => { if (session.chooseRecorded()) restarted(); } } });
+  const clearButton = el('button', { class: 'tool', i18n: 'lab.record.clear', help: 'lab.record.clear', attrs: { type: 'button' }, on: { click: () => { const had = session.source === 'recorded'; state.recorder.clear(); session.clearRecorded(); if (had) restarted(); else sync(); } } });
   const recordNotice = el('p', { class: 'caption lab-record-notice', attrs: { role: 'status' } });
   const teacherSection = el('section', { class: 'lab-section lab-teacher', attrs: { 'aria-labelledby': 'lab-teacher-heading' } },
     el('h2', { class: 'panel-heading', i18n: 'lab.panel.examples', attrs: { id: 'lab-teacher-heading' } }),

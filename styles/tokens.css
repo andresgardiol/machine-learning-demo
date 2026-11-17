@@ -9,6 +9,11 @@
   /* Borde o contorno que permite reconocer un control (campos, grupos de opciones, interruptores y
      botones con contorno): 3:1 o más sobre el fondo, el panel y las tarjetas (panel-de-entrenar-por-vistas D9). */
   --color-control-border: #74808f;
+  /* Tarjeta de consigna (tarjeta-de-consigna D9): un fondo más claro que --color-surface-2 y una barra
+     lateral neutra, no del color de la acción. #2e3846 dejaba el contorno de los controles en 2,95:1;
+     #2c3542 lo deja en 3,08:1. */
+  --color-card-bg: #2c3542;
+  --color-card-bar: #aab3c0; /* el de --color-text-muted: se ve también en escala de grises */
   --color-accent: #4ea1ff; /* foco, pestaña elegida y enlaces; ya no rellena controles (jerarquia-de-botones D1) */
   --color-tooltip-bg: #0b0e12;
 

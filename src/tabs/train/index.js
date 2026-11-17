@@ -23,6 +23,7 @@ import { createLibraryView } from '../../ui/library-view.js';
 import { panelViews } from '../../ui/panel-views.js';
 import { currentMission } from '../../ui/current-mission.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createGuideMore } from '../shared/guide-more.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { trainingDescription } from '../shared/stage-text.js';
 import { el } from '../../ui/dom.js';
@@ -327,8 +328,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const pauseButton = button('train.pause', 'train.pause', togglePause);
   pauseButton.setAttribute('aria-pressed', 'false');
   const nextButton = button('train.next', 'train.next', nextGeneration);
-  const restartButton = button('train.restart', 'train.restart', restart, 'tool small');
-  const newPopulationButton = button('train.newPopulation', 'train.newPopulation', newPopulation, 'tool small');
+  const restartButton = button('train.restart', 'train.restart', restart);
+  const newPopulationButton = button('train.newPopulation', 'train.newPopulation', newPopulation);
   const toolbarConfirm = inlineConfirm({ i18n });
   // Selección manual: elegir al líder y deshacer en un renglón, con la línea de estado del padre debajo.
   const chooseButton = button('train.choose', 'train.choose', chooseLeader);
@@ -594,7 +595,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const brainsView = el('div', { class: 'train-brains' }, brainsSave, libraryZone);
 
   // Vistas del panel (D1): entrenamiento, ajustes y cerebros, con la barra fija arriba.
-  const trainingView = el('div', { class: 'train-training' }, card.node, intro, viewSwitches, basic, saveBlock, missions);
+  const trainingView = el('div', { class: 'train-training' }, card.node, createGuideMore(intro), viewSwitches, basic, saveBlock, missions);
   const views = panelViews({
     idPrefix: 'train-view',
     i18n,

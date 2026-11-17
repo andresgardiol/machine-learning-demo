@@ -47,6 +47,16 @@ test('borde de los controles: 3:1 o más sobre el panel, el fondo y las tarjetas
   assert.equal(contrast(border, token('color-surface-2')).toFixed(2), '3.51');
 });
 
+test('tarjeta de consigna (tarjeta-de-consigna D9): el contorno de los controles da 3:1 o más sobre su fondo', () => {
+  const c = contrast(token('color-control-border'), token('color-card-bg'));
+  assert.ok(c >= 3, `--color-control-border sobre --color-card-bg: ${c.toFixed(2)}:1`);
+  // El texto atenuado de la misión y el de la consigna siguen legibles sobre ese fondo.
+  assert.ok(contrast(token('color-text-muted'), token('color-card-bg')) >= 4.5);
+  assert.ok(contrast(token('color-text'), token('color-card-bg')) >= 4.5);
+  // La barra lateral no es del color de la acción principal.
+  assert.notEqual(token('color-card-bar').toLowerCase(), token('color-action').toLowerCase());
+});
+
 test('lo usan los campos de texto, los grupos de opciones, los interruptores y los botones con contorno', () => {
   for (const selector of ['.tool {', '.switch {', '.switch-track {', '.lang {', '.segments {', '.segment + .segment {',
     '.camera-button {', '.bar-track {', '.library-name-input, .library-rename {', '.code-editor {', '.palette-word {']) {

@@ -49,6 +49,7 @@ import { describeStep, describeOperation, whereText, layerName, neuronLabel, pla
 import { createInspectMissions } from './missions.js';
 import { currentMission } from '../../ui/current-mission.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createGuideMore } from '../shared/guide-more.js';
 import { shortcutFor } from './shortcuts.js';
 import { takesWheel, isDrivingKey } from './driver.js';
 import { createNeuronCard, weightRange } from './card.js';
@@ -680,12 +681,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     opTrack.replaceChildren(...d.track.marks.map((m) => el('li', { class: 'op-mark', dataset: { state: m.state, wide: String(Boolean(m.wide)) } },
       m.state === 'done' ? el('span', { class: 'op-tick' }, '✓') : null, el('span', {}, m.label))));
   }
-  const playButton = el('button', { class: 'tool inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
+  const playButton = el('button', { class: 'tool small inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
   // Acción principal (jerarquia-de-botones D3): en esta pestaña es siempre la marcha.
   applyMainAction({ run: playButton }, mainAction('inspect'));
-  const stepButton = el('button', { class: 'tool inspect-step', i18n: 'inspect.step', help: 'inspect.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
+  const stepButton = el('button', { class: 'tool small inspect-step', i18n: 'inspect.step', help: 'inspect.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
   // Paso atrás (operacion-por-operacion D7): deshace dentro del cuadro; al principio no tiene efecto.
-  const backButton = el('button', { class: 'tool inspect-back', i18n: 'inspect.back', help: 'inspect.back', attrs: { type: 'button', 'aria-disabled': 'false' }, on: { click: () => stepBack() } });
+  const backButton = el('button', { class: 'tool small inspect-back', i18n: 'inspect.back', help: 'inspect.back', attrs: { type: 'button', 'aria-disabled': 'false' }, on: { click: () => stepBack() } });
   const sizeButtons = STEP_SIZES.map((s) => el('button', {
     class: 'segment', i18n: `inspect.size.${s}`, help: `inspect.size.${s}`,
     attrs: { type: 'button', 'aria-pressed': 'false' }, dataset: { size: s, focus: 'keep' },
@@ -774,6 +775,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Panel: guía, cerebro, tarjeta y misiones
   // ==================================================================================================
   const intro = el('p', { class: 'guide inspect-intro', i18n: 'inspect.guide' });
+  // Plegado bajo "Más sobre esta pestaña" (tarjeta-de-consigna D10); con algo elegido cede su lugar.
+  const introMore = createGuideMore(intro);
   const brainName = el('span', { class: 'inspect-brain-name' });
   const changeBrain = el('button', {
     class: 'tool small inspect-change-brain', i18n: 'inspect.brain.change', help: 'inspect.brain.change',
@@ -874,7 +877,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('h2', { class: 'sr-only', i18n: 'inspect.missions.title' }),
     el('ol', { class: 'mission-list inspect-mission-list' }, missionRows.map((r) => r.row)));
   panel.append(el('h1', { class: 'sr-only', i18n: 'inspect.title' }),
-    el('div', { class: 'inspect-panel' }, consigna.node, intro, brainSection, emptyBlock, card.node, linkDetail.node, missions));
+    el('div', { class: 'inspect-panel' }, consigna.node, introMore, brainSection, emptyBlock, card.node, linkDetail.node, missions));
 
   const picker = createPicker({
     id: 'inspect-picker', anchor: changeBrain, t,
@@ -1094,7 +1097,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Panel (D7): nada elegido, la tarjeta de la neurona o el detalle de la conexión.
     const isLink = Boolean(sel) && state.connection !== null;
     show(emptyBlock, !sel);
-    setData(intro, 'selection', String(Boolean(sel))); // con algo elegido, el texto cede su lugar (D17)
+    setData(introMore, 'selection', String(Boolean(sel))); // con algo elegido, el texto cede su lugar (D17)
     show(card.node, Boolean(sel) && !isLink);
     show(linkDetail.node, isLink);
     const shownChanges = originalHeld ? NO_CHANGES : changes;

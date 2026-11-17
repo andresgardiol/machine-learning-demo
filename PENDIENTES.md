@@ -612,6 +612,18 @@ arreglarlos de a uno.
   - Sin medir: un lector de pantalla real (solo el árbol de accesibilidad del
     navegador), el estado de carrera terminada en Competir, el atajo de la
     marcha de Competir en el navegador y personas reales leyendo la tarjeta.
+  - Revisión del dueño (grupo 6): dos alturas de botón (36 y 24 px), tarjeta
+    con fondo más claro y barra lateral, texto largo plegado bajo "Más sobre
+    esta pestaña" y Tráfico nuevo fuera de la tarjeta. Quedó: a 1366×768 la
+    columna todavía pide desplazar 66 px en Reglas a mano, 44 en Competir y
+    232 en Entrenar (la tarjeta entra entera en todas). Compactos además de las
+    barras de D8: Cambiar y Apagar en Inspeccionar y el Laboratorio (decisión
+    del dueño, para que la tabla de la neurona entre), los avisos sobre la
+    escena de Inspeccionar, las filas de la biblioteca de cerebros y la barra
+    de arriba de la app. El fondo de la tarjeta da 1,31:1 contra el panel: en
+    grises la distingue la barra. `consigna.lab.gates` se acortó para entrar
+    en dos renglones con la letra de 17 px. Sin probar: el pliegue con teclado
+    y lector de pantalla reales, y una captura en escala de grises.
 
 - **Lo que quedó de `jerarquia-de-botones`** (17 de noviembre de 2026).
   - Las barras de "Lo que perciben los sensores" usan `--color-sensor`, el

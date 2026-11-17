@@ -101,6 +101,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Acción secundaria (jerarquia-de-botones D2.2): contorno y sin relleno. La acción principal es
    `.tool.primary`, al final del archivo, para que ninguna regla de zona le cambie el tamaño. */
 .tool {
+  /* Dos alturas de botón en toda la app (tarjeta-de-consigna D8): la normal, 36 px, y la compacta,
+     `.tool.small`, de 24 px, solo en las barras densas (arriba y abajo de la red, y la barra de arriba). */
+  min-height: 36px;
   padding: var(--space-1) var(--space-3);
   background: transparent;
   border: 1px solid var(--color-control-border);
@@ -135,7 +138,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .topbar .tools { gap: 6px; }
 .topbar .switch { gap: 6px; padding: 3px 7px; font-size: 13px; min-height: 26px; }
 .topbar .lang-option { padding: 3px 7px; font-size: 13px; min-height: 26px; }
-.topbar .tool { padding: 3px 9px; font-size: 13px; min-height: 26px; }
+.topbar .tool { padding: 2px var(--space-2); font-size: 12px; min-height: 24px; } /* barra densa: la altura compacta (D8) */
 .credits-icon { display: none; }
 @media (max-width: 1239.98px) {
   .credits-label { display: none; }
@@ -346,14 +349,16 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
    curso. El texto largo de la guía queda debajo, en 13 px y --color-text-muted (8:1 sobre --color-surface). */
 .consigna-card {
   display: grid; gap: var(--space-2); flex: 0 0 auto;
-  padding: 12px; background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius);
+  /* Se destaca del panel por el fondo más claro y la barra de 4 px a la izquierda (D9). */
+  padding: 12px 12px 12px 14px; background: var(--color-card-bg); border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-card-bar); border-radius: var(--radius);
 }
-.consigna-text { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--color-text); }
+.consigna-text { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.35; color: var(--color-text); }
 .consigna-mission { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-2); font-size: 13px; }
 .consigna-mission[hidden] { display: none; }
 .consigna-mission-status { font-variant-numeric: tabular-nums; color: var(--color-text-muted); white-space: nowrap; }
 .consigna-mission[data-done="true"] .consigna-mission-name { color: var(--color-car); font-weight: 700; }
-/* Sobre --color-surface-2 la pista de la barra va en --color-bg, para que se vea dónde termina. */
+/* Sobre --color-card-bg la pista de la barra va en --color-bg, para que se vea dónde termina. */
 .consigna-card .mission-bar { background: var(--color-bg); }
 .consigna-card .mission-bar[hidden] { display: none; }
 .consigna-card[hidden] { display: none; }
@@ -361,7 +366,14 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .mission[data-current="true"] .mission-name { font-weight: 700; }
 .mission[data-current="true"] .mission-name::before { content: "▸ "; }
 
+/* Texto largo de la guía plegado (tarjeta-de-consigna D10). */
+.guide-more { flex: 0 0 auto; }
+.guide-more-summary { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 24px; cursor: pointer; font-size: 13px; color: var(--color-accent); }
+.guide-more-summary:hover { text-decoration: underline; }
+.guide-more-body { margin-top: var(--space-1); }
 .switch-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+/* Interruptores de vista y Tráfico nuevo en un mismo bloque (tarjeta-de-consigna D11). */
+.view-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 /* Entrenar: "Sensores" y "Ver como la máquina" en un solo renglón a 360 px (circuitos-y-paisaje D13). */
 .train-view { gap: 6px; }
 .train-view .switch { padding-left: 5px; padding-right: 5px; }
@@ -516,7 +528,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .run-main, .run-secondary { display: flex; gap: var(--space-2); }
 /* La secundaria conserva su alto: la principal de la fila se ve más grande (jerarquia-de-botones D2.1). */
 .run-main, .run-manual { align-items: center; }
-.run-main .tool { flex: 1 1 0; min-width: 0; }
+.run-main .tool { flex: 0 1 auto; min-width: 0; }
+/* La acción principal toma el ancho que sobra del renglón y no se parte (D8). */
+.run-main .tool.primary { flex: 1 1 auto; }
 /* Velocidad: rótulo a la izquierda y opciones a la derecha; si el panel es angosto, las opciones bajan. */
 .train-run .setting { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
 .run-secondary .tool { flex: 0 1 auto; }
@@ -799,7 +813,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .bar-track-name { white-space: nowrap; }
 .bar-track .track-thumb { color: currentColor; }
 .bar-group-reset { align-self: flex-end; }
-.bar-reset { white-space: nowrap; min-height: 32px; padding: 0 var(--space-2); font-size: 14px; }
+.bar-reset { white-space: nowrap; padding: 0 var(--space-2); font-size: 14px; } /* altura normal, 36 px (tarjeta-de-consigna D8) */
 /* Confirmaciones pegadas a la barra, debajo del grupo que las pidió (sobre el escenario). */
 .bar-slot { position: absolute; top: calc(100% + 6px); left: 0; z-index: 7; width: max-content; max-width: 340px; }
 .bar-group-reset .bar-slot { left: auto; right: 0; }
@@ -992,7 +1006,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-net-title { flex: 1 1 140px; min-width: 0; margin: 0; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inspect-label { font-size: 13px; color: var(--color-text-muted); margin-right: var(--space-1); white-space: nowrap; }
 .inspect-filter, .inspect-size { display: inline-flex; flex-wrap: wrap; align-items: center; }
-.inspect-controls .segment, .inspect-playbar .segment { min-width: 28px; min-height: 26px; padding: 2px 6px; font-size: 13px; white-space: nowrap; }
+.inspect-controls .segment, .inspect-playbar .segment { min-width: 28px; min-height: 24px; padding: 2px 6px; font-size: 13px; white-space: nowrap; }
 .inspect-edits { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); flex: 1 1 auto; min-width: 0; }
 .inspect-changes { font-size: 13px; color: var(--color-text-muted); white-space: nowrap; }
 .inspect-changes[data-changed="true"] { color: var(--color-text); font-weight: 700; }
@@ -1081,7 +1095,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-playbar { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); padding: 6px var(--space-2); border-top: 1px solid var(--color-border); background: var(--color-surface-2); }
 .inspect-playbar-main, .inspect-playbar-pace { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) 6px; min-width: 0; }
 .inspect-playbar-pace { flex: 1 1 280px; flex-wrap: nowrap; }
-.inspect-playbar .tool { min-height: 28px; padding: 3px 8px; font-size: 13px; }
+.inspect-playbar .tool { padding: 2px 8px; }
 .inspect-playbar .segment { padding: 2px 5px; font-size: 12px; }
 .inspect-playbar .inspect-label { margin-right: 2px; }
 .inspect-play { white-space: nowrap; }
@@ -1223,7 +1237,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspect-card-views { flex: 0 0 auto; margin: var(--space-1) var(--space-2) 0; align-self: flex-start; }
 .inspect-card-views[hidden] { display: none; }
 .inspect-card-views .segment { min-height: 26px; }
-.inspect-intro[data-selection="true"] { display: none; }
+.inspect-intro[data-selection="true"], .guide-more[data-selection="true"] { display: none; }
 .inspect-weight-open {
   width: 100%; min-height: 24px; padding: 0 2px; font: inherit; color: var(--color-text); background: none; border: 0;
   border-bottom: 1px dotted var(--color-text-muted); cursor: pointer; text-align: right;
@@ -1474,7 +1488,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .lab-slider input[type="range"] { grid-column: 2; grid-row: 1; width: 100%; min-width: 120px; height: 24px; margin: 0; accent-color: var(--color-accent); }
 .lab-value { font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
 .lab-actions-panel { display: flex; flex-wrap: wrap; gap: 4px; }
-.lab-actions-panel .tool { min-height: 26px; }
 .lab-actions-panel [hidden] { display: none; }
 .lab-save[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
 .lab-save-message, .lab-record-notice { margin: 0; }
@@ -1595,11 +1608,13 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .segment[aria-pressed="true"], .lang-option[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--color-selected-border); }
 .bar-track[aria-checked="true"] { box-shadow: none; }
 
-/* Acción principal (D2.1): el único relleno del color de acción, más grande que las secundarias. 40 px de
-   alto: medido en la tarea 3.3, la barra de marcha de Inspeccionar y del Laboratorio entra sin cortes a 1366×768.
-   Le gana a la opción apretada: la marcha de Inspeccionar y del Laboratorio usa aria-pressed. */
+/* Acción principal (D2.1): el único relleno del color de acción. Mide lo mismo que los botones de su
+   renglón y se distingue por el relleno y la negrita, no por el tamaño (tarjeta-de-consigna D8); no se
+   parte en dos renglones. Le gana a la opción apretada: la marcha de Inspeccionar y del Laboratorio usa
+   aria-pressed. En la barra de marcha de abajo de la red es compacta, como sus vecinos. */
 .tool.primary, .tool.primary[aria-pressed], .tool.primary:hover {
-  min-height: 40px; padding: 0 var(--space-3);
+  min-height: 36px; padding: 0 var(--space-3);
   background: var(--color-action); border-color: var(--color-action); color: var(--color-on-action);
-  font-size: 15px; font-weight: 700; box-shadow: none;
+  font-size: 14px; font-weight: 700; white-space: nowrap; box-shadow: none;
 }
+.tool.small.primary, .tool.small.primary[aria-pressed], .tool.small.primary:hover { min-height: 24px; padding: 2px 8px; font-size: 12px; }

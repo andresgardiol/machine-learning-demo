@@ -26,7 +26,7 @@ import { el } from './dom.js';
 export function createPicker({ id, anchor, t, titleKey, doneKey, doneHelp, emptyKey, groups, onPick, canOpen = () => true, doc = document }) {
   const win = doc.defaultView;
   const body = el('div', { class: 'compete-picker-body' });
-  const done = el('button', { class: 'tool small compete-picker-done', i18n: doneKey, help: doneHelp, attrs: { type: 'button' }, on: { click: () => close() } });
+  const done = el('button', { class: 'tool compete-picker-done', i18n: doneKey, help: doneHelp, attrs: { type: 'button' }, on: { click: () => close() } });
   const node = el('div', {
     class: 'compete-picker',
     attrs: { id, role: 'dialog', 'aria-modal': 'false' },

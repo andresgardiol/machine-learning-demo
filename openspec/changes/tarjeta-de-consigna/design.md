@@ -118,7 +118,51 @@ En El problema, el renglón de teclas del `intro` (`drive.guide.keys`) se quita,
 
 El guion es `borradores/tarjeta-de-consigna/capturar.mjs`. El antes se sacó sobre `945a848`, con `antes/medidas.md`: altura de la guía, de la acción principal y de la primera misión, si esta se ve sin desplazar, el desborde de la columna y el largo del texto. Al final se corre con `despues`, se repiten las mismas medidas y se arma `comparacion.md`.
 
+## Revisión del dueño (17 de noviembre de 2026)
+
+El dueño miró el resultado en el navegador y señaló dos cosas:
+
+- "El botón de pausar es más grande que el resto y no hay ninguna concordancia de tamaño." Medido en el código: hay tres alturas. La acción principal mide 40 px con letra de 15 px en negrita, `.tool` unos 28 px con 14 px, y `.tool.small` 24 px con 12 px. Además, "Pausar (espacio)" se parte en dos renglones dentro de la tarjeta.
+- "La tarjeta sigue sin destacar del resto de cosas; hay muchísima información." Medido: el fondo de la tarjeta (`#242c37`) apenas se separa del panel (`#1b212a`), y su borde es el mismo que separa cualquier zona.
+
+Sus decisiones: una sola altura por renglón; la tarjeta con un fondo más claro y una barra lateral; el texto largo plegado; y "Tráfico nuevo" fuera de la tarjeta.
+
+### D8. Dos alturas de botón
+
+- **Normal:** `.tool` con 36 px de alto mínimo y letra de 14 px. Vale para la acción principal también: se distingue por el relleno y la negrita, no por el tamaño (modifica `jerarquia-visual`). La acción principal lleva `white-space: nowrap`, y en la tarjeta toma el ancho que sobra del renglón (`flex: 1`), así que no se parte.
+- **Compacta:** `.tool.small`, de 24 px, solo en las barras densas:
+  - la barra de arriba de la red en Inspeccionar y en el Laboratorio;
+  - la barra de marcha de abajo de la red;
+  - los botones de cada fila de la lista de competidores (✕ y 👁).
+- En el resto se quita `small`: Reiniciar y Población nueva en Entrenar; Reiniciar, Otra carrera y Borrar en Competir; Reiniciar pesos, Reiniciar la red, Guardar como cerebro, Ver una solución y los de grabar en el Laboratorio; Tráfico nuevo.
+- La barra de marcha de abajo de la red es compacta, pero ahí la acción principal mide lo mismo que sus vecinos. Lo que era 40 px pasa a la altura compacta de esa barra. Esto deshace la medida de 3.3 de `jerarquia-de-botones`: se vuelve a medir.
+
+*Alternativa descartada:* la acción principal más grande, sola en su renglón. El dueño eligió que mida lo mismo.
+
+### D9. Tarjeta que se destaca
+
+- **Tokens nuevos:**
+  - `--color-card-bg`: más claro que `--color-surface-2`, cerca de `#2e3846`. Se mide que el contorno de los controles (`--color-control-border`) siga dando 3:1 o más sobre él, en `tests/control-contrast.test.js`.
+  - `--color-card-bar`: 4 px a la izquierda, `--color-text-muted` (`#aab3c0`). Neutro y claro, no el azul de la acción.
+- **Consigna:** 17 px, peso 600.
+- **Escala de grises:** la tarjeta se distingue por la barra, aunque el fondo dé poco contraste.
+
+### D10. Texto largo plegado
+
+- **Elemento:** `<details class="guide guide-more">`, con `<summary>` "Más sobre esta pestaña", su tooltip (`data-help`) y el texto largo adentro. `details` y `summary` dan el estado desplegado al lector de pantalla y el manejo con el teclado sin código propio.
+- **Plegado por defecto** al cargar la app. Mientras dura la sesión, cada pestaña lo deja como la persona lo dejó, porque el nodo sigue en el DOM. No se guarda en las preferencias.
+- **Lo que no es texto queda afuera del pliegue:** "Agregar una capa oculta" en el Laboratorio, la leyenda de Inspeccionar y las misiones.
+- **Inspeccionar:** con algo elegido, el `details` cede su lugar como antes cedía el texto.
+- **No choca con *Orden común del panel*:** "Ningún ajuste MUST quedar en una sección plegable" habla de ajustes, y adentro solo hay texto. Las seis specs de pestaña que pedían mostrar el texto de inicio se modifican para decir que está plegado.
+
+### D11. "Tráfico nuevo" fuera de la tarjeta
+
+En El problema y en Reglas a mano pasa al grupo de los interruptores de vista (Sensores, Ver como la máquina), con la altura normal. En la tarjeta quedan Pausar y Reiniciar, que son la marcha.
+
 ## Risks / Trade-offs
+
+- **Las alturas nuevas pueden volver a desbordar** Entrenar, Competir y Reglas a mano a 1366×768. Lo compensan el texto plegado, que se lleva entre 3 y 6 renglones de cada pestaña, y la tarjeta más baja sin el botón de 40 px. Se mide en el después. Si la tarjeta no entra entera, parar y consultar.
+- **Plegar el texto deja la explicación a un clic.** Es la decisión del dueño. La consigna y los tooltips siguen a la vista.
 
 - **Entrenar ya desborda a 1440×900 y la tarjeta le suma un renglón de misión.** Se compensa con el texto largo más chico. Lo que importa es que la tarjeta entre entera; la lista de abajo puede seguir pidiendo desplazar, porque su primera misión ya está en la tarjeta. Se mide en el después. Si la tarjeta no entra entera a 1366×768, se para a consultar.
 - **La consigna puede repetir lo que dice el texto largo**, como en Reglas a mano ("Cambiá un número…"). Se acepta: la tarjeta es para quien no lee el párrafo. Recortar los textos largos queda para `vocabulario-escalonado` o para el recorrido guiado.

@@ -28,6 +28,7 @@ import { setUnavailable } from '../shared/street-advanced.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
 import { currentMission } from '../../ui/current-mission.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createGuideMore } from '../shared/guide-more.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { drivingDescription } from '../shared/stage-text.js';
@@ -287,10 +288,9 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
 
   const pauseButton = button('rules.pause', 'rules.pause', togglePause);
   pauseButton.setAttribute('aria-pressed', 'false');
-  const newTrafficButton = button('rules.newTraffic', 'rules.newTraffic', newTraffic, 'tool small');
+  const newTrafficButton = button('rules.newTraffic', 'rules.newTraffic', newTraffic);
   const run = el('section', { class: 'drive-run' },
-    el('div', { class: 'run-main' }, pauseButton, button('rules.restart', 'rules.restart', restart)),
-    el('div', { class: 'run-secondary' }, newTrafficButton));
+    el('div', { class: 'run-main' }, pauseButton, button('rules.restart', 'rules.restart', restart)));
   // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
   const card = createConsignaCard({ i18n, run });
 
@@ -309,6 +309,8 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   });
   const viewSwitches = el('div', { class: 'switch-row', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.view.title' },
     sensorsSwitch, machineSwitch, retrySwitch);
+  // Tráfico nuevo, fuera de la tarjeta, junto a los interruptores de vista (tarjeta-de-consigna D11).
+  const viewRow = el('div', { class: 'view-row' }, viewSwitches, newTrafficButton);
 
   // --- Panel: programa (ejemplos, restablecer, exportar e importar; D8) ------------------
   const confirm = inlineConfirm({ i18n });
@@ -354,7 +356,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   const exampleButtons = EXAMPLES.map((ex) => button(ex.nameKey, `rules.example.${ex.id}`, () => {
     message.hidden = true;
     replaceProgram(i18n.t(ex.textKey), ex.sensors, { message: 'rules.confirm.example', params: { name: i18n.t(ex.nameKey) } });
-  }, 'tool small'));
+  }));
   const resetButton = button('rules.reset', 'rules.reset', () => {
     message.hidden = true;
     replaceProgram(i18n.t(INITIAL_PROGRAM.textKey), INITIAL_PROGRAM.sensors, { message: 'rules.confirm.reset' });
@@ -454,7 +456,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
 
   panel.append(
     el('h1', { class: 'sr-only', i18n: 'rules.title' }),
-    card.node, intro, viewSwitches, programSection, missions);
+    card.node, createGuideMore(intro), viewRow, programSection, missions);
 
   // --- Mensajes sobre el escenario ----------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });

@@ -36,6 +36,7 @@ import { createResults, STREET_TRAFFICS } from './results.js';
 import { createCompeteMissions } from './missions.js';
 import { currentMission } from '../../ui/current-mission.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createGuideMore } from '../shared/guide-more.js';
 import { createSeedSeries, seedFor } from './seeds.js';
 import { shortcutFor, mainAction } from './shortcuts.js';
 import { mainAction as primaryOf, applyMainAction } from '../../ui/main-action.js';
@@ -232,8 +233,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
 
   // --- Panel: carrera ---------------------------------------------------------------------------
   const mainButton = el('button', { class: 'tool compete-main', attrs: { type: 'button' }, on: { click: () => main() } });
-  const restartButton = button('compete.restart', 'compete.restart', restart, 'tool small');
-  const anotherButton = button('compete.another', 'compete.another', anotherRace, 'tool small');
+  const restartButton = button('compete.restart', 'compete.restart', restart);
+  const anotherButton = button('compete.another', 'compete.another', anotherRace);
   const speeds = optionGroup({
     labelKey: 'train.speed', labelHelp: 'compete.speed',
     selected: state.speed,
@@ -299,7 +300,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   const listTitle = el('h2', { class: 'panel-heading', i18n: 'compete.list.title', attrs: { id: 'compete-list-title' } });
   const listCount = el('span', { class: 'compete-list-count muted' });
   const addButton = el('button', {
-    class: 'tool small compete-add', i18n: 'compete.add', help: 'compete.add',
+    class: 'tool compete-add', i18n: 'compete.add', help: 'compete.add',
     attrs: { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false', 'aria-controls': 'compete-picker' },
     on: { click: () => togglePicker() },
   });
@@ -422,10 +423,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   const missions = el('section', { class: 'guide compete-missions' },
     el('h2', { class: 'panel-heading', i18n: 'compete.missions.title' }),
     el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row)));
-  const clearButton = button('compete.clear', 'compete.clear', () => { results.clear(); renderTable(); }, 'tool small compete-clear');
+  const clearButton = button('compete.clear', 'compete.clear', () => { results.clear(); renderTable(); }, 'tool compete-clear');
 
   panel.append(el('h1', { class: 'sr-only', i18n: 'compete.title' }),
-    el('div', { class: 'compete-panel' }, card.node, intro, trafficSection, penalty.row, viewSwitches, listSection, missions));
+    el('div', { class: 'compete-panel' }, card.node, createGuideMore(intro), trafficSection, penalty.row, viewSwitches, listSection, missions));
 
   // --- Barra de escenario (D12): pista, tráfico y velocidad; sin sensores ---------------------
   // Grupo propio de Competir en la barra (D1b y D12): la meta, entre el tráfico y la velocidad, en el

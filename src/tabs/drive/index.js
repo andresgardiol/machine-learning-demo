@@ -22,6 +22,7 @@ import { perceptionBlock, actionBlock } from '../shared/driving-cards.js';
 import { setUnavailable } from '../shared/street-advanced.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
 import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
+import { createGuideMore } from '../shared/guide-more.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { drivingDescription } from '../shared/stage-text.js';
@@ -90,14 +91,14 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   const introWhat = el('p', { i18n: 'drive.guide.what', params: { lanes: settings.lanes } });
   const intro = el('section', { class: 'guide drive-intro' }, introWhat);
 
-  // Marcha: pausar y reiniciar en un renglón; tráfico nuevo, más chico, debajo.
+  // Marcha: pausar y reiniciar en un renglón. Tráfico nuevo va fuera de la tarjeta, junto a los
+  // interruptores de vista (tarjeta-de-consigna D11).
   const restartButton = button('drive.restart', 'drive.restart', restart);
-  const newTrafficButton = button('drive.newTraffic', 'drive.newTraffic', newTraffic, 'tool small');
+  const newTrafficButton = button('drive.newTraffic', 'drive.newTraffic', newTraffic);
   const pauseButton = button('drive.pause', 'drive.pause', togglePause);
   pauseButton.setAttribute('aria-pressed', 'false');
   const run = el('section', { class: 'drive-run' },
-    el('div', { class: 'run-main' }, pauseButton, restartButton),
-    el('div', { class: 'run-secondary' }, newTrafficButton));
+    el('div', { class: 'run-main' }, pauseButton, restartButton));
   // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
   const card = createConsignaCard({ i18n, run });
 
@@ -112,6 +113,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   });
   const viewSwitches = el('div', { class: 'switch-row drive-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:drive.view.title' },
     sensorsSwitch, machineSwitch);
+  const viewRow = el('div', { class: 'view-row' }, viewSwitches, newTrafficButton);
 
   // Misiones. Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2).
   const describeMission = (m) => ({
@@ -193,7 +195,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
 
   panel.append(
     el('h1', { class: 'sr-only', i18n: 'drive.title' }),
-    card.node, intro, viewSwitches, missions);
+    card.node, createGuideMore(intro), viewRow, missions);
 
   // --- Mensajes sobre el escenario ---------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
