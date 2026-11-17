@@ -5,6 +5,10 @@
 // La consigna y la misión llevan la clase `guide`: con la guía apagada las oculta la regla que ya
 // existe (`.app[data-guide="off"] .guide`), y la marcha queda en el mismo lugar. Sin marcha, la tarjeta
 // entera lleva `guide`, para no dejar una caja vacía.
+//
+// "Mostrame" (misiones-que-muestran-el-control D4): con `view.reveal`, la línea de la misión muestra un
+// botón compacto que lleva al control con el que se cumple. Está dentro de la misión, que lleva `guide`:
+// se oculta con la guía sin código propio. Qué control muestra lo decide la pestaña (`onReveal`).
 import { el } from '../../ui/dom.js';
 import { createTextSetter } from '../../ui/controls.js';
 
@@ -13,15 +17,16 @@ let nextId = 0;
 /**
  * Vista de una misión para la tarjeta y su fila (D2).
  * @typedef {{nameKey: string, nameParams?: object, statusKey: string, statusParams?: object,
- *   fraction?: number|null}} MissionView
+ *   fraction?: number|null, reveal?: boolean}} MissionView
  */
 
 /**
- * @param {{i18n: object, run?: HTMLElement|null}} spec
+ * @param {{i18n: object, run?: HTMLElement|null, onReveal?: ((trigger: HTMLElement) => void)|null}} spec
+ *   onReveal: lo que hace "Mostrame" (la pestaña busca el control y llama a revealControls)
  * @returns {{node: HTMLElement, setConsigna: (key: string, params?: object) => void,
  *   setMission: (view: null | {allDone: true} | MissionView) => void}}
  */
-export function createConsignaCard({ i18n, run = null }) {
+export function createConsignaCard({ i18n, run = null, onReveal = null }) {
   const setText = createTextSetter(i18n);
   const titleId = `consigna-title-${++nextId}`;
   const text = el('p', { class: 'guide consigna-text' });
@@ -29,7 +34,14 @@ export function createConsignaCard({ i18n, run = null }) {
   const missionStatus = el('span', { class: 'consigna-mission-status' });
   const missionFill = el('span', { class: 'mission-fill' });
   const missionBar = el('span', { class: 'mission-bar', attrs: { 'aria-hidden': 'true' } }, missionFill);
-  const mission = el('div', { class: 'guide consigna-mission' }, missionName, missionStatus, missionBar);
+  const revealButton = el('button', {
+    class: 'tool small consigna-reveal', i18n: 'mission.reveal', help: 'mission.reveal',
+    // data-focus="keep": el foco va al control mostrado, no vuelve al escenario tras el clic.
+    attrs: { type: 'button', 'data-focus': 'keep' },
+    on: { click: () => onReveal?.(revealButton) },
+  });
+  revealButton.hidden = true;
+  const mission = el('div', { class: 'guide consigna-mission' }, missionName, missionStatus, missionBar, revealButton);
   mission.hidden = true;
   // Sin marcha (Inspeccionar y Laboratorio), con la guía apagada la tarjeta quedaría vacía: entonces
   // la tarjeta entera es de la guía y se oculta con ella.
@@ -58,21 +70,24 @@ export function createConsignaCard({ i18n, run = null }) {
     const barHidden = state.width === null;
     if (missionBar.hidden !== barHidden) missionBar.hidden = barHidden;
     if (!barHidden && missionFill.style.width !== state.width) missionFill.style.width = state.width;
+    const revealHidden = !(state.reveal && onReveal);
+    if (revealButton.hidden !== revealHidden) revealButton.hidden = revealHidden;
   }
 
-  return { node, setConsigna, setMission };
+  return { node, setConsigna, setMission, revealButton };
 }
 
 /**
  * Lo que muestra la tarjeta para una vista de misión, sin DOM.
- * @returns {{hidden: boolean, allDone: boolean, width: string|null}}
+ * @returns {{hidden: boolean, allDone: boolean, width: string|null, reveal: boolean}}
  */
 export function missionState(view) {
-  if (!view) return { hidden: true, allDone: false, width: null };
-  if (view.allDone) return { hidden: false, allDone: true, width: null };
+  if (!view) return { hidden: true, allDone: false, width: null, reveal: false };
+  if (view.allDone) return { hidden: false, allDone: true, width: null, reveal: false };
+  const reveal = view.reveal === true;
   const f = view.fraction;
-  if (typeof f !== 'number' || !Number.isFinite(f)) return { hidden: false, allDone: false, width: null };
-  return { hidden: false, allDone: false, width: `${Math.round(Math.min(1, Math.max(0, f)) * 100)}%` };
+  if (typeof f !== 'number' || !Number.isFinite(f)) return { hidden: false, allDone: false, width: null, reveal };
+  return { hidden: false, allDone: false, width: `${Math.round(Math.min(1, Math.max(0, f)) * 100)}%`, reveal };
 }
 
 /**

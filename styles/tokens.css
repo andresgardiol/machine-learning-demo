@@ -15,6 +15,10 @@
   --color-card-bg: #2c3542;
   --color-card-bar: #aab3c0; /* el de --color-text-muted: se ve también en escala de grises */
   --color-accent: #4ea1ff; /* foco, pestaña elegida y enlaces; ya no rellena controles (jerarquia-de-botones D1) */
+  /* Anillo de "Mostrame" (misiones-que-muestran-el-control D3): el amarillo de "en curso" de la red, que ya
+     significa "esto es lo que toca ahora". Distinto del foco y de la opción elegida (--color-accent) y con
+     3:1 o más sobre el fondo, el panel y las tarjetas (tests/control-contrast.test.js). */
+  --color-reveal: #f4e04d;
   --color-tooltip-bg: #0b0e12;
 
   /* Jerarquía de los controles (jerarquia-de-botones D1): cada estilo significa una sola cosa. */

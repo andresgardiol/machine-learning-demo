@@ -362,6 +362,11 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .consigna-card .mission-bar { background: var(--color-bg); }
 .consigna-card .mission-bar[hidden] { display: none; }
 .consigna-card[hidden] { display: none; }
+/* "Mostrame" (misiones-que-muestran-el-control D4): en el renglón de la misión, a la derecha del estado.
+   Compacto (24 px) porque el renglón es denso, como las filas de competidores; nunca la acción principal. */
+.consigna-mission:has(> .consigna-reveal:not([hidden])) { grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; }
+.consigna-mission .consigna-reveal { grid-column: 3; grid-row: 1; }
+.consigna-mission .consigna-reveal[hidden] { display: none; }
 /* La misión en curso, marcada en la lista sin depender del color: "▸" y negrita. */
 .mission[data-current="true"] .mission-name { font-weight: 700; }
 .mission[data-current="true"] .mission-name::before { content: "▸ "; }
@@ -995,6 +1000,19 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   .countdown-pop { animation: countdown-pop 0.35s ease-out; }
 }
 @keyframes countdown-pop { from { transform: scale(1.4); opacity: 0.2; } to { transform: scale(1); opacity: 1; } }
+
+/* Anillo de "Mostrame" (misiones-que-muestran-el-control D3): un anillo quieto alrededor del control, por
+   fuera del contorno de foco (que es un outline de 2 px a 2 px), separado por un aro del color del fondo.
+   Va con box-shadow y no con outline para que el foco y el anillo se vean a la vez. Aparece en 150 ms y se
+   va en 300 ms ("false" es la salida); sin bucles ni parpadeos (sin-destellos-en-la-red). */
+[data-revealed] { transition: box-shadow 300ms ease-out; }
+[data-revealed="true"] {
+  box-shadow: 0 0 0 4px var(--color-bg), 0 0 0 7px var(--color-reveal) !important;
+  transition-duration: 150ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-revealed], [data-revealed="true"] { transition: none; }
+}
 
 /* ---- Inspeccionar (pestana-inspeccionar) ---------------------------------------------------------
    La zona izquierda es de la red (D1): controles arriba, la red, la operación en curso y la barra de

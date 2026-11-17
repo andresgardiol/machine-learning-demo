@@ -89,8 +89,8 @@ test('setMission: sin misión se oculta; con una, nombre, estado y barra; con to
 });
 
 test('missionState: barra solo con una fracción, acotada entre 0 y 100 %', () => {
-  assert.deepEqual(missionState(null), { hidden: true, allDone: false, width: null });
-  assert.deepEqual(missionState({ allDone: true }), { hidden: false, allDone: true, width: null });
+  assert.deepEqual(missionState(null), { hidden: true, allDone: false, width: null, reveal: false });
+  assert.deepEqual(missionState({ allDone: true }), { hidden: false, allDone: true, width: null, reveal: false });
   assert.equal(missionState({ fraction: 0.25 }).width, '25%');
   assert.equal(missionState({ fraction: 1.7 }).width, '100%');
   assert.equal(missionState({ fraction: null }).width, null);
@@ -106,4 +106,40 @@ test('writeMissionRow: la fila y la tarjeta salen de la misma vista, y marca la 
     assert.equal(r.row.dataset.done, 'false');
     assert.equal(r.fill.style.width, '60%');
   });
+});
+
+test('"Mostrame" (misiones-que-muestran-el-control D4): compacto, de la guía, con tooltip, solo con reveal', () => {
+  withFakeDocument(() => {
+    let asked = null;
+    const card = createConsignaCard({ i18n, onReveal: (trigger) => { asked = trigger; } });
+    const mission = card.node.children[2];
+    const button = card.revealButton;
+    // Va en la línea de la misión, que lleva `guide`: se oculta con la guía.
+    assert.ok(mission.children.includes(button));
+    assert.equal(mission.className, 'guide consigna-mission');
+    assert.equal(button.tagName, 'BUTTON');
+    assert.equal(button.className, 'tool small consigna-reveal');
+    assert.equal(button.getAttribute('data-help'), 'mission.reveal');
+    assert.equal(button.getAttribute('data-i18n'), 'mission.reveal');
+    const base = { nameKey: 'train.mission.fitness', statusKey: 'train.mission.pending' };
+    card.setMission({ ...base, reveal: true });
+    assert.equal(button.hidden, false);
+    card.setMission({ ...base, reveal: false });
+    assert.equal(button.hidden, true);
+    card.setMission({ allDone: true });
+    assert.equal(button.hidden, true);
+    assert.equal(asked, null);
+  });
+  // Sin onReveal, nunca se muestra.
+  withFakeDocument(() => {
+    const card = createConsignaCard({ i18n });
+    card.setMission({ nameKey: 'x', statusKey: 'y', reveal: true });
+    assert.equal(card.revealButton.hidden, true);
+  });
+  // El texto y el tooltip existen en los dos idiomas.
+  for (const dict of [es, en]) {
+    for (const k of ['mission.reveal', 'help.mission.reveal.what', 'help.mission.reveal.why', 'mission.revealed']) assert.ok(dict[k], k);
+  }
+  assert.equal(en['mission.reveal'], 'Show me');
+  assert.equal(es['mission.reveal'], 'Mostrame');
 });
