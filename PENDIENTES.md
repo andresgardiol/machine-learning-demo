@@ -17,12 +17,12 @@ compuertas (`laboratorio-empieza-por-compuertas`). El 17 de noviembre,
 `sin-destellos-en-la-red`: ninguna neurona, conexión ni tecla de la decisión
 destella más de tres veces por segundo en Inspeccionar, el Laboratorio y
 Entrenar; lo que titubea se ve quieto y rayado. Implementado y medido sin
-ventana, sin archivar; lo que quedó, en *Inspeccionar y vista de la red*.
+ventana, archivado; lo que quedó, en *Inspeccionar y vista de la red*.
 También el 17 de noviembre, `manejar-vos-en-inspeccionar`: en Inspeccionar se
 toma el volante con las flechas (o "Manejar vos") y la decisión muestra
 "Vos" y "La red" lado a lado, con cuánto coincidieron; "Devolver el volante"
 deja a la red seguir desde donde quedó el auto. Implementado y verificado
-sin ventana, sin archivar; lo que quedó, en *Inspeccionar y vista de la red*.
+sin ventana, archivado; lo que quedó, en *Inspeccionar y vista de la red*.
 
 ## En curso
 
@@ -138,7 +138,7 @@ arreglarlos de a uno.
 
 - **Compuertas en el Laboratorio: lo que quedó sin probar, visto o fuera de
   alcance.** Del cambio `laboratorio-empieza-por-compuertas` (16 de noviembre
-  de 2026, sin archivar):
+  de 2026, archivado el 17):
   - XOR con una capa de 2 y tanh se traba en un mínimo local en 4 de cada 10
     redes de la serie, con cualquier tasa (medido en la tarea 5.2). Decisión
     del dueño: arranque fijo que llega (semilla 1, 68 épocas a tasa 0,3) y la
