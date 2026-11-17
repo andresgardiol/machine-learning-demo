@@ -111,10 +111,10 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   }));
   const languageGroup = el('div', { class: 'lang', i18nAttr: 'aria-label:app.language', attrs: { role: 'group' } }, languageButtons);
 
-  // Por debajo de 1240 px, "Créditos" se muestra como un botón chico con una "i" (interruptor-de-ayudas
+  // "Créditos" se ve como enlace (jerarquia-de-botones D2.6). Por debajo de 1240 px, como una "i" (interruptor-de-ayudas
   // D6); el nombre accesible es siempre "Créditos".
   const creditsButton = el('button', {
-    class: 'tool credits-button', help: 'credits', i18nAttr: 'aria-label:app.credits',
+    class: 'link-button credits-button', help: 'credits', i18nAttr: 'aria-label:app.credits',
     attrs: { type: 'button', 'aria-haspopup': 'dialog' },
     on: { click: () => openCredits() },
   }, el('span', { class: 'credits-label', i18n: 'app.credits', attrs: { 'aria-hidden': 'true' } }), el('span', { class: 'credits-icon', attrs: { 'aria-hidden': 'true' } }, 'i'));

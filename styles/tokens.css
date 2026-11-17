@@ -9,8 +9,20 @@
   /* Borde o contorno que permite reconocer un control (campos, grupos de opciones, interruptores y
      botones con contorno): 3:1 o más sobre el fondo, el panel y las tarjetas (panel-de-entrenar-por-vistas D9). */
   --color-control-border: #74808f;
-  --color-accent: #4ea1ff;
+  --color-accent: #4ea1ff; /* foco, pestaña elegida y enlaces; ya no rellena controles (jerarquia-de-botones D1) */
   --color-tooltip-bg: #0b0e12;
+
+  /* Jerarquía de los controles (jerarquia-de-botones D1): cada estilo significa una sola cosa. */
+  --color-action: #4ea1ff; /* relleno de la acción principal: lo único relleno de este color */
+  --color-on-action: #12161c; /* texto sobre la acción principal (6,8:1) */
+  --color-selected-bg: #2c435f; /* fondo de una opción elegida: el acento al 20 % sobre --color-surface-2 */
+  --color-selected-border: #4ea1ff; /* contorno de una opción elegida y perilla de un interruptor encendido */
+  /* Salida de la red encendida: el blanco de la neurona activa al 35 % sobre --color-surface-2, con contorno
+     blanco de 2 px y negrita. Es la alternativa de Risks: el blanco pleno (#f5f7fa, 15:1 sobre el panel)
+     llamaba más la atención que la acción principal (5,3:1). */
+  --color-output-on: #6d737b; /* relleno de una salida encendida (2,9:1 contra una apagada) */
+  --color-output-on-border: #f5f7fa; /* contorno de una salida encendida: el blanco de --color-neuron-active */
+  --color-on-output: #ffffff; /* texto sobre una salida encendida (4,8:1) */
 
   /* Significado constante en toda la app */
   --color-road: #2b323d;
