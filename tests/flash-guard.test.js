@@ -32,7 +32,7 @@ function worstPerSecond(out, times, swing = 0.5, B = (x) => x) {
 const everyFrame = (ms, from = 0) => Array.from({ length: Math.round(ms / (1000 / 60)) }, (_, k) => [from + k * (1000 / 60), k % 2]);
 
 test('valores de partida de D2', () => {
-  assert.deepEqual({ ...FLASH_GUARD }, { maxFlips: 3, windowMs: 1000, swing: 0.5, averageMs: 500, calmMs: 1000, mark: 0.15, slackMs: 100 });
+  assert.deepEqual({ ...FLASH_GUARD }, { maxFlips: 3, windowMs: 1000, swing: 0.5, averageMs: 500, calmMs: 1000, mark: 0.15, slackMs: 100, tolerance: 0.03 });
 });
 
 test('tres cambios en un segundo se ven exactos', () => {
@@ -49,9 +49,9 @@ test('el cuarto da flicker y el promedio (pesado por tiempo), sin un cuarto camb
   assert.equal(fourth.flicker, true);
   // De 0 a 400 ms: 0, 1, 0, 1 cien ms cada uno.
   assert.equal(fourth.average, 0.5);
-  // Lo último contado fue 1 sin rayado: el promedio (0,5) más el rayado (0,15) sería un cambio grande; se
-  // muestra lo más cerca que no lo es: a 0,34 de 1.
-  assert.ok(Math.abs(fourth.level - 0.66) < 1e-9, `muestra ${fourth.level}`);
+  // Lo último contado fue 1 sin rayado: el promedio (0,5) más el rayado (0,15) sería un cambio grande
+  // (desde 0,47); se muestra lo más cerca que no lo es: a 0,31 de 1.
+  assert.ok(Math.abs(fourth.level - 0.69) < 1e-9, `muestra ${fourth.level}`);
 });
 
 test('titubeando, se ve el promedio de los últimos 500 ms', () => {

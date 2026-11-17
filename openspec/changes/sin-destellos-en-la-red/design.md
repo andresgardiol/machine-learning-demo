@@ -59,6 +59,16 @@ createFlashGuard({ maxFlips: 3, windowMs: 1000, swing: 0.5, averageMs: 500, calm
 Así los tres primeros cambios se ven exactos; nunca hay un cuarto en el mismo
 segundo. El promedio cambia de a poco y no cuenta como destello.
 
+**Ajustes al implementar (medidos en el navegador, tareas 2.1 y 3.1).** Con la regla tal cual
+quedaban destellos: (a) un cambio grande pasa a ser un *recorrido* de 0,5 (entre el menor y el mayor
+brillo mostrado desde el último cambio contado): contra un solo nivel de referencia, una salida que va
+de 0,34 a 0,88 y vuelve cada cuadro alrededor de 0,6 no contaba nunca; (b) la cuenta se lleva sobre lo
+que se muestra, en brillo: el relleno de una neurona es nada en 0 y 0,15 + 0,85 × nivel si no, así
+que de 0 a 0,42 ya es medio rango; (c) que el rayado aparezca o se vaya pesa 0,15; (d) si mostrar el
+promedio sería el cuarto cambio, se muestra lo más cerca del promedio que no lo es; (e) la ventana
+lleva 100 ms de margen; (f) desde 0,47 ya cuenta como grande (0,03 de margen por el redondeo de
+los píxeles). La medida de D1 usa la misma cuenta por recorrido.
+
 *Alternativa 1*: suavizar siempre (filtro exponencial). Se pierde la
 inmediatez y mentiría en redes sin escalón. *Alternativa 2*: limitar los
 cuadros por segundo del dibujo de la red. Sigue destellando a 3–4 Hz y
@@ -84,6 +94,12 @@ Laboratorio con la escena manejando). En pausa o paso a paso se llama a
   que medir que la leyenda siga entrando.
 
 El rayado es fijo: no se anima, para no crear otro destello.
+
+**Ajuste al implementar (tarea 3.1).** El número de lo que titubea va con la letra del color del texto
+y un borde fino del fondo, sin la curva de la activación: con el número normal, el color de la letra
+sigue al relleno (oscura desde 0,55) y destellaba; con una pastilla del fondo detrás, como sobre un
+mapa, aparecía un rectángulo oscuro al empezar a titubear. La marca del Laboratorio va en la franja de
+abajo de la red y se ve solo aprendiendo de corrido.
 
 ### D5. Tarjeta de la neurona
 La guarda lleva, por clave, cuánto del último segundo estuvo el valor en cada

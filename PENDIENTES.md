@@ -13,13 +13,14 @@ puede esperar. Abajo, las notas detalladas de cada cambio, agrupadas por
 Las seis pestañas están hechas, con circuitos y paisaje, Competir,
 Inspeccionar y Laboratorio, en el orden que fijó el dueño el 12 de noviembre
 de 2026. El 16 de noviembre se sumó al Laboratorio el recorrido de
-compuertas (`laboratorio-empieza-por-compuertas`).
+compuertas (`laboratorio-empieza-por-compuertas`). El 17 de noviembre,
+`sin-destellos-en-la-red`: ninguna neurona, conexión ni tecla de la decisión
+destella más de tres veces por segundo en Inspeccionar, el Laboratorio y
+Entrenar; lo que titubea se ve quieto y rayado. Implementado y medido sin
+ventana, sin archivar; lo que quedó, en *Inspeccionar y vista de la red*.
 
 ## En curso
 
-- `sin-destellos-en-la-red`: que ninguna neurona ni tecla de la decisión
-  destelle más de tres veces por segundo (Inspeccionar y Laboratorio con tu
-  manejo). Implementándose.
 - `manejar-vos-en-inspeccionar`: tomar el volante con las flechas en
   Inspeccionar y ver qué decidiría la red. Planificado, sigue al anterior.
 
@@ -276,6 +277,34 @@ arreglarlos de a uno.
   - "Eliminar" en la biblioteca pasa el foco a "Cancelar" y no lleva
     `data-focus="keep"`. Por el mismo camino que "Renombrar", un clic con el
     mouse devolvería el foco al escenario; no se probó.
+
+- **Lo que quedó de `sin-destellos-en-la-red`** (17 de noviembre de 2026).
+  Lo que titubea se ve quieto, rayado y con su promedio (`flash-guard.js`).
+  - Sin probar: con el navegador a la vista (todas las medidas, con Chrome
+    sin ventana), con un lector de pantalla real (", titubea" en las teclas,
+    "Titubea" en el nombre de las neuronas), Safari y Firefox. Tampoco con el
+    cerebro "5s - traffic" de la captura del dueño (no estaba guardado en el
+    navegador de prueba) ni con el Laboratorio aprendiendo de una grabación
+    propia (se midió con el maestro de ejemplo).
+  - Sin medir cuadro a cuadro: el brillo de las conexiones (pasan por la
+    guarda, pero la medida es de neuronas y teclas), las marcas del flujo que
+    aparecen y se van en una conexión cuyo aporte salta entre cero y su peso,
+    y el contorno de una neurona del Laboratorio cuando su sesgo cambia de
+    signo de una época a la otra. Son elementos finos; la pauta de destellos
+    mira áreas grandes, pero conviene medirlos.
+  - Sin guarda: las teclas de Reglas a mano (siguen a las reglas, que pueden
+    cambiar de idea en cada cuadro) y el resaltado de las líneas que se
+    cumplen en su editor. Sin medir; las de El problema siguen a la persona.
+  - La medida cuenta un cambio grande por recorrido (de la mitad del rango
+    entre el menor y el mayor brillo desde el último contado) y mira el
+    relleno, arriba del número: el número no entra en la cuenta. Con el
+    número normal, su color seguía al relleno y destellaba; ahora el de lo que
+    titubea es fijo.
+  - En las neuronas chicas del Laboratorio a 1366×768 (radio ~16 px),
+    "≈ −0,17" sobresale un poco del círculo; se lee por el borde del fondo.
+  - No tocado: el rótulo bajo el cursor que queda debajo de las pastillas de
+    las perillas (nota en *Laboratorio y compuertas*) sigue igual; este cambio
+    solo le sumó la explicación del rayado.
 
 ## Entrenar, tráfico y aprendizaje
 

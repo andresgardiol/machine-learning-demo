@@ -16,6 +16,9 @@
 // segundo, se muestra lo más cerca del promedio que no lo es, y el promedio se alcanza en cuanto vence
 // el primero de esos tres.
 //
+// La cuenta tiene `tolerance` (0,03) de margen: desde 0,47 ya es un cambio grande, para que uno que
+// mide justo 0,5 en pantalla (con el redondeo de los píxeles) no se escape.
+//
 // La ventana lleva `slackMs` (100 ms) de margen: un cuarto cambio justo a 1 s del primero, visto con
 // un cuadro de diferencia, sería un cuarto en el mismo segundo.
 //
@@ -26,7 +29,7 @@
 // Cada elemento lleva además cuánto del último segundo estuvo de cada lado (para la tarjeta, D5).
 // El reloj lo pasa quien llama (`nowMs`): misma secuencia, mismo resultado.
 
-export const FLASH_GUARD = Object.freeze({ maxFlips: 3, windowMs: 1000, swing: 0.5, averageMs: 500, calmMs: 1000, mark: 0.15, slackMs: 100 });
+export const FLASH_GUARD = Object.freeze({ maxFlips: 3, windowMs: 1000, swing: 0.5, averageMs: 500, calmMs: 1000, mark: 0.15, slackMs: 100, tolerance: 0.03 });
 
 /** Lo que se acerca, como mucho, al borde de un cambio grande sin contarlo. */
 const MARGIN = 0.01;
@@ -48,7 +51,8 @@ const SAME = Object.freeze({ brightness: (x) => x, levelOf: (x) => x });
  *   flickering:(key:string) => boolean, reset:() => void, size:() => number}}
  */
 export function createFlashGuard(options = {}) {
-  const { maxFlips, windowMs, swing, averageMs, calmMs, mark, slackMs } = { ...FLASH_GUARD, ...options };
+  const { maxFlips, windowMs, averageMs, calmMs, mark, slackMs, tolerance } = { ...FLASH_GUARD, ...options };
+  const swing = ({ ...FLASH_GUARD, ...options }).swing - tolerance; // desde acá cuenta
   const { brightness: B, levelOf } = options.fill ?? SAME;
   const keep = Math.max(averageMs, windowMs);
   /**
