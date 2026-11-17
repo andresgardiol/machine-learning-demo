@@ -1667,6 +1667,8 @@ export default {
   'lab.tt.answer': '{answer} {pct} %',
   'lab.tt.right': 'acierta',
   'lab.tt.wrong': 'falla',
+  'help.lab.tt.pick.what': 'Le da a la red las entradas de este caso: el punto de prueba va a esa esquina del plano.',
+  'help.lab.tt.pick.why': 'Así se ve la cuenta de la red para ese caso, neurona por neurona.',
   'lab.tt.pick': 'Probar el caso A {a}, B {b}',
   'lab.knob.bias.label': 'Sesgo de {name}',
   'help.lab.knob.bias.what': 'Cambia el sesgo de esta neurona: arrastrala hacia arriba o abajo, o usá las flechas (con Mayús, de a 0,1).',

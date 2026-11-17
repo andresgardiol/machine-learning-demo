@@ -41,7 +41,7 @@ export function createTruthTable({ i18n, onSelect }) {
   function build(n) {
     body.replaceChildren();
     rows = Array.from({ length: n }, (_, i) => {
-      const pick = el('button', { class: 'lab-tt-pick', attrs: { type: 'button' }, dataset: { focus: 'keep' }, on: { click: (e) => { e.stopPropagation(); onSelect(i); } } });
+      const pick = el('button', { class: 'lab-tt-pick', help: 'lab.tt.pick', attrs: { type: 'button' }, dataset: { focus: 'keep' }, on: { click: (e) => { e.stopPropagation(); onSelect(i); } } });
       const cells = { a: el('td', { class: 'lab-tt-a' }, pick), b: el('td', { class: 'lab-tt-b' }), target: el('td', { class: 'lab-tt-target' }), net: el('td', { class: 'lab-tt-net' }), mark: el('td', { class: 'lab-tt-mark' }) };
       const tr = el('tr', { on: { click: () => onSelect(i) } }, cells.a, cells.b, cells.target, cells.net, cells.mark);
       body.append(tr);

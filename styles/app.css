@@ -1015,7 +1015,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .inspector-knobs { position: absolute; inset: 0; }
 .inspector-knob { min-width: 42px; min-height: 18px; height: 18px; padding: 0 4px; border-width: 1.5px; border-radius: 9px; font-size: 11px; z-index: 1; }
 .inspector-knob::before { content: none; }
-.inspector-knob[data-kind="bias"] { border-radius: 4px; }
+.inspector-knob[data-knob-kind="bias"] { border-radius: 4px; }
 .inspector-knob-switch {
   position: absolute; top: 0; left: 0; pointer-events: auto; width: 34px; height: 18px; padding: 0; margin: 0;
   border: 1.5px solid var(--color-control-border); border-radius: 9px; background: var(--color-bg); color: var(--color-text);
@@ -1518,3 +1518,5 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Guía del Laboratorio con el botón de XOR (laboratorio-empieza-por-compuertas D8). */
 .lab-intro-block { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); }
 .lab-intro-block[hidden], .lab-add-hidden[hidden] { display: none; }
+/* Misiones de otra clase de datos (laboratorio-empieza-por-compuertas D10): no se muestran. */
+.inspect-mission[hidden] { display: none; }

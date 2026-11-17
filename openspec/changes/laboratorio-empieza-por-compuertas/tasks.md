@@ -59,8 +59,10 @@
 
 ## 6. Textos y acceso
 
-- [ ] 6.1 Textos en `es.js` y `en.js`: compuertas, tabla, guía, misiones, botones, tooltips (incluido "compuerta" como término). `mlLab.auditTooltips()` no informa nada.
-- [ ] 6.2 Medir a 1440×900 y 1366×768, en es y en, con compuertas sin capa oculta y con 2 → 2 → 1: ninguna zona se desplaza, el panel entra entero. **Si algo deja de entrar, parar y consultar.**
+- [x] 6.1 Textos en `es.js` y `en.js`: compuertas, tabla, guía, misiones, botones, tooltips (incluido "compuerta" como término). `mlLab.auditTooltips()` no informa nada.
+  *Hecho. Textos en `es.js` y `en.js` de las compuertas, la tabla de verdad, las perillas, la guía, las misiones, "Ver una solución", "Agregar una capa oculta de 2", la comparación del error y sus tooltips; "Compuerta" como término (`lab.term.gate`, en el rótulo de la barra). AND, OR y XOR no se traducen. `mlLab.auditTooltips()` informaba 4 controles sin ayuda (los botones de las filas de la tabla); con su tooltip, da 0 con compuertas (AND y XOR explicada), con la tarjeta abierta, en inglés, con puntos y con tu manejo (CDP). "Tooltip de XOR": al posar el mouse dice que contesta sí cuando las entradas son distintas y que es el ejemplo clásico que una neurona sola no resuelve. "En inglés": guía, tabla ("Truth table: the network gets 4 of 4 right", "Right", "Network", "yes 74 %"), misiones, perillas ("Weight from A to Answer") y tooltips en inglés; AND, OR y XOR iguales. Captura `compuertas-6.1-en-1440x900.png`. De paso: las perillas usaban `data-kind`, como los botones de la clase de datos; pasaron a `data-knob-kind`.*
+- [x] 6.2 Medir a 1440×900 y 1366×768, en es y en, con compuertas sin capa oculta y con 2 → 2 → 1: ninguna zona se desplaza, el panel entra entero. **Si algo deja de entrar, parar y consultar.**
+  *Medido con CDP, en el DOM (lo que queda cortado o se desplaza en la red, el tablero, el panel y la barra) a 1440×900 y 1366×768, en es y en, con compuertas 2 → 1 (AND), 2 → 2 → 1 (XOR) y 2 → 1 con XOR explicada (guía larga y botón): en los 12 casos ninguna zona se desplaza ni queda nada cortado, la página no se desplaza y el panel entra entero (788 px a 1440×900, 656 px a 1366×768). No hizo falta consultar. Al mirar las capturas apareció un error que la medida no veía: con compuertas seguían a la vista las tres misiones de puntos (el CSS de `.inspect-mission` pisaba `hidden`); corregido y vuelto a medir. Capturas `compuertas-6.2-*.png`.*
 
 ## 7. Cierre
 

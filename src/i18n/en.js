@@ -1667,6 +1667,8 @@ export default {
   'lab.tt.answer': '{answer} {pct} %',
   'lab.tt.right': 'right',
   'lab.tt.wrong': 'wrong',
+  'help.lab.tt.pick.what': 'Gives the network the inputs of this case: the probe point goes to that corner of the plane.',
+  'help.lab.tt.pick.why': 'That is how you see the network math for that case, neuron by neuron.',
   'lab.tt.pick': 'Try the case A {a}, B {b}',
   'lab.knob.bias.label': 'Bias of {name}',
   'help.lab.knob.bias.what': 'Changes the bias of this neuron: drag it up or down, or use the arrows (with Shift, by 0.1).',
