@@ -4,34 +4,132 @@ Ideas y detalles anotados para más adelante. No son parte de ningún cambio en
 curso: cada uno pasa por el filtro de entrada de la constitución y por su
 propuesta de OpenSpec antes de implementarse.
 
-## Orden de trabajo
+Arriba, el orden de trabajo: una línea por tema, de lo más urgente a lo que
+puede esperar. Abajo, las notas detalladas de cada cambio, agrupadas por
+área. Las líneas de arriba nombran la nota de abajo que tiene el detalle.
 
-Decidido por el dueño el 12 de noviembre de 2026:
+## Hecho
 
-1. ~~**Circuitos cerrados y paisaje**, en un mismo cambio.~~ Hecho en el
-   cambio `circuitos-y-paisaje`: tres circuitos fijos sin tráfico, entrenar en
-   una o varias pistas, paisaje con interruptor y "ver como la máquina" en las
-   tres pestañas.
-2. ~~**Pestaña 4, Competir.**~~ Hecho en el cambio `pestana-competir`: carrera
-   de fantasmas con meta entre cerebros, programas y la persona, chocar y
-   reaparecer protegido, cuatro cerebros de ejemplo y tabla por pista con dónde
-   entrenó cada cerebro.
-3. **Pestañas 5 y 6,** Inspeccionar y Laboratorio. ~~Inspeccionar~~ hecha en el
-   cambio `pestana-inspeccionar`: la red de un cerebro en grande, en vivo, con
-   diagrama y tabla de pesos, capas resumidas, filtro de conexiones, paso a
-   paso animado con la operación en curso, tarjeta de la neurona, entradas a
-   mano, apagar y cambiar pesos, deshacer y restablecer. ~~Laboratorio~~ hecho
-   en el cambio `pestana-laboratorio` (sin archivar todavía): backpropagation
-   paso a paso con puntos o con ejemplos de manejo, curvas de práctica y
-   apartados con aviso de sobreajuste, armar la red, grabar el propio manejo y
-   guardar lo aprendido como cerebro. Las seis pestañas están hechas.
-4. **Al final, los dos arreglos de Reglas a mano** anotados más abajo (los
-   ejemplos solo valen con la velocidad por defecto; el programa recordado no
-   recuerda los sensores). Esa pestaña es corta y es la que menos importa.
+Las seis pestañas están hechas, con circuitos y paisaje, Competir,
+Inspeccionar y Laboratorio, en el orden que fijó el dueño el 12 de noviembre
+de 2026. El 16 de noviembre se sumó al Laboratorio el recorrido de
+compuertas (`laboratorio-empieza-por-compuertas`).
 
-El resto de las notas de este archivo no tiene orden fijo.
+## En curso
 
-## Próximo
+- `sin-destellos-en-la-red`: que ninguna neurona ni tecla de la decisión
+  destelle más de tres veces por segundo (Inspeccionar y Laboratorio con tu
+  manejo). Implementándose.
+- `manejar-vos-en-inspeccionar`: tomar el volante con las flechas en
+  Inspeccionar y ver qué decidiría la red. Planificado, sigue al anterior.
+
+## Para probar a mano (dueño)
+
+- Compuertas: los escenarios en que la red tiene que aprender ("Aprende al
+  reproducir", "Con la capa oculta", "Trabada en un mínimo local",
+  "Aprendiendo tampoco", "De corrido"). Detalle en *Laboratorio y
+  compuertas*.
+- Fluidez con el navegador a la vista: casi todas las medidas se tomaron con
+  Chrome sin ventana. Lista de qué medir en *Pruebas que faltan*, más abajo.
+
+## Prioridad 1: que alguien que llega solo entienda la app
+
+Orden propuesto por Claude el 16 de noviembre de 2026; el dueño puede
+cambiarlo. Primero el análisis, porque el recorrido guiado se monta sobre la
+jerarquía que salga de él.
+
+1. **Análisis de UX y UI desde cero, sin sesgos.** Pedido del dueño (16 de
+   noviembre de 2026).
+   - Por qué: la sensación del dueño es que todos los botones se ven iguales,
+     que alguien nuevo no va a encontrar qué ajustes tocar para probar algo
+     distinto, y que no hay una jerarquía que ayude a entender cada pestaña.
+   - Cómo: en una sesión nueva, sin contexto de esta. Primero recorrer las
+     seis pestañas como alguien que llega por primera vez, sin leer specs,
+     diseños ni historial. Recién después contrastar con la constitución.
+   - Qué entregar: los problemas encontrados, con evidencia (captura, pestaña,
+     control), ordenados por cuánto entorpecen; y propuestas de mejora de
+     usabilidad: jerarquía visual (acción principal, ajustes, avanzados), qué
+     se ve primero en cada pestaña, agrupación, valores por defecto y qué
+     invita a probar. Lo observado, separado de lo propuesto.
+   - Salida: un informe y, de ahí, propuestas de OpenSpec. No cambia código
+     directamente.
+   - Los arreglos chicos de *Prioridad 2* son material para este análisis.
+2. **Recorrido interactivo para aprender sin mentor.** Pedido del dueño (16 de
+   noviembre de 2026).
+   - Qué: un recorrido guiado (walkthrough) que lleve a quien llega solo por
+     toda la experiencia, de El problema al Laboratorio, para que aprenda sin
+     depender de una persona que lo guíe.
+   - Qué entregar: **tres propuestas distintas** para que el dueño elija la
+     mejor, comparadas por claridad didáctica, cuánto se puede saltear o
+     retomar, cómo convive con el mentor (que lo oculta), esfuerzo y
+     mantenimiento cuando cambia la interfaz.
+   - Restricciones de la constitución: un concepto por paso, se puede
+     saltear y volver a abrir, textos en español e inglés, sin dependencias
+     nuevas.
+   - Va después del análisis de UX. Absorbe la idea anterior *Introducción
+     guiada para quien llega sin la teoría* (en *Ayudas, guía y
+     accesibilidad*), con sus preguntas abiertas: Claude Motion, y
+     animaciones con el dibujo de la app o videos.
+
+## Prioridad 2: arreglos chicos que se notan en una clase
+
+Cada uno es corto. Conviene pasarlos por el análisis de UX antes de
+arreglarlos de a uno.
+
+- Reglas a mano: los ejemplos solo valen con la velocidad por defecto, y el
+  programa recordado no recuerda los sensores. Detalle en *Reglas a mano*.
+- Laboratorio: imitar en el óvalo no anda con los valores por defecto;
+  decide el dueño si la pista cambia la tasa o la red. En *Laboratorio y
+  compuertas*.
+- Biblioteca: poder eliminar los autoguardados antes de una charla. En
+  *Biblioteca de cerebros*.
+- Los tooltips siguen nombrando la tecla con los atajos apagados. En
+  *Entrenar, tráfico y aprendizaje* (lo que quedó de
+  `panel-de-entrenar-por-vistas`).
+- Cosas que se cortan o se desplazan: el panel de Competir a 1366×768, la
+  barra de pestañas a 1032 px, "Choques" y el nombre de la pista en
+  Competir, las acciones del Laboratorio en dos renglones en español, la
+  vista de entrenamiento con selección manual a 1440×900. En sus áreas.
+- Teclado: el editor de Reglas a mano corta el recorrido con Tab; los atajos
+  con el foco en un botón del panel; el foco de "Eliminar" en la biblioteca.
+
+## Prioridad 3: pruebas que faltan
+
+- **Fluidez con el navegador a la vista**, diez segundos cada una: paisaje y
+  circuitos, Competir con seis competidores en el circuito de curvas,
+  Inspeccionar con la red más grande, Laboratorio, punto de prueba,
+  operación por operación y perillas de las compuertas.
+- **Accesibilidad real y otros navegadores**: lector de pantalla
+  (VoiceOver), una herramienta automática como axe, Safari y Firefox. Ningún
+  cambio lo probó todavía; conviene una pasada única por toda la app.
+- Menos movimiento emulado en el navegador (en el Laboratorio se verificó
+  por código) y tocar y arrastrar con el dedo.
+
+## Prioridad 4: aprendizaje en casos difíciles (investigación)
+
+- Manejar sin chocar con tráfico irregular (irregularidad 50 %). En
+  *Entrenar, tráfico y aprendizaje*.
+- La espiral con tres capas, ReLU o sigmoide; el aviso de sobreajuste con
+  pocos apartados. En *Laboratorio y compuertas*.
+- XOR con una capa de 2 se traba en 4 de cada 10 redes; con 4 ocultas,
+  nunca. En *Laboratorio y compuertas*.
+
+## Ideas para más adelante, sin orden
+
+- Cerebros incluidos elegidos por el dueño.
+- Elegir con un clic qué auto seguir en el entrenamiento.
+- Entrenar en segundo plano (Web Worker).
+- Más variedad en el tráfico con densidad alta, y otros tipos de vehículos.
+- Lo que quedó fuera de alcance en cada cambio (Competir, circuitos,
+  operación por operación, punto de prueba, vista de la red, Inspeccionar,
+  Laboratorio, compuertas, panel de entrenar). Está al final de cada nota de
+  abajo.
+
+---
+
+# Notas por área
+
+## Laboratorio y compuertas
 
 - **Compuertas en el Laboratorio: lo que quedó sin probar, visto o fuera de
   alcance.** Del cambio `laboratorio-empieza-por-compuertas` (16 de noviembre
@@ -66,6 +164,50 @@ El resto de las notas de este archivo no tiene orden fijo.
   - Fuera de alcance (propuesta): NAND, NOR, XNOR y tablas de más de dos
     entradas; el escalón como activación; perillas en Inspeccionar (la vista
     las ofrece, Inspeccionar no las pide).
+
+- **Laboratorio: lo que quedó sin medir, sin probar o fuera de alcance.** Del
+  cambio `pestana-laboratorio` (14 de noviembre de 2026):
+  - Fluidez sin medir en cuadros por segundo (tarea 10.2): el panel del
+    navegador estuvo oculto. Sustituto medido, tick y dibujo por cuadro: con
+    500 puntos y tres capas de 8 a 10 épocas/s, mediana 0,5 ms y máximo
+    9,3 ms; a 60 épocas/s, mediana 2,3 ms; con tu manejo, máximo 8,3 ms.
+  - Imitar en el óvalo no anda con los valores por defecto (tasa 0,1): no
+    llega en ninguna carrera, con 34 a 39 choques. Con una capa de 8 y tasa
+    0,03 llega sin choques a las 500 y a las 1000 épocas. Que la pista elegida
+    cambie la tasa o la red por defecto queda para que decida el dueño.
+  - La espiral (desde `espiral-aprendible`, 1,25 vueltas) se aprende con dos
+    capas de 7 u 8, tanh y la tasa por defecto (45 a 69 épocas en cinco
+    semillas); sigue sin andar bien, medido con una copia del generador
+    (design.md D2 de ese cambio, sin repetir con el real): tres capas de 8
+    con tanh, 2 de 5 semillas; ReLU, 1 o 2 de 5; sigmoide, 1 de 5 como mucho;
+    ruido 20 %, 2 de 5 con dos capas de 8.
+  - Con pocos apartados (receta de la misión 2: 12 puntos), el error de los
+    apartados es ruidoso: el aviso de sobreajuste aparece y se retira de 1 a 3
+    veces en 600 épocas, según la semilla. Ninguna pasó de tres.
+  - Menos movimiento: verificado por código, no emulado en el navegador.
+  - Con tu manejo, en español, las acciones del panel ("Reiniciar pesos",
+    "Red de siempre", "Guardar como cerebro") se parten en dos renglones
+    (56 px contra 26 en inglés). No se desplaza nada; queda para decidir.
+  - Tabla de datos y cambios a mano: no se probaron con un lector de pantalla
+    real.
+  - Sin probar: lector de pantalla real, Safari y Firefox.
+  - Fuera de alcance: lotes, momento y otros optimizadores, regularización,
+    dibujar puntos a mano, aprender con recompensas en vez de ejemplos (el
+    aprendizaje por refuerzo con backpropagation), guardar o cargar los
+    ejemplos grabados.
+
+- **Lo que quedó fuera de `punto-de-prueba`.** Cada cosa, con su propia
+  propuesta:
+  - el punto de prueba con "Tu manejo" (rayos y velocidad a mano en el
+    Laboratorio; Inspeccionar ya lo permite con un cerebro guardado);
+  - llevar el punto de prueba a un ejemplo elegido en la tabla de datos;
+  - una misión ("Encontrá un lugar donde la red dude");
+  - varios puntos de prueba a la vez.
+  - Sin probar: lector de pantalla real (se leyó el texto que se anuncia),
+    Safari y Firefox, tocar y arrastrar con el dedo, y la fluidez con el
+    navegador a la vista (medida en Chrome sin ventana).
+
+## Inspeccionar y vista de la red
 
 - **Vista de la red: lo que quedó sin medir, sin probar o fuera de alcance.**
   Del cambio `vista-de-la-red` (16 de noviembre de 2026):
@@ -115,43 +257,27 @@ El resto de las notas de este archivo no tiene orden fijo.
     los pesos sobre el abanico de sensores.
   - Sin probar: lector de pantalla real, Safari y Firefox.
 
-- **Laboratorio: lo que quedó sin medir, sin probar o fuera de alcance.** Del
-  cambio `pestana-laboratorio` (14 de noviembre de 2026):
-  - Fluidez sin medir en cuadros por segundo (tarea 10.2): el panel del
-    navegador estuvo oculto. Sustituto medido, tick y dibujo por cuadro: con
-    500 puntos y tres capas de 8 a 10 épocas/s, mediana 0,5 ms y máximo
-    9,3 ms; a 60 épocas/s, mediana 2,3 ms; con tu manejo, máximo 8,3 ms.
-  - Imitar en el óvalo no anda con los valores por defecto (tasa 0,1): no
-    llega en ninguna carrera, con 34 a 39 choques. Con una capa de 8 y tasa
-    0,03 llega sin choques a las 500 y a las 1000 épocas. Que la pista elegida
-    cambie la tasa o la red por defecto queda para que decida el dueño.
-  - La espiral (desde `espiral-aprendible`, 1,25 vueltas) se aprende con dos
-    capas de 7 u 8, tanh y la tasa por defecto (45 a 69 épocas en cinco
-    semillas); sigue sin andar bien, medido con una copia del generador
-    (design.md D2 de ese cambio, sin repetir con el real): tres capas de 8
-    con tanh, 2 de 5 semillas; ReLU, 1 o 2 de 5; sigmoide, 1 de 5 como mucho;
-    ruido 20 %, 2 de 5 con dos capas de 8.
-  - Con pocos apartados (receta de la misión 2: 12 puntos), el error de los
-    apartados es ruidoso: el aviso de sobreajuste aparece y se retira de 1 a 3
-    veces en 600 épocas, según la semilla. Ninguna pasó de tres.
-  - Menos movimiento: verificado por código, no emulado en el navegador.
-  - Con tu manejo, en español, las acciones del panel ("Reiniciar pesos",
-    "Red de siempre", "Guardar como cerebro") se parten en dos renglones
-    (56 px contra 26 en inglés). No se desplaza nada; queda para decidir.
-  - Tabla de datos y cambios a mano: no se probaron con un lector de pantalla
-    real.
-  - Sin probar: lector de pantalla real, Safari y Firefox.
-  - Fuera de alcance: lotes, momento y otros optimizadores, regularización,
-    dibujar puntos a mano, aprender con recompensas en vez de ejemplos (el
-    aprendizaje por refuerzo con backpropagation), guardar o cargar los
-    ejemplos grabados.
+- **Lo que quedó fuera de `operacion-por-operacion`.** Cada cosa, con su propia
+  propuesta:
+  - saltear los aportes que valen cero, para acortar el recorrido de a
+    operaciones (la red 6 → 6 → 4 tiene 146 operaciones por cuadro);
+  - que la vista se acerque sola a la neurona en curso;
+  - el mismo desglose de a una operación en la ida del Laboratorio (hoy se ve
+    como siempre);
+  - volver cuadros hacia atrás: "Atrás" deshace dentro del cuadro y no guarda
+    los cuadros anteriores.
+  - Sin medir o sin probar:
+    - lector de pantalla real (se leyó el texto del anuncio, no se oyó);
+    - Safari y Firefox;
+    - fluidez con el navegador a la vista (las medidas son de Chrome sin
+      ventana);
+    - "Activación con tanh" en el navegador: el cerebro de ejemplo usa
+      escalón en la oculta; el escenario está cubierto por las pruebas.
+  - "Eliminar" en la biblioteca pasa el foco a "Cancelar" y no lleva
+    `data-focus="keep"`. Por el mismo camino que "Renombrar", un clic con el
+    mouse devolvería el foco al escenario; no se probó.
 
-- **Fluidez con paisaje y circuitos sin medir.** La tarea 10.1 de
-  `circuitos-y-paisaje` quedó sin hacer porque el panel del navegador estuvo
-  oculto (sin cuadros no hay medida que valga). Falta medir, diez segundos
-  cada una y con el paisaje encendido: un auto en la calle recta y en el gran
-  premio (mínimo 55 cuadros por segundo) y una población de 100 en la calle
-  recta y en el gran premio (mínimo 50).
+## Entrenar, tráfico y aprendizaje
 
 - **Manejar sin chocar con tráfico irregular.** El cambio
   `fitness-que-premia-superar` hizo que, con los valores por defecto (ventaja
@@ -184,21 +310,6 @@ El resto de las notas de este archivo no tiene orden fijo.
     despegar (primera generación buena: mediana 21, contra 10 con población
     200). Se eligió subir la población por defecto a 400.
 
-- **Los ejemplos de Reglas a mano solo valen con la velocidad por defecto.**
-  La velocidad máxima del auto es una sola para toda la app y se recuerda;
-  los programas de ejemplo están escritos para 20 m/s.
-  - Medido sin navegador el 12 de noviembre de 2026, con el intérprete del
-    producto y el tráfico inicial de la pestaña (semilla 2): a 23 m/s el
-    programa inicial choca contra el primer vehículo a los 59 m en vez de
-    esquivarlo, y el ejemplo de 3 sensores, cuyo comentario dice "No choca",
-    choca a los 61 m (y en las semillas 1 a 5). A 30 m/s el ejemplo de 20
-    sensores (1296 m, 27 superados) le gana al de 7 (108 m, 1 superado), al
-    revés de lo que el ejemplo quiere mostrar.
-  - Las pruebas automáticas usan la velocidad por defecto y no lo detectan.
-  - Propuesta, sin implementar: que la pestaña tenga su propia velocidad,
-    que arranque en 20 m/s y que cargar un ejemplo o restablecer la vuelvan a
-    20, como ya hacen con los sensores. Cambia, solo para esta pestaña, el
-    requisito de que la velocidad sea una sola para todas.
 - **Detalles que dejó el tablero de aprendizaje** (cambio
   `tablero-de-aprendizaje`, noviembre de 2026):
   - Con el foco puesto con Tab en un botón común del panel, los atajos
@@ -211,48 +322,6 @@ El resto de las notas de este archivo no tiene orden fijo.
     pasan a dos columnas. Revisarlo con personas en una pantalla mediana.
   - El tablero de El problema tiene espacio libre a la derecha de las barras
     en pantallas anchas (lo anticipaba el design.md, riesgos).
-
-
-- **Eliminar autoguardados.** Los cerebros guardados ya se pueden eliminar
-  con confirmación, pero los autoguardados ("entrenamiento en curso" y
-  "entrenamiento anterior") no se pueden eliminar ni renombrar, porque la
-  app los reemplaza sola. Conviene poder eliminarlos (sobre todo el
-  anterior) para limpiar la biblioteca antes de una charla.
-
-- **Cerebros incluidos elegidos por el dueño.** La app no trae cerebros
-  preentrenados: el mentor entrena y guarda los suyos antes de una charla.
-  Más adelante podrían incluirse dos o tres cerebros elegidos por el dueño
-  (por ejemplo, uno que memorizó su tráfico y otro entrenado con tráfico nuevo
-  en cada generación, que generaliza), exportados desde la app y versionados
-  como datos.
-- **Elegir con un clic qué auto seguir.** En el entrenamiento la cámara sigue
-  siempre al líder; podría poder elegirse cualquier auto de la población
-  haciendo clic sobre él, y ver su red en el diagrama.
-- **Entrenar en segundo plano.** Hoy el entrenamiento se detiene con la página
-  oculta o al cambiar de pestaña. Con un Web Worker podría seguir avanzando,
-  a costa de duplicar el estado para dibujarlo y de cuidar la
-  reproducibilidad.
-- **Más variedad en el tráfico con densidad alta.** Con 4 carriles y densidad
-  e irregularidad al máximo, el tráfico se ve monótono: los grupos quedan a
-  distancias muy parecidas y casi siempre con 3 vehículos.
-  - Causa: a densidad máxima, la separación promedio entre grupos (24 m) casi
-    coincide con el mínimo permitido (unos 21 m con el escalonado), así que el
-    sorteo solo puede variar unos 3 m. Además, la cantidad de vehículos por
-    grupo depende solo de la densidad y al 100 % es siempre `carriles - 1`, y
-    el escalonado queda acotado a menos de 1 m.
-  - Direcciones posibles: que la densidad suba también variando la cantidad de
-    vehículos por grupo y dejando tramos más cargados y otros más vacíos (en
-    vez de achicar siempre la separación); permitir grupos vacíos o de un solo
-    vehículo aun con densidad alta; o dejar de pensar en grupos y ubicar cada
-    vehículo por su cuenta, con una regla que garantice el camino libre.
-  - Siempre con las dos garantías: el tráfico no se choca entre sí y nunca
-    cierra todos los carriles al auto principal.
-- **Otros tipos de vehículos.** Camiones y motos, además de autos, para tener
-  variedad de tamaños (largo y ancho). Cada tipo con su contorno de choque, y
-  el dibujo siempre dentro de ese contorno. Implica revisar el hueco mínimo
-  entre grupos y el carril libre según el tamaño (un camión largo ocupa más),
-  que el tráfico siga sin chocarse y que siempre quede un camino libre para el
-  auto principal. Va de la mano de la idea anterior.
 
 - **Lo que quedó fuera de `panel-de-entrenar-por-vistas`.** Anotado para más
   adelante:
@@ -287,6 +356,133 @@ El resto de las notas de este archivo no tiene orden fijo.
     Chrome: #858585, más de 3:1 sobre el panel. No se midió en Safari ni en
     Firefox.
 
+- **Fluidez con paisaje y circuitos sin medir.** La tarea 10.1 de
+  `circuitos-y-paisaje` quedó sin hacer porque el panel del navegador estuvo
+  oculto (sin cuadros no hay medida que valga). Falta medir, diez segundos
+  cada una y con el paisaje encendido: un auto en la calle recta y en el gran
+  premio (mínimo 55 cuadros por segundo) y una población de 100 en la calle
+  recta y en el gran premio (mínimo 50).
+
+- **Elegir con un clic qué auto seguir.** En el entrenamiento la cámara sigue
+  siempre al líder; podría poder elegirse cualquier auto de la población
+  haciendo clic sobre él, y ver su red en el diagrama.
+
+- **Entrenar en segundo plano.** Hoy el entrenamiento se detiene con la página
+  oculta o al cambiar de pestaña. Con un Web Worker podría seguir avanzando,
+  a costa de duplicar el estado para dibujarlo y de cuidar la
+  reproducibilidad.
+
+- **Más variedad en el tráfico con densidad alta.** Con 4 carriles y densidad
+  e irregularidad al máximo, el tráfico se ve monótono: los grupos quedan a
+  distancias muy parecidas y casi siempre con 3 vehículos.
+  - Causa: a densidad máxima, la separación promedio entre grupos (24 m) casi
+    coincide con el mínimo permitido (unos 21 m con el escalonado), así que el
+    sorteo solo puede variar unos 3 m. Además, la cantidad de vehículos por
+    grupo depende solo de la densidad y al 100 % es siempre `carriles - 1`, y
+    el escalonado queda acotado a menos de 1 m.
+  - Direcciones posibles: que la densidad suba también variando la cantidad de
+    vehículos por grupo y dejando tramos más cargados y otros más vacíos (en
+    vez de achicar siempre la separación); permitir grupos vacíos o de un solo
+    vehículo aun con densidad alta; o dejar de pensar en grupos y ubicar cada
+    vehículo por su cuenta, con una regla que garantice el camino libre.
+  - Siempre con las dos garantías: el tráfico no se choca entre sí y nunca
+    cierra todos los carriles al auto principal.
+
+- **Otros tipos de vehículos.** Camiones y motos, además de autos, para tener
+  variedad de tamaños (largo y ancho). Cada tipo con su contorno de choque, y
+  el dibujo siempre dentro de ese contorno. Implica revisar el hueco mínimo
+  entre grupos y el carril libre según el tamaño (un camión largo ocupa más),
+  que el tráfico siga sin chocarse y que siempre quede un camino libre para el
+  auto principal. Va de la mano de la idea anterior.
+
+## Competir y circuitos
+
+- **Lo que quedó fuera de `pestana-competir`** (noviembre de 2026), cada cosa con
+  su propia propuesta: que los competidores se choquen entre sí; elegir la
+  cantidad de vueltas o la distancia; semáforo de largada, bandera, podio y
+  repetición; configurar los 5 s sin avanzar y los 20 s de espera; una
+  biblioteca de programas de Reglas a mano con nombre; guardar los resultados
+  entre visitas; evaluar en las cuatro pistas con un solo botón; editar o
+  seguir entrenando los ejemplos; más de seis competidores; los programas de
+  3 y 20 sensores como competidores; quitar de la barra el tráfico en un
+  circuito (hoy se ve deshabilitado en las cuatro pestañas).
+
+- **Lo que quedó sin medir o débil en `pestana-competir`:**
+  - El ejemplo "Calle, mismo tráfico" no muestra haber memorizado: en diez
+    tráficos nuevos choca 0,2 veces en promedio contra 0,1 del de tráfico nuevo
+    (la comprobación se cumple por un choque) y, con densidad 100 % o
+    irregularidad 50 %, choca igual o menos. Los de la calle llegan sin chocar
+    en los tres circuitos. El contraste que sí se ve es el del óvalo en la
+    calle (12 a 15 choques por carrera).
+  - Fluidez con seis competidores en el circuito de curvas (mínimo 55 cuadros
+    por segundo, tarea 10.3): **sin medir**, porque el navegador estuvo oculto
+    (1,5 cuadros por segundo). Sustituto medido: dibujar un cuadro tarda 0,16
+    ms de media y 0,5 ms como máximo, y un paso de la carrera 0,04 ms. Queda
+    como verificación del dueño: abrir Competir con el navegador a la vista,
+    seis competidores en el circuito de curvas, sensores y paisaje, y medir
+    diez segundos.
+  - Límite conocido (lista con solo los que corren, grupo 12): a 1366×768 el
+    panel de Competir se desplaza hasta 126 px con seis competidores sin "Vos"
+    y el panel en 360 px (88 px con "Vos"; 14 px con tres sin "Vos"; con el
+    panel en 400 px, hasta 106 px), y el tablero hasta 33 px. A 1440×900, el
+    panel no se desplaza con tres ni con seis competidores. El tablero, a
+    1440×900, se desplaza de 51 a 74 px con seis cerebros de nombres de 40
+    caracteres sin "Vos" (la tabla por pista crece con los nombres partidos).
+
+- **Ideas que quedaron fuera de la lista de competidores de Competir:** buscar
+  por nombre en el selector para agregar (con veinte cerebros alcanza con
+  desplazarse; haría falta con muchos más), y una biblioteca de programas de
+  Reglas a mano con nombre (compite solo el programa actual).
+  - Sin probar con un lector de pantalla real, en Safari ni en Firefox.
+  - La persona que maneja a 15 m/s en el óvalo queda fuera por la espera de
+    20 s al 98 % (medido con un manejo simulado).
+
+- **Lo que quedó fuera de `circuitos-y-paisaje`.** Anotado para más adelante,
+  cada cosa con su propia propuesta:
+  - cruces de calles que pasan por debajo y tramos de autopista elevada sobre
+    puentes, en el paisaje de la calle recta;
+  - tiempos de vuelta, mejor vuelta y cronómetro en los circuitos (encaja con
+    Competir);
+  - circuitos generados por semilla o dibujados por la persona (hoy son tres,
+    fijos);
+  - programas de ejemplo de Reglas a mano escritos para los circuitos (hoy los
+    ejemplos son de la calle recta y cargarlos vuelve a ella).
+
+## Reglas a mano
+
+- **Los ejemplos de Reglas a mano solo valen con la velocidad por defecto.**
+  La velocidad máxima del auto es una sola para toda la app y se recuerda;
+  los programas de ejemplo están escritos para 20 m/s.
+  - Medido sin navegador el 12 de noviembre de 2026, con el intérprete del
+    producto y el tráfico inicial de la pestaña (semilla 2): a 23 m/s el
+    programa inicial choca contra el primer vehículo a los 59 m en vez de
+    esquivarlo, y el ejemplo de 3 sensores, cuyo comentario dice "No choca",
+    choca a los 61 m (y en las semillas 1 a 5). A 30 m/s el ejemplo de 20
+    sensores (1296 m, 27 superados) le gana al de 7 (108 m, 1 superado), al
+    revés de lo que el ejemplo quiere mostrar.
+  - Las pruebas automáticas usan la velocidad por defecto y no lo detectan.
+  - Propuesta, sin implementar: que la pestaña tenga su propia velocidad,
+    que arranque en 20 m/s y que cargar un ejemplo o restablecer la vuelvan a
+    20, como ya hacen con los sensores. Cambia, solo para esta pestaña, el
+    requisito de que la velocidad sea una sola para todas.
+
+## Biblioteca de cerebros
+
+- **Eliminar autoguardados.** Los cerebros guardados ya se pueden eliminar
+  con confirmación, pero los autoguardados ("entrenamiento en curso" y
+  "entrenamiento anterior") no se pueden eliminar ni renombrar, porque la
+  app los reemplaza sola. Conviene poder eliminarlos (sobre todo el
+  anterior) para limpiar la biblioteca antes de una charla.
+
+- **Cerebros incluidos elegidos por el dueño.** La app no trae cerebros
+  preentrenados: el mentor entrena y guarda los suyos antes de una charla.
+  Más adelante podrían incluirse dos o tres cerebros elegidos por el dueño
+  (por ejemplo, uno que memorizó su tráfico y otro entrenado con tráfico nuevo
+  en cada generación, que generaliza), exportados desde la app y versionados
+  como datos.
+
+## Ayudas, guía y accesibilidad
+
 - **Introducción guiada para quien llega sin la teoría.** La guía explica
   cada control, pero la pantalla tiene mucha información a la vez y da por
   sabido lo que el mentor contaría antes: qué es una red, qué es una
@@ -314,72 +510,6 @@ El resto de las notas de este archivo no tiene orden fijo.
   - Sin probar: con un lector de pantalla real; el arrastre de dos segundos se
     probó con eventos de puntero simulados, no con el mouse.
 
-- **Lo que quedó fuera de `pestana-competir`** (noviembre de 2026), cada cosa con
-  su propia propuesta: que los competidores se choquen entre sí; elegir la
-  cantidad de vueltas o la distancia; semáforo de largada, bandera, podio y
-  repetición; configurar los 5 s sin avanzar y los 20 s de espera; una
-  biblioteca de programas de Reglas a mano con nombre; guardar los resultados
-  entre visitas; evaluar en las cuatro pistas con un solo botón; editar o
-  seguir entrenando los ejemplos; más de seis competidores; los programas de
-  3 y 20 sensores como competidores; quitar de la barra el tráfico en un
-  circuito (hoy se ve deshabilitado en las cuatro pestañas).
-- **Lo que quedó sin medir o débil en `pestana-competir`:**
-  - El ejemplo "Calle, mismo tráfico" no muestra haber memorizado: en diez
-    tráficos nuevos choca 0,2 veces en promedio contra 0,1 del de tráfico nuevo
-    (la comprobación se cumple por un choque) y, con densidad 100 % o
-    irregularidad 50 %, choca igual o menos. Los de la calle llegan sin chocar
-    en los tres circuitos. El contraste que sí se ve es el del óvalo en la
-    calle (12 a 15 choques por carrera).
-  - Fluidez con seis competidores en el circuito de curvas (mínimo 55 cuadros
-    por segundo, tarea 10.3): **sin medir**, porque el navegador estuvo oculto
-    (1,5 cuadros por segundo). Sustituto medido: dibujar un cuadro tarda 0,16
-    ms de media y 0,5 ms como máximo, y un paso de la carrera 0,04 ms. Queda
-    como verificación del dueño: abrir Competir con el navegador a la vista,
-    seis competidores en el circuito de curvas, sensores y paisaje, y medir
-    diez segundos.
-  - Límite conocido (lista con solo los que corren, grupo 12): a 1366×768 el
-    panel de Competir se desplaza hasta 126 px con seis competidores sin "Vos"
-    y el panel en 360 px (88 px con "Vos"; 14 px con tres sin "Vos"; con el
-    panel en 400 px, hasta 106 px), y el tablero hasta 33 px. A 1440×900, el
-    panel no se desplaza con tres ni con seis competidores. El tablero, a
-    1440×900, se desplaza de 51 a 74 px con seis cerebros de nombres de 40
-    caracteres sin "Vos" (la tabla por pista crece con los nombres partidos).
-- **Ideas que quedaron fuera de la lista de competidores de Competir:** buscar
-  por nombre en el selector para agregar (con veinte cerebros alcanza con
-  desplazarse; haría falta con muchos más), y una biblioteca de programas de
-  Reglas a mano con nombre (compite solo el programa actual).
-  - Sin probar con un lector de pantalla real, en Safari ni en Firefox.
-  - La persona que maneja a 15 m/s en el óvalo queda fuera por la espera de
-    20 s al 98 % (medido con un manejo simulado).
-- **Lo que quedó fuera de `circuitos-y-paisaje`.** Anotado para más adelante,
-  cada cosa con su propia propuesta:
-  - cruces de calles que pasan por debajo y tramos de autopista elevada sobre
-    puentes, en el paisaje de la calle recta;
-  - tiempos de vuelta, mejor vuelta y cronómetro en los circuitos (encaja con
-    Competir);
-  - circuitos generados por semilla o dibujados por la persona (hoy son tres,
-    fijos);
-  - programas de ejemplo de Reglas a mano escritos para los circuitos (hoy los
-    ejemplos son de la calle recta y cargarlos vuelve a ella).
-- **Lo que quedó fuera de `operacion-por-operacion`.** Cada cosa, con su propia
-  propuesta:
-  - saltear los aportes que valen cero, para acortar el recorrido de a
-    operaciones (la red 6 → 6 → 4 tiene 146 operaciones por cuadro);
-  - que la vista se acerque sola a la neurona en curso;
-  - el mismo desglose de a una operación en la ida del Laboratorio (hoy se ve
-    como siempre);
-  - volver cuadros hacia atrás: "Atrás" deshace dentro del cuadro y no guarda
-    los cuadros anteriores.
-  - Sin medir o sin probar:
-    - lector de pantalla real (se leyó el texto del anuncio, no se oyó);
-    - Safari y Firefox;
-    - fluidez con el navegador a la vista (las medidas son de Chrome sin
-      ventana);
-    - "Activación con tanh" en el navegador: el cerebro de ejemplo usa
-      escalón en la oculta; el escenario está cubierto por las pruebas.
-  - "Eliminar" en la biblioteca pasa el foco a "Cancelar" y no lleva
-    `data-focus="keep"`. Por el mismo camino que "Renombrar", un clic con el
-    mouse devolvería el foco al escenario; no se probó.
 - **Lo que quedó de `interruptor-de-ayudas`.**
   - Con las ayudas apagadas, un lector de pantalla lee el nombre de cada
     control y no su explicación: el tooltip es la descripción accesible
@@ -390,13 +520,3 @@ El resto de las notas de este archivo no tiene orden fijo.
     Salidas posibles: un segundo renglón para las herramientas o un menú de
     preferencias.
   - Sin probar: lector de pantalla real, Safari y Firefox.
-- **Lo que quedó fuera de `punto-de-prueba`.** Cada cosa, con su propia
-  propuesta:
-  - el punto de prueba con "Tu manejo" (rayos y velocidad a mano en el
-    Laboratorio; Inspeccionar ya lo permite con un cerebro guardado);
-  - llevar el punto de prueba a un ejemplo elegido en la tabla de datos;
-  - una misión ("Encontrá un lugar donde la red dude");
-  - varios puntos de prueba a la vez.
-  - Sin probar: lector de pantalla real (se leyó el texto que se anuncia),
-    Safari y Firefox, tocar y arrastrar con el dedo, y la fluidez con el
-    navegador a la vista (medida en Chrome sin ventana).
