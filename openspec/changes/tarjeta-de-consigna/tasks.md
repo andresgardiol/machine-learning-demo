@@ -52,27 +52,33 @@
 
 ## 4. Guía, accesibilidad, después y cierre
 
-- [ ] 4.1 Guía apagada y encendida en las seis pestañas: la consigna y la misión se ocultan, la marcha queda y la misión vuelve al día. Verificación: escenarios "Apagar la guía", "Volver a encender" y "Guía oculta" de *Orden común del panel*.
-- [ ] 4.2 Accesibilidad:
+- [x] 4.1 Guía apagada y encendida en las seis pestañas: la consigna y la misión se ocultan, la marcha queda y la misión vuelve al día. Verificación: escenarios "Apagar la guía", "Volver a encender" y "Guía oculta" de *Orden común del panel*.
+  *Hecho. Observado en el navegador, en las seis pestañas: con la guía apagada se ocultan la consigna y la misión, y el primer control visible del panel es la marcha de la tarjeta, en el mismo lugar (en Entrenar, "Quién elige al padre", que es parte de la marcha). En Inspeccionar y el Laboratorio la tarjeta entera se oculta, porque no tiene marcha: sin eso quedaba una caja vacía (la tarjeta lleva `guide` cuando no recibe `run`; probado en `tests/consigna-card.test.js`). Al encender, vuelven en el mismo lugar. Medido con el guion (escenario 19 nuevo): con la guía apagada se superaron dos vehículos y, al encenderla, la tarjeta muestra 2 de 5, a 1440 y a 1366.*
+- [x] 4.2 Accesibilidad:
   - la región "Qué hacer ahora" con su nombre;
   - el orden de lectura: consigna, marcha y misión;
   - con Tab, el primer control del panel es la marcha en El problema;
   - la misión sin anuncios en cada paso.
 
   Verificación: el árbol de accesibilidad del navegador (`read_page`), escenarios "Lector de pantalla" y "Con el teclado". Sin lector de pantalla real: anotarlo.
-- [ ] 4.3 Medir que cada consigna entra en dos renglones con el panel de 360 px, en español y en inglés (escenario "Largo"), y ajustar el texto si no entra. Verificación: tabla de medidas en la comparación.
-- [ ] 4.4 Correr `capturar.mjs despues`, repetir las medidas de `antes/medidas.md` y armar `borradores/tarjeta-de-consigna/comparacion.md`: el antes y el después lado a lado, la tabla de medidas de los dos y una línea de qué cambió. Anotar los estados que no salieron iguales.
-- [ ] 4.5 Verificación manual en el navegador contra el filtro de entrada, en las seis pestañas, a 1440×900 y 1366×768, con la guía encendida y apagada:
+  *Hecho. Observado con `read_page` en El problema: una región con el título "Qué hacer ahora" (el `aria-labelledby` apunta a ese título; la herramienta no muestra el nombre calculado de ninguna región), después la consigna, la marcha (Pausar, Reiniciar, Tráfico nuevo) y la misión. El primer control con foco del panel es "Pausar (espacio)", adentro de la tarjeta. La tarjeta no tiene `aria-live`, `role=status` ni `role=alert`. Sin lector de pantalla real.*
+- [x] 4.3 Medir que cada consigna entra en dos renglones con el panel de 360 px, en español y en inglés (escenario "Largo"), y ajustar el texto si no entra. Verificación: tabla de medidas en la comparación.
+  *Hecho. Medido en el navegador, con el panel de 360 px (302 px de texto): las 13 consignas, en español y en inglés, tienen hasta 81 caracteres y uno o dos renglones. No hubo que ajustar ninguna. La tabla está en `comparacion.md`.*
+- [x] 4.4 Correr `capturar.mjs despues`, repetir las medidas de `antes/medidas.md` y armar `borradores/tarjeta-de-consigna/comparacion.md`: el antes y el después lado a lado, la tabla de medidas de los dos y una línea de qué cambió. Anotar los estados que no salieron iguales.
+  *Hecho. `capturar.mjs despues`: 78 capturas, sin avisos. Medido: la tarjeta entra entera en los 32 estados que la muestran; la misión en curso pasa de 468–757 px (cortada en Entrenar a 1366) a 144–170 px. Costos medidos: Inspeccionar con neurona a 1366 (la tabla de la neurona pide 51 px), Reglas a mano y Competir a 1366 (75 px al final) y Entrenar (757 → 860 px). Todo está en `borradores/tarjeta-de-consigna/comparacion.md`, con los estados que varían entre corridas. El guion modificado no se volvió a correr sobre `945a848`.*
+- [x] 4.5 Verificación manual en el navegador contra el filtro de entrada, en las seis pestañas, a 1440×900 y 1366×768, con la guía encendida y apagada:
   - ¿se entiende qué hacer leyendo solo la tarjeta?;
   - ¿el mentor la oculta con la guía?;
   - ¿algo se rompe si se usa mal?
 
   Anotar lo observado separado de lo propuesto.
-- [ ] 4.6 Anotar en `PENDIENTES.md`:
+  *Hecho como revisión del implementador, no con personas. Observado, en las seis pestañas, a 1440×900 y 1366×768, con la guía encendida y apagada (capturas del guion y navegador): la tarjeta dice qué hacer y tiene el botón al lado, salvo en Inspeccionar y el Laboratorio, donde nombra Reproducir. La guía la oculta y la marcha queda. Usarla mal (cambiar de modo, de circuito, de idioma, atajos, guía y vistas de Entrenar varias veces) no dio errores en la consola. Propuesto, sin probar: si la tabla de la neurona en Inspeccionar a 1366 se queda corta, achicar la tarjeta al elegir. Lo decide el dueño.*
+- [x] 4.6 Anotar en `PENDIENTES.md`:
   - lo que quedó: la misión leída dos veces por un lector de pantalla, la consigna que repite el texto largo y lo que no se pudo medir;
   - que `tarjeta-de-consigna` está hecho.
 
   Verificación: `git diff PENDIENTES.md`.
+  *Hecho. En *Hecho*, la tarjeta implementada y pendiente de revisión y archivo. En *Prioridad 1*, el candidato tachado. En *Ayudas, guía y accesibilidad*, lo que quedó: la misión leída dos veces, la consigna que repite el texto largo, los costos de alto medidos y lo que no se pudo medir.*
 
 ## Workflow follow-up
 

@@ -34,6 +34,14 @@ accesibilidad*. También el 17 de noviembre, el análisis de UX desde cero
 (punto 1 de la *Prioridad 1*). El informe está en
 `borradores/analisis-ux/informe.md` (local: `borradores/` no va a git), y sus
 cambios candidatos están en la *Prioridad 1*, más abajo.
+El 17 de noviembre, `tarjeta-de-consigna`: cada pestaña abre su panel con una
+tarjeta que dice qué hacer (una frase), tiene la marcha adentro (salvo en
+Inspeccionar y el Laboratorio, donde sigue abajo de la red) y muestra la
+misión en curso; la lista marca esa misión con "▸" y negrita. Implementado y
+medido sin ventana: la tarjeta entra entera en todos los estados medidos,
+también Entrenar a 1366×768. El antes y el después están en
+`borradores/tarjeta-de-consigna/comparacion.md`. Falta que el dueño revise la
+comparación y lo archive; lo que quedó, en *Ayudas, guía y accesibilidad*.
 
 ## En curso
 
@@ -65,9 +73,9 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      primero que se ve. Desplegada por defecto en El problema. Choca con
      "Ningún ajuste MUST quedar en una sección plegable" de *Orden común del
      panel* (`estructura-app`): hay que modificar ese requisito.
-   - `tarjeta-de-consigna` (M): arriba en cada pestaña, qué hacer, la acción
-     principal y la misión en curso; el texto largo de la guía, plegable. Es
-     el lugar donde después puede hablar el recorrido guiado.
+   - ~~`tarjeta-de-consigna` (M)~~: hecho el 17 de noviembre de 2026 (ver
+     *Hecho*). El texto largo quedó visible debajo, sin plegar, por decisión
+     del dueño. Es el lugar donde después puede hablar el recorrido guiado.
    - `ajustes-por-niveles` (L, o M por pestaña; Entrenar primero): "Probá
      esto", "Más" y "Avanzado" colapsado. La tabla de qué va en cada nivel
      está en §5.3 del informe y hay que validarla con el dueño. Choca con el
@@ -579,6 +587,28 @@ arreglarlos de a uno.
   como datos.
 
 ## Ayudas, guía y accesibilidad
+
+- **Lo que quedó de `tarjeta-de-consigna`** (17 de noviembre de 2026).
+  - Un lector de pantalla que recorre todo el panel lee la misión en curso
+    dos veces: en la tarjeta y en la lista. Aceptado en Risks.
+  - La consigna repite parte del texto largo en Reglas a mano ("Cambiá un
+    número…") y en Inspeccionar ("Pausá… avanzá de a un paso"). Recortar los
+    textos largos queda para `vocabulario-escalonado` o el recorrido guiado.
+  - Costo medido a 1366×768: en Inspeccionar con una neurona elegida, la
+    tabla de la neurona pide desplazar 51 px (antes entraba entera); en Reglas
+    a mano y Competir, la columna pide 75 px al final (la lista de misiones);
+    en Entrenar, la vista de entrenamiento pasa de 757 a 860 px. Ver con el
+    dueño si Inspeccionar necesita compactar la tarjeta al elegir una neurona.
+  - En el Laboratorio la tarjeta también sigue a la vista al elegir una
+    neurona, como en Inspeccionar (la spec solo lo pedía para Inspeccionar).
+  - En Inspeccionar y el Laboratorio, con la guía apagada, la tarjeta entera
+    se oculta (no tiene marcha; si no, quedaba una caja vacía).
+  - `consigna.lab.gates` nombra Reproducir ("…o tocá Reproducir abajo de la
+    red"), distinto del texto de partida de D3, para que las tres consignas
+    del Laboratorio nombren la marcha como pide la spec.
+  - Sin medir: un lector de pantalla real (solo el árbol de accesibilidad del
+    navegador), el estado de carrera terminada en Competir, el atajo de la
+    marcha de Competir en el navegador y personas reales leyendo la tarjeta.
 
 - **Lo que quedó de `jerarquia-de-botones`** (17 de noviembre de 2026).
   - Las barras de "Lo que perciben los sensores" usan `--color-sensor`, el
