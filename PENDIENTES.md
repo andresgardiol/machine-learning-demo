@@ -33,6 +33,35 @@ El resto de las notas de este archivo no tiene orden fijo.
 
 ## Próximo
 
+- **Compuertas en el Laboratorio: lo que quedó sin probar, visto o fuera de
+  alcance.** Del cambio `laboratorio-empieza-por-compuertas` (16 de noviembre
+  de 2026, sin archivar):
+  - XOR con una capa de 2 y tanh se traba en un mínimo local en 4 de cada 10
+    redes de la serie, con cualquier tasa (medido en la tarea 5.2). Decisión
+    del dueño: arranque fijo que llega (semilla 1, 68 épocas a tasa 0,3) y la
+    guía nombra el mínimo local si "Reiniciar pesos" da una red que se traba.
+    Con 4 ocultas llegaban 10 de 10: queda como alternativa si la traba
+    molesta en clase.
+  - El rótulo que el lienzo de la red dibuja junto a la neurona bajo el
+    cursor ("neurona 5 · vale … · suma …") queda debajo de las pastillas de
+    las perillas cuando se pisan (visto con 2 → 8 → 8 → 1). No tapa nada que
+    no se lea en otro lado; queda para `sin-destellos-en-la-red`, que toca el
+    mismo archivo.
+  - Cada flecha sobre una pastilla es un cambio a mano: cinco flechas cuentan
+    como los cinco cambios que hacen aparecer la explicación de XOR.
+  - Perillas con 600 px de red: las neuronas se achican con perillas (radio
+    hasta 0,16 del hueco entre columnas) para que entren las pastillas en las
+    51 formas de hasta 16 conexiones. Más angosto, sin medir.
+  - Fluidez y "fondo en el momento": medidos con Chrome sin ventana (CDP), no
+    con el navegador a la vista: mediana 16,7 ms y peor 16,8 ms arrastrando
+    con 2 → 8 → 8 → 8 → 1 en pausa y con 2 → 4 → 1 aprendiendo.
+  - Sin probar: lector de pantalla real (tabla de verdad, interruptores y
+    pastillas de sesgo; rol, nombre y estado se leyeron del DOM), Safari y
+    Firefox.
+  - Fuera de alcance (propuesta): NAND, NOR, XNOR y tablas de más de dos
+    entradas; el escalón como activación; perillas en Inspeccionar (la vista
+    las ofrece, Inspeccionar no las pide).
+
 - **Vista de la red: lo que quedó sin medir, sin probar o fuera de alcance.**
   Del cambio `vista-de-la-red` (16 de noviembre de 2026):
   - Fluidez en cuadros por segundo con el navegador a la vista (tarea 11.2):
