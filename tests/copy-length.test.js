@@ -228,3 +228,20 @@ test('Laboratorio: renglones nuevos de la tabla de datos y de la tarjeta de hast
   assertMax('lab.dt.summary', HINT_MAX, { correct: 3600, count: 3600, pc: 2520, pn: 2520, hc: 1080, hn: 1080 });
   assertMax('lab.card.notANumber', HINT_MAX, { text: '0,5,3' });
 });
+
+// --- tarjeta-de-consigna: consignas de hasta 90 caracteres (D3) ---------------------------------
+const CONSIGNA_MAX = 90;
+const CONSIGNAS = [
+  'consigna.drive', 'consigna.drive.plain', 'consigna.drive.circuit', 'consigna.drive.circuit.plain',
+  'consigna.rules', 'consigna.train', 'consigna.train.manual', 'consigna.compete', 'consigna.inspect',
+  'consigna.lab.gates', 'consigna.lab.points', 'consigna.lab.driving', 'consigna.missions.allDone',
+];
+
+test('Tarjeta de consigna: cada consigna tiene hasta 90 caracteres en los dos idiomas', () => {
+  for (const key of CONSIGNAS) assertMax(key, CONSIGNA_MAX);
+});
+
+test('Tarjeta de consigna: no hay consignas sin tope', () => {
+  const sinTope = Object.keys(es).filter((k) => k.startsWith('consigna.') && k !== 'consigna.title' && !CONSIGNAS.includes(k));
+  assert.deepEqual(sinTope, []);
+});

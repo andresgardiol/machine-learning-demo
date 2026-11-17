@@ -28,8 +28,12 @@ cada uno (acción principal, secundaria, opción elegida y salida de la red) y
 una sola acción principal a la vista por pestaña, que es la marcha salvo con
 un choque, la selección manual o la carrera terminada. Implementado y medido
 sin ventana, con el antes y el después en
-`borradores/jerarquia-de-botones/comparacion.md`. Falta que el dueño revise la
-comparación para archivarlo; lo que quedó, en *Ayudas, guía y accesibilidad*.
+`borradores/jerarquia-de-botones/comparacion.md`. El dueño eligió la tecla de
+salida gris y lo archivó el mismo día; lo que quedó, en *Ayudas, guía y
+accesibilidad*. También el 17 de noviembre, el análisis de UX desde cero
+(punto 1 de la *Prioridad 1*). El informe está en
+`borradores/analisis-ux/informe.md` (local: `borradores/` no va a git), y sus
+cambios candidatos están en la *Prioridad 1*, más abajo.
 
 ## En curso
 
@@ -46,26 +50,52 @@ Nada.
 
 ## Prioridad 1: que alguien que llega solo entienda la app
 
-Orden propuesto por Claude el 16 de noviembre de 2026; el dueño puede
-cambiarlo. Primero el análisis, porque el recorrido guiado se monta sobre la
-jerarquía que salga de él.
+Orden propuesto por Claude el 16 de noviembre de 2026 y actualizado el 17,
+después del análisis de UX; el dueño puede cambiarlo. El recorrido guiado se
+monta sobre la jerarquía, la tarjeta de consigna y las misiones.
 
-1. **Análisis de UX y UI desde cero, sin sesgos.** Pedido del dueño (16 de
-   noviembre de 2026).
-   - Por qué: la sensación del dueño es que todos los botones se ven iguales,
-     que alguien nuevo no va a encontrar qué ajustes tocar para probar algo
-     distinto, y que no hay una jerarquía que ayude a entender cada pestaña.
-   - Cómo: en una sesión nueva, sin contexto de esta. Primero recorrer las
-     seis pestañas como alguien que llega por primera vez, sin leer specs,
-     diseños ni historial. Recién después contrastar con la constitución.
-   - Qué entregar: los problemas encontrados, con evidencia (captura, pestaña,
-     control), ordenados por cuánto entorpecen; y propuestas de mejora de
-     usabilidad: jerarquía visual (acción principal, ajustes, avanzados), qué
-     se ve primero en cada pestaña, agrupación, valores por defecto y qué
-     invita a probar. Lo observado, separado de lo propuesto.
-   - Salida: un informe y, de ahí, propuestas de OpenSpec. No cambia código
-     directamente.
-   - Los arreglos chicos de *Prioridad 2* son material para este análisis.
+1. **Cambios del análisis de UX.** Cada uno se propone e implementa por
+   separado, con su antes y después en capturas. El análisis ya se hizo
+   (17 de noviembre de 2026) y `jerarquia-de-botones` ya está hecho.
+   Tamaños del informe: S es un panel o unos pocos estilos, M son varias
+   pestañas o un componente nuevo, L es un rediseño transversal. En el orden
+   sugerido por el informe (hipótesis, no medido):
+   - `barra-de-escenario-plegable` (M): la barra de ajustes del escenario
+     pasa a un resumen de una línea que se despliega, para que no sea lo
+     primero que se ve. Desplegada por defecto en El problema. Choca con
+     "Ningún ajuste MUST quedar en una sección plegable" de *Orden común del
+     panel* (`estructura-app`): hay que modificar ese requisito.
+   - `tarjeta-de-consigna` (M): arriba en cada pestaña, qué hacer, la acción
+     principal y la misión en curso; el texto largo de la guía, plegable. Es
+     el lugar donde después puede hablar el recorrido guiado.
+   - `ajustes-por-niveles` (L, o M por pestaña; Entrenar primero): "Probá
+     esto", "Más" y "Avanzado" colapsado. La tabla de qué va en cada nivel
+     está en §5.3 del informe y hay que validarla con el dueño. Choca con el
+     mismo requisito que la barra plegable.
+   - `misiones-que-muestran-el-control` (M): un "Mostrame" en cada misión
+     que resalta el control que hay que tocar.
+   - `laboratorio-experimentos-a-la-vista` (M): Compuertas, Puntos y Tu
+     manejo como tres experimentos con nombre; en Compuertas, arrastrar un
+     peso como acción principal.
+   - Chicos e independientes:
+     - `reinicios-con-alcance` (S–M): unificar Restablecer y Reiniciar,
+       decir qué se pierde y ofrecer deshacer;
+     - `escenario-coherente-entre-pestanas` (S): ¿los ajustes del escenario
+       son globales o por pestaña? Lo decide el dueño;
+     - `interruptores-de-ayuda-claros` (S): Guía, Ayudas y Atajos que digan
+       qué ocultan;
+     - `inspeccionar-guia-persistente` (M): la guía sigue al elegir una
+       neurona y los controles van en grupos;
+     - `cortes-y-desbordes-ux` (S): junto con los de la *Prioridad 2*;
+     - `tooltips-anunciados` (S): un indicio de que hay ayuda, y texto en
+       los botones de solo ícono;
+     - `primer-manejo-guiado` (S): el cartel "Usá las flechas" en El
+       problema. Pregunta abierta: ¿suavizar el volante? Toca la física;
+     - `vocabulario-escalonado` (M): definir en pantalla fitness, élite,
+       época y los demás términos.
+   - Decisión del dueño: el informe sugiere sumar a la constitución un
+     artículo de jerarquía visual ("cada pestaña tiene una acción principal y
+     una consigna visibles antes que cualquier ajuste").
 2. **Recorrido interactivo para aprender sin mentor.** Pedido del dueño (16 de
    noviembre de 2026).
    - Qué: un recorrido guiado (walkthrough) que lleve a quien llega solo por
@@ -78,7 +108,8 @@ jerarquía que salga de él.
    - Restricciones de la constitución: un concepto por paso, se puede
      saltear y volver a abrir, textos en español e inglés, sin dependencias
      nuevas.
-   - Va después del análisis de UX. Absorbe la idea anterior *Introducción
+   - Va después de `tarjeta-de-consigna` y
+     `misiones-que-muestran-el-control`. Absorbe la idea anterior *Introducción
      guiada para quien llega sin la teoría* (en *Ayudas, guía y
      accesibilidad*), con sus preguntas abiertas: Claude Motion, y
      animaciones con el dibujo de la app o videos.
