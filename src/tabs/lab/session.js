@@ -30,7 +30,7 @@ import { DEFAULT_SENSORS } from '../../core/sensors.js';
 import { normalizeSettings as normalizeStreet, DEFAULT_SETTINGS as STREET_DEFAULTS } from '../shared/street-settings.js';
 import {
   NETWORK_DEFAULTS, LAB_NETWORK_LIMITS, RATE_LIMITS, LAB_ACTIVATIONS, DATA_SEED, FIRST_WEIGHT_SEED, NEW_LAYER_NEURONS,
-  DATA_KINDS, KIND_DEFAULTS, DEFAULT_GATE, XOR_EXPLAIN, PLANE_RANGES,
+  DATA_KINDS, KIND_DEFAULTS, DEFAULT_GATE, XOR_EXPLAIN, PLANE_RANGES, GATES_HIDDEN_SEED, STUCK,
 } from './defaults.js';
 
 /** Segundos de manejo que se toman del maestro (D8). */
@@ -113,6 +113,9 @@ export function createLabSession({ brainFor = () => null, kind: firstKind = DATA
     }
     return network;
   }
+
+  /** Con compuertas, una red de forma nueva arranca de los pesos fijos (D7); con las otras clases, sigue la semilla. */
+  function newShape() { if (rec.kind === 'gates') rec.weightSeed = GATES_HIDDEN_SEED; makeRun(); }
 
   /** Aprendizaje desde cero con `network` (o pesos nuevos). `keepChanges`: los cambios a mano siguen. */
   function makeRun({ network = null, keepChanges = false } = {}) {
@@ -239,7 +242,7 @@ export function createLabSession({ brainFor = () => null, kind: firstKind = DATA
       const next = rec.hidden.slice(0, n);
       while (next.length < n) next.push(defaultsOf(s.kind).newLayer);
       rec.hidden = next;
-      makeRun();
+      newShape();
       return true;
     },
     setNeurons(layer, count) {
@@ -247,13 +250,13 @@ export function createLabSession({ brainFor = () => null, kind: firstKind = DATA
       const n = clamp(Math.round(count), LAB_NETWORK_LIMITS.neurons.min, LAB_NETWORK_LIMITS.neurons.max);
       if (n === rec.hidden[layer]) return false;
       rec.hidden = rec.hidden.map((v, i) => (i === layer ? n : v));
-      makeRun();
+      newShape();
       return true;
     },
     setActivation(a) {
       if (!LAB_ACTIVATIONS.includes(a) || a === rec.activation) return false;
       rec.activation = a;
-      makeRun();
+      newShape();
       return true;
     },
     /** La tasa se aplica en marcha, desde el ejemplo siguiente. */
@@ -272,6 +275,7 @@ export function createLabSession({ brainFor = () => null, kind: firstKind = DATA
       rec.hidden = [...d.hidden];
       rec.activation = d.activation;
       rec.rate = d.rate;
+      if (s.kind === 'gates') rec.weightSeed = GATES_HIDDEN_SEED;
       makeRun();
       handBack();
     },
@@ -302,6 +306,19 @@ export function createLabSession({ brainFor = () => null, kind: firstKind = DATA
       const epochs = rec.run.epoch - rec.xor.epochBase;
       const solved = session.score.correct === rec.split.practice.length;
       return { changes: rec.xor.changes, epochs, explain: !solved && (rec.xor.changes >= XOR_EXPLAIN.changes || epochs >= XOR_EXPLAIN.epochs) };
+    },
+
+    /**
+     * XOR con capa oculta trabada en un mínimo local (D8): 50 épocas o más desde que empezó, sin 4 de 4, y
+     * el error bajó menos de 0,01 en las últimas 50 (medido: marca las redes que no llegan y ninguna de las
+     * que llegan, en las primeras 20 de la serie).
+     */
+    get stuck() {
+      if (s.kind !== 'gates' || s.gates.gate !== 'xor' || rec.hidden.length === 0) return false;
+      const h = rec.run.history;
+      if (h.length < STUCK.epochs) return false;
+      if (session.score.correct === rec.split.practice.length) return false;
+      return h[h.length - STUCK.epochs].practice.loss - h[h.length - 1].practice.loss < STUCK.drop;
     },
 
     /** Otro maestro: sus ejemplos, con sus sensores, y aprendizaje desde cero. */

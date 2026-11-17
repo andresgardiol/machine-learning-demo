@@ -43,7 +43,8 @@ import { createLabSession, rateToSlider, sliderToRate, DRIVING_DEFAULTS } from '
 import { createLabPlayback, PACES, isRunning, kindPlayback } from './playback.js';
 import { createLearningAnimation, stepDuration } from './step-animation.js';
 import { describeLearningStep, whereText, layerName, neuronName, errorTrend } from './describe.js';
-import { createLabMissions } from './missions.js';
+import { createLabMissions, MISSION_IDS, GATE_MISSION_IDS } from './missions.js';
+import { gateSolution, solutionShapeOk } from './gate-solutions.js';
 import { shortcutFor } from './shortcuts.js';
 import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS, DATA_KINDS } from './defaults.js';
 import { createDataTable } from './data-table.js';
@@ -574,6 +575,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Panel: guía, red, aprendizaje, acciones, tu manejo y misiones (D6)
   // ==================================================================================================
   const intro = el('p', { class: 'guide inspect-intro lab-intro' });
+  // XOR sin capas ocultas, después de intentarlo (D8): el botón que agrega la capa que hace falta.
+  const addHiddenButton = el('button', {
+    class: 'tool small primary lab-add-hidden', i18n: 'lab.addHidden', help: 'lab.addHidden', attrs: { type: 'button' },
+    on: { click: () => { if (session.setLayers(1)) { restarted(); announce(t('lab.guide.gates.xorHidden')); } } },
+  });
+  const introBlock = el('div', { class: 'lab-intro-block' }, intro, addHiddenButton);
   // Red
   const layerButtons = [0, 1, 2, 3].map((n) => el('button', {
     class: 'segment', i18n: 'lab.layers.option', params: { n }, help: 'lab.layers', i18nAttr: 'aria-label:lab.layers.optionLabel',
@@ -640,7 +647,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const resetNetworkButton = el('button', { class: 'tool small', i18n: 'lab.resetNetwork', help: 'lab.resetNetwork', attrs: { type: 'button' }, on: { click: () => { session.resetNetwork(); restarted(); } } });
   const saveButton = el('button', { class: 'tool small primary lab-save', i18n: 'lab.save', attrs: { type: 'button' }, on: { click: () => saveBrain() } });
   const saveMessage = el('p', { class: 'caption lab-save-message', attrs: { role: 'status' } });
-  const actions = el('div', { class: 'lab-actions-panel' }, resetWeightsButton, resetNetworkButton, saveButton);
+  // Ver una solución (D9): con compuertas, pesos que aciertan los cuatro casos, como un cambio a mano.
+  const solutionButton = el('button', { class: 'tool small lab-solution', i18n: 'lab.solution', help: 'lab.solution', attrs: { type: 'button' }, on: { click: () => showSolution() } });
+  const actions = el('div', { class: 'lab-actions-panel' }, resetWeightsButton, resetNetworkButton, solutionButton, saveButton);
   // Tu manejo: de quién son los ejemplos
   const teacherName = el('span', { class: 'lab-teacher-name' });
   const changeTeacher = el('button', {
@@ -657,7 +666,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'lab-teacher-row' }, teacherName, changeTeacher, recordButton),
     el('div', { class: 'lab-actions-panel lab-recorded-actions' }, useRecordedButton, clearButton), recordNotice);
   // Misiones
-  const missionRows = state.missions.missions.map((m) => {
+  const missionRows = [...MISSION_IDS, ...GATE_MISSION_IDS].map((id) => ({ id })).map((m) => {
     const status = el('span', { class: 'mission-status' });
     const row = el('li', { class: 'mission inspect-mission' }, el('span', { class: 'mission-name', i18n: `lab.mission.${m.id}` }), status);
     return { id: m.id, row, status };
@@ -704,7 +713,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   linkDetail.extra.append(history.node);
   // Al final del panel, debajo de las misiones: elegir una neurona no mueve ningún ajuste (D15).
   panel.append(el('h1', { class: 'sr-only', i18n: 'lab.title' }),
-    el('div', { class: 'inspect-panel lab-panel' }, intro, netSection, learnSection, actions, saveMessage, teacherSection, missions, card.node, linkDetail.node));
+    el('div', { class: 'inspect-panel lab-panel' }, introBlock, netSection, learnSection, actions, saveMessage, teacherSection, missions, card.node, linkDetail.node));
 
   const picker = createPicker({
     id: 'lab-picker', anchor: changeTeacher, t,
@@ -772,7 +781,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     attrs: { type: 'button', role: 'radio', 'aria-checked': 'false', tabindex: '-1' }, dataset: { gate },
     on: { click: () => setGate(gate) },
   }, gateThumbnail(gate), el('span', { class: 'bar-track-name', i18n: `lab.gate.${gate}.name`, attrs: { 'aria-hidden': 'true' } })));
-  const gateGroup = barGroupNode({ id: 'lab-gate', labelKey: 'lab.bar.gate', labelId: 'lab-gate-label', help: 'lab.bar.gate' },
+  // El rótulo lleva el término (pestana-laboratorio, "Términos con su nombre"): qué es una compuerta.
+  const gateGroup = barGroupNode({ id: 'lab-gate', labelKey: 'lab.bar.gate', labelId: 'lab-gate-label', help: 'lab.term.gate' },
     el('div', { class: 'bar-tracks', attrs: { role: 'radiogroup', 'aria-labelledby': 'lab-gate-label' }, on: { keydown: onGateKey } }, gateOptions));
   const gatesReset = el('button', { class: 'tool bar-reset', i18n: 'bar.reset', help: 'lab.bar.resetGates', attrs: { type: 'button' }, on: { click: () => { if (session.resetGates()) restarted(); } } });
   const gatesBar = el('div', { class: 'scenario-bar lab-bar', i18nAttr: 'aria-label:bar.title', attrs: { role: 'group' } },
@@ -920,6 +930,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     planeForce = true;
     chartKey = '';
     if (wasMid) { lastStep = null; restartedNote = true; }
+    afterGateChange();
     sync();
   }
   let restartedNote = false;
@@ -938,6 +949,28 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     errorCompare = null;
     afterManual();
     announce(t('inspect.announce.reset'));
+  }
+
+  /** Pone la solución preparada como un solo cambio a mano: "Deshacer" la saca entera. */
+  function showSolution() {
+    const s = session.settings;
+    const layers = isGates() ? gateSolution(session.gate, { hidden: s.hidden, activation: s.activation }) : null;
+    if (!layers) return;
+    const gesture = `solution:${performance.now()}`;
+    layers.forEach((layer, k) => layer.weights.forEach((row, j) => {
+      row.forEach((w, i) => manualChange(() => run().setWeight(k + 1, j, i, w), gesture));
+      manualChange(() => run().setBias(k + 1, j, layer.biases[j]), gesture);
+    }));
+    session.manual.end();
+    errorCompare = null;
+    afterGateChange();
+    announce(t('lab.solution.done', { correct: session.score.correct }));
+  }
+  /** Después de un cambio con compuertas: la misión que se cumplió, si alguna (D10). */
+  function afterGateChange() {
+    if (!isGates()) return;
+    const id = state.missions.gates({ gate: session.gate, hidden: session.settings.hidden.length, solved: session.score.correct === session.split.practice.length, handOnly: session.handOnly });
+    if (id) { announce(t('lab.mission.done', { name: t(`lab.mission.${id}`) })); sync(); }
   }
 
   function resetWeights() { session.resetWeights(); restarted(); announce(t('lab.announce.reset')); }
@@ -966,7 +999,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
     afterLearning();
   }
+  let lastGuide = '';
   function afterLearning() {
+    afterGateChange();
+    // La guía de las compuertas cambia con lo que pasa al aprender (D8): XOR sin capa, red trabada.
+    const g = guideKey();
+    if (g !== lastGuide) { const was = lastGuide; lastGuide = g; if (was) { sync(); if (g === 'lab.guide.gates.xorLine' || g === 'lab.guide.gates.stuck') announce(t(g)); } }
     const n = run().warningAppearances;
     if (n > announcedAppearances) {
       announcedAppearances = n;
@@ -1156,7 +1194,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     show(linkDetail.node, isLink);
     // Con la tarjeta abierta, la guía y las misiones no se muestran (consulta 13.6): siempre, en cualquier
     // tamaño. Las misiones siguen contando y vuelven con su progreso al cerrarla.
-    show(intro, !state.selected);
+    show(introBlock, !state.selected);
     show(missions, !state.selected);
     // Reproducción
     setText(playButton, playback.playing ? 'inspect.pause' : 'inspect.play');
@@ -1182,7 +1220,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
     scenario?.sync({ ...s.driving });
     // Panel: guía, red y aprendizaje
-    setText(intro, hasPlane() ? 'lab.guide' : 'lab.guide.driving');
+    const guide = guideKey();
+    setText(intro, guide);
+    show(addHiddenButton, guide === 'lab.guide.gates.xorLine');
     for (const b of layerButtons) setAttr(b, 'aria-pressed', String(Number(b.dataset.layers) === s.hidden.length));
     neuronSliders.forEach((x, k) => {
       if (x.gesture.active) return;
@@ -1196,6 +1236,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     write(rateValue, fmtRate(s.rate));
     setAttr(rateInput, 'aria-valuetext', fmtRate(s.rate));
     show(holdoutRow, !isGates());
+    // Ver una solución: solo con compuertas; sin solución para la red de ahora, sin acción y con el porqué.
+    show(solutionButton, isGates());
+    const solvable = isGates() && solutionShapeOk(session.gate, s.hidden);
+    setAttr(solutionButton, 'aria-disabled', String(!solvable));
+    setData(solutionButton, 'help', solvable ? 'lab.solution' : session.gate === 'xor' && s.hidden.length === 0 ? 'lab.solution.noLine' : 'lab.solution.none');
     if (!holdoutGesture.active) {
       if (Number(holdoutInput.value) !== s.holdout) holdoutInput.value = String(s.holdout);
       setText(holdoutValue, 'drive.value.percent', { value: s.holdout });
@@ -1226,7 +1271,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     show(truth.node, isGates());
     show(scene, !hasPlane());
     // Misiones
-    for (const m of state.missions.missions) {
+    // Las misiones de la clase elegida (D10): las demás no se muestran.
+    const shown = state.missions.missionsFor(session.kind);
+    for (const r of missionRows) show(r.row, shown.some((m) => m.id === r.id));
+    for (const m of shown) {
       const r = missionRows.find((x) => x.id === m.id);
       setData(r.row, 'done', String(m.done));
       setText(r.status, m.done ? 'train.mission.done' : 'train.mission.pending');
@@ -1234,6 +1282,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Los controles que no sirven mientras se graba no se muestran.
     for (const n of [stepButton, sizeGroup]) show(n, !recording);
     playButton.hidden = recording;
+  }
+  /** La guía del panel: con compuertas, según la compuerta y lo que ya pasó (D8); si no, la de siempre. */
+  function guideKey() {
+    if (!isGates()) return hasPlane() ? 'lab.guide' : 'lab.guide.driving';
+    const gate = session.gate;
+    const hidden = session.settings.hidden.length;
+    if (gate === 'xor' && hidden === 0) return session.xor?.explain ? 'lab.guide.gates.xorLine' : 'lab.guide.gates.xor';
+    if (gate === 'xor') return session.stuck ? 'lab.guide.gates.stuck' : 'lab.guide.gates.xorHidden';
+    return hidden === 0 ? `lab.guide.gates.${gate}` : 'lab.guide.gates.other';
   }
   const fmtRate = (r) => (r >= 0.1 ? fmt(r) : r.toLocaleString(i18n.language === 'es' ? 'es-AR' : 'en-US', { maximumSignificantDigits: 2 }));
 
@@ -1471,7 +1528,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     truth.render({ table: truthRows(net, examples, r.off), shown: showsExample || shown < 0 ? null : shown, current: ongoing ? examples.indexOf(ongoing.example) : null, note: truthNote() });
   }
   /** Texto junto a la tabla (D10): resuelta por el aprendizaje, no a mano. Lo completa la tarea 5.4. */
-  function truthNote() { return ''; }
+  function truthNote() {
+    const solved = session.score.correct === session.split.practice.length;
+    return solved && session.gate !== 'xor' && session.settings.hidden.length === 0 && !session.handOnly ? t('lab.tt.byLearning') : '';
+  }
 
   /** La tabla de datos, si está a la vista (D14): corriendo, como mucho 5 veces por segundo; en pausa, ya. */
   function drawDataTable(now, a) {

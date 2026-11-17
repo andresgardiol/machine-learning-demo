@@ -217,8 +217,9 @@ test('Competir: botones de la carrera que se leen enteros en el ancho mínimo de
 
 // --- pestana-laboratorio: guía de hasta 240 caracteres y misiones de hasta 34 -----------------------
 test('Laboratorio: guías de hasta 240 caracteres y nombres de misiones de hasta 34', () => {
-  for (const key of ['lab.guide', 'lab.guide.driving']) assertMax(key, GUIDE_MAX);
-  for (const id of ['follow', 'memorize', 'save']) assertMax(`lab.mission.${id}`, MISSION_MAX);
+  for (const key of ['lab.guide', 'lab.guide.driving', 'lab.guide.gates.and', 'lab.guide.gates.or', 'lab.guide.gates.xor', 'lab.guide.gates.xorLine', 'lab.guide.gates.xorHidden', 'lab.guide.gates.stuck', 'lab.guide.gates.other']) assertMax(key, GUIDE_MAX);
+  for (const id of ['follow', 'memorize', 'save', 'gateAnd', 'gateOr', 'gateXor']) assertMax(`lab.mission.${id}`, MISSION_MAX);
+  for (const key of ['lab.tt.byLearning']) assertMax(key, HINT_MAX);
   for (const key of ['lab.warning', 'lab.record.few', 'lab.op.idle']) assertMax(key, HINT_MAX);
 });
 

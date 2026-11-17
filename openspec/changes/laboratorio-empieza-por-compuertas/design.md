@@ -68,8 +68,8 @@ Valores por defecto por clase:
 |---|---|---|---|
 | capas ocultas | ninguna | [4] | [4] |
 | capa nueva | 2 neuronas | 4 | 4 |
-| pesos al empezar | ceros sin capa oculta; al azar de la serie con capa oculta | al azar | al azar |
-| tasa | a medir (D7) | 0,1 | 0,1 |
+| pesos al empezar | ceros sin capa oculta; con capa oculta, el arranque fijo de D7 ("Reiniciar pesos" sigue la serie) | al azar | al azar |
+| tasa | 0,3 (D7, medida) | 0,1 | 0,1 |
 | paso / ritmo | neurona, 1 por segundo | época, 10 por segundo | época |
 
 Pesos en cero solo sin capas ocultas: con una capa oculta, pesos iguales dejan
@@ -121,13 +121,25 @@ acierto (`out > 0.5` contra objetivo 1, `out < 0.5` contra objetivo 0). Solo
 cambia algo con salidas exactamente 0,5, que en la práctica solo pasan con
 pesos en cero; las curvas y la tabla dicen lo mismo.
 
-### D7. Tasa por defecto de las compuertas, elegida midiendo
-Con 4 ejemplos por época, una tasa de 0,1 hace lento XOR. La tasa por defecto
-de las compuertas se elige midiendo, con la serie de pesos de la app, la
-menor tasa entre {0,3; 0,5; 1} con la que XOR con 2 → 2 → 1 tanh llega a 4 de
-4 antes de un minuto de reproducir de a épocas al ritmo por defecto, en las
-primeras 5 redes de la serie. Si ninguna lo logra en las 5, se para y se
-consulta (la spec pide "antes de un minuto"). **Sin medir todavía.**
+### D7. Tasa por defecto y arranque fijo de las compuertas, elegidos midiendo
+Con 4 ejemplos por época, una tasa de 0,1 hace lento XOR. El plan era elegir
+la menor tasa entre {0,3; 0,5; 1} con la que XOR con 2 → 2 → 1 tanh llegara a
+4 de 4 antes de un minuto (600 épocas a 10 por segundo) en las primeras 5
+redes de la serie. **Medido (tarea 5.2): ninguna cumple.** Con 0,3 llegan 3 de
+5 (6 de las primeras 10), con 0,5 2 de 5 y con 1 ninguna; las demás quedan
+trabadas en un mínimo local con cualquier tasa: es la capa de 2, no la tasa.
+
+Decisión del dueño (consulta 5.2): "2 neuronas, arranque que anda".
+
+- Tasa por defecto de las compuertas: **0,3**.
+- Con compuertas, una red de forma nueva con capas ocultas (pasar de cero a
+  una capa, "Agregar una capa oculta de 2", cambiar neuronas o activación,
+  "Red de siempre" con capas) arranca de **pesos fijos**: la semilla 1 de la
+  serie (`GATES_HIDDEN_SEED`), con la que XOR 2 → 2 → 1 tanh a 0,3 llega a 4 de
+  4 en 68 épocas (6,8 s).
+- "Reiniciar pesos" sigue la serie desde ahí, así que puede dar una red que se
+  traba. Eso se muestra (D8): es un concepto real.
+- La solución preparada de XOR sigue con una capa de 2.
 
 ### D8. XOR: cuándo explicar
 Contadores en la sesión de compuertas: cambios a mano y épocas desde que se
@@ -136,13 +148,22 @@ guía cambia de "intentalo" a la explicación con el botón "Agregar una capa
 oculta de 2", que equivale a elegir una capa oculta de 2 neuronas en el panel.
 Mostrar antes que explicar: la persona prueba primero.
 
+**Trabada en un mínimo local** (agregado con la decisión de D7): con XOR y capas
+ocultas, si pasaron 50 épocas o más, la red no acierta los cuatro casos y el
+error bajó menos de 0,01 en las últimas 50, la guía lo nombra en palabras
+llanas (la red quedó en un pozo del que corrigiendo de a poco no sale) y
+sugiere "Reiniciar pesos". Medido en las primeras 20 redes de la serie a tasa
+0,3: marca las 9 que no llegan (entre las épocas 50 y 137) y ninguna de las 11
+que llegan.
+
 ### D9. Soluciones preparadas
 `src/tabs/lab/gate-solutions.js`, puro:
 
 - Sin capas ocultas: AND `w = (1, 1), b = −1,5`; OR `w = (1, 1), b = −0,5`.
-- XOR con una capa de 2 (tanh): oculta 1 ≈ OR `(3, 3), −1,5`; oculta 2 ≈ AND
-  `(3, 3), −4,5`; salida `(1, −1), −1`. Con sigmoide y ReLU se ajustan los
-  números; cada solución se prueba con las tres activaciones y queda en el
+- XOR con una capa de 2: oculta 1 ≈ OR `(2, 2), −1`; oculta 2 ≈ AND
+  `(2, 2), −3`; salida, con tanh, `(1,5; −1,5), −1` (con pesos 3 el sesgo de
+  AND tenía que ser −4,5, fuera del rango; corregido en la tarea 1.3). Con
+  sigmoide y ReLU se ajusta la salida; cada solución se prueba con las tres activaciones y queda en el
   rango de las pastillas (−3 a 3).
 
 Se aplica como un solo cambio a mano (un `gesture`), así "Deshacer" la saca
@@ -186,8 +207,11 @@ va.
 - [Las pastillas tapan la red en formas de 14–16 conexiones] → escenario "No se
   tapan" medido en cada forma posible de hasta 16 conexiones; si alguna falla,
   bajar `KNOBS_ALL_MAX`.
-- [Con tanh, XOR 2 → 2 → 1 a veces se queda en un mínimo local] → D7 mide con
-  las primeras 5 redes de la serie; "Reiniciar pesos" sigue disponible.
+- [Con tanh, XOR 2 → 2 → 1 se queda en un mínimo local en 4 de cada 10 redes
+  de la serie (medido en 5.2)] → la red que da "Agregar una capa oculta de 2"
+  arranca de pesos fijos que llegan (D7); si después "Reiniciar pesos" da una
+  que se traba, la guía nombra el mínimo local y sugiere reiniciar otra vez
+  (D8). Se acepta: ver una red trabada es parte de lo que enseña.
 - [Cambiar el estado por defecto rompe pruebas y escenarios existentes del
   Laboratorio que asumen puntos en círculo aprendiendo] → las pruebas que lo
   asumen eligen puntos y reproducen explícitamente.

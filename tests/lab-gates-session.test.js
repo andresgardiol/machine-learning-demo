@@ -212,3 +212,46 @@ test('mover perillas no suma puntos a la curva', () => {
   assert.equal(s.run.history.length, 0);
   assert.equal(s.run.epoch, 0);
 });
+
+// --- 5.2 Tasa y arranque fijo de las compuertas (D7) ----------------------------------------------
+test('XOR con la capa de 2 que da "Agregar capa": tasa 0,3 y pesos fijos, 4 de 4 antes de un minuto (600 épocas)', () => {
+  const s = session();
+  assert.equal(s.settings.rate, 0.3);
+  s.setGate('xor');
+  s.resetWeights(); s.resetWeights(); // aunque antes se hayan reiniciado los pesos sin capa oculta
+  s.setLayers(1);
+  assert.deepEqual(s.run.network.sizes, [2, 2, 1]);
+  let hit = null;
+  for (let e = 1; e <= 600 && hit === null; e++) { s.advance('epoch'); if (s.score.correct === 4) hit = e; }
+  assert.ok(hit !== null && hit <= 100, `llegó en ${hit}`);
+  assert.equal(s.stuck, false);
+});
+
+test('trabada en un mínimo local: una red de la serie que no llega se marca a las 50 épocas; la que llega, nunca', () => {
+  // La semilla 4 de la serie no llega (medido en 5.2): tres "Reiniciar pesos" desde la capa nueva.
+  const s = session();
+  s.setGate('xor'); s.setLayers(1);
+  for (let k = 0; k < 3; k++) s.resetWeights();
+  let at = null;
+  for (let e = 1; e <= 200 && at === null; e++) { s.advance('epoch'); if (s.stuck) at = e; }
+  assert.ok(at !== null && at >= 50 && at <= 70, `marcada en ${at}`);
+  assert.ok(s.score.correct < 4);
+  const t = session();
+  t.setGate('xor'); t.setLayers(1);
+  for (let e = 1; e <= 300; e++) { t.advance('epoch'); assert.equal(t.stuck, false, `época ${e}`); }
+});
+
+// --- 5.4 Misiones de las compuertas (D10) ----------------------------------------------------------
+test('misiones de compuertas: AND y OR a mano, XOR con capa oculta; resuelta aprendiendo no cuenta', async () => {
+  const { createLabMissions, missionIdsFor } = await import('../src/tabs/lab/missions.js');
+  assert.deepEqual(missionIdsFor('gates'), ['gateAnd', 'gateOr', 'gateXor']);
+  assert.deepEqual(missionIdsFor('points'), ['follow', 'memorize', 'save']);
+  const m = createLabMissions({ completed: new Set() });
+  assert.equal(m.gates({ gate: 'and', hidden: 0, solved: true, handOnly: true }), 'gateAnd');
+  assert.equal(m.gates({ gate: 'and', hidden: 0, solved: true, handOnly: true }), null, 'una sola vez');
+  assert.equal(m.gates({ gate: 'or', hidden: 0, solved: true, handOnly: false }), null, 'aprendiendo no cuenta');
+  assert.equal(m.gates({ gate: 'or', hidden: 1, solved: true, handOnly: true }), null, 'con capa oculta no es "a mano" de una neurona');
+  assert.equal(m.gates({ gate: 'xor', hidden: 0, solved: false, handOnly: true }), null);
+  assert.equal(m.gates({ gate: 'xor', hidden: 1, solved: true, handOnly: false }), 'gateXor', 'XOR, a mano o aprendiendo');
+  assert.deepEqual(m.missionsFor('gates').map((x) => x.done), [true, false, true]);
+});

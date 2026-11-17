@@ -29,8 +29,20 @@ export const DEFAULT_EPOCH_RATE = 10;
 // --- Por clase de datos (laboratorio-empieza-por-compuertas D3, D4 y D7) ---------------------------
 /** Las tres clases de datos, en el orden de la barra. La primera es la que abre. */
 export const DATA_KINDS = Object.freeze(['gates', 'points', 'driving']);
-/** Tasa por defecto de las compuertas (D7): se fija midiendo en la tarea 5.2. */
-export const GATES_RATE = 0.5;
+/**
+ * Tasa por defecto de las compuertas (D7, medida en la tarea 5.2): con 0,3, XOR 2 → 2 → 1 tanh llegó a
+ * 4 de 4 en 6 de las primeras 10 redes de la serie (0,5: 4 de 10; 1: 1 de 10). Las demás quedan
+ * trabadas en un mínimo local con cualquier tasa.
+ */
+export const GATES_RATE = 0.3;
+/**
+ * Arranque fijo de las compuertas con capas ocultas (D7): pasar de cero capas a una, o cambiar la forma o
+ * la activación, arma la red con esta semilla, con la que XOR 2 → 2 → 1 tanh a tasa 0,3 llega a 4 de 4
+ * en 68 épocas (6,8 s a 10 épocas por segundo). "Reiniciar pesos" sigue la serie desde ahí.
+ */
+export const GATES_HIDDEN_SEED = 1;
+/** Trabada en un mínimo local (D8): XOR con capa oculta, 50 épocas sin 4 de 4 y el error bajó menos de esto en esas 50. */
+export const STUCK = Object.freeze({ epochs: 50, drop: 0.01 });
 /**
  * Valores por defecto de cada clase: capas ocultas, neuronas de una capa nueva, activación, tasa,
  * pesos en cero sin capas ocultas (solo compuertas) y el paso y el ritmo con que arranca la barra.

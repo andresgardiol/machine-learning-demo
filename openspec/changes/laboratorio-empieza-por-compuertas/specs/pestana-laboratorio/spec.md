@@ -176,11 +176,15 @@ neuronas.
 
 #### Scenario: Agregar la capa
 - **WHEN** la persona elige "Agregar una capa oculta de 2"
-- **THEN** la red pasa a 2 → 2 → 1 con pesos al azar de la serie, en pausa, y la guía dice que ahora hay dos rectas que se combinan
+- **THEN** la red pasa a 2 → 2 → 1 con los pesos fijos con que arranca la capa oculta de las compuertas (unos que aprenden XOR), en pausa, y la guía dice que ahora hay dos rectas que se combinan
 
 #### Scenario: Con la capa oculta
-- **WHEN** con XOR y una capa oculta de dos la persona reproduce con los valores por defecto
+- **WHEN** con XOR la persona elige "Agregar una capa oculta de 2" y reproduce con los valores por defecto
 - **THEN** la red acierta los cuatro casos antes de un minuto y el fondo del plano deja de ser una sola recta
+
+#### Scenario: Trabada en un mínimo local
+- **WHEN** con XOR y una capa oculta la red lleva 50 épocas o más sin acertar los cuatro casos y el error bajó menos de 0,01 en las últimas 50
+- **THEN** la guía dice con palabras llanas que la red quedó trabada en un mínimo local, un pozo del que corrigiendo de a poco no sale, y sugiere "Reiniciar pesos" para probar con otros pesos
 
 ### Requirement: De la mano a backpropagation
 Con compuertas, la reproducción SHALL arrancar de a una neurona, a un paso
