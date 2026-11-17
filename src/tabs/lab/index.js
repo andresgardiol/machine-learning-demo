@@ -1298,6 +1298,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
     consigna.setConsigna(`consigna.lab.${session.kind}`);
     consigna.setMission(current && !current.allDone ? describeMission(current) : current);
+    // Con algo elegido la tarjeta cede su lugar, como en Inspeccionar (grupo 5).
+    show(consigna.node, !state.selected);
     // Los controles que no sirven mientras se graba no se muestran.
     for (const n of [stepButton, sizeGroup]) show(n, !recording);
     playButton.hidden = recording;

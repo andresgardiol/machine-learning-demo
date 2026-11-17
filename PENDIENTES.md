@@ -594,13 +594,16 @@ arreglarlos de a uno.
   - La consigna repite parte del texto largo en Reglas a mano ("Cambiá un
     número…") y en Inspeccionar ("Pausá… avanzá de a un paso"). Recortar los
     textos largos queda para `vocabulario-escalonado` o el recorrido guiado.
-  - Costo medido a 1366×768: en Inspeccionar con una neurona elegida, la
-    tabla de la neurona pide desplazar 51 px (antes entraba entera); en Reglas
-    a mano y Competir, la columna pide 75 px al final (la lista de misiones);
-    en Entrenar, la vista de entrenamiento pasa de 757 a 860 px. Ver con el
-    dueño si Inspeccionar necesita compactar la tarjeta al elegir una neurona.
-  - En el Laboratorio la tarjeta también sigue a la vista al elegir una
-    neurona, como en Inspeccionar (la spec solo lo pedía para Inspeccionar).
+  - Costo medido a 1366×768: en Reglas a mano y Competir, la columna pide
+    75 px al final (la lista de misiones); en Entrenar, la vista de
+    entrenamiento pasa de 757 a 860 px. En Inspeccionar con una neurona
+    elegida la tabla pedía 51 px: lo resolvió el grupo 5 (abajo).
+  - En Inspeccionar y el Laboratorio, con una neurona o una conexión elegida,
+    la tarjeta cede su lugar y vuelve al soltar (decisión del dueño, grupo 5;
+    una tarjeta compacta, sin la misión, ganaba solo 26 de los ~78 px que
+    faltaban). Así la tabla de la neurona entra sin desplazar a 1366×768. En
+    el Laboratorio, mientras dura la elección, la misión no se ve en ningún
+    lado (la lista también se oculta); el dueño lo aceptó.
   - En Inspeccionar y el Laboratorio, con la guía apagada, la tarjeta entera
     se oculta (no tiene marcha; si no, quedaba una caja vacía).
   - `consigna.lab.gates` nombra Reproducir ("…o tocá Reproducir abajo de la

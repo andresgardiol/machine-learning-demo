@@ -980,6 +980,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
     consigna.setConsigna('consigna.inspect');
     consigna.setMission(current && !current.allDone ? describeMission(current) : current);
+    // Con una neurona o una conexión elegida, la tarjeta cede su lugar, como el texto largo, para que la
+    // cuenta entre sin desplazar; al soltar vuelve, al día (decisión del dueño, grupo 5).
+    show(consigna.node, !state.selected);
     // Quién maneja
     setAttr(driveButton, 'aria-pressed', String(driving()));
     show(driveBadge, driving());

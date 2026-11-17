@@ -6,7 +6,7 @@ Fija la tarjeta de consigna que abre el panel de cada pestaña: una frase que di
 ## ADDED Requirements
 
 ### Requirement: Tarjeta al principio del panel
-Cada una de las seis pestañas SHALL abrir su panel con una tarjeta de consigna, antes que cualquier otro contenido visible del panel. En Entrenar, la tarjeta SHALL ir al principio de la vista de entrenamiento y no se muestra en las vistas de ajustes ni de cerebros. La tarjeta SHALL distinguirse del resto del panel como un bloque propio. MUST NOT tapar la escena, el tablero ni la red.
+Cada una de las seis pestañas SHALL abrir su panel con una tarjeta de consigna, antes que cualquier otro contenido visible del panel, salvo mientras hay algo elegido en Inspeccionar o en el Laboratorio. En Entrenar, la tarjeta SHALL ir al principio de la vista de entrenamiento y no se muestra en las vistas de ajustes ni de cerebros. La tarjeta SHALL distinguirse del resto del panel como un bloque propio. MUST NOT tapar la escena, el tablero ni la red.
 
 #### Scenario: Al abrir la app
 - **WHEN** la persona abre la app sin haber configurado nada y recorre las seis pestañas a 1440×900
@@ -108,12 +108,24 @@ El interruptor de guía SHALL ocultar la consigna y la misión en curso de la ta
 - **WHEN** la persona supera dos vehículos con la guía apagada y la vuelve a encender
 - **THEN** la tarjeta muestra la consigna y la misión en curso con 2 de 5
 
-### Requirement: Tarjeta al elegir en Inspeccionar
-En Inspeccionar, la tarjeta SHALL seguir a la vista cuando la persona elige una neurona o una conexión. El texto largo de la guía MAY ceder su lugar, como hasta ahora.
+### Requirement: Tarjeta al elegir en Inspeccionar y en el Laboratorio
+En Inspeccionar y en el Laboratorio, la tarjeta SHALL ceder su lugar cuando la persona elige una neurona o una conexión, igual que el texto largo de la guía, para que la cuenta entre sin desplazar. Al soltar la elección, la tarjeta SHALL volver al principio del panel, con la consigna y la misión en curso al día. Lo decidió el dueño el 17 de noviembre de 2026, después de medir que una tarjeta compacta no alcanzaba.
 
 #### Scenario: Elegir una neurona
 - **WHEN** en Inspeccionar la persona elige una neurona
-- **THEN** la tarjeta sigue al principio del panel con la consigna y la misión en curso, y debajo aparece la cuenta de la neurona
+- **THEN** la tarjeta no se ve, y lo primero del panel es la cuenta de la neurona
+
+#### Scenario: La cuenta entra a 1366×768
+- **WHEN** en Inspeccionar, a 1366×768, la persona elige una neurona de la capa de salida
+- **THEN** la tabla de la neurona se ve entera, con todas sus filas, sin desplazar el panel ni la tabla
+
+#### Scenario: Soltar la elección
+- **WHEN** la persona suelta la neurona elegida
+- **THEN** la tarjeta vuelve al principio del panel, con la consigna y la misión en curso con su progreso al día
+
+#### Scenario: Laboratorio
+- **WHEN** en el Laboratorio la persona elige una neurona
+- **THEN** la tarjeta y la lista de misiones no se ven mientras dura la elección, y vuelven al soltarla
 
 ### Requirement: Tarjeta accesible
 La tarjeta SHALL ser una región con un nombre accesible ("Qué hacer ahora" o el equivalente en inglés) que un lector de pantalla anuncia. El orden de lectura y de foco SHALL ser consigna, controles de marcha y misión en curso. Los cambios de progreso de la misión MUST NOT anunciarse en cada paso.

@@ -27,7 +27,7 @@ Medido sobre `945a848`, con `jerarquia-de-botones` ya hecho (`borradores/tarjeta
 - **El texto largo de la guía** queda visible debajo de la tarjeta, con menos peso. No se pliega, por decisión del dueño, en línea con la del 13 de noviembre de no tener secciones plegables.
 - **La lista completa de misiones** sigue al final del panel, con la misión en curso marcada.
 - **Con la guía apagada**, la tarjeta oculta la consigna y la misión, y queda solo la marcha, en el mismo lugar.
-- **En Inspeccionar**, la tarjeta sigue a la vista al elegir una neurona. El texto largo cede su lugar como hoy.
+- **En Inspeccionar y en el Laboratorio**, al elegir una neurona o una conexión, la tarjeta cede su lugar, como el texto largo, y vuelve al soltar la elección. Al principio el diseño la dejaba a la vista. El dueño lo cambió el 17 de noviembre de 2026, porque a 1366×768 la cuenta de la neurona pedía desplazar y una tarjeta compacta ganaba solo 26 de los 78 px que faltaban.
 - **Capturas del antes y del después** con un mismo guion. El antes se sacó sobre `945a848`.
 
 Fuera de alcance, con su candidato en el informe:

@@ -356,6 +356,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 /* Sobre --color-surface-2 la pista de la barra va en --color-bg, para que se vea dónde termina. */
 .consigna-card .mission-bar { background: var(--color-bg); }
 .consigna-card .mission-bar[hidden] { display: none; }
+.consigna-card[hidden] { display: none; }
 /* La misión en curso, marcada en la lista sin depender del color: "▸" y negrita. */
 .mission[data-current="true"] .mission-name { font-weight: 700; }
 .mission[data-current="true"] .mission-name::before { content: "▸ "; }
