@@ -3,7 +3,8 @@
 // curso, que sale del mismo texto que su fila de la lista (D2).
 //
 // La consigna y la misión llevan la clase `guide`: con la guía apagada las oculta la regla que ya
-// existe (`.app[data-guide="off"] .guide`), y la marcha queda en el mismo lugar.
+// existe (`.app[data-guide="off"] .guide`), y la marcha queda en el mismo lugar. Sin marcha, la tarjeta
+// entera lleva `guide`, para no dejar una caja vacía.
 import { el } from '../../ui/dom.js';
 import { createTextSetter } from '../../ui/controls.js';
 
@@ -30,7 +31,9 @@ export function createConsignaCard({ i18n, run = null }) {
   const missionBar = el('span', { class: 'mission-bar', attrs: { 'aria-hidden': 'true' } }, missionFill);
   const mission = el('div', { class: 'guide consigna-mission' }, missionName, missionStatus, missionBar);
   mission.hidden = true;
-  const node = el('section', { class: 'consigna-card', attrs: { 'aria-labelledby': titleId } },
+  // Sin marcha (Inspeccionar y Laboratorio), con la guía apagada la tarjeta quedaría vacía: entonces
+  // la tarjeta entera es de la guía y se oculta con ella.
+  const node = el('section', { class: run ? 'consigna-card' : 'guide consigna-card', attrs: { 'aria-labelledby': titleId } },
     el('h2', { class: 'sr-only', i18n: 'consigna.title', attrs: { id: titleId } }),
     text,
     run,

@@ -45,6 +45,8 @@ import { createLabPlayback, PACES, isRunning, kindPlayback } from './playback.js
 import { createLearningAnimation, stepDuration } from './step-animation.js';
 import { describeLearningStep, whereText, layerName, neuronName, errorTrend } from './describe.js';
 import { createLabMissions, MISSION_IDS, GATE_MISSION_IDS } from './missions.js';
+import { currentMission } from '../../ui/current-mission.js';
+import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
 import { gateSolution, solutionShapeOk } from './gate-solutions.js';
 import { shortcutFor } from './shortcuts.js';
 import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS, DATA_KINDS } from './defaults.js';
@@ -673,6 +675,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('h2', { class: 'panel-heading', i18n: 'lab.panel.examples', attrs: { id: 'lab-teacher-heading' } }),
     el('div', { class: 'lab-teacher-row' }, teacherName, changeTeacher, recordButton),
     el('div', { class: 'lab-actions-panel lab-recorded-actions' }, useRecordedButton, clearButton), recordNotice);
+  // Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2); sin barra.
+  const describeMission = (m) => ({
+    done: m.done, nameKey: `lab.mission.${m.id}`,
+    statusKey: m.done ? 'train.mission.done' : 'train.mission.pending', fraction: null,
+  });
+  // Tarjeta de consigna (tarjeta-de-consigna D4): sin marcha, que sigue en la barra de abajo de la red.
+  // Al elegir una neurona sigue a la vista; la guía y las misiones ceden su lugar como antes.
+  const consigna = createConsignaCard({ i18n });
   // Misiones
   const missionRows = [...MISSION_IDS, ...GATE_MISSION_IDS].map((id) => ({ id })).map((m) => {
     const status = el('span', { class: 'mission-status' });
@@ -721,7 +731,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   linkDetail.extra.append(history.node);
   // Al final del panel, debajo de las misiones: elegir una neurona no mueve ningún ajuste (D15).
   panel.append(el('h1', { class: 'sr-only', i18n: 'lab.title' }),
-    el('div', { class: 'inspect-panel lab-panel' }, introBlock, netSection, learnSection, actions, saveMessage, teacherSection, missions, card.node, linkDetail.node));
+    el('div', { class: 'inspect-panel lab-panel' }, consigna.node, introBlock, netSection, learnSection, actions, saveMessage, teacherSection, missions, card.node, linkDetail.node));
 
   const picker = createPicker({
     id: 'lab-picker', anchor: changeTeacher, t,
@@ -1282,11 +1292,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Las misiones de la clase elegida (D10): las demás no se muestran.
     const shown = state.missions.missionsFor(session.kind);
     for (const r of missionRows) show(r.row, shown.some((m) => m.id === r.id));
+    const current = currentMission(shown);
     for (const m of shown) {
-      const r = missionRows.find((x) => x.id === m.id);
-      setData(r.row, 'done', String(m.done));
-      setText(r.status, m.done ? 'train.mission.done' : 'train.mission.pending');
+      writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
+    consigna.setConsigna(`consigna.lab.${session.kind}`);
+    consigna.setMission(current && !current.allDone ? describeMission(current) : current);
     // Los controles que no sirven mientras se graba no se muestran.
     for (const n of [stepButton, sizeGroup]) show(n, !recording);
     playButton.hidden = recording;

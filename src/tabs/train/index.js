@@ -21,6 +21,8 @@ import { createFitnessChart } from '../../ui/chart.js';
 import { createLoop, SPEEDS } from '../../ui/loop.js';
 import { createLibraryView } from '../../ui/library-view.js';
 import { panelViews } from '../../ui/panel-views.js';
+import { currentMission } from '../../ui/current-mission.js';
+import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { trainingDescription } from '../shared/stage-text.js';
 import { el } from '../../ui/dom.js';
@@ -367,8 +369,17 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     speeds.row, factor,
     el('div', { class: 'run-secondary' }, restartButton, newPopulationButton),
     toolbarConfirm.node);
+  // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
+  const card = createConsignaCard({ i18n, run });
 
-  // Misiones
+  // Misiones. Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2).
+  const describeMission = (m) => ({
+    done: m.done,
+    nameKey: `train.mission.${m.id}`, nameParams: { goal: m.goal },
+    statusKey: m.done ? 'train.mission.done' : m.unit === 'none' ? 'train.mission.pending' : `train.mission.progress.${m.unit}`,
+    statusParams: m.done || m.unit === 'none' ? undefined : { value: Math.floor(m.progress), goal: m.goal },
+    fraction: m.done ? 1 : m.progress / m.goal,
+  });
   const missionRows = state.missions.missions.map((m) => {
     const status = el('span', { class: 'mission-status' });
     const fill = el('span', { class: 'mission-fill' });
@@ -583,7 +594,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const brainsView = el('div', { class: 'train-brains' }, brainsSave, libraryZone);
 
   // Vistas del panel (D1): entrenamiento, ajustes y cerebros, con la barra fija arriba.
-  const trainingView = el('div', { class: 'train-training' }, intro, run, viewSwitches, basic, saveBlock, missions);
+  const trainingView = el('div', { class: 'train-training' }, card.node, intro, viewSwitches, basic, saveBlock, missions);
   const views = panelViews({
     idPrefix: 'train-view',
     i18n,
@@ -732,20 +743,18 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
 
     // Misiones
-    for (const m of state.missions.missions) {
-      const r = missionRows.find((x) => x.id === m.id);
-      r.row.dataset.done = String(m.done);
-      if (m.done) setText(r.status, 'train.mission.done');
-      else if (m.unit === 'none') setText(r.status, 'train.mission.pending');
-      else setText(r.status, `train.mission.progress.${m.unit}`, { value: Math.floor(m.progress), goal: m.goal });
-      const width = `${Math.round((m.done ? 1 : m.progress / m.goal) * 100)}%`;
-      if (r.fill.style.width !== width) r.fill.style.width = width;
+    const missionList = state.missions.missions;
+    const current = currentMission(missionList);
+    for (const m of missionList) {
+      writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
+    card.setMission(current && !current.allDone ? describeMission(current) : current);
 
     // Selección manual (según el modo deseado): elegir y deshacer, con la línea de estado del padre.
     const manual = s.selectionMode === 'manual';
     // La guía acompaña al modo: con selección manual, la generación siguiente sale del auto elegido.
     setText(intro, manual ? 'train.guide.manual' : 'train.guide');
+    card.setConsigna(manual ? 'consigna.train.manual' : 'consigna.train');
     manualRow.hidden = !manual;
     parentLine.hidden = !manual;
     if (manual) {

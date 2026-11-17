@@ -102,7 +102,6 @@ export default {
   'drive.perception.hint': 'Una barra por rayo, de izquierda a derecha: más alta, más cerca el obstáculo. La última es la velocidad.',
   'drive.action.hint': 'Estas cuatro acciones son la salida del problema: sí o no, en cada instante.',
   'drive.guide.what': 'Este es tu auto (verde) en una calle de {lanes} carriles con tráfico (naranja). Los rayos azules son sus sensores: miden la distancia a un obstáculo. Avanzá sin chocar y mirá el tablero: esos números son todo lo que tendría una máquina.',
-  'drive.guide.keys': 'Flechas o W A S D para manejar.',
 
   'drive.restart': 'Reiniciar (R)',
   'drive.newTraffic': 'Tráfico nuevo',
@@ -762,7 +761,6 @@ export default {
   'drive.restart.plain': 'Reiniciar',
   'drive.pause.plain': 'Pausar',
   'drive.resume.plain': 'Reanudar',
-  'drive.guide.keys.plain': 'Flechas para manejar.',
   'drive.crash.howto.plain': 'Presioná Reiniciar para volver a intentar con el mismo tráfico.',
   'drive.crash.howto.circuit.plain': 'Presioná Reiniciar para volver a salir desde la línea de largada.',
   'train.pause.plain': 'Pausar',

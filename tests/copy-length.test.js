@@ -80,9 +80,9 @@ test('Entrenar: líneas de la ventaja (última generación y padre) de hasta 110
 // --- El problema --------------------------------------------------------------------------------
 import { MISSIONS as DRIVE_MISSIONS } from '../src/tabs/drive/session.js';
 
-test('El problema: guía de inicio de hasta 240 caracteres con 3 carriles, y renglón de teclas de hasta 120', () => {
+// El renglón de teclas pasó a ser la consigna de la tarjeta (tarjeta-de-consigna D3), con su propio tope.
+test('El problema: guía de inicio de hasta 240 caracteres con 3 carriles', () => {
   assertMax('drive.guide.what', GUIDE_MAX, { lanes: 3 });
-  assertMax('drive.guide.keys', HINT_MAX);
 });
 
 test('El problema: renglones de ayuda del tablero de hasta 120 caracteres', () => {

@@ -47,6 +47,8 @@ test('sin marcha (Inspeccionar y Laboratorio): consigna y misión', () => {
   withFakeDocument(() => {
     const card = createConsignaCard({ i18n });
     assert.deepEqual(card.node.children.map((c) => c.className), ['sr-only', 'guide consigna-text', 'guide consigna-mission']);
+    // Con la guía apagada no queda una caja vacía: la tarjeta entera es de la guía.
+    assert.equal(card.node.className, 'guide consigna-card');
   });
 });
 

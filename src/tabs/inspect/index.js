@@ -47,6 +47,8 @@ import { createPlayback, FRAME_PACES, STEP_PACES } from './playback.js';
 import { createStepAnimation, displayCursor, stepDuration } from './step-animation.js';
 import { describeStep, describeOperation, whereText, layerName, neuronLabel, placeName } from './describe.js';
 import { createInspectMissions } from './missions.js';
+import { currentMission } from '../../ui/current-mission.js';
+import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
 import { shortcutFor } from './shortcuts.js';
 import { takesWheel, isDrivingKey } from './driver.js';
 import { createNeuronCard, weightRange } from './card.js';
@@ -855,6 +857,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       setData(b, 'help', it.help);
     });
   }
+  // Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2); sin barra.
+  const describeMission = (m) => ({
+    done: m.done, nameKey: `inspect.mission.${m.id}`,
+    statusKey: m.done ? 'train.mission.done' : 'train.mission.pending', fraction: null,
+  });
+  // Tarjeta de consigna (tarjeta-de-consigna D4): sin marcha, que sigue en la barra de abajo de la red.
+  // Al elegir una neurona sigue a la vista; el texto largo cede su lugar (D17 de pestana-inspeccionar).
+  const consigna = createConsignaCard({ i18n });
   const missionRows = state.missions.missions.map((m) => {
     const status = el('span', { class: 'mission-status' });
     const row = el('li', { class: 'mission inspect-mission' }, el('span', { class: 'mission-name', i18n: `inspect.mission.${m.id}` }), status);
@@ -864,7 +874,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('h2', { class: 'sr-only', i18n: 'inspect.missions.title' }),
     el('ol', { class: 'mission-list inspect-mission-list' }, missionRows.map((r) => r.row)));
   panel.append(el('h1', { class: 'sr-only', i18n: 'inspect.title' }),
-    el('div', { class: 'inspect-panel' }, intro, brainSection, emptyBlock, card.node, linkDetail.node, missions));
+    el('div', { class: 'inspect-panel' }, consigna.node, intro, brainSection, emptyBlock, card.node, linkDetail.node, missions));
 
   const picker = createPicker({
     id: 'inspect-picker', anchor: changeBrain, t,
@@ -963,11 +973,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     setAttr(paceInput, 'aria-valuetext', paceText);
     setData(paceInput, 'help', playback.size === 'frame' ? 'inspect.pace' : 'inspect.pace.steps');
     // Misiones
-    for (const m of state.missions.missions) {
-      const r = missionRows.find((x) => x.id === m.id);
-      setData(r.row, 'done', String(m.done));
-      setText(r.status, m.done ? 'train.mission.done' : 'train.mission.pending');
+    const missionList = state.missions.missions;
+    const current = currentMission(missionList);
+    for (const m of missionList) {
+      writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
+    consigna.setConsigna('consigna.inspect');
+    consigna.setMission(current && !current.allDone ? describeMission(current) : current);
     // Quién maneja
     setAttr(driveButton, 'aria-pressed', String(driving()));
     show(driveBadge, driving());

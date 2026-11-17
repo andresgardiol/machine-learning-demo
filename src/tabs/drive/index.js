@@ -15,11 +15,13 @@ import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { button, switchButton, createTextSetter } from '../../ui/controls.js';
+import { currentMission } from '../../ui/current-mission.js';
 import { mainAction, applyMainAction } from '../../ui/main-action.js';
 import { statStrip, boardCard } from '../../ui/board.js';
 import { perceptionBlock, actionBlock } from '../shared/driving-cards.js';
 import { setUnavailable } from '../shared/street-advanced.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
+import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { drivingDescription } from '../shared/stage-text.js';
@@ -82,12 +84,11 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
     sync();
   }
 
-  // --- Panel: guía, marcha y vista ------------------------------------------------------
-  // Guía de inicio: un párrafo que nombra los carriles y un renglón con las teclas.
+  // --- Panel: tarjeta de consigna, guía y vista ------------------------------------------
+  // Guía de inicio: un párrafo que nombra los carriles. El renglón con las teclas es la consigna de la
+  // tarjeta (tarjeta-de-consigna D3).
   const introWhat = el('p', { i18n: 'drive.guide.what', params: { lanes: settings.lanes } });
-  const intro = el('section', { class: 'guide drive-intro' },
-    introWhat,
-    el('p', { class: 'drive-keys', i18n: 'drive.guide.keys' }));
+  const intro = el('section', { class: 'guide drive-intro' }, introWhat);
 
   // Marcha: pausar y reiniciar en un renglón; tráfico nuevo, más chico, debajo.
   const restartButton = button('drive.restart', 'drive.restart', restart);
@@ -97,6 +98,8 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   const run = el('section', { class: 'drive-run' },
     el('div', { class: 'run-main' }, pauseButton, restartButton),
     el('div', { class: 'run-secondary' }, newTrafficButton));
+  // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
+  const card = createConsignaCard({ i18n, run });
 
   // Vista: el interruptor de sensores solo decide si se dibujan los rayos; las barras siguen.
   const sensorsSwitch = switchButton('drive.sensors', 'drive.sensors', options.showSensors, () => {
@@ -110,7 +113,14 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   const viewSwitches = el('div', { class: 'switch-row drive-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:drive.view.title' },
     sensorsSwitch, machineSwitch);
 
-  // Misiones
+  // Misiones. Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2).
+  const describeMission = (m) => ({
+    done: m.done,
+    nameKey: `drive.mission.${m.id}`, nameParams: { goal: m.goal },
+    statusKey: m.done ? 'drive.mission.done' : `drive.mission.progress.${m.unit}`,
+    statusParams: m.done ? undefined : { value: Math.floor(m.progress), goal: m.goal },
+    fraction: m.done ? 1 : m.progress / m.goal,
+  });
   const missionRows = session.missions.map((m) => {
     const status = el('span', { class: 'mission-status' });
     const fill = el('span', { class: 'mission-fill' });
@@ -183,7 +193,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
 
   panel.append(
     el('h1', { class: 'sr-only', i18n: 'drive.title' }),
-    intro, run, viewSwitches, missions);
+    card.node, intro, viewSwitches, missions);
 
   // --- Mensajes sobre el escenario ---------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
@@ -223,15 +233,13 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
     setText(strip.values.attempts, 'drive.value.count', { value: session.attempts });
     setText(strip.values.best, 'drive.value.meters', meters(session.best));
 
+    // Misiones: la lista y, en la tarjeta, la primera sin cumplir (en un circuito no hay misiones).
+    const current = currentMission(session.missions, { available: !circuit });
     for (const m of session.missions) {
-      const r = missionRows.find((x) => x.id === m.id);
-      r.row.dataset.done = String(m.done);
-      if (m.done) setText(r.status, 'drive.mission.done');
-      else setText(r.status, `drive.mission.progress.${m.unit}`, { value: Math.floor(m.progress), goal: m.goal });
-      const ratio = m.done ? 1 : m.progress / m.goal;
-      const width = `${Math.round(ratio * 100)}%`;
-      if (r.fill.style.width !== width) r.fill.style.width = width;
+      writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
+    card.setConsigna(circuit ? 'consigna.drive.circuit' : 'consigna.drive');
+    card.setMission(current && !current.allDone ? describeMission(current) : current);
 
     // Percepción: barras y, con hasta 12 sensores, su lectura con dos decimales en el idioma activo.
     perception.update(world.perception);

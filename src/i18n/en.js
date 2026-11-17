@@ -102,7 +102,6 @@ export default {
   'drive.perception.hint': 'One bar per ray, left to right: the taller, the closer the obstacle. The last one is the speed.',
   'drive.action.hint': 'These four actions are the output of the problem: yes or no, at every instant.',
   'drive.guide.what': 'This is your car (green) on a {lanes}-lane street with traffic (orange). The blue rays are its sensors: they measure the distance to an obstacle. Drive without crashing and watch the board: those numbers are all a machine would get.',
-  'drive.guide.keys': 'Arrow keys or W A S D to drive.',
 
   'drive.restart': 'Restart (R)',
   'drive.newTraffic': 'New traffic',
@@ -762,7 +761,6 @@ export default {
   'drive.restart.plain': 'Restart',
   'drive.pause.plain': 'Pause',
   'drive.resume.plain': 'Resume',
-  'drive.guide.keys.plain': 'Arrow keys to drive.',
   'drive.crash.howto.plain': 'Press the Restart button to try again with the same traffic.',
   'drive.crash.howto.circuit.plain': 'Press the Restart button to start again from the start line.',
   'train.pause.plain': 'Pause',

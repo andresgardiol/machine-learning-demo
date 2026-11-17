@@ -21,28 +21,34 @@
 
 - [x] 2.1 `src/tabs/shared/consigna-card.js` (D1): región con título oculto, consigna y misión con la clase `guide`, y lugar para `run`. `setConsigna` y `setMission` escriben con `createTextSetter`. Si el armado se puede probar sin DOM, con su prueba. Verificación: `npm test`.
   *Hecho. `createConsignaCard({ i18n, run })` arma `<section class="consigna-card" aria-labelledby>` con el título oculto (`consigna.title`), la consigna y la misión con `guide`, y `run` sin `guide`. Suma `writeMissionRow`, que escribe la fila de la lista desde la misma vista que la tarjeta y le pone `data-current`, y `missionState`, sin DOM. Medido: `tests/consigna-card.test.js` (7 pruebas, con un documento mínimo como el de `library-view.test.js`) y `npm test` pasan.*
-- [ ] 2.2 Estilos de la tarjeta y del texto largo de la guía en `styles/app.css` (D5), y la marca de la misión en curso en la lista (`data-current`: "▸" y negrita). Verificación: el contorno de los controles sobre `--color-surface-2` sigue pasando `tests/control-contrast.test.js`, y en el navegador la marca se ve en escala de grises.
+- [x] 2.2 Estilos de la tarjeta y del texto largo de la guía en `styles/app.css` (D5), y la marca de la misión en curso en la lista (`data-current`: "▸" y negrita). Verificación: el contorno de los controles sobre `--color-surface-2` sigue pasando `tests/control-contrast.test.js`, y en el navegador la marca se ve en escala de grises.
+  *Hecho. Tarjeta en `--color-surface-2` con contorno `--color-border`, consigna de 15 px y 600, misión de 13 px; la pista de la barra va en `--color-bg` para que se vea sobre la tarjeta. Textos largos de las seis pestañas a 13 px en `--color-text-muted`. La fila en curso lleva "▸" y negrita. Se quitó la regla `.drive-keys`, que quedó sin uso. Medido: `tests/control-contrast.test.js` pasa (3,51:1 sobre `--color-surface-2`, sin cambios). Observado en el navegador con `filter: grayscale(1)`: la marca y la negrita se distinguen sin color.*
 
 ## 3. La tarjeta en cada pestaña
 
-- [ ] 3.1 El problema:
+- [x] 3.1 El problema:
   - la tarjeta primera, con `run` adentro;
   - `describeMission` compartida por la lista y la tarjeta;
   - consigna de la calle o del circuito, sin misión en el circuito;
   - se quita el renglón `drive.guide.keys` del `intro`.
 
   Verificación: escenarios "Consigna por defecto", "Circuito", "Primera misión por defecto", "Pasa a la siguiente", "Progreso al día", "Sin misiones en el modo" y "El problema". Con los atajos apagados, la consigna usa la versión `.plain`.
-- [ ] 3.2 Reglas a mano y Competir: la tarjeta primera, con `run` o `runSection` adentro. Verificación:
+  *Hecho. Tarjeta primera con `run` adentro, `describeMission` compartida por la fila y la tarjeta, consigna de calle o circuito, sin misión en el circuito, y sin el renglón `drive.guide.keys` (se quitaron sus claves y su tope). Observado en el navegador: "Consigna por defecto", "Circuito" (consigna de la pista y misión oculta), "Primera misión por defecto" (0 de 5) y "El problema" (Pausar en la tarjeta junto a Reiniciar); con los atajos apagados, "Manejá con las flechas sin chocar." y la del circuito sin W A S D. Medido con el guion (escenario 14, tiempo virtual): al cumplir la primera, la tarjeta pasa a "Recorré 500 m sin chocar", 261 de 500 m. "Progreso al día": la tarjeta y la fila salen de la misma vista en el mismo `sync()`; no se fotografió el instante 3 de 5.*
+- [x] 3.2 Reglas a mano y Competir: la tarjeta primera, con `run` o `runSection` adentro. Verificación:
   - en Competir, escenario "Competir con el cartel de largada", y `mlLab.auditHierarchy()` con una sola acción principal en cada estado del guion;
   - en Reglas a mano, "Misión en curso" con el progreso de la primera misión.
-- [ ] 3.3 Entrenar: la tarjeta primera en la vista de entrenamiento, con `run` adentro; consigna automática o manual. Verificación: escenarios "Cambia con el modo", "Otras vistas de Entrenar" y "Ventana mediana". **Si a 1366×768 la tarjeta no entra entera sin desplazar, parar y consultar** (Risks).
-- [ ] 3.4 Inspeccionar y Laboratorio: la tarjeta primera, sin `run`, con la consigna que nombra la barra de abajo de la red; en el Laboratorio, la consigna de cada experimento. Verificación: escenarios "Inspeccionar", "Laboratorio" y "Elegir una neurona".
-- [ ] 3.5 Comportamiento sin cambios:
+  *Hecho. Observado en el navegador: en Competir, con el cartel, la única principal es "Largar" del cartel y "Largar (espacio)" de la tarjeta queda secundaria; en la cuenta regresiva, corriendo, en pausa y reanudada, la única principal es la de la tarjeta, y `auditHierarchy()` da 0 problemas en los cinco estados. No se llegó al estado de carrera terminada ("Otra carrera"). Reglas a mano: la tarjeta muestra "Superá 3 vehículos sin chocar", 0 de 3.*
+- [x] 3.3 Entrenar: la tarjeta primera en la vista de entrenamiento, con `run` adentro; consigna automática o manual. Verificación: escenarios "Cambia con el modo", "Otras vistas de Entrenar" y "Ventana mediana". **Si a 1366×768 la tarjeta no entra entera sin desplazar, parar y consultar** (Risks).
+  *Hecho. Medido: a 1366×768 la tarjeta va de 170 a 434 px y entra entera (264 px de alto; también con la guía apagada, de 170 a 351). Observado: "Cambia con el modo" (Vos → "Elegí al líder…", con "Elegir al líder (E)" como principal; El fitness → vuelve) y "Otras vistas de Entrenar" (en Cerebros no hay tarjeta y la principal es Guardar como nuevo; al volver, la tarjeta está primera). Costo medido: la columna de la vista pasa de 757 a 860 px de contenido (se ven 614 a 1366 y 746 a 1440).*
+- [x] 3.4 Inspeccionar y Laboratorio: la tarjeta primera, sin `run`, con la consigna que nombra la barra de abajo de la red; en el Laboratorio, la consigna de cada experimento. Verificación: escenarios "Inspeccionar", "Laboratorio" y "Elegir una neurona".
+  *Hecho. Observado: Inspeccionar y el Laboratorio abren con la tarjeta, sin botón; la principal sigue siendo Reproducir/Pausar en la barra de abajo de la red. Las tres consignas del Laboratorio cambian con Compuertas, Puntos y Tu manejo y nombran Reproducir. Al elegir una neurona, la tarjeta sigue primera (146 px) y la cuenta aparece debajo; el texto largo cede su lugar. Decisión: en el Laboratorio la tarjeta también sigue a la vista con una neurona elegida. Costo medido: en Inspeccionar con una neurona elegida a 1366×768, la columna pasa de 654 a 755 px de contenido: la tabla de la neurona pide desplazar 51 px y sus filas 50 px (antes, nada). A 1440×900 no desplaza.*
+- [x] 3.5 Comportamiento sin cambios:
   - la marcha hace lo mismo con el mouse y con su atajo, con el mismo texto y el mismo tooltip, en los dos idiomas;
   - `mlLab.auditTooltips()` y `mlLab.auditHierarchy()` sin problemas nuevos;
   - las misiones se cumplen igual. Usar las pruebas de sesión que ya existen; no entrenar redes para comprobarlo.
 
   Verificación: `npm test` completo y escenario "Mismo comportamiento".
+  *Hecho. Medido: `npm test` completo, 1321 pruebas sin fallas (incluidas las de sesión de las misiones). Observado: en El problema, Reglas a mano y Entrenar, la marcha cambia igual con espacio y con el clic, con el mismo texto y la misma `data-help`; en inglés, mismos rótulos traducidos. `auditHierarchy()` y `auditTooltips()` sin problemas en las seis pestañas, en español y en inglés. El atajo de Competir no se probó en el navegador (su código no cambió; lo cubre `tests/compete-shortcuts.test.js`).*
 
 ## 4. Guía, accesibilidad, después y cierre
 

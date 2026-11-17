@@ -34,6 +34,8 @@ import { listCandidates, buildCompetitor, createSelection, pickerGroups, MAX_COM
 import { markFor, practicedTraffic } from './marks.js';
 import { createResults, STREET_TRAFFICS } from './results.js';
 import { createCompeteMissions } from './missions.js';
+import { currentMission } from '../../ui/current-mission.js';
+import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
 import { createSeedSeries, seedFor } from './seeds.js';
 import { shortcutFor, mainAction } from './shortcuts.js';
 import { mainAction as primaryOf, applyMainAction } from '../../ui/main-action.js';
@@ -248,6 +250,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     el('div', { class: 'run-main' }, mainButton),
     el('div', { class: 'run-secondary' }, restartButton, anotherButton),
     speeds.row);
+  // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la carrera y la misión en curso.
+  const card = createConsignaCard({ i18n, run: runSection });
 
   // --- Panel: tráfico de la carrera (solo en la calle recta) -------------------------------------
   const trafficChoice = optionGroup({
@@ -398,6 +402,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   }
 
   // --- Panel: misiones y borrar resultados -------------------------------------------------------
+  // Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2).
+  const describeMission = (m) => ({
+    done: m.done,
+    nameKey: `compete.mission.${m.id}`, nameParams: { goal: m.goal },
+    statusKey: m.done ? 'train.mission.done' : m.unit === 'none' ? 'train.mission.pending' : 'compete.mission.progress',
+    statusParams: m.done || m.unit === 'none' ? undefined : { value: m.progress, goal: m.goal },
+    fraction: m.done ? 1 : m.progress / m.goal,
+  });
   const missionRows = state.missions.missions.map((m) => {
     const status = el('span', { class: 'mission-status' });
     const fill = el('span', { class: 'mission-fill' });
@@ -413,7 +425,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
   const clearButton = button('compete.clear', 'compete.clear', () => { results.clear(); renderTable(); }, 'tool small compete-clear');
 
   panel.append(el('h1', { class: 'sr-only', i18n: 'compete.title' }),
-    el('div', { class: 'compete-panel' }, intro, runSection, trafficSection, penalty.row, viewSwitches, listSection, missions));
+    el('div', { class: 'compete-panel' }, card.node, intro, trafficSection, penalty.row, viewSwitches, listSection, missions));
 
   // --- Barra de escenario (D12): pista, tráfico y velocidad; sin sensores ---------------------
   // Grupo propio de Competir en la barra (D1b y D12): la meta, entre el tráfico y la velocidad, en el
@@ -742,15 +754,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     pauseBadge.hidden = phase !== 'paused';
 
     // Misiones
-    for (const m of state.missions.missions) {
-      const r = missionRows.find((x) => x.id === m.id);
-      r.row.dataset.done = String(m.done);
-      if (m.done) setText(r.status, 'train.mission.done');
-      else if (m.unit === 'none') setText(r.status, 'train.mission.pending');
-      else setText(r.status, 'compete.mission.progress', { value: m.progress, goal: m.goal });
-      const width = `${Math.round((m.done ? 1 : m.progress / m.goal) * 100)}%`;
-      if (r.fill.style.width !== width) r.fill.style.width = width;
+    const missionList = state.missions.missions;
+    const current = currentMission(missionList);
+    for (const m of missionList) {
+      writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
+    card.setConsigna('consigna.compete');
+    card.setMission(current && !current.allDone ? describeMission(current) : current);
 
     // Indicadores
     const time = formatFixed(Math.floor(race.time), 0, i18n.language);

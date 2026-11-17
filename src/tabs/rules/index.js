@@ -26,6 +26,8 @@ import { RULES_PROGRAM_MAX } from '../../ui/preferences.js';
 import { perceptionBlock, actionBlock, READINGS_MAX } from '../shared/driving-cards.js';
 import { setUnavailable } from '../shared/street-advanced.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
+import { currentMission } from '../../ui/current-mission.js';
+import { createConsignaCard, writeMissionRow } from '../shared/consigna-card.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { drivingDescription } from '../shared/stage-text.js';
@@ -289,6 +291,8 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   const run = el('section', { class: 'drive-run' },
     el('div', { class: 'run-main' }, pauseButton, button('rules.restart', 'rules.restart', restart)),
     el('div', { class: 'run-secondary' }, newTrafficButton));
+  // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
+  const card = createConsignaCard({ i18n, run });
 
   const sensorsSwitch = switchButton('rules.sensors', 'rules.sensors', state.showSensors, () => {
     state.showSensors = !state.showSensors;
@@ -395,6 +399,14 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     confirm.node, message);
 
   // --- Panel: misiones --------------------------------------------------------------
+  // Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2).
+  const describeMission = (m) => ({
+    done: m.done,
+    nameKey: `rules.mission.${m.id}`, nameParams: { goal: m.goal },
+    statusKey: m.done ? 'drive.mission.done' : 'drive.mission.progress.vehicles',
+    statusParams: m.done ? undefined : { value: m.progress, goal: m.goal },
+    fraction: m.done ? 1 : m.progress / m.goal,
+  });
   const missionRows = MISSIONS.map((m) => {
     const rowStatus = el('span', { class: 'mission-status' });
     const fill = el('span', { class: 'mission-fill' });
@@ -442,7 +454,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
 
   panel.append(
     el('h1', { class: 'sr-only', i18n: 'rules.title' }),
-    intro, run, viewSwitches, programSection, missions);
+    card.node, intro, viewSwitches, programSection, missions);
 
   // --- Mensajes sobre el escenario ----------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
@@ -479,14 +491,13 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     setText(strip.values.best, 'drive.value.meters', meters(session.best));
     setText(strip.values.rules, 'drive.value.count', { value: program.rules });
 
+    // Misiones: la lista y, en la tarjeta, la primera sin cumplir (en un circuito no hay misiones).
+    const current = currentMission(session.missions, { available: !circuit });
     for (const m of session.missions) {
-      const r = missionRows.find((x) => x.id === m.id);
-      r.row.dataset.done = String(m.done);
-      if (m.done) setText(r.status, 'drive.mission.done');
-      else setText(r.status, 'drive.mission.progress.vehicles', { value: m.progress, goal: m.goal });
-      const width = `${Math.round((m.done ? 1 : m.progress / m.goal) * 100)}%`;
-      if (r.fill.style.width !== width) r.fill.style.width = width;
+      writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
+    card.setConsigna('consigna.rules');
+    card.setMission(current && !current.allDone ? describeMission(current) : current);
 
     perception.update(world.perception);
     action.update(controller.controls);
