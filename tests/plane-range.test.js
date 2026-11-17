@@ -43,3 +43,16 @@ test('la grilla del fondo y los mapas recorren el rango pedido', () => {
   assert.deepEqual(Array.from(b.layers[1][0]), Array.from(a));
   assert.deepEqual(Array.from(planeGrid(net, n)), Array.from(neuronGrid(net, n).layers[1][0]), 'por defecto, [−1, 1] en los dos');
 });
+
+test('el rótulo del punto no tapa los casos que se le piden evitar', async () => {
+  const { probeLabelBox } = await import('../src/render/plane-view.js');
+  const g = planeGeometry(400, 400, [-0.5, 1.5]);
+  const at = planeToPx(g, 0, 0); // (100, 300)
+  const right = planeToPx(g, 1, 0); // (300, 300): el caso que tapaba un rótulo largo a la derecha
+  const free = probeLabelBox(g, at.x, at.y, 190, 20, 18);
+  assert.ok(free.x + 190 > right.x - 14, 'sin pedirlo, va a la derecha y lo tapa');
+  const b = probeLabelBox(g, at.x, at.y, 190, 20, 18, [{ ...right, r: 14 }]);
+  const dx = Math.max(Math.abs(right.x - (b.x + 95)) - 95, 0);
+  const dy = Math.max(Math.abs(right.y - (b.y + 10)) - 10, 0);
+  assert.ok(dx * dx + dy * dy >= 14 * 14);
+});

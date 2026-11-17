@@ -100,11 +100,17 @@ export function nudgeProbe(p, key, fine = false, range = DEFAULT_RANGE) {
 /**
  * Dónde va el rótulo de w × h junto al marcador en (px, py): a la derecha, a la izquierda, arriba,
  * abajo o en diagonal, el primero que entra en el plano sin tapar el marcador; si ninguno entra (un
- * rótulo más ancho que el plano), pegado al borde.
+ * rótulo más ancho que el plano), pegado al borde. Con `avoid`, tampoco tapa esos puntos.
  */
-export function probeLabelBox(g, px, py, w, h, r = PROBE.radius) {
+export function probeLabelBox(g, px, py, w, h, r = PROBE.radius, avoid = []) {
   const gap = 6;
-  const inside = (b) => b.x >= g.ox && b.y >= g.oy && b.x + w <= g.ox + g.side && b.y + h <= g.oy + g.side;
+  // `avoid`: puntos que el rótulo no tiene que tapar ({ x, y, r } en px; con compuertas, los cuatro casos).
+  const free = (b) => avoid.every((c) => {
+    const dx = Math.max(Math.abs(c.x - (b.x + w / 2)) - w / 2, 0);
+    const dy = Math.max(Math.abs(c.y - (b.y + h / 2)) - h / 2, 0);
+    return dx * dx + dy * dy >= c.r * c.r;
+  });
+  const inside = (b) => b.x >= g.ox && b.y >= g.oy && b.x + w <= g.ox + g.side && b.y + h <= g.oy + g.side && free(b);
   const options = [
     { x: px + r + gap, y: py - h / 2 },
     { x: px - r - gap - w, y: py - h / 2 },
@@ -155,6 +161,7 @@ export function createPlaneView({ container, doc = document, now = () => perform
   let gridKey = null;
   let colors = readColors();
   let lastRange = DEFAULT_RANGE;
+  let paints = 0; // veces que se recalculó el fondo (verificación desde la consola)
 
   function readColors() {
     const st = getComputedStyle(doc.documentElement);
@@ -235,6 +242,7 @@ export function createPlaneView({ container, doc = document, now = () => perform
     const mapChanged = gridKey !== null && String(gridKey).split('|').slice(1).join('|') !== `${state.map?.key ?? 'red'}|${range.join(',')}`;
     if (state.force || mapChanged || (key !== gridKey && (state.live || t - lastGrid >= 1000 / PLANE_FPS))) {
       paintGrid(state.network, state.off ?? null, state.map ?? null, range);
+      paints += 1;
       gridKey = key;
       lastGrid = t;
     }
@@ -350,6 +358,8 @@ export function createPlaneView({ container, doc = document, now = () => perform
     /** El cuadrado del plano en la zona, en px CSS (para el punto de prueba), con el rango del último render. */
     get geometry() { if (size.w <= 1) resize(); return planeGeometry(size.w, size.h, lastRange); },
     paintMap,
+    /** Veces que se recalculó el fondo desde que se creó (verificación desde la consola). */
+    get paints() { return paints; },
     refreshColors() { colors = readColors(); gridKey = null; },
     dispose() { observer.disconnect(); canvas.remove(); },
   };

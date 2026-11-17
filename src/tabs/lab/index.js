@@ -13,7 +13,7 @@
 // mientras la pestaña no está a la vista (D12).
 import { createWorld } from '../../core/world.js';
 import { computeNetwork, copyNetwork } from '../../core/network.js';
-import { forwardSoft, bakeOff } from '../../core/backprop.js';
+import { forwardSoft, bakeOff, evaluate } from '../../core/backprop.js';
 import { overfitting } from '../../core/overfitting.js';
 import { createRecorder, DRIVING_OUTPUTS, summary, POINT_SHAPES, GATES, gatesDataset, POINT_LIMITS, HOLDOUT_LIMITS, evaluatedRows, filterRows, SPIRAL_TURNS } from '../../core/datasets.js';
 import { createBrain } from '../../core/brain.js';
@@ -42,7 +42,7 @@ import { listBrains, PICKER_GROUPS, trainedTracks } from '../inspect/brains.js';
 import { createLabSession, rateToSlider, sliderToRate, DRIVING_DEFAULTS } from './session.js';
 import { createLabPlayback, PACES, isRunning, kindPlayback } from './playback.js';
 import { createLearningAnimation, stepDuration } from './step-animation.js';
-import { describeLearningStep, whereText, layerName, neuronName } from './describe.js';
+import { describeLearningStep, whereText, layerName, neuronName, errorTrend } from './describe.js';
 import { createLabMissions } from './missions.js';
 import { shortcutFor } from './shortcuts.js';
 import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS, DATA_KINDS } from './defaults.js';
@@ -56,6 +56,8 @@ import { createConnectionDetail } from '../shared/connection-detail.js';
 import { createWeightHistory } from '../shared/weight-history.js';
 import { PLANE_GRID, PLANE_FPS, mapShade, brightestRegion, PROBE, planeToPx, pxToPlane, nudgeProbe, probeLabelBox, probeAnswer } from '../../render/plane-view.js';
 
+/** Con tu manejo, el error de ahora (D11) se mide sobre una muestra fija de hasta tantos ejemplos. */
+export const ERROR_SAMPLE_MAX = 500;
 /** Semilla del tráfico de la escena (con tu manejo). */
 export const SEED = 1;
 /** Cuadros que se ve el choque antes de volver a salir. */
@@ -132,7 +134,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (!hasPlane()) return null;
     const key = `${session.version}:${changesVersion}:${run().network.sizes.join('-')}`;
     const now = performance.now();
-    if (maps.grid && (key === maps.key || now - maps.at < 1000 / PLANE_FPS) && maps.grid.layers.length === run().network.sizes.length) return maps;
+    if (maps.grid && (key === maps.key || (!liveGesture && now - maps.at < 1000 / PLANE_FPS)) && maps.grid.layers.length === run().network.sizes.length) return maps;
     const net = run().network;
     maps.grid = neuronGrid(net, PLANE_GRID, run().off, session.range);
     maps.key = key;
@@ -222,6 +224,23 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         manualChange(() => run().setWeight(sel.layer, sel.neuron, sel.input, value), info.gesture);
       },
       end: () => session.manual.end(),
+    },
+    // Perillas sobre la red (laboratorio-empieza-por-compuertas D5): cada peso o sesgo es un cambio a mano
+    // (un arrastre, uno solo); las entradas mueven el punto de prueba y no cambian la red.
+    onKnob: {
+      change: (target, value, info) => {
+        liveGesture = Boolean(info.gesture);
+        manualChange(() => (target.bias ? run().setBias(target.layer, target.neuron, value) : run().setWeight(target.layer, target.neuron, target.input, value)), info.gesture, target);
+      },
+      input: (i, value) => {
+        const p = session.probe;
+        moveProbe(i === 0 ? { x: value, y: p.y } : { x: p.x, y: value }, { announceIt: false });
+      },
+      end: () => {
+        session.manual.end();
+        if (liveGesture) { liveGesture = false; planeForce = true; }
+        if (errorCompare) announce(errorCompareText());
+      },
     },
   });
   const headerLayer = el('div', { class: 'inspect-headers' });
@@ -469,7 +488,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const key = `${text}|${at.x.toFixed(1)}|${at.y.toFixed(1)}|${g.side}`;
     if (key !== probeLabelKey) {
       probeLabelKey = key;
-      const b = probeLabelBox(g, at.x, at.y, probeLabel.offsetWidth, probeLabel.offsetHeight, isGates() ? 18 : PROBE.radius);
+      // Con compuertas, el rótulo no tapa ninguno de los cuatro casos (el de abajo del punto ya lo rodea el aro).
+      const avoid = isGates() ? session.data.examples.map((ex) => ({ ...planeToPx(g, ex.inputs[0], ex.inputs[1]), r: 14 })).filter((c) => Math.hypot(c.x - at.x, c.y - at.y) > 1) : [];
+      const b = probeLabelBox(g, at.x, at.y, probeLabel.offsetWidth, probeLabel.offsetHeight, isGates() ? 18 : PROBE.radius, avoid);
       probeLabel.style.transform = `translate(${b.x.toFixed(1)}px, ${b.y.toFixed(1)}px)`;
     }
     write(probeDesc, probeText());
@@ -511,12 +532,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     },
   });
   const stats = el('p', { class: 'lab-stats', help: 'lab.term.epoch' });
+  // Error de ahora contra el de antes de mover una perilla (D11): flecha y palabra, sin sumar puntos a la curva.
+  const liveError = el('p', { class: 'lab-live-error', help: 'lab.liveError' });
   // El aviso se anuncia una vez por aparición con el anunciador (afterLearning), no con un rol propio.
   const warning = el('p', { class: 'lab-warning', help: 'lab.term.overfitting' });
   const chartText = el('p', { class: 'sr-only', attrs: { id: 'lab-chart-description' } });
   const curves = el('section', { class: 'lab-curves', attrs: { 'aria-labelledby': 'lab-curves-title' } },
     el('h2', { class: 'panel-heading', i18n: 'lab.chart.title', help: 'lab.chart.title', attrs: { id: 'lab-curves-title', tabindex: '0' } }),
-    stats, chartZone, warning, chartText);
+    stats, liveError, chartZone, warning, chartText);
   chart.element.setAttribute('aria-describedby', 'lab-chart-description');
   const announcer = el('p', { class: 'sr-only', attrs: { role: 'status', 'aria-live': 'polite' } });
   function announce(text) { announcer.textContent = ''; announcer.textContent = text ?? ''; }
@@ -823,6 +846,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   /** El aprendizaje empezó de nuevo (datos, red o pesos nuevos): todo lo mostrado se vacía. */
   function restarted() {
     animation = null;
+    errorCompare = null;
     lastStep = null;
     announcedAppearances = 0;
     state.saveNotice = null;
@@ -856,12 +880,39 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
    * Un cambio a mano: se guarda la copia de antes (un arrastre entero es un cambio) y se aplica a la red
    * que aprende. Si había un ejemplo a medio recorrer, vuelve a la ida (lo hace el recorrido).
    */
-  function manualChange(apply, gesture) {
+  function manualChange(apply, gesture, target = null) {
     const snap = run().snapshot();
+    const before = errorNow();
     const wasMid = Boolean(run().active && !run().active.done && run().active.cursor.started);
     if (!apply()) return;
     session.recordManual(snap, { gesture });
+    // Error de antes y de ahora (D11): "antes" es el de antes de empezar a mover la perilla. Un arrastre es
+    // una comparación; con las flechas, las teclas seguidas sobre la misma perilla también. Otra perilla,
+    // otro arrastre o un paso del aprendizaje empiezan otra.
+    const where = target ? `${target.layer}:${target.neuron}:${target.bias ? 'b' : target.input}` : 'otro';
+    const targetKey = gesture ? `g:${gesture}` : `k:${where}`;
+    if (!errorCompare || errorCompare.key !== targetKey) errorCompare = { key: targetKey, before };
+    errorCompare.now = errorNow();
     afterManual(wasMid);
+  }
+  // Comparación del error mientras se mueve una perilla (D11): { key, before, now } o null.
+  let errorCompare = null;
+  // Con tu manejo, una muestra fija de hasta 500 ejemplos de práctica (siempre la misma): uno de cada tantos.
+  let errorSample = { split: null, examples: [] };
+  function errorExamples() {
+    const practice = session.split.practice;
+    if (errorSample.split === session.split) return errorSample.examples;
+    const step = Math.max(1, Math.ceil(practice.length / ERROR_SAMPLE_MAX));
+    errorSample = { split: session.split, examples: practice.filter((_, k) => k % step === 0).slice(0, ERROR_SAMPLE_MAX) };
+    return errorSample.examples;
+  }
+  const errorNow = () => evaluate(run().network, errorExamples(), run().off).loss;
+  function errorCompareText() {
+    const c = errorCompare;
+    if (!c) return '';
+    const trend = errorTrend(c.before, c.now);
+    const sampled = errorExamples().length < session.split.practice.length;
+    return t(sampled ? 'lab.liveError.sample' : 'lab.liveError', { before: fmt(c.before), now: fmt(c.now), arrow: t(`lab.liveError.arrow.${trend}`), word: t(`lab.liveError.${trend}`), count: errorExamples().length });
   }
   function afterManual(wasMid = false) {
     if (animation) { animation.finish(); animation = null; }
@@ -876,6 +927,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const snap = session.manual.undo();
     if (!snap) return;
     run().restore(snap);
+    errorCompare = null;
     afterManual();
     announce(t('inspect.announce.undone', { count: session.manual.count }));
   }
@@ -883,6 +935,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const snap = session.manual.reset();
     if (!snap) return;
     run().restore(snap);
+    errorCompare = null;
     afterManual();
     announce(t('inspect.announce.reset'));
   }
@@ -892,6 +945,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   /** Un paso del tamaño `size`. */
   function advance(size, { auto }) {
     restartedNote = false;
+    errorCompare = null; // la comparación queda hasta el próximo paso del aprendizaje (D11)
     probeView = false; // el paso siguiente vuelve a mostrar el ejemplo (punto-de-prueba D5)
     if (animation) { animation.finish(); animation = null; }
     const r = session.advance(size);
@@ -1291,7 +1345,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     } : null;
     const m = refreshMaps();
     const mapsFn = m ? (l, j) => m.canvases[l]?.[j] ?? null : null;
-    inspector.render({ ...common, pill, maps: mapsFn, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
+    inspector.render({ ...common, pill, knobs: knobSpec(), maps: mapsFn, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
     table.render({ ...common, visible: state.view === 'table', changesVersion: `${changesVersion}|${anim ? now : ''}`, filter: state.filter });
     placeOverlay();
     if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
@@ -1381,10 +1435,29 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
     drawExample(a);
     drawCurves();
+    const cmp = errorCompareText();
+    show(liveError, cmp !== '');
+    if (cmp) { write(liveError, cmp); setData(liveError, 'trend', errorTrend(errorCompare.before, errorCompare.now)); }
     drawDataTable(now, a);
     if (++descTick % 30 === 1) describeBoard();
   }
   let descTick = 0;
+
+  const knobPlace = (l, j) => (l === 0 || l === run().network.sizes.length - 1 ? nameOf(l, j) : placeNameOf(l, j));
+  /** Perillas que el Laboratorio le pide a la red (D5): pesos y sesgos siempre; entradas con plano. */
+  function knobSpec() {
+    return {
+      range: (v) => weightRange(v, 3),
+      inputs: isGates() ? { kind: 'toggle', values: [0, 1] } : hasPlane() ? { kind: 'range', min: -1, max: 1 } : null,
+      names: {
+        // Con capas ocultas, la capa va en el nombre: "neurona 1" sola no dice de cuál.
+        weight: (l, j, i) => t('inspect.pill.label', { from: knobPlace(l - 1, i), to: knobPlace(l, j) }),
+        bias: (l, j) => t('lab.knob.bias.label', { name: knobPlace(l, j) }),
+        input: (i) => t(isGates() ? 'lab.knob.switch.label' : 'lab.knob.input.label', { name: nameOf(0, i) }),
+      },
+      help: { weight: 'lab.knob.weight', bias: 'lab.knob.bias', input: isGates() ? 'lab.knob.switch' : 'lab.knob.input' },
+    };
+  }
 
   /** La tabla de verdad (D6): la red que se ve, el caso de las entradas y el ejemplo en curso. */
   function drawTruth(r, a, played) {

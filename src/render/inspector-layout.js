@@ -30,10 +30,14 @@ export const INSPECTOR_LAYOUT = Object.freeze({
  * @returns {{columns:{x:number, collapsed:boolean, side:number, nodes:{x:number,y:number}[]}[],
  *   radius:number, inputLabels:object[], outputLabels:object[], width:number, height:number, top:number, bottom:number}}
  */
-export function layoutInspector({ sizes, width, height, collapsed = [], headerRows = 1 }) {
+export function layoutInspector({ sizes, width, height, collapsed = [], headerRows = 1, knobs = false }) {
   const { padding, minLabelGap } = LAYOUT;
   const header = INSPECTOR_LAYOUT.header + (headerRows > 1 ? INSPECTOR_LAYOUT.headerRow : 0);
-  const { maxRadius, minRadius, square, collapsedWidth, collapsedGapWeight, labelLeft, labelRight, heightShare, gapShare } = INSPECTOR_LAYOUT;
+  const { maxRadius, minRadius, square, collapsedWidth, collapsedGapWeight, labelLeft, labelRight } = INSPECTOR_LAYOUT;
+  // Con perillas sobre la red (laboratorio-empieza-por-compuertas D5), las neuronas dejan lugar a las
+  // pastillas: un radio más chico respecto del hueco entre columnas y del alto de cada neurona.
+  const heightShare = knobs ? KNOBS.heightShare : INSPECTOR_LAYOUT.heightShare;
+  const gapShare = knobs ? KNOBS.gapShare : INSPECTOR_LAYOUT.gapShare;
   const isCollapsed = (c) => Boolean(collapsed[c]);
   const top = header + padding;
   const bottom = Math.max(top + 1, height - padding);
@@ -205,4 +209,118 @@ export function neighborOf(sizes, { layer, neuron }, key) {
     return { layer: to, neuron: Math.round(rel * (sizes[to] - 1)) };
   }
   return null;
+}
+
+// --- Perillas sobre la red (laboratorio-empieza-por-compuertas D5) ---------------------------------
+/**
+ * Medidas de las perillas: con hasta `allMax` conexiones se ven todas; la pastilla de un peso mide
+ * w × h y va sobre su línea, primero al 30 % desde la neurona de destino (así las que llegan a una
+ * misma neurona se abren en abanico); el sesgo, debajo de su neurona (o a un costado, si abajo no
+ * entra); el control de una entrada, a la izquierda de la neurona, dejando lugar a su nombre.
+ */
+export const KNOBS = Object.freeze({
+  allMax: 16, w: 42, h: 18, inputW: 34, gap: 3, labelRoom: 20,
+  gapShare: 0.16, heightShare: 0.25,
+  // Lugares que se prueban sobre la línea, como fracción desde el destino: 30 % primero.
+  along: Object.freeze([0.3, 0.35, 0.25, 0.4, 0.45, 0.5, 0.2, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.15, 0.85]),
+});
+
+/** Conexiones de una red (sin contar los sesgos). */
+export const connectionCount = (sizes) => sizes.reduce((s, n, l) => (l === 0 ? 0 : s + n * sizes[l - 1]), 0);
+
+/**
+ * Qué perillas se ven, en el orden del foco (de la primera capa a la última): las entradas (si se
+ * piden), y por cada neurona sus pesos y su sesgo. Con más de `allMax` conexiones, solo las que entran
+ * a la neurona elegida y su sesgo (y las entradas, que no son conexiones).
+ * @param {number[]} sizes
+ * @param {{layer:number, neuron:number, input?:number}|null} selected
+ * @param {{inputs?:boolean, allMax?:number}} [opts]
+ * @returns {{kind:'input'|'weight'|'bias', layer:number, neuron:number, input?:number}[]}
+ */
+export function knobTargets(sizes, selected, { inputs = false, allMax = KNOBS.allMax } = {}) {
+  const out = [];
+  if (inputs) for (let i = 0; i < sizes[0]; i++) out.push({ kind: 'input', layer: 0, neuron: i });
+  const all = connectionCount(sizes) <= allMax;
+  const only = !all && selected && selected.input === undefined && selected.layer > 0 ? selected : null;
+  for (let l = 1; l < sizes.length; l++) {
+    for (let j = 0; j < sizes[l]; j++) {
+      if (!all && !(only && only.layer === l && only.neuron === j)) continue;
+      for (let i = 0; i < sizes[l - 1]; i++) out.push({ kind: 'weight', layer: l, neuron: j, input: i });
+      out.push({ kind: 'bias', layer: l, neuron: j });
+    }
+  }
+  return out;
+}
+
+const overlaps = (a, b, m = 0) => a.x - a.w / 2 < b.x + b.w / 2 + m && b.x - b.w / 2 < a.x + a.w / 2 + m && a.y - a.h / 2 < b.y + b.h / 2 + m && b.y - b.h / 2 < a.y + a.h / 2 + m;
+/** ¿El rectángulo (centro x, y; w × h) toca un círculo de centro c y radio r? */
+function hitsCircle(b, c, r) {
+  const dx = Math.max(Math.abs(c.x - b.x) - b.w / 2, 0);
+  const dy = Math.max(Math.abs(c.y - b.y) - b.h / 2, 0);
+  return dx * dx + dy * dy < r * r;
+}
+
+/**
+ * Dónde va cada perilla, en píxeles de pantalla: { ...target, x, y, w, h, at } (centro; `at`, la
+ * fracción sobre la línea para los pesos). Las entradas y los sesgos van primero en su lugar fijo; los
+ * pesos se prueban sobre su línea (KNOBS.along) hasta no tocar ninguna neurona ni otra pastilla. Si
+ * ninguno entra, queda en el 30 % y `crowded` lo dice.
+ * @param {ReturnType<typeof knobTargets>} targets
+ * @param {{centers:{x:number,y:number}[][], radius:number, bounds?:{left:number, top:number, right:number, bottom:number}}} geo
+ *   centers: el centro de cada neurona en pantalla, por capa
+ */
+export function placeKnobs(targets, { centers, radius, bounds = null }) {
+  const { w, h, inputW, gap, labelRoom } = KNOBS;
+  const margin = 2;
+  const placed = [];
+  const circles = centers.flat();
+  const clear = (b) => !circles.some((c) => hitsCircle(b, c, radius + margin)) && !placed.some((p) => overlaps(p, b, 1))
+    && (!bounds || (b.x - b.w / 2 >= bounds.left && b.x + b.w / 2 <= bounds.right && b.y - b.h / 2 >= bounds.top && b.y + b.h / 2 <= bounds.bottom));
+  let crowded = false;
+  for (const t of targets.filter((x) => x.kind !== 'weight')) {
+    const c = centers[t.layer][t.neuron];
+    if (t.kind === 'input') {
+      placed.push({ ...t, x: c.x - radius - labelRoom - inputW / 2, y: c.y, w: inputW, h });
+      continue;
+    }
+    const below = { ...t, x: c.x, y: c.y + radius + gap + h / 2, w, h };
+    const left = { ...t, x: c.x - radius - gap - w / 2, y: c.y + radius * 0.6, w, h };
+    const right = { ...t, x: c.x + radius + gap + w / 2, y: c.y + radius * 0.6, w, h };
+    const pick = [below, left, right].find(clear) ?? { ...below, crowded: true };
+    if (pick.crowded) crowded = true;
+    placed.push(pick);
+  }
+  const weights = targets.filter((x) => x.kind === 'weight');
+  const spots = (t) => {
+    const a = centers[t.layer - 1][t.input];
+    const b = centers[t.layer][t.neuron];
+    return KNOBS.along.map((f) => ({ ...t, x: b.x + (a.x - b.x) * f, y: b.y + (a.y - b.y) * f, w, h, at: f }));
+  };
+  const pending = [];
+  for (const t of weights) {
+    const pick = spots(t).find(clear);
+    if (pick) placed.push(pick); else pending.push(t);
+  }
+  // Reparación: una pastilla que no entra corre a otro lugar de su línea a la única pastilla de peso que
+  // la bloquea, si esa encuentra otro lugar libre.
+  for (const t of pending) {
+    let done = false;
+    for (const box of spots(t)) {
+      if (circles.some((c) => hitsCircle(box, c, radius + margin))) continue;
+      const blockers = placed.filter((p) => overlaps(p, box, 1));
+      if (blockers.length !== 1 || blockers[0].kind !== 'weight') continue;
+      const blocker = blockers[0];
+      placed.splice(placed.indexOf(blocker), 1);
+      placed.push(box);
+      const moved = spots(blocker).find(clear);
+      if (moved) { placed.push(moved); done = true; break; }
+      placed.pop();
+      placed.push(blocker);
+    }
+    if (!done) { placed.push({ ...spots(t)[0], crowded: true }); crowded = true; }
+  }
+  // En el orden pedido (el del foco).
+  const key = (t) => `${t.kind}:${t.layer}:${t.neuron}:${t.input ?? ''}`;
+  const byKey = new Map(placed.map((p) => [key(p), p]));
+  return { knobs: targets.map((t) => byKey.get(key(t))), crowded };
 }

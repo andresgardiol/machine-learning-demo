@@ -109,3 +109,13 @@ export function whereText({ t, run, ctx, running }) {
   if (!pos) return `${head} · ${t('lab.where.ready')}`;
   return `${head} · ${phase} · ${placeOf(t, ctx, at.layer, at.neuron)}`;
 }
+
+/**
+ * Hacia dónde fue el error al mover una perilla (laboratorio-empieza-por-compuertas D11): 'down' si
+ * bajó, 'up' si subió, 'same' si con dos decimales se lee igual.
+ */
+export function errorTrend(before, now) {
+  const r = (v) => Math.round(v * 100);
+  if (before === null || now === null || r(before) === r(now)) return 'same';
+  return now < before ? 'down' : 'up';
+}

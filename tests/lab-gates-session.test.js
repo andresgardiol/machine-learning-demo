@@ -195,3 +195,20 @@ test('"a mano": un paso del aprendizaje la apaga para esa compuerta; reiniciar p
   s.resetNetwork();
   assert.equal(s.handOnly, true);
 });
+
+// --- 4.4 Comparación del error -------------------------------------------------------------------
+test('error de antes y de ahora: baja, sube o igual (con dos decimales)', async () => {
+  const { errorTrend } = await import('../src/tabs/lab/describe.js');
+  assert.equal(errorTrend(0.69, 0.41), 'down');
+  assert.equal(errorTrend(0.41, 0.69), 'up');
+  assert.equal(errorTrend(0.691, 0.689), 'same');
+  assert.equal(errorTrend(null, 0.5), 'same');
+});
+
+test('mover perillas no suma puntos a la curva', () => {
+  const s = session();
+  for (let k = 0; k < 20; k++) manual(s, () => s.run.setBias(1, 0, k * 0.1), 'arrastre');
+  manual(s, () => s.run.setWeight(1, 0, 0, 1));
+  assert.equal(s.run.history.length, 0);
+  assert.equal(s.run.epoch, 0);
+});

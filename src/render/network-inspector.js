@@ -17,7 +17,7 @@
 // único propio es lo que está bajo el cursor y el reloj del flujo.
 import { activity } from './network-view.js';
 import { linkLook, maxWeightOfTrace } from './link-look.js';
-import { layoutInspector, hitTarget, INSPECTOR_LAYOUT } from './inspector-layout.js';
+import { layoutInspector, hitTarget, INSPECTOR_LAYOUT, knobTargets, placeKnobs, connectionCount, KNOBS } from './inspector-layout.js';
 import { createCamera, panStarts } from './camera.js';
 import { STAGES, focusOp } from '../core/pass-cursor.js';
 import { capToSquare } from './link-look.js';
@@ -36,6 +36,8 @@ export const FLOW = Object.freeze({ marks: 150, crossing: 0.6 });
 
 /** Pastilla (D8): píxeles de arrastre por cada 0,01 de peso. */
 export const PILL = Object.freeze({ pxPerStep: 4, step: 0.01, bigStep: 0.1 });
+/** Perillas (laboratorio-empieza-por-compuertas D5): 0,02 por píxel, así 300 px recorren de −3 a 3. */
+export const KNOB_DRAG = Object.freeze({ pxPerStep: 0.5 });
 
 /** Qué muestra adentro una neurona de radio `r` (D4): 'fill', 'value', 'curve' o 'detail'. */
 export function insideLevel(r) {
@@ -122,9 +124,12 @@ const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
  *   onSelect?: (target:{layer:number, neuron:number, input?:number}|null) => void,
  *   onHover?: (target:{layer:number, neuron:number, input?:number}|null) => void,
  *   onViewChange?: () => void,
- *   onPill?: {change:(value:number, info:{gesture:string|null}) => void, end:() => void}}} spec
+ *   onPill?: {change:(value:number, info:{gesture:string|null}) => void, end:() => void},
+ *   onKnob?: {change:(target:{layer:number, neuron:number, input?:number, bias?:true}, value:number, info:{gesture:string|null}) => void,
+ *     input:(i:number, value:number, info:{gesture:string|null}) => void, end:() => void}}} spec
+ *   onKnob: las perillas sobre la red (laboratorio-empieza-por-compuertas D5), cuando el estado trae `knobs`.
  */
-export function createNetworkInspector({ container, i18n, doc = document, onSelect = () => {}, onHover = () => {}, onViewChange = () => {}, onPill = null }) {
+export function createNetworkInspector({ container, i18n, doc = document, onSelect = () => {}, onHover = () => {}, onViewChange = () => {}, onPill = null, onKnob = null }) {
   const win = doc.defaultView;
   const canvas = doc.createElement('canvas');
   canvas.className = 'inspector-canvas';
@@ -146,6 +151,17 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
   pill.dataset.help = 'inspect.pill';
   pill.hidden = true;
   overlay.append(pill);
+  // Perillas (D5 de laboratorio-empieza-por-compuertas): un grupo de pastillas que se crean a demanda y se
+  // reusan entre cuadros, en el orden del foco (de la primera capa a la última).
+  const knobLayer = doc.createElement('div');
+  knobLayer.className = 'inspector-knobs';
+  overlay.append(knobLayer);
+  const knobEls = new Map(); // clave → elemento
+  const knobInfo = new Map(); // clave → { target, kind, value, min, max }
+  let knobOrder = '';
+  let knobPlaceKey = '';
+  let knobPlaced = [];
+  let knobsAll = false; // se ven las de todas las conexiones (no solo las de la neurona elegida)
 
   let colors = readColors();
   let viewport = { width: 0, height: 0 };
@@ -315,6 +331,157 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     onPill.end();
   });
 
+  // --- Perillas: arrastre vertical, flechas e interruptores -----------------------------------------
+  let knobDrag = null; // { id, key, y, start, gesture }
+  const clampKnob = (info, v) => {
+    const r = Math.round(v / PILL.step) * PILL.step;
+    return Math.max(info.min, Math.min(info.max, Number(r.toFixed(2))));
+  };
+  const knobKey = (t) => `${t.kind}:${t.layer}:${t.neuron}:${t.input ?? ''}`;
+  function sendKnob(info, v, gesture) {
+    info.value = v;
+    if (info.kind === 'input') onKnob.input(info.target.neuron, v, { gesture });
+    else onKnob.change(info.kind === 'bias' ? { layer: info.target.layer, neuron: info.target.neuron, bias: true } : { layer: info.target.layer, neuron: info.target.neuron, input: info.target.input }, v, { gesture });
+  }
+  knobLayer.addEventListener('pointerdown', (e) => {
+    const el = e.target.closest?.('[data-knob]');
+    if (!el || e.button !== 0 || !onKnob) return;
+    const info = knobInfo.get(el.dataset.knob);
+    if (!info) return;
+    e.preventDefault();
+    e.stopPropagation();
+    el.focus({ preventScroll: true });
+    if (info.toggle) return; // el interruptor cambia con el clic
+    knobDrag = { id: e.pointerId, key: el.dataset.knob, y: e.clientY, start: info.value, gesture: `knob:${el.dataset.knob}:${e.timeStamp}` };
+    try { el.setPointerCapture(e.pointerId); } catch { /* sigue sin capturar */ }
+    el.classList.add('dragging');
+  });
+  knobLayer.addEventListener('pointermove', (e) => {
+    if (!knobDrag || e.pointerId !== knobDrag.id) return;
+    const info = knobInfo.get(knobDrag.key);
+    if (!info) return;
+    const v = clampKnob(info, knobDrag.start + ((knobDrag.y - e.clientY) / KNOB_DRAG.pxPerStep) * PILL.step); // hacia arriba, sube
+    if (v !== info.value) sendKnob(info, v, knobDrag.gesture);
+  });
+  const endKnob = (e) => {
+    if (!knobDrag || e.pointerId !== knobDrag.id) return;
+    knobEls.get(knobDrag.key)?.classList.remove('dragging');
+    knobDrag = null;
+    onKnob?.end();
+  };
+  knobLayer.addEventListener('pointerup', endKnob);
+  knobLayer.addEventListener('pointercancel', endKnob);
+  knobLayer.addEventListener('click', (e) => {
+    const el = e.target.closest?.('[data-knob]');
+    const info = el && knobInfo.get(el.dataset.knob);
+    if (!info?.toggle || !onKnob) return;
+    e.stopPropagation();
+    const [lo, hi] = info.toggle;
+    sendKnob(info, info.value >= (lo + hi) / 2 ? lo : hi, null);
+    onKnob.end();
+  });
+  knobLayer.addEventListener('keydown', (e) => {
+    const el = e.target.closest?.('[data-knob]');
+    const info = el && knobInfo.get(el.dataset.knob);
+    if (!info || !onKnob || info.toggle) return;
+    const dir = e.key === 'ArrowUp' || e.key === 'ArrowRight' ? 1 : e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? -1 : 0;
+    if (dir === 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const v = clampKnob(info, info.value + dir * (e.shiftKey ? PILL.bigStep : PILL.step));
+    if (v === info.value) return;
+    sendKnob(info, v, null);
+    onKnob.end();
+  });
+
+  /** Crea (o reusa) el elemento de una perilla. */
+  function knobElement(t, spec) {
+    const key = knobKey(t);
+    let el = knobEls.get(key);
+    const toggle = t.kind === 'input' && spec.inputs?.kind === 'toggle';
+    if (el && (el.dataset.toggle === 'true') !== toggle) { el.remove(); el = null; }
+    if (!el) {
+      el = doc.createElement(toggle ? 'button' : 'div');
+      el.className = toggle ? 'inspector-knob inspector-knob-switch' : 'inspector-pill inspector-knob';
+      if (toggle) { el.type = 'button'; el.setAttribute('role', 'switch'); } else { el.setAttribute('role', 'slider'); el.setAttribute('aria-orientation', 'vertical'); el.setAttribute('tabindex', '0'); }
+      el.dataset.knob = key;
+      el.dataset.kind = t.kind;
+      el.dataset.toggle = String(toggle);
+      el.dataset.focus = 'keep';
+      el.dataset.shortcuts = 'pass';
+      knobEls.set(key, el);
+    }
+    return el;
+  }
+
+  /** Las perillas en su lugar (D5): cuáles se ven, dónde van y lo que muestran, con la cuenta que se ve. */
+  function placeKnobsNow(state, P, r, trace) {
+    const spec = state.knobs;
+    if (!spec || !onKnob) {
+      if (knobEls.size) { for (const el of knobEls.values()) el.remove(); knobEls.clear(); knobInfo.clear(); knobOrder = ''; }
+      knobsAll = false;
+      return;
+    }
+    const sizes = state.sizes;
+    const targets = knobTargets(sizes, state.selected ?? null, { inputs: Boolean(spec.inputs) });
+    knobsAll = connectionCount(sizes) <= KNOBS.allMax;
+    const keys = targets.map(knobKey);
+    const order = keys.join('|');
+    if (order !== knobOrder) {
+      knobOrder = order;
+      for (const [k, el] of knobEls) if (!keys.includes(k)) { el.remove(); knobEls.delete(k); knobInfo.delete(k); }
+      knobLayer.replaceChildren(...targets.map((t) => knobElement(t, spec)));
+      knobPlaceKey = '';
+    }
+    // Dónde van: depende solo de la geometría (no de los valores), así no saltan mientras cambian.
+    const placeKey = `${order}|${P.map((col) => col.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(';')).join('/')}|${r.toFixed(2)}`;
+    if (placeKey !== knobPlaceKey) {
+      knobPlaceKey = placeKey;
+      knobPlaced = placeKnobs(targets, { centers: P, radius: r }).knobs;
+    }
+    targets.forEach((t, k) => {
+      const key = keys[k];
+      const el = knobEls.get(key);
+      const at = knobPlaced[k];
+      let value;
+      let range;
+      let name;
+      let help;
+      if (t.kind === 'input') {
+        const n = trace.layers[0].neurons[t.neuron];
+        value = n.raw ?? n.output;
+        range = spec.inputs.kind === 'toggle' ? { min: spec.inputs.values[0], max: spec.inputs.values[1] } : { min: spec.inputs.min, max: spec.inputs.max };
+        name = spec.names?.input?.(t.neuron) ?? '';
+        help = spec.help?.input ?? 'inspect.knob.input';
+      } else {
+        const n = trace.layers[t.layer].neurons[t.neuron];
+        value = t.kind === 'bias' ? n.bias : n.weights[t.input];
+        range = spec.range ? spec.range(value) : { min: -3, max: 3 };
+        name = t.kind === 'bias' ? spec.names?.bias?.(t.layer, t.neuron) ?? '' : spec.names?.weight?.(t.layer, t.neuron, t.input) ?? '';
+        help = t.kind === 'bias' ? spec.help?.bias ?? 'inspect.knob.bias' : spec.help?.weight ?? 'inspect.pill';
+      }
+      const toggle = t.kind === 'input' && spec.inputs.kind === 'toggle' ? [spec.inputs.values[0], spec.inputs.values[1]] : null;
+      const dragging = knobDrag?.key === key;
+      if (!dragging) knobInfo.set(key, { target: t, kind: t.kind, value, min: range.min, max: range.max, toggle });
+      const shown = dragging ? knobInfo.get(key).value : value;
+      const text = toggle ? String(shown >= (toggle[0] + toggle[1]) / 2 ? toggle[1] : toggle[0]) : fmt(shown);
+      if (el.textContent !== text) el.textContent = text;
+      if (el.getAttribute('aria-label') !== name) el.setAttribute('aria-label', name);
+      if (toggle) el.setAttribute('aria-checked', String(shown >= (toggle[0] + toggle[1]) / 2));
+      else {
+        el.setAttribute('aria-valuemin', String(range.min));
+        el.setAttribute('aria-valuemax', String(range.max));
+        el.setAttribute('aria-valuenow', String(shown));
+        el.setAttribute('aria-valuetext', text);
+      }
+      if (el.dataset.help !== help) el.dataset.help = help;
+      el.dataset.sign = shown < 0 ? 'negative' : 'positive';
+      const inside = at && at.x > -at.w && at.x < viewport.width + at.w && at.y > -at.h && at.y < viewport.height + at.h && !overSquares(at.x - at.w / 2, at.x + at.w / 2);
+      el.hidden = !inside;
+      if (inside) el.style.transform = `translate(${Math.round(at.x)}px, ${Math.round(at.y)}px) translate(-50%, -50%)`;
+    });
+  }
+
   // --- Dibujo --------------------------------------------------------------------------------------
 
   /** Trazos agrupados por aspecto (color, brillo, grosor y trazo) para pocos cambios de estilo. */
@@ -379,6 +546,10 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
    * @param {string} [state.stepSize] tamaño del paso ('frame', 'layer', 'neuron', 'operation', …): define lo que está en curso (D19)
    * @param {'run'|'frozen'|'off'} [state.flow] flujo de la señal (D10): corre, quieto o no se ve
    * @param {{min:number, max:number}|null} [state.pill] la conexión elegida se puede cambiar en el lugar (D8)
+   * @param {{range?:(v:number)=>{min:number,max:number}, inputs?:null|{kind:'toggle', values:[number, number]}|{kind:'range', min:number, max:number},
+   *   names?:{weight:Function, bias:Function, input:Function}, help?:{weight?:string, bias?:string, input?:string}}|null} [state.knobs]
+   *   perillas sobre la red (laboratorio-empieza-por-compuertas D5): pesos y sesgos (todas con hasta 16
+   *   conexiones; si no, las de la neurona elegida) y, si se piden, las entradas
    * @param {string|null} [state.banner] rótulo sobre la red (por ejemplo, "Original, sin tus cambios")
    * @param {(layer:number, neuron:number) => (HTMLCanvasElement|null)} [state.maps] mapa de cada neurona (D12)
    * @param {{input:(i:number)=>string, output:(j:number)=>string, neuron?:(t:{layer:number, neuron:number})=>string}} [state.labels]
@@ -388,12 +559,12 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
   function render(state) {
     lastState = state;
     // El tamaño lo lleva el ResizeObserver: leerlo en cada cuadro obligaría a recalcular la página.
-    if (state.visible === false) { pill.hidden = true; return layout; }
+    if (state.visible === false) { pill.hidden = true; for (const el of knobEls.values()) el.hidden = true; return layout; }
     if (viewport.width <= 1) resize();
     const { sizes, trace } = state;
     const cursor = state.cursor ?? null;
     const collapsed = state.collapsed ?? [];
-    layout = layoutInspector({ sizes, width: viewport.width, height: viewport.height, collapsed, headerRows: state.headerRows ?? 1 });
+    layout = layoutInspector({ sizes, width: viewport.width, height: viewport.height, collapsed, headerRows: state.headerRows ?? 1, knobs: Boolean(state.knobs && onKnob) });
     camera.update(target(), viewport);
     const z = camera.zoom;
     const r = Math.min(INSIDE.maxRadius, layout.radius * z);
@@ -670,7 +841,9 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       ctx.fillText(labels ? labels.output(lab.index) : i18n.t(`network.output.${lab.key}`), p.x + r + 8, p.y);
     }
     if (state.learning) drawLearning(state.learning, P, r, C, layout, z);
-    drawLinkNumbers(selected, trace, P, layout, Boolean(state.pill), termsOf, current?.kind === 'connection' ? current : null);
+    placeKnobsNow(state, P, r, trace);
+    // Con las perillas a la vista, los números de las conexiones elegidas ya están en sus pastillas.
+    drawLinkNumbers(selected, trace, P, layout, Boolean(state.pill) || knobsAll, termsOf, current?.kind === 'connection' ? current : null, knobsAll || (Boolean(state.knobs) && Boolean(selected) && selected.input === undefined && selected.layer > 0));
     if (current?.kind === 'connection') drawLinkMath(current, trace, P, layout, cursor);
     placePill(state, P, trace);
     if (state.banner) bannerBox(state.banner);
@@ -784,7 +957,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
    * cursor. De a operaciones, en una neurona a medio calcular (operacion-por-operacion D5), los aportes de
    * las ya multiplicadas y nada en las que faltan; la conexión en curso lleva su cuenta aparte.
    */
-  function drawLinkNumbers(selected, trace, P, lay, hasPill, termsOf = null, inMath = null) {
+  function drawLinkNumbers(selected, trace, P, lay, hasPill, termsOf = null, inMath = null, knobsShown = false) {
     if (!selected) return;
     const items = [];
     const midway = termsOf && selected.input === undefined && selected.layer > 0 ? termsOf(selected.layer, selected.neuron) : null;
@@ -804,6 +977,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       const n = trace.layers[selected.layer]?.neurons[selected.neuron];
       if (n) items.push({ a: O[selected.layer - 1][selected.input], b: I[selected.layer][selected.neuron], w: n.weights[selected.input] });
     } else if (selected.layer > 0) {
+      if (knobsShown) return; // cada peso ya está en su pastilla
       const n = trace.layers[selected.layer].neurons[selected.neuron];
       n.weights.forEach((w, i) => items.push({ a: O[selected.layer - 1][i], b: I[selected.layer][selected.neuron], w }));
     } else if (selected.layer === 0 && lay.columns.length > 1) {
@@ -903,7 +1077,8 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
   /** Pastilla sobre la conexión elegida (D8), en su punto medio. */
   function placePill(state, P, trace) {
     const sel = state.selected;
-    const ok = sel && sel.input !== undefined && state.pill && onPill && linkOut[sel.layer - 1]?.[sel.input] && linkIn[sel.layer]?.[sel.neuron];
+    // Con las perillas de todas las conexiones a la vista, la conexión elegida ya tiene la suya.
+    const ok = sel && sel.input !== undefined && state.pill && onPill && !knobsAll && linkOut[sel.layer - 1]?.[sel.input] && linkIn[sel.layer]?.[sel.neuron];
     if (!ok) { pill.hidden = true; pillInfo = null; return; }
     const n = trace.layers[sel.layer].neurons[sel.neuron];
     const a = linkOut[sel.layer - 1][sel.input];
@@ -1213,6 +1388,8 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     overlay,
     camera,
     pill,
+    /** Las perillas a la vista, en el orden del foco (verificación desde la consola). */
+    get knobs() { return [...knobLayer.children].filter((el) => !el.hidden); },
     render,
     zoomBy,
     zoomIn: () => zoomBy(INSPECTOR_CAMERA.step),
