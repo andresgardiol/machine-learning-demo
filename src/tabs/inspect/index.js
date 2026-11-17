@@ -39,7 +39,7 @@ import { createPicker } from '../../ui/picker.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
 import { normalizeSettings as normalizeStreet } from '../shared/street-settings.js';
-import { actionBlock, ACTIONS } from '../shared/driving-cards.js';
+import { actionBlock, actionCompare, ACTIONS, createMatchWindow, createCompareAnnouncer, sameControls } from '../shared/driving-cards.js';
 import { EXAMPLE_BRAINS } from '../../data/example-brains.js';
 import { listBrains, resolveChoice, trainedScenario, trainedTracks, workingCopy, PICKER_GROUPS } from './brains.js';
 import { createPlayback, FRAME_PACES, STEP_PACES } from './playback.js';
@@ -184,6 +184,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     crashTicks = 0;
     lastStep = null;
     state.missions.newFrame();
+    resetCompare();
     keepLive();
   }
 
@@ -208,6 +209,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   let originalHeld = false;
   const NO_CHANGES = Object.freeze({ has: () => false, count: 0, list: () => [] });
 
+  /** Un paso del mundo; manejando la persona, guarda si las cuatro acciones coincidieron con las de la red (D4). */
+  function worldStep() {
+    world.step();
+    if (driving() && controller.driven) matchWindow.push(sameControls(controller.driven, controller.observed));
+  }
+
   /** Un cuadro del mundo: percibir, calcular la red y mover el auto. Suelta las entradas a mano. */
   function stepWorld() {
     if (state.manual) releaseManual({ announceIt: true });
@@ -215,7 +222,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       crashTicks += 1;
       if (crashTicks >= RETRY_TICKS) { world.reset(); crashTicks = 0; }
     } else {
-      world.step();
+      worldStep();
     }
     state.missions.newFrame();
   }
@@ -339,7 +346,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (hadFocus) driveButton.focus({ preventScroll: true }); // el aviso se oculta: el foco no se pierde
   }
   const toggleDriver = () => (driving() ? giveBack() : takeWheel());
-  function onDriverChange() {}
+  function onDriverChange() { resetCompare(); }
 
   // --- Cambios de prueba ------------------------------------------------------------------------
   function changed() {
@@ -726,10 +733,17 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   scene.append(el('div', { class: 'inspect-scene-badges' }, driveBadge, manualBadge, crashBadge, pausedBadge, speedBadge), driveButton);
   const description = stageDescription({ stage: scene });
   const decision = actionBlock({ i18n });
+  // Manejando la persona (manejar-vos D4): "Vos" y "La red" lado a lado, y cuánto coincidieron.
+  const compare = actionCompare({ i18n });
+  const matchWindow = createMatchWindow();
+  const compareAnnounce = createCompareAnnouncer();
+  const compareAnnouncer = el('p', { class: 'sr-only inspect-compare-announcer', attrs: { role: 'status', 'aria-live': 'polite' } });
+  let shareAt = -Infinity;
+  function resetCompare() { matchWindow.reset(); compareAnnounce.reset(); shareAt = -Infinity; compareAnnouncer.textContent = ''; }
   const decisionNote = el('p', { class: 'caption inspect-decision-note' });
+  const decisionTitle = el('h2', { class: 'panel-heading', i18n: 'inspect.decision.title', help: 'inspect.decision', attrs: { id: 'inspect-decision-title', tabindex: '0' } });
   const decisionBlock = el('section', { class: 'inspect-decision', attrs: { 'aria-labelledby': 'inspect-decision-title' } },
-    el('h2', { class: 'panel-heading', i18n: 'inspect.decision.title', help: 'inspect.decision', attrs: { id: 'inspect-decision-title', tabindex: '0' } }),
-    decision.node, decisionNote);
+    decisionTitle, decision.node, compare.node, decisionNote, compareAnnouncer);
   // Leyenda de cinco renglones (D11): signo; grosor; brillo y relleno; sesgo; y las marcas.
   const swatches = (...classes) => el('span', { class: 'inspect-legend-swatches', attrs: { 'aria-hidden': 'true' } }, classes.map((c) => el('span', { class: c })));
   const legendItem = (sw, key) => el('li', { class: 'inspect-legend-item' }, sw, el('span', { i18n: key }));
@@ -1036,9 +1050,27 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const outLayer = net.sizes.length - 1;
     const decided = !shownCursor || net.sizes[outLayer] === 0 || Array.from({ length: net.sizes[outLayer] }, (_, j) => shownCursor.opsDone(outLayer, j)).every((x) => x === 4);
     // De corrido, la tecla que titubea se ve quieta y rayada (sin-destellos-en-la-red D4); en pausa, exacta.
-    decision.update(Object.fromEntries(ACTIONS.map((a) => [a, decided && trace.outputs[OUTPUT_KEYS.indexOf(a)] === 1])), { live: playback.playing && playback.size === 'frame', now });
-    setData(decision.node, 'undecided', String(!decided));
-    setText(decisionNote, decided ? (state.manual ? 'inspect.decision.manual' : 'inspect.decision.live') : 'inspect.decision.undecided');
+    const theirs = Object.fromEntries(ACTIONS.map((a) => [a, decided && trace.outputs[OUTPUT_KEYS.indexOf(a)] === 1]));
+    const liveKeys = playback.playing && playback.size === 'frame';
+    const you = driving();
+    show(decision.node, !you);
+    show(compare.node, you);
+    setText(decisionTitle, you ? 'inspect.decision.title.compare' : 'inspect.decision.title');
+    if (!you) {
+      decision.update(theirs, { live: liveKeys, now });
+      setData(decision.node, 'undecided', String(!decided));
+      setText(decisionNote, decided ? (state.manual ? 'inspect.decision.manual' : 'inspect.decision.live') : 'inspect.decision.undecided');
+    } else {
+      // La fila "La red" pasa por la misma guarda de destellos que la decisión de una fila (D4).
+      const mine = keyboard.control();
+      compare.update(mine, theirs, { live: liveKeys, now, decided });
+      // Cuánto coincidieron: se reescribe como mucho cuatro veces por segundo, para poder leerlo.
+      if (now - shareAt >= 250) { shareAt = now; const p = matchWindow.percent(); setText(decisionNote, p === null ? 'inspect.compare.empty' : 'inspect.compare.share', p === null ? undefined : { value: p }); }
+      const key = `${ACTIONS.map((a) => Number(Boolean(mine[a]))).join('')}|${decided ? ACTIONS.map((a) => Number(theirs[a])).join('') : '?'}`;
+      if (compareAnnounce.offer(key, now)) {
+        compareAnnouncer.textContent = t('inspect.compare.announce', { you: actionsText(mine), network: decided ? actionsText(theirs) : t('inspect.decision.undecided'), share: shareText() });
+      }
+    }
 
     // Panel (D7): nada elegido, la tarjeta de la neurona o el detalle de la conexión.
     const isLink = Boolean(sel) && state.connection !== null;
@@ -1082,6 +1114,17 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
     const sceneState = t(paused ? 'inspect.paused' : 'inspect.playing') + (driving() ? t('inspect.drive.describe') : '');
     description.set(t('inspect.scene.description', { track: t(`track.${state.settings.track}`), state: sceneState }));
+  }
+
+  /** Coincidencia de los últimos 10 s, en una frase. */
+  function shareText() {
+    const p = matchWindow.percent();
+    return p === null ? t('inspect.compare.empty') : t('inspect.compare.share', { value: p });
+  }
+  /** Las acciones encendidas, en palabras ("avanzar, izquierda"), o "nada". */
+  function actionsText(c) {
+    const on = ACTIONS.filter((a) => c[a]).map((a) => t(`drive.action.${a}`).toLocaleLowerCase(i18n.language));
+    return on.length ? on.join(', ') : t('inspect.compare.nothing');
   }
 
   /** Marcas de lo cambiado, para el diagrama y la tabla. */
@@ -1147,7 +1190,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const n = playback.tick();
     for (let k = 0; k < n; k++) {
       if (playback.size === 'frame') {
-        if (world.crashed) { crashTicks += 1; if (crashTicks >= RETRY_TICKS) { world.reset(); crashTicks = 0; } } else world.step();
+        if (world.crashed) { crashTicks += 1; if (crashTicks >= RETRY_TICKS) { world.reset(); crashTicks = 0; } } else worldStep();
         cursor.complete();
         state.missions.newFrame();
       } else {
