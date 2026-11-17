@@ -73,19 +73,23 @@
 
 ## 4. Después y cierre
 
-- [ ] 4.1 Correr `capturar.mjs despues` y armar `borradores/jerarquia-de-botones/comparacion.md`: el antes y el después de cada captura, lado a lado, con una línea de qué cambió y qué no. Anotar los estados que no salieron iguales.
-- [ ] 4.2 Revisar las capturas del después en escala de grises: la acción principal, la opción elegida, el interruptor encendido y la salida encendida se reconocen sin color (escenario "Estado sin depender del color"). Verificación: una captura en escala de grises por pestaña, en la comparación.
-- [ ] 4.3 Verificación manual en el navegador contra el filtro de entrada, en las seis pestañas, a 1440×900 y 1366×768, con la guía encendida y apagada:
+- [x] 4.1 Correr `capturar.mjs despues` y armar `borradores/jerarquia-de-botones/comparacion.md`: el antes y el después de cada captura, lado a lado, con una línea de qué cambió y qué no. Anotar los estados que no salieron iguales.
+  *Hecho. `capturar.mjs despues` sacó 120 capturas y `borradores/jerarquia-de-botones/comparacion.md` las pone lado a lado con el antes, con una línea de qué cambió, los píxeles distintos medidos y la acción principal que dio la auditoría. Al armarla se vio que, en la fila de marcha, la secundaria se estiraba al alto de la principal; se corrigió con `align-items: center` en `.run-main` y `.run-manual`, y se volvieron a sacar todas. Medido, dos corridas seguidas del después: 106 de 120 idénticas, 13 con 1 a 53 píxeles sueltos, y `16-laboratorio-tu-manejo-1440` con 1620 por el suavizado de los rayos, igual que en 1.1. Los puntitos de "Flujo" pueden moverse entre corridas, como en el antes. Ningún estado faltó.*
+- [x] 4.2 Revisar las capturas del después en escala de grises: la acción principal, la opción elegida, el interruptor encendido y la salida encendida se reconocen sin color (escenario "Estado sin depender del color"). Verificación: una captura en escala de grises por pestaña, en la comparación.
+  *Hecho. Seis capturas en gris del antes y del después, una por pestaña a 1440 (`despues/gris/`, con el perfil gris del sistema), en la comparación. Observado: la acción principal se reconoce por el relleno, el alto y la negrita; la opción elegida, por el contorno de 2 px y la negrita (el fondo tenue aporta poco, 1,39:1); el interruptor encendido, por la perilla clara a la derecha; la salida encendida, por el relleno gris claro, el contorno blanco y la negrita. También observado: las barras de los sensores quedan en un gris parecido al de la acción principal (anotado en PENDIENTES).*
+- [x] 4.3 Verificación manual en el navegador contra el filtro de entrada, en las seis pestañas, a 1440×900 y 1366×768, con la guía encendida y apagada:
   - ¿se ve qué tocar sin leer?;
   - ¿el mentor no tiene nada nuevo que ocultar?;
   - ¿un estilo mal entendido se arregla sin perder nada?
 
   Anotar lo observado separado de lo propuesto.
-- [ ] 4.4 Anotar en `PENDIENTES.md`:
+  *Hecho, con límites. Medido en el navegador, con la guía apagada, en las seis pestañas a 1440×900 y 1366×768: `auditHierarchy()` da una sola principal por pestaña y 0 problemas; la principal mide 40 px y queda dentro de la ventana. Con la guía encendida, lo mismo en las capturas del guion. Observado: (1) se ve qué tocar sin leer: el único relleno azul es la marcha, o Reiniciar, Largar, Otra carrera o Guardar como nuevo según el estado; (2) el mentor no tiene nada nuevo que ocultar, porque no hay controles ni textos nuevos; (3) un estilo mal entendido se vuelve atrás revirtiendo `tokens.css`, `app.css` y las llamadas a `applyMainAction`, sin tocar datos guardados. Sin probar: el panel del navegador estaba oculto y no corría la animación, así que la escena en marcha se vio solo en las capturas sin ventana; no se probó con una persona.*
+- [x] 4.4 Anotar en `PENDIENTES.md`:
   - lo que quedó: los sensores del mismo azul que la acción (Risks) y lo que no se pudo medir;
   - que `jerarquia-de-botones` está hecho, sacándolo de "En curso".
 
   Verificación: `git diff PENDIENTES.md`.
+  *Hecho. `PENDIENTES.md`: `jerarquia-de-botones` sumado a "Hecho", a la espera de que el dueño revise la comparación para archivarlo. "En curso" ya decía "Nada": no estaba listado ahí. En *Ayudas, guía y accesibilidad*, lo que quedó: las barras de sensores y de misiones del mismo azul, la decisión de la tecla blanca, el fondo tenue de 1,39:1, los 40 px y lo que no se probó. Verificación: `git diff PENDIENTES.md` (32 líneas agregadas).*
 
 ## Workflow follow-up
 

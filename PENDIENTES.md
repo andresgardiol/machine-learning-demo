@@ -23,6 +23,13 @@ toma el volante con las flechas (o "Manejar vos") y la decisión muestra
 "Vos" y "La red" lado a lado, con cuánto coincidieron; "Devolver el volante"
 deja a la red seguir desde donde quedó el auto. Implementado y verificado
 sin ventana, archivado; lo que quedó, en *Inspeccionar y vista de la red*.
+El 17 de noviembre, `jerarquia-de-botones`: cuatro estilos con un significado
+cada uno (acción principal, secundaria, opción elegida y salida de la red) y
+una sola acción principal a la vista por pestaña, que es la marcha salvo con
+un choque, la selección manual o la carrera terminada. Implementado y medido
+sin ventana, con el antes y el después en
+`borradores/jerarquia-de-botones/comparacion.md`. Falta que el dueño revise la
+comparación para archivarlo; lo que quedó, en *Ayudas, guía y accesibilidad*.
 
 ## En curso
 
@@ -541,6 +548,31 @@ arreglarlos de a uno.
   como datos.
 
 ## Ayudas, guía y accesibilidad
+
+- **Lo que quedó de `jerarquia-de-botones`** (17 de noviembre de 2026).
+  - Las barras de "Lo que perciben los sensores" usan `--color-sensor`, el
+    mismo azul que la acción principal. En escala de grises quedan en un gris
+    parecido al de la acción principal. Quien entienda "azul = tocá acá" puede
+    buscarlo en los sensores. Ver con el dueño si los sensores necesitan otro
+    tono (Risks del cambio).
+  - Las barras de progreso de las misiones se rellenan con `--color-accent`,
+    el mismo azul. `mlLab.auditHierarchy()` cuenta solo los controles y lista
+    estas dos barras aparte, como marcas, sin avisar.
+  - La salida encendida usa la alternativa de Risks: gris claro con contorno
+    blanco y negrita. El blanco pleno de la neurona activa llamaba más la
+    atención que la acción principal (15,1:1 contra 5,3:1). Las capturas con
+    el blanco quedaron en `borradores/jerarquia-de-botones/tecla-blanca/`; el
+    dueño decide.
+  - El fondo de la opción elegida se distingue poco en luminancia de uno sin
+    elegir (1,39:1). La marcan el contorno de 2 px y la negrita. Si en clase
+    no alcanza, subir el tono de `--color-selected-bg`.
+  - La acción principal quedó en 40 px de alto. La barra de marcha de
+    Inspeccionar y del Laboratorio pasó de 69 a 81 px, y la red de arriba
+    perdió esos 12 px.
+  - Sin probar: lector de pantalla real, Safari y Firefox; la "i" de
+    Créditos por debajo de 1240 px; las fichas de curva elegidas; los atajos
+    R, E, Z y N uno por uno (no se tocaron sus manejadores). `.compete-check`
+    tiene regla de opción elegida, pero ningún elemento la usa hoy.
 
 - **Introducción guiada para quien llega sin la teoría.** La guía explica
   cada control, pero la pantalla tiene mucha información a la vez y da por
