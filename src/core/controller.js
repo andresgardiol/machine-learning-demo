@@ -25,3 +25,43 @@ export const constantController = (controls) => ({ control: () => normalizeContr
 
 /** Controlador inactivo: nunca acciona nada. */
 export const idleController = constantController(NO_CONTROLS);
+
+/**
+ * Controlador con observador (controladores, "Controlador con observador"): maneja `driver` y
+ * `observer` calcula su decisión con la misma percepción, sin mover el auto. Primero se llama al que
+ * observa (por ejemplo la red, que guarda su cuenta) y después al que maneja; el auto recibe solo lo
+ * del que maneja. Si los dos son el mismo, una sola llamada. `setDriver` cambia quién maneja desde el
+ * cuadro siguiente, sin rearmar el mundo.
+ *
+ *   createObservedController({ driver, observer })
+ *     .control(perception) → controles del que maneja
+ *     .driven / .observed  → los controles del último cuadro, de cada uno (null antes del primero)
+ *     .perception          → la última percepción recibida
+ *     .driver / .observer / .setDriver(c)
+ * @param {{driver: object, observer: object}} spec
+ */
+export function createObservedController({ driver, observer }) {
+  if (!isController(driver) || !isController(observer)) throw new TypeError('createObservedController: driver y observer deben ser controladores');
+  let current = driver;
+  const observed = {
+    driven: null,
+    observed: null,
+    perception: null,
+    get driver() { return current; },
+    get observer() { return observer; },
+    /** ¿Maneja el mismo que observa? */
+    get observing() { return current !== observer; },
+    setDriver(next) {
+      if (!isController(next)) throw new TypeError('setDriver: no es un controlador');
+      current = next;
+    },
+    control(perception) {
+      observed.perception = perception;
+      const seen = normalizeControls(observer.control(perception));
+      observed.observed = seen;
+      observed.driven = current === observer ? seen : normalizeControls(current.control(perception));
+      return observed.driven;
+    },
+  };
+  return observed;
+}
