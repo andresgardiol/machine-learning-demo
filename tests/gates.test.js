@@ -71,3 +71,15 @@ test('sin solución preparada: XOR sin capas, dos capas o una de otro tamaño', 
   assert.equal(gateSolution('or', { hidden: [4], activation: 'tanh' }), null);
   assert.equal(solutionShapeOk('xor', [2]), true);
 });
+
+test('tabla de verdad: con pesos en cero, cuatro "no se decide" y 0 de 4; con la solución de AND, 4 de 4', async () => {
+  const { truthRows } = await import('../src/tabs/lab/truth-table.js');
+  const net = createNetwork({ inputs: 2, hidden: [], outputs: 1, random: () => 0.5 });
+  const data = gatesDataset({ gate: 'and' });
+  const zero = truthRows(net, data.examples);
+  assert.equal(zero.correct, 0);
+  assert.deepEqual(zero.rows.map((r) => r.verdict), ['undecided', 'undecided', 'undecided', 'undecided']);
+  const solved = truthRows({ ...net, layers: gateSolution('and', { hidden: [], activation: 'tanh' }) }, data.examples);
+  assert.equal(solved.correct, 4);
+  assert.deepEqual(solved.rows.map((r) => r.verdict), ['no', 'no', 'no', 'yes']);
+});

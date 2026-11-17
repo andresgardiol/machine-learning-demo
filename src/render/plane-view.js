@@ -10,13 +10,21 @@ import { softOutputs } from '../core/backprop.js';
 export const PLANE_GRID = 50;
 export const PLANE_FPS = 15;
 
-/** Respuesta de la red (0 a 1) en el centro de cada celda de una grilla de n × n sobre [−1, 1]². Fila 0 arriba. */
-export function planeGrid(net, n = PLANE_GRID, off = null) {
+/** Rango del plano por defecto: de −1 a 1 en los dos ejes (con compuertas, de −0,5 a 1,5). */
+export const DEFAULT_RANGE = Object.freeze([-1, 1]);
+
+/**
+ * Respuesta de la red (0 a 1) en el centro de cada celda de una grilla de n × n sobre el rango
+ * [lo, hi]² (por defecto [−1, 1]²). Fila 0 arriba.
+ */
+export function planeGrid(net, n = PLANE_GRID, off = null, range = DEFAULT_RANGE) {
+  const [lo, hi] = range;
+  const span = hi - lo;
   const out = new Float32Array(n * n);
   for (let r = 0; r < n; r++) {
-    const y = 1 - ((r + 0.5) / n) * 2;
+    const y = hi - ((r + 0.5) / n) * span;
     for (let c = 0; c < n; c++) {
-      const x = ((c + 0.5) / n) * 2 - 1;
+      const x = lo + ((c + 0.5) / n) * span;
       out[r * n + c] = softOutputs(net, [x, y], off)[0];
     }
   }
@@ -53,26 +61,41 @@ export function brightestRegion(values, size) {
 /** Radio del marcador y lado mínimo de su área de agarre (px). */
 export const PROBE = Object.freeze({ radius: 10, grab: 28, step: 0.05, fineStep: 0.01 });
 
-/** El cuadrado del plano dentro de una zona de w × h: el lado es el menor y queda centrado. */
-export function planeGeometry(w, h) {
+/**
+ * El cuadrado del plano dentro de una zona de w × h: el lado es el menor y queda centrado. `range` es
+ * lo que abarca en los dos ejes (laboratorio-empieza-por-compuertas D2), por defecto [−1, 1].
+ */
+export function planeGeometry(w, h, range = DEFAULT_RANGE) {
   const side = Math.min(w, h);
-  return { ox: (w - side) / 2, oy: (h - side) / 2, side };
+  return { ox: (w - side) / 2, oy: (h - side) / 2, side, lo: range[0], hi: range[1] };
 }
-/** Coordenadas del plano (−1 a 1, y hacia arriba) → píxeles de la zona. */
-export const planeToPx = (g, x, y) => ({ x: g.ox + ((x + 1) / 2) * g.side, y: g.oy + ((1 - y) / 2) * g.side });
-const clamp1 = (v) => Math.max(-1, Math.min(1, v));
+const loOf = (g) => g.lo ?? -1;
+const hiOf = (g) => g.hi ?? 1;
+/** Coordenadas del plano (dentro del rango, y hacia arriba) → píxeles de la zona. */
+export const planeToPx = (g, x, y) => {
+  const lo = loOf(g);
+  const span = hiOf(g) - lo;
+  return { x: g.ox + ((x - lo) / span) * g.side, y: g.oy + ((hiOf(g) - y) / span) * g.side };
+};
+const clampTo = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const round2 = (v) => Math.round(v * 100) / 100 || 0; // sin «−0»
-/** Píxeles de la zona → coordenadas del plano, redondeadas a centésimos y dentro de −1 a 1. */
+/** Píxeles de la zona → coordenadas del plano, redondeadas a centésimos y dentro del rango. */
 export function pxToPlane(g, px, py) {
-  return { x: round2(clamp1(((px - g.ox) / g.side) * 2 - 1)), y: round2(clamp1(1 - ((py - g.oy) / g.side) * 2)) };
+  const lo = loOf(g);
+  const hi = hiOf(g);
+  const span = hi - lo;
+  return { x: round2(clampTo(lo + ((px - g.ox) / g.side) * span, lo, hi)), y: round2(clampTo(hi - ((py - g.oy) / g.side) * span, lo, hi)) };
 }
-/** El punto movido con una flecha: 0,05 por tecla, 0,01 con Mayúsculas; null si la tecla no es una flecha. */
-export function nudgeProbe(p, key, fine = false) {
+/**
+ * El punto movido con una flecha: 0,05 por tecla, 0,01 con Mayúsculas, dentro del rango; null si la
+ * tecla no es una flecha.
+ */
+export function nudgeProbe(p, key, fine = false, range = DEFAULT_RANGE) {
   const d = fine ? PROBE.fineStep : PROBE.step;
   const dx = key === 'ArrowRight' ? d : key === 'ArrowLeft' ? -d : 0;
   const dy = key === 'ArrowUp' ? d : key === 'ArrowDown' ? -d : 0;
   if (dx === 0 && dy === 0) return null;
-  return { x: round2(clamp1(p.x + dx)), y: round2(clamp1(p.y + dy)) };
+  return { x: round2(clampTo(p.x + dx, range[0], range[1])), y: round2(clampTo(p.y + dy, range[0], range[1])) };
 }
 /**
  * Dónde va el rótulo de w × h junto al marcador en (px, py): a la derecha, a la izquierda, arriba,
@@ -131,6 +154,7 @@ export function createPlaneView({ container, doc = document, now = () => perform
   let lastGrid = -Infinity;
   let gridKey = null;
   let colors = readColors();
+  let lastRange = DEFAULT_RANGE;
 
   function readColors() {
     const st = getComputedStyle(doc.documentElement);
@@ -167,9 +191,9 @@ export function createPlaneView({ container, doc = document, now = () => perform
     }
   }
 
-  function paintGrid(net, off, map) {
+  function paintGrid(net, off, map, range) {
     if (map) { paintValues(image, map.values, map.toY); gctx.putImageData(image, 0, 0); return; }
-    const values = planeGrid(net, PLANE_GRID, off);
+    const values = planeGrid(net, PLANE_GRID, off, range);
     const A = hexToRgb(colors.a);
     const B = hexToRgb(colors.b);
     const BG = hexToRgb(colors.bg);
@@ -197,14 +221,20 @@ export function createPlaneView({ container, doc = document, now = () => perform
    * @param {{key:string, values:Float32Array, toY:(v:number)=>number}|null} [state.map] mapa de una neurona
    *   oculta para el fondo, en lugar de lo que contesta la red (D12)
    * @param {string} [state.label] rótulo sobre el plano: de quién es el fondo
+   * @param {[number, number]} [state.range] lo que abarca el plano en los dos ejes (por defecto [−1, 1])
+   * @param {number[]} [state.ticks] marcas en los ejes (con compuertas, 0 y 1)
+   * @param {boolean} [state.big] ejemplos grandes (los cuatro casos de las compuertas)
+   * @param {number|null} [state.live] durante un gesto de perilla, el fondo se repinta en cada cuadro (D11)
    */
   function render(state) {
     if (size.w <= 1) resize();
     const t = now();
-    const key = `${state.version}|${state.map?.key ?? 'red'}`;
-    const mapChanged = gridKey !== null && String(gridKey).split('|')[1] !== (state.map?.key ?? 'red');
-    if (state.force || mapChanged || (key !== gridKey && t - lastGrid >= 1000 / PLANE_FPS)) {
-      paintGrid(state.network, state.off ?? null, state.map ?? null);
+    const range = state.range ?? DEFAULT_RANGE;
+    lastRange = range;
+    const key = `${state.version}|${state.map?.key ?? 'red'}|${range.join(',')}`;
+    const mapChanged = gridKey !== null && String(gridKey).split('|').slice(1).join('|') !== `${state.map?.key ?? 'red'}|${range.join(',')}`;
+    if (state.force || mapChanged || (key !== gridKey && (state.live || t - lastGrid >= 1000 / PLANE_FPS))) {
+      paintGrid(state.network, state.off ?? null, state.map ?? null, range);
       gridKey = key;
       lastGrid = t;
     }
@@ -219,8 +249,32 @@ export function createPlaneView({ container, doc = document, now = () => perform
     ctx.strokeStyle = colors.border;
     ctx.lineWidth = 1;
     ctx.strokeRect(ox + 0.5, oy + 0.5, side - 1, side - 1);
-    const toPx = (x, y) => ({ x: ox + ((x + 1) / 2) * side, y: oy + ((1 - y) / 2) * side });
-    const r = Math.max(2.5, Math.min(5, side / 70));
+    const g = { ox, oy, side, lo: range[0], hi: range[1] };
+    const toPx = (x, y) => planeToPx(g, x, y);
+    const r = state.big ? Math.max(6, Math.min(12, side / 28)) : Math.max(2.5, Math.min(5, side / 70));
+    if (state.ticks?.length) {
+      // Marcas en los ejes (D2): con compuertas, 0 y 1, para leer dónde está cada caso.
+      ctx.font = `600 11px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+      ctx.fillStyle = colors.text;
+      ctx.strokeStyle = colors.border;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 3]);
+      for (const v of state.ticks) {
+        const p = toPx(v, v);
+        ctx.beginPath(); ctx.moveTo(p.x, oy); ctx.lineTo(p.x, oy + side); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ox, p.y); ctx.lineTo(ox + side, p.y); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      for (const v of state.ticks) {
+        const p = toPx(v, v);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(String(v), p.x, oy + side - 3);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(v), ox + 4, p.y);
+      }
+    }
     const shape = (p, cls) => {
       ctx.beginPath();
       if (cls === 1) ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
@@ -293,8 +347,8 @@ export function createPlaneView({ container, doc = document, now = () => perform
   return {
     canvas,
     render,
-    /** El cuadrado del plano en la zona, en px CSS (para el punto de prueba). */
-    get geometry() { if (size.w <= 1) resize(); return planeGeometry(size.w, size.h); },
+    /** El cuadrado del plano en la zona, en px CSS (para el punto de prueba), con el rango del último render. */
+    get geometry() { if (size.w <= 1) resize(); return planeGeometry(size.w, size.h, lastRange); },
     paintMap,
     refreshColors() { colors = readColors(); gridKey = null; },
     dispose() { observer.disconnect(); canvas.remove(); },

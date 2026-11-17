@@ -6,8 +6,8 @@ import { createNetwork } from '../src/core/network.js';
 import { createRandom } from '../src/core/random.js';
 
 test('el plano es el cuadrado más grande que entra, centrado', () => {
-  assert.deepEqual(planeGeometry(400, 300), { ox: 50, oy: 0, side: 300 });
-  assert.deepEqual(planeGeometry(300, 340), { ox: 0, oy: 20, side: 300 });
+  assert.deepEqual(planeGeometry(400, 300), { ox: 50, oy: 0, side: 300, lo: -1, hi: 1 });
+  assert.deepEqual(planeGeometry(300, 340), { ox: 0, oy: 20, side: 300, lo: -1, hi: 1 });
 });
 
 test('de coordenadas a píxeles y de vuelta: el centro, las esquinas y un punto cualquiera', () => {

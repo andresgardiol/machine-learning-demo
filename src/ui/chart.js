@@ -149,6 +149,7 @@ export function createFitnessChart({ container, i18n, doc = document, keys = TRA
   let model = chartModel(history);
   let selected = null; // índice del punto señalado
   let marker = null; // generación (época) marcada, o null
+  let single = false; // solo la serie "mejor" (el Laboratorio con compuertas: no hay apartados)
 
   const node = (tag, attrs = {}, text) => {
     const n = doc.createElementNS(SVG_NS, tag);
@@ -181,7 +182,7 @@ export function createFitnessChart({ container, i18n, doc = document, keys = TRA
     svg.setAttribute('aria-label', i18n.t(K.aria));
     legend.replaceChildren(
       legendItem('best', i18n.t(K.best)),
-      legendItem('average', i18n.t(K.average)),
+      ...(single ? [] : [legendItem('average', i18n.t(K.average))]),
       ...(K.marker && marker !== null ? [legendItem('marker', i18n.t(K.marker))] : []));
     if (model.empty) { readout.textContent = ''; return; }
 
@@ -199,7 +200,7 @@ export function createFitnessChart({ container, i18n, doc = document, keys = TRA
     svg.append(node('text', { class: 'chart-label', x: 10, y: (plot.y0 + plot.y1) / 2, 'text-anchor': 'middle', transform: `rotate(-90 10 ${(plot.y0 + plot.y1) / 2})` }, i18n.t(K.yAxis, { unit: unitText() })));
 
     // Series: promedio punteado con cuadrados, mejor continua con círculos.
-    for (const [key, pts] of [['average', model.average], ['best', model.best]]) {
+    for (const [key, pts] of single ? [['best', model.best]] : [['average', model.average], ['best', model.best]]) {
       if (pts.length > 1) svg.append(node('polyline', { class: `chart-line chart-${key}`, points: pts.map((p) => `${p.x},${p.y}`).join(' ') }));
       for (const p of pts) {
         if (key === 'best') svg.append(node('circle', { class: 'chart-mark chart-best', cx: p.x, cy: p.y, r: 2.6 }));
@@ -217,7 +218,7 @@ export function createFitnessChart({ container, i18n, doc = document, keys = TRA
     const b = model.best[index];
     const a = model.average[index];
     svg.append(node('line', { class: 'chart-cursor', x1: b.x, y1: plot.y0, x2: b.x, y2: plot.y1 }));
-    readout.textContent = i18n.t(K.readout, { generation: b.generation, best: number(b.value), average: number(a.value), unit: unitText() });
+    readout.textContent = i18n.t(single && K.readoutSingle ? K.readoutSingle : K.readout, { generation: b.generation, best: number(b.value), average: number(a.value), unit: unitText() });
   }
 
   function legendItem(key, text) {
@@ -274,7 +275,8 @@ export function createFitnessChart({ container, i18n, doc = document, keys = TRA
   draw();
   return {
     element: svg,
-    update(next, extra = {}) { history = next.slice(); marker = extra.marker ?? null; if (selected !== null && selected >= history.length) selected = null; draw(); },
+    /** `extra.single`: solo la primera serie, sin la segunda ni su leyenda. */
+    update(next, extra = {}) { history = next.slice(); marker = extra.marker ?? null; single = Boolean(extra.single); if (selected !== null && selected >= history.length) selected = null; draw(); },
     /** La lectura del punto señalado (o del último). */
     get readout() { return readout.textContent; },
     refresh: draw,

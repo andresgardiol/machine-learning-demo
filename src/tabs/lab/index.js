@@ -47,6 +47,7 @@ import { createLabMissions } from './missions.js';
 import { shortcutFor } from './shortcuts.js';
 import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS, DATA_KINDS } from './defaults.js';
 import { createDataTable } from './data-table.js';
+import { createTruthTable, truthRows } from './truth-table.js';
 import { createCompactNeuronCard, weightRange } from '../shared/neuron-card.js';
 import { neuronGrid } from '../../core/backprop.js';
 import { topConnections } from '../../core/network-changes.js';
@@ -122,6 +123,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // La persona movió el punto de prueba con un ejemplo a medio corregir: la red muestra el punto hasta
   // el paso siguiente (punto-de-prueba D5). Es solo vista: no toca el aprendizaje.
   let probeView = false;
+  // Durante un gesto de perilla, el fondo del plano se repinta en cada cuadro (D11).
+  let liveGesture = false;
   // Mapas de las neuronas (D12): la grilla de 50 × 50 que pinta el plano, una vez para todas las
   // neuronas, recalculada como mucho 15 veces por segundo, cuando la red cambia.
   const maps = { key: null, at: -Infinity, grid: null, canvases: [] };
@@ -131,7 +134,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const now = performance.now();
     if (maps.grid && (key === maps.key || now - maps.at < 1000 / PLANE_FPS) && maps.grid.layers.length === run().network.sizes.length) return maps;
     const net = run().network;
-    maps.grid = neuronGrid(net, PLANE_GRID, run().off);
+    maps.grid = neuronGrid(net, PLANE_GRID, run().off, session.range);
     maps.key = key;
     maps.at = now;
     maps.canvases = maps.grid.layers.map((layer, l) => (!layer || l === net.sizes.length - 1 ? null : layer.map((values, j) => {
@@ -415,7 +418,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   planeBox.addEventListener('pointerup', endProbeDrag);
   planeBox.addEventListener('pointercancel', endProbeDrag);
   probeMarker.addEventListener('keydown', (e) => {
-    const next = nudgeProbe(session.probe, e.key, e.shiftKey);
+    const next = nudgeProbe(session.probe, e.key, e.shiftKey, session.range);
     if (!next) return;
     e.preventDefault();
     e.stopPropagation();
@@ -425,7 +428,20 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function probeText() {
     const p = session.probe;
     const ans = probeAnswer(run().network, p.x, p.y, run().off);
+    if (isGates()) return t('lab.probe.say.gates', { x: fmt(p.x), y: fmt(p.y), reply: gateReply(ans.value) });
     return t('lab.probe.say', { x: fmt(p.x), y: fmt(p.y), answer: t(`lab.class.${ans.cls}`), pct: Math.round(ans.confidence * 100) });
+  }
+  /** Con compuertas, la respuesta se dice sí o no; exactamente 0,5 no se decide (D6). */
+  const verdictOf = (v) => (v > 0.5 ? 'yes' : v < 0.5 ? 'no' : 'undecided');
+  /** "la red contesta sí (círculo), 97 % segura" o "la red no se decide". */
+  function gateReply(v) {
+    const k = verdictOf(v);
+    return k === 'undecided' ? t('lab.gates.reply.undecided') : t('lab.gates.reply', { answer: t(`lab.gates.${k}`), pct: Math.round(Math.max(v, 1 - v) * 100) });
+  }
+  /** Rótulo corto: "sí · 97 %", "no · 88 %" o "no se decide". */
+  function gateShort(v) {
+    const k = verdictOf(v);
+    return k === 'undecided' ? t('lab.gates.undecided') : t('lab.probe.label', { answer: t(`lab.gates.${k}`), pct: Math.round(Math.max(v, 1 - v) * 100) });
   }
   let probeLabelKey = '';
   /** Marcador y rótulo en su lugar (D4): el rótulo dice lo que contesta la red, o lo que da la neurona elegida. */
@@ -437,7 +453,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const g = plane.geometry;
     const p = session.probe;
     const at = planeToPx(g, p.x, p.y);
-    probeMarker.style.transform = `translate(${(at.x - PROBE.grab / 2).toFixed(1)}px, ${(at.y - PROBE.grab / 2).toFixed(1)}px)`;
+    setData(planeBox, 'gates', String(isGates()));
+    const grab = probeMarker.offsetWidth || PROBE.grab;
+    probeMarker.style.transform = `translate(${(at.x - grab / 2).toFixed(1)}px, ${(at.y - grab / 2).toFixed(1)}px)`;
     setData(probeMarker, 'dim', String(Boolean(dim)));
     let text;
     if (focus) {
@@ -445,13 +463,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       text = t('lab.probe.neuron', { name: nameOf(focus.layer, focus.neuron), value: fmt(n.output) });
     } else {
       const ans = probeAnswer(r.network, p.x, p.y, r.off);
-      text = t('lab.probe.label', { answer: t(`lab.class.${ans.cls}`), pct: Math.round(ans.confidence * 100) });
+      text = isGates() ? gateShort(ans.value) : t('lab.probe.label', { answer: t(`lab.class.${ans.cls}`), pct: Math.round(ans.confidence * 100) });
     }
     write(probeLabel, text);
     const key = `${text}|${at.x.toFixed(1)}|${at.y.toFixed(1)}|${g.side}`;
     if (key !== probeLabelKey) {
       probeLabelKey = key;
-      const b = probeLabelBox(g, at.x, at.y, probeLabel.offsetWidth, probeLabel.offsetHeight);
+      const b = probeLabelBox(g, at.x, at.y, probeLabel.offsetWidth, probeLabel.offsetHeight, isGates() ? 18 : PROBE.radius);
       probeLabel.style.transform = `translate(${b.x.toFixed(1)}px, ${b.y.toFixed(1)}px)`;
     }
     write(probeDesc, probeText());
@@ -465,8 +483,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   scene.append(el('div', { class: 'inspect-scene-badges' }, recordBadge, crashBadge));
   const sceneDescription = stageDescription({ stage: scene, id: 'lab-scene-description' });
   const dataSummary = el('p', { class: 'caption lab-summary' });
+  // Tabla de verdad (D6): con compuertas, en el lugar del resumen de los datos. Una fila elegida lleva las
+  // entradas (el punto de prueba) a ese caso.
+  const truth = createTruthTable({ i18n, onSelect: (i) => { const ex = session.data.examples[i]; if (ex) moveProbe({ x: ex.inputs[0], y: ex.inputs[1] }, { announceIt: true }); } });
   const dataBlock = el('section', { class: 'lab-data', attrs: { 'aria-labelledby': 'lab-data-title' } },
-    el('h2', { class: 'sr-only', i18n: 'lab.data.title', attrs: { id: 'lab-data-title' } }), planeBox, scene, dataSummary);
+    el('h2', { class: 'sr-only', i18n: 'lab.data.title', attrs: { id: 'lab-data-title' } }), planeBox, scene, truth.node, dataSummary);
 
   // Ejemplo en curso (D7)
   const exampleText = el('p', { class: 'lab-example-text' });
@@ -486,7 +507,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     container: chartZone, i18n, value: (v) => fmt(v), focusable: { help: 'lab.chart' },
     keys: {
       empty: 'lab.chart.empty', restarted: 'lab.chart.empty', aria: 'lab.chart.aria', best: 'lab.chart.practice', average: 'lab.chart.heldOut',
-      tick: 'train.chart.tick', xAxis: 'lab.chart.xAxis', yAxis: 'lab.chart.yAxis', readout: 'lab.chart.readout', marker: 'lab.chart.best',
+      tick: 'train.chart.tick', xAxis: 'lab.chart.xAxis', yAxis: 'lab.chart.yAxis', readout: 'lab.chart.readout', readoutSingle: 'lab.chart.readout.practice', marker: 'lab.chart.best',
     },
   });
   const stats = el('p', { class: 'lab-stats', help: 'lab.term.epoch' });
@@ -585,10 +606,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     attrs: { type: 'range', id: 'lab-holdout', min: HOLDOUT_LIMITS.min, max: HOLDOUT_LIMITS.max, step: HOLDOUT_LIMITS.step },
     on: { input: (e) => holdoutGesture.input(Number(e.target.value)), change: (e) => holdoutGesture.change(Number(e.target.value)) },
   });
+  // Con compuertas no se aparta nada (D1): el ajuste no sirve y no se muestra.
+  const holdoutRow = el('div', { class: 'lab-slider' }, el('label', { class: 'lab-slider-label', attrs: { for: 'lab-holdout' } }, el('span', { i18n: 'lab.holdout' }), holdoutValue), holdoutInput);
   const learnSection = el('section', { class: 'lab-section', attrs: { 'aria-labelledby': 'lab-learn-heading' } },
     el('h2', { class: 'panel-heading', i18n: 'lab.panel.learning', attrs: { id: 'lab-learn-heading' } }),
     el('div', { class: 'lab-slider' }, el('label', { class: 'lab-slider-label', attrs: { for: 'lab-rate' } }, el('span', { i18n: 'lab.rate', help: 'lab.term.rate' }), rateValue), rateInput),
-    el('div', { class: 'lab-slider' }, el('label', { class: 'lab-slider-label', attrs: { for: 'lab-holdout' } }, el('span', { i18n: 'lab.holdout' }), holdoutValue), holdoutInput));
+    holdoutRow);
   // Acciones
   const resetWeightsButton = el('button', { class: 'tool small', i18n: 'lab.resetWeights', help: 'lab.resetWeights', attrs: { type: 'button' }, on: { click: () => resetWeights() } });
   const resetNetworkButton = el('button', { class: 'tool small', i18n: 'lab.resetNetwork', help: 'lab.resetNetwork', attrs: { type: 'button' }, on: { click: () => { session.resetNetwork(); restarted(); } } });
@@ -1118,6 +1141,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (Number(rateInput.value) !== rp && document.activeElement !== rateInput) rateInput.value = String(rp);
     write(rateValue, fmtRate(s.rate));
     setAttr(rateInput, 'aria-valuetext', fmtRate(s.rate));
+    show(holdoutRow, !isGates());
     if (!holdoutGesture.active) {
       if (Number(holdoutInput.value) !== s.holdout) holdoutInput.value = String(s.holdout);
       setText(holdoutValue, 'drive.value.percent', { value: s.holdout });
@@ -1145,6 +1169,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     write(recordNotice, notice);
     // Tablero
     show(planeBox, hasPlane());
+    show(truth.node, isGates());
     show(scene, !hasPlane());
     // Misiones
     for (const m of state.missions.missions) {
@@ -1286,7 +1311,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       else if (hasPlane()) {
         const p = session.probe;
         const ans = probeAnswer(r.active ? r.shownNetwork() : r.network, p.x, p.y, r.off);
-        text = t('lab.op.probe', { x: fmt(p.x), y: fmt(p.y), answer: t(`lab.class.${ans.cls}`), pct: Math.round(ans.confidence * 100) });
+        text = isGates() ? t('lab.op.probe.gates', { x: fmt(p.x), y: fmt(p.y), reply: gateReply(ans.value) })
+          : t('lab.op.probe', { x: fmt(p.x), y: fmt(p.y), answer: t(`lab.class.${ans.cls}`), pct: Math.round(ans.confidence * 100) });
       } else text = lastStep && r.active ? describeLearningStep({ t, fmt, last: lastStep.units[lastStep.units.length - 1], detail: lastStep.detail, ctx: ctx() }) : t('lab.op.idle');
       write(opText, text);
     }
@@ -1335,9 +1361,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       const values = mg?.grid.layers[focus.layer]?.[focus.neuron] ?? null;
       const map = values ? { key: `${focus.layer}:${focus.neuron}`, values, toY: mapToY(values) } : null;
       const label = map ? t('lab.plane.neuron', { name: placeNameOf(focus.layer, focus.neuron) }) : t('lab.plane.network');
-      plane.render({ network: r.network, off: r.off, version: `${session.version}:${changesVersion}`, examples: session.data.examples, held: session.split.held, highlight: indexInData, selected: state.selectedRow, force: planeForce, map, label });
+      plane.render({
+        network: r.network, off: r.off, version: `${session.version}:${changesVersion}`, examples: session.data.examples, held: session.split.held,
+        highlight: indexInData, selected: state.selectedRow, force: planeForce, map, label,
+        // Con compuertas (D2): de −0,5 a 1,5, marcas en 0 y 1 y los cuatro casos grandes.
+        range: session.range, ticks: isGates() ? [0, 1] : null, big: isGates(), live: liveGesture,
+      });
       planeForce = false;
       placeProbe(r, map ? focus : null, Boolean(a));
+      if (isGates()) drawTruth(r, a, playedExample);
     } else {
       const sensorsCount = (recording ? DEFAULT_SENSORS : session.sensors).count;
       if (world) {
@@ -1353,6 +1385,20 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (++descTick % 30 === 1) describeBoard();
   }
   let descTick = 0;
+
+  /** La tabla de verdad (D6): la red que se ve, el caso de las entradas y el ejemplo en curso. */
+  function drawTruth(r, a, played) {
+    const net = a ? r.shownNetwork() : r.network;
+    const examples = session.data.examples;
+    const p = session.probe;
+    const shown = examples.findIndex((ex) => ex.inputs[0] === p.x && ex.inputs[1] === p.y);
+    const ongoing = a && !a.done ? a : played;
+    // Si la red muestra un ejemplo, sus entradas son las del ejemplo: se destaca esa fila, no la del punto.
+    const showsExample = Boolean(a) || Boolean(played);
+    truth.render({ table: truthRows(net, examples, r.off), shown: showsExample || shown < 0 ? null : shown, current: ongoing ? examples.indexOf(ongoing.example) : null, note: truthNote() });
+  }
+  /** Texto junto a la tabla (D10): resuelta por el aprendizaje, no a mano. Lo completa la tarea 5.4. */
+  function truthNote() { return ''; }
 
   /** La tabla de datos, si está a la vista (D14): corriendo, como mucho 5 veces por segundo; en pausa, ya. */
   function drawDataTable(now, a) {
@@ -1385,6 +1431,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       show(fan, false);
       show(actionsRows, false);
       const cls = ex.targets[0] >= 0.5 ? 'a' : 'b';
+      if (isGates()) {
+        const answer = fwdDone ? `${gateReply(out[0]).replace(/^./, (c) => c.toUpperCase())}.` : t('lab.example.pending');
+        write(exampleText, t('lab.example.gate', { a: ex.inputs[0], b: ex.inputs[1], answer: t(`lab.gates.${ex.targets[0] >= 0.5 ? 'yes' : 'no'}`), reply: answer }));
+        return;
+      }
       const answer = fwdDone ? t('lab.example.answer', { color: t(`lab.class.${out[0] > 0.5 ? 'a' : 'b'}`), sure: pct(Math.max(out[0], 1 - out[0])) }) : t('lab.example.pending');
       write(exampleText, t('lab.example.point', { x: fmt(ex.inputs[0]), y: fmt(ex.inputs[1]), color: t(`lab.class.${cls}`), answer }));
     } else {
@@ -1437,13 +1488,17 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const key = `${session.version}:${h.length}:${Boolean(warn)}:${i18n.language}`;
     if (key !== chartKey) {
       chartKey = key;
-      chart.update(chartPoints(h, warn ? o.bestEpoch : null).map((e) => ({ generation: e.epoch, best: e.practice.loss, average: e.heldOut.loss ?? 0, fitness: 'loss' })), { marker: warn ? o.bestEpoch : null });
+      // Con compuertas no hay apartados (D1): la curva y los aciertos son solo de práctica.
+      const gates = isGates();
+      chart.update(chartPoints(h, warn ? o.bestEpoch : null).map((e) => ({ generation: e.epoch, best: e.practice.loss, average: e.heldOut.loss ?? 0, fitness: 'loss' })), { marker: warn ? o.bestEpoch : null, single: gates });
       const last = h[h.length - 1];
-      write(stats, last ? t('lab.stats', { epoch: last.epoch, practice: pct(last.practice.accuracy), heldOut: pct(last.heldOut.accuracy) }) : t('lab.stats.none'));
+      if (gates) write(stats, last ? t('lab.stats.gates', { epoch: last.epoch, correct: last.practice.correct, count: last.practice.count }) : t('lab.stats.none'));
+      else write(stats, last ? t('lab.stats', { epoch: last.epoch, practice: pct(last.practice.accuracy), heldOut: pct(last.heldOut.accuracy) }) : t('lab.stats.none'));
       show(warning, Boolean(warn));
       if (warn) write(warning, t('lab.warning.best', { text: t('lab.warning'), epoch: o.bestEpoch }));
       const rising = h.length >= 2 && h[h.length - 1].heldOut.loss > h[h.length - 2].heldOut.loss;
-      write(chartText, last ? t('lab.chart.description', { epoch: last.epoch, practice: fmt(last.practice.loss), heldOut: fmt(last.heldOut.loss), trend: t(rising ? 'lab.chart.rising' : 'lab.chart.notRising') }) : t('lab.chart.empty'));
+      if (gates) write(chartText, last ? t('lab.chart.description.gates', { epoch: last.epoch, practice: fmt(last.practice.loss) }) : t('lab.chart.empty'));
+      else write(chartText, last ? t('lab.chart.description', { epoch: last.epoch, practice: fmt(last.practice.loss), heldOut: fmt(last.heldOut.loss), trend: t(rising ? 'lab.chart.rising' : 'lab.chart.notRising') }) : t('lab.chart.empty'));
     }
   }
 
@@ -1453,7 +1508,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const last = h[h.length - 1];
     if (hasPlane()) {
       const p = session.settings.points;
-      setAttr(planeBox, 'aria-label', t('lab.plane.description', { shape: t(`lab.shape.${p.shape}`), count: session.data.examples.length, heldOut: last ? pct(last.heldOut.accuracy) : '–' }));
+      if (isGates()) setAttr(planeBox, 'aria-label', t('lab.plane.description.gates', { gate: t(`lab.gate.${session.gate}.name`), correct: session.score.correct }));
+      else setAttr(planeBox, 'aria-label', t('lab.plane.description', { shape: t(`lab.shape.${p.shape}`), count: session.data.examples.length, heldOut: last ? pct(last.heldOut.accuracy) : '–' }));
     } else {
       sceneDescription.set(t(recording ? 'lab.scene.recording' : 'lab.scene.description', { track: t(`track.${session.settings.driving.track}`) }));
     }
