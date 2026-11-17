@@ -560,9 +560,12 @@ arreglarlos de a uno.
     estas dos barras aparte, como marcas, sin avisar.
   - La salida encendida usa la alternativa de Risks: gris claro con contorno
     blanco y negrita. El blanco pleno de la neurona activa llamaba más la
-    atención que la acción principal (15,1:1 contra 5,3:1). Las capturas con
-    el blanco quedaron en `borradores/jerarquia-de-botones/tecla-blanca/`; el
-    dueño decide.
+    atención que la acción principal (15,1:1 contra 5,3:1). El dueño eligió el
+    gris (17 de noviembre de 2026); las capturas con el blanco quedaron en
+    `borradores/jerarquia-de-botones/tecla-blanca/`.
+  - Por eso la tecla encendida ya no usa el mismo blanco que la neurona activa
+    del diagrama (`--color-neuron-active`). El vínculo entre las dos queda solo
+    en el contorno blanco (`--color-output-on-border`).
   - El fondo de la opción elegida se distingue poco en luminancia de uno sin
     elegir (1,39:1). La marcan el contorno de 2 px y la negrita. Si en clase
     no alcanza, subir el tono de `--color-selected-bg`.
