@@ -558,15 +558,14 @@ plegable del panel.
 - **THEN** los controles de arriba de la red son los mismos y ocupan lo mismo
 
 ### Requirement: Guía, leyenda y misiones
-Con la guía activa, el panel SHALL empezar con un texto breve que diga qué se
-está viendo, una leyenda de cómo se lee la red (colores, trazos y relleno) y
-tres misiones con su progreso: seguir la cuenta de una neurona paso a paso,
-cambiar una decisión de la red moviendo una entrada a mano, y apagar una
-neurona y ver qué cambia. Las misiones SHALL ocupar tres renglones, uno cada
-una, y MUST NOT bloquear nada. Con algo elegido, el texto cede su lugar.
+Con la guía activa, el panel SHALL ofrecer, plegado debajo de la tarjeta de consigna, un texto breve que diga qué se está viendo, y SHALL mostrar a la vista una leyenda de cómo se lee la red y tres misiones con su progreso, en tres renglones: seguir la cuenta de una neurona paso a paso, cambiar una decisión moviendo una entrada a mano, y apagar una neurona y ver qué cambia. Las misiones MUST NOT bloquear nada. Con algo elegido, el texto cede su lugar. Se despliega con "Más sobre esta pestaña".
+
+#### Scenario: Texto plegado
+- **WHEN** la guía está activa y la persona entra a la pestaña
+- **THEN** el texto de inicio está plegado debajo de la tarjeta de consigna y aparece al tocar "Más sobre esta pestaña"
 
 #### Scenario: Guía visible
-- **WHEN** la guía está activa
+- **WHEN** la guía está activa y la persona despliega "Más sobre esta pestaña"
 - **THEN** el texto dice que eso es la red del cerebro que maneja, que cada círculo es una neurona y cada línea un peso, y qué probar primero
 
 #### Scenario: Guía oculta

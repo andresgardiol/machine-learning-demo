@@ -673,19 +673,18 @@ explican.
 - **THEN** se pueden deshacer los últimos 50, y restablecer sigue volviendo a antes del primero
 
 ### Requirement: Guía y misiones del Laboratorio
-Con la guía activa, el panel SHALL empezar con un texto breve que diga qué se
-está viendo y qué probar primero, y terminar con tres misiones en tres
-renglones. Con compuertas: resolver AND a mano, resolver OR a mano y resolver
-XOR con una capa oculta. Con puntos o tu manejo: seguir una corrección entera
-paso a paso, hacer que la red memorice, y guardar un cerebro que aprendió a
-manejar imitando. Las misiones MUST NOT bloquear nada.
+Con la guía activa, el panel SHALL ofrecer, plegado debajo de la tarjeta de consigna, un texto breve que diga qué se está viendo y qué probar, y SHALL terminar, a la vista, con tres misiones en tres renglones. Con compuertas: AND a mano, OR a mano y XOR con una capa oculta. Con puntos o tu manejo: seguir una corrección entera paso a paso, hacer que la red memorice y guardar un cerebro que aprendió a manejar imitando. Las misiones MUST NOT bloquear nada. Se despliega con "Más sobre esta pestaña".
+
+#### Scenario: Texto plegado
+- **WHEN** la guía está activa y la persona entra a la pestaña
+- **THEN** el texto de inicio está plegado debajo de la tarjeta de consigna y aparece al tocar "Más sobre esta pestaña"
 
 #### Scenario: Guía visible
-- **WHEN** la guía está activa con puntos o tu manejo
+- **WHEN** la guía está activa con puntos o tu manejo y la persona despliega "Más sobre esta pestaña"
 - **THEN** el texto dice que la red aprende de ejemplos, que el fondo es lo que contesta y qué probar primero
 
 #### Scenario: Guía de las compuertas
-- **WHEN** la guía está activa con AND elegida
+- **WHEN** la guía está activa con AND elegida y la persona despliega "Más sobre esta pestaña"
 - **THEN** el texto dice que la neurona tiene que contestar sí solo cuando las dos entradas valen 1, que los pesos y el sesgo se mueven sobre la red, y que "Paso" muestra cómo lo corregiría el aprendizaje
 
 #### Scenario: Guía oculta

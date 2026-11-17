@@ -17,7 +17,7 @@ Todo control y toda salida de la red SHALL verse con uno de cuatro estilos (acci
 
 #### Scenario: Dos alturas
 - **WHEN** se miden todos los botones visibles de las seis pestañas
-- **THEN** cada uno tiene la altura normal o la compacta, y la compacta solo aparece en barras densas como la de abajo de la red
+- **THEN** cada uno tiene la altura normal o la compacta, y la compacta solo aparece en barras densas: las de arriba y abajo de la red, las filas de la lista de competidores, el renglón de Cambiar y Apagar de la tarjeta de la neurona en Inspeccionar y en el Laboratorio, los avisos sobre la escena de Inspeccionar, las filas de la biblioteca de cerebros y la barra de arriba de la app
 
 #### Scenario: Estado sin depender del color
 - **WHEN** se ve la app en escala de grises

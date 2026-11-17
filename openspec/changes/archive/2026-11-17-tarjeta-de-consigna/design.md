@@ -133,7 +133,8 @@ Sus decisiones: una sola altura por renglón; la tarjeta con un fondo más claro
 - **Compacta:** `.tool.small`, de 24 px, solo en las barras densas:
   - la barra de arriba de la red en Inspeccionar y en el Laboratorio;
   - la barra de marcha de abajo de la red;
-  - los botones de cada fila de la lista de competidores (✕ y 👁).
+  - los botones de cada fila de la lista de competidores (✕ y 👁);
+  - agregado en la implementación: el renglón de Cambiar (cerebro) y Apagar de la tarjeta de la neurona (y Cerrar, a su lado, en el Laboratorio), por decisión del dueño después de la 6.5. Con 36 px, la tabla de la neurona volvía a desplazar de 5 a 8 px a 1366×768. También los avisos sobre la escena de Inspeccionar, las filas de la biblioteca de cerebros y la barra de arriba de la app, que ya eran compactos.
 - En el resto se quita `small`: Reiniciar y Población nueva en Entrenar; Reiniciar, Otra carrera y Borrar en Competir; Reiniciar pesos, Reiniciar la red, Guardar como cerebro, Ver una solución y los de grabar en el Laboratorio; Tráfico nuevo.
 - La barra de marcha de abajo de la red es compacta, pero ahí la acción principal mide lo mismo que sus vecinos. Lo que era 40 px pasa a la altura compacta de esa barra. Esto deshace la medida de 3.3 de `jerarquia-de-botones`: se vuelve a medir.
 

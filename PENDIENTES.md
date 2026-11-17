@@ -40,8 +40,11 @@ Inspeccionar y el Laboratorio, donde sigue abajo de la red) y muestra la
 misión en curso; la lista marca esa misión con "▸" y negrita. Implementado y
 medido sin ventana: la tarjeta entra entera en todos los estados medidos,
 también Entrenar a 1366×768. El antes y el después están en
-`borradores/tarjeta-de-consigna/comparacion.md`. Falta que el dueño revise la
-comparación y lo archive; lo que quedó, en *Ayudas, guía y accesibilidad*.
+`borradores/tarjeta-de-consigna/comparacion.md`. Con la revisión del dueño
+(grupo 6): botones de dos alturas, la tarjeta con fondo propio y barra lateral,
+el texto largo plegado en "Más sobre esta pestaña" y Tráfico nuevo fuera de la
+tarjeta. Archivado el 17 de noviembre; lo que quedó, en *Ayudas, guía y
+accesibilidad*.
 
 ## En curso
 
@@ -74,8 +77,9 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      "Ningún ajuste MUST quedar en una sección plegable" de *Orden común del
      panel* (`estructura-app`): hay que modificar ese requisito.
    - ~~`tarjeta-de-consigna` (M)~~: hecho el 17 de noviembre de 2026 (ver
-     *Hecho*). El texto largo quedó visible debajo, sin plegar, por decisión
-     del dueño. Es el lugar donde después puede hablar el recorrido guiado.
+     *Hecho*). Al final, el texto largo quedó plegado en "Más sobre esta
+     pestaña", por decisión del dueño en la revisión. Es el lugar donde
+     después puede hablar el recorrido guiado.
    - `ajustes-por-niveles` (L, o M por pestaña; Entrenar primero): "Probá
      esto", "Más" y "Avanzado" colapsado. La tabla de qué va en cada nivel
      está en §5.3 del informe y hay que validarla con el dueño. Choca con el
@@ -104,7 +108,29 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
    - Decisión del dueño: el informe sugiere sumar a la constitución un
      artículo de jerarquía visual ("cada pestaña tiene una acción principal y
      una consigna visibles antes que cualquier ajuste").
-2. **Recorrido interactivo para aprender sin mentor.** Pedido del dueño (16 de
+2. **Sistema de diseño: revisión con dos skills.** Pedido del dueño (17 de
+   noviembre de 2026), después de ver `tarjeta-de-consigna` terminada:
+   "Sigo pensando que los botones no tienen jerarquía clara, nos hace falta un
+   sistema de diseño".
+   - Cómo: con las skills `/design:design-critique` y
+     `/design-skills:interaction-design`. Primero sobre la pestaña 2 (Reglas a
+     mano) como ejemplo; con lo que salga, mejorar las demás.
+   - Cuándo: después de `misiones-que-muestran-el-control`, que es el cambio
+     que sigue del análisis de UX.
+   - Qué entregar: la crítica con evidencia (capturas, controles), un sistema
+     de diseño (niveles de botón, tipografía, espaciado, superficies y
+     estados) separado de lo propuesto para Reglas a mano, y de ahí propuestas
+     de OpenSpec. Lo que ya fijan `jerarquia-visual` y `consigna-de-pestana`
+     es punto de partida, no límite.
+   - Observado por Claude en la captura del dueño de Reglas a mano (17 de
+     noviembre, hipótesis, sin medir):
+     - en la columna derecha conviven unos diez botones con contorno y la
+       misma altura: Tráfico nuevo, los tres ejemplos, Restablecer, Exportar,
+       Importar y los interruptores;
+     - las fichas de la paleta del editor también parecen botones;
+     - las teclas de salida ("Avanzar", "Retroceder") con contorno blanco
+       siguen pareciendo botones.
+3. **Recorrido interactivo para aprender sin mentor.** Pedido del dueño (16 de
    noviembre de 2026).
    - Qué: un recorrido guiado (walkthrough) que lleve a quien llega solo por
      toda la experiencia, de El problema al Laboratorio, para que aprenda sin

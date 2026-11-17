@@ -32,12 +32,16 @@ tráfico de la primera carrera MUST ser los mismos para todas las personas.
 - **THEN** la carrera por defecto es la misma: usa el programa de ejemplo, no el suyo
 
 ### Requirement: Guía de inicio
-Con la guía activa, el panel SHALL empezar con un texto breve que diga qué se
+Con la guía activa, el panel SHALL ofrecer, plegado debajo de la tarjeta de consigna, un texto breve que diga qué se
 está viendo y qué probar: correr contra un cerebro y un programa, y cambiar de
-pista para mirar en la tabla quién sigue andando donde nunca practicó.
+pista para mirar en la tabla quién sigue andando donde nunca practicó. Se despliega con "Más sobre esta pestaña".
+
+#### Scenario: Texto plegado
+- **WHEN** la guía está activa y la persona entra a la pestaña
+- **THEN** el texto de inicio está plegado debajo de la tarjeta de consigna y aparece al tocar "Más sobre esta pestaña"
 
 #### Scenario: Guía visible
-- **WHEN** la guía está activa
+- **WHEN** la guía está activa y la persona despliega "Más sobre esta pestaña"
 - **THEN** el texto dice que los autos son fantasmas que no se chocan entre sí, que cada uno maneja con lo que aprendió o con sus reglas, y que cambiar de pista muestra quién generaliza
 
 #### Scenario: Guía oculta

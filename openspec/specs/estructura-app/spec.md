@@ -294,17 +294,11 @@ seguir funcionando.
 - **THEN** la simulación, el entrenamiento y el contenido del tablero siguen sin reiniciarse
 
 ### Requirement: Orden común del panel
-El panel de toda pestaña SHALL ordenar su contenido así: guía de inicio,
-controles de marcha, interruptores de vista, ajustes y acciones a la vista y
-misiones. Los ajustes de la calle y del auto van en la barra de escenario.
-Un panel con más contenido del que entra SHALL repartirlo en vistas con
-pestañas arriba; la primera sigue este orden. Ningún ajuste MUST quedar en
-una sección plegable. El nombre de la pestaña MUST NOT
-repetirse como título visible, y SHALL seguir para lectores de pantalla.
+Todo panel SHALL ordenarse así: tarjeta de consigna (consigna, marcha y misión en curso), texto de guía, interruptores de vista, ajustes y acciones, y misiones. En Inspeccionar y el Laboratorio la marcha va abajo de la red; los ajustes de calle y auto, en la barra de escenario. Si no entra, SHALL repartirse en vistas con pestañas arriba; la primera sigue este orden. Ningún ajuste MUST quedar plegado. El nombre de la pestaña MUST NOT verse como título, y SHALL seguir para lectores de pantalla.
 
 #### Scenario: Mismo orden en dos pestañas
 - **WHEN** la persona compara los paneles de El problema y de Entrenar
-- **THEN** en El problema y en la vista de entrenamiento de Entrenar aparecen, en ese orden, la guía, los controles de marcha, los interruptores de vista y las misiones
+- **THEN** en El problema y en la vista de entrenamiento de Entrenar aparecen, en ese orden, la tarjeta de consigna con la marcha, el texto de guía, los interruptores de vista y la lista de misiones
 
 #### Scenario: Guía oculta
 - **WHEN** la guía está oculta

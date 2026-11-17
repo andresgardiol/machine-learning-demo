@@ -34,15 +34,14 @@ anterior.
 - **THEN** el ajuste vuelve a "nuevo en cada generación" desde la generación siguiente, sin reiniciar el entrenamiento
 
 ### Requirement: Guía de inicio
-Con la guía activa, el panel SHALL mostrar un texto de inicio, de hasta 240
-caracteres en cada idioma, que diga qué se está viendo (autos manejados por
-redes con números al azar) y de dónde sale la generación siguiente: de los que
-mejor manejaron, con selección automática, o del auto que la persona elija,
-con selección manual. Los atajos de teclado MUST leerse en el control que
-accionan y no en el texto de inicio.
+Con la guía activa, el panel SHALL ofrecer, plegado debajo de la tarjeta de consigna, un texto de inicio de hasta 240 caracteres por idioma que diga qué se está viendo (autos manejados por redes con números al azar) y de dónde sale la generación siguiente: de los que mejor manejaron, con selección automática, o del auto que la persona elija, con selección manual. Los atajos MUST leerse en el control que accionan, no en el texto. Se despliega con "Más sobre esta pestaña".
+
+#### Scenario: Texto plegado
+- **WHEN** la guía está activa y la persona entra a la pestaña
+- **THEN** el texto de inicio está plegado debajo de la tarjeta de consigna y aparece al tocar "Más sobre esta pestaña"
 
 #### Scenario: Guía activa
-- **WHEN** la guía está activa
+- **WHEN** la guía está activa y la persona despliega "Más sobre esta pestaña"
 - **THEN** el panel muestra el texto de inicio
 
 #### Scenario: Guía oculta
