@@ -1922,6 +1922,11 @@ export default {
   'lab.op.restarted': 'You changed the network by hand: the example starts over from the forward pass.',
   // --- tarjeta-de-consigna: the card that opens each tab's panel (D3) ---
   'consigna.title': 'What to do now',
+  // Mostrame (misiones-que-muestran-el-control D5)
+  'mission.reveal': 'Show me',
+  'help.mission.reveal.what': 'Takes you to the control that completes this mission and marks it for a moment.',
+  'help.mission.reveal.why': 'So you can find what to touch without searching the whole panel.',
+  'mission.revealed': 'Showing: {control}',
   // Long guide text, folded (tarjeta-de-consigna D10).
   'guide.more': 'More about this tab',
   'help.guide.more.what': 'Opens or folds the long explanation of this tab: what you see and what to try.',

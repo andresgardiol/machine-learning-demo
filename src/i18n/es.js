@@ -1922,6 +1922,11 @@ export default {
   'lab.op.restarted': 'Cambiaste la red a mano: el ejemplo vuelve a empezar desde la ida.',
   // --- tarjeta-de-consigna: la tarjeta que abre el panel de cada pestaña (D3) ---
   'consigna.title': 'Qué hacer ahora',
+  // Mostrame (misiones-que-muestran-el-control D5)
+  'mission.reveal': 'Mostrame',
+  'help.mission.reveal.what': 'Lleva al control con el que se cumple esta misión y lo marca un momento.',
+  'help.mission.reveal.why': 'Para encontrar qué tocar sin buscar por todo el panel.',
+  'mission.revealed': 'Se muestra: {control}',
   // Texto largo de la guía plegado (tarjeta-de-consigna D10).
   'guide.more': 'Más sobre esta pestaña',
   'help.guide.more.what': 'Despliega o pliega la explicación larga de esta pestaña: qué se ve y qué probar.',
