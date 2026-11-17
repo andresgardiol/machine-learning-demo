@@ -13,7 +13,7 @@ export const LAB_NETWORK_LIMITS = Object.freeze({ layers: Object.freeze({ min: 0
 export const RATE_LIMITS = Object.freeze({ min: 0.001, max: 3 });
 export const LAB_ACTIVATIONS = Object.freeze(['tanh', 'sigmoid', 'relu']);
 
-/** Datos por defecto: puntos en círculo, 200, ruido 10 %, 30 % apartados. */
+/** Datos de puntos por defecto: puntos en círculo, 200, ruido 10 %, 30 % apartados. */
 export const DATA_DEFAULTS = Object.freeze({ kind: 'points', points: DEFAULT_POINTS, holdout: HOLDOUT_LIMITS.default });
 
 /** Semilla de los datos (puntos y separación) y de la primera red: la misma para todos. */
@@ -25,3 +25,24 @@ export const OVERFIT_RECIPE = Object.freeze({ shape: 'circle', count: 40, noise:
 
 /** Ritmo por defecto: 10 épocas por segundo. */
 export const DEFAULT_EPOCH_RATE = 10;
+
+// --- Por clase de datos (laboratorio-empieza-por-compuertas D3, D4 y D7) ---------------------------
+/** Las tres clases de datos, en el orden de la barra. La primera es la que abre. */
+export const DATA_KINDS = Object.freeze(['gates', 'points', 'driving']);
+/** Tasa por defecto de las compuertas (D7): se fija midiendo en la tarea 5.2. */
+export const GATES_RATE = 0.5;
+/**
+ * Valores por defecto de cada clase: capas ocultas, neuronas de una capa nueva, activación, tasa,
+ * pesos en cero sin capas ocultas (solo compuertas) y el paso y el ritmo con que arranca la barra.
+ */
+export const KIND_DEFAULTS = Object.freeze({
+  gates: Object.freeze({ hidden: Object.freeze([]), newLayer: 2, activation: 'tanh', rate: GATES_RATE, zeroWeights: true, size: 'neuron', pace: 1 }),
+  points: Object.freeze({ hidden: NETWORK_DEFAULTS.hidden, newLayer: NEW_LAYER_NEURONS, activation: NETWORK_DEFAULTS.activation, rate: NETWORK_DEFAULTS.rate, zeroWeights: false, size: 'epoch', pace: DEFAULT_EPOCH_RATE }),
+  driving: Object.freeze({ hidden: NETWORK_DEFAULTS.hidden, newLayer: NEW_LAYER_NEURONS, activation: NETWORK_DEFAULTS.activation, rate: NETWORK_DEFAULTS.rate, zeroWeights: false, size: 'epoch', pace: DEFAULT_EPOCH_RATE }),
+});
+/** Compuerta con que abre el Laboratorio. */
+export const DEFAULT_GATE = 'and';
+/** XOR sin capas ocultas (D8): con tantos cambios a mano o épocas sin 4 de 4, la guía explica. */
+export const XOR_EXPLAIN = Object.freeze({ changes: 5, epochs: 50 });
+/** Rango del plano de cada clase (D2): con compuertas, de −0,5 a 1,5 en los dos ejes. */
+export const PLANE_RANGES = Object.freeze({ gates: Object.freeze([-0.5, 1.5]), points: Object.freeze([-1, 1]), driving: Object.freeze([-1, 1]) });

@@ -15,7 +15,7 @@ import { createWorld } from '../../core/world.js';
 import { computeNetwork, copyNetwork } from '../../core/network.js';
 import { forwardSoft, bakeOff } from '../../core/backprop.js';
 import { overfitting } from '../../core/overfitting.js';
-import { createRecorder, DRIVING_OUTPUTS, summary, POINT_SHAPES, POINT_LIMITS, HOLDOUT_LIMITS, evaluatedRows, filterRows, SPIRAL_TURNS } from '../../core/datasets.js';
+import { createRecorder, DRIVING_OUTPUTS, summary, POINT_SHAPES, GATES, gatesDataset, POINT_LIMITS, HOLDOUT_LIMITS, evaluatedRows, filterRows, SPIRAL_TURNS } from '../../core/datasets.js';
 import { createBrain } from '../../core/brain.js';
 import { DEFAULT_SENSORS } from '../../core/sensors.js';
 import { LEARNING_STEP_SIZES } from '../../core/learning-cursor.js';
@@ -40,14 +40,13 @@ import { actionBlock, ACTIONS } from '../shared/driving-cards.js';
 import { EXAMPLE_BRAINS } from '../../data/example-brains.js';
 import { listBrains, PICKER_GROUPS, trainedTracks } from '../inspect/brains.js';
 import { createLabSession, rateToSlider, sliderToRate, DRIVING_DEFAULTS } from './session.js';
-import { createLabPlayback, PACES, isRunning } from './playback.js';
+import { createLabPlayback, PACES, isRunning, kindPlayback } from './playback.js';
 import { createLearningAnimation, stepDuration } from './step-animation.js';
 import { describeLearningStep, whereText, layerName, neuronName } from './describe.js';
 import { createLabMissions } from './missions.js';
 import { shortcutFor } from './shortcuts.js';
-import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS } from './defaults.js';
+import { LAB_NETWORK_LIMITS, LAB_ACTIVATIONS, DATA_KINDS } from './defaults.js';
 import { createDataTable } from './data-table.js';
-import { createManualChanges } from './manual-changes.js';
 import { createCompactNeuronCard, weightRange } from '../shared/neuron-card.js';
 import { neuronGrid } from '../../core/backprop.js';
 import { topConnections } from '../../core/network-changes.js';
@@ -93,17 +92,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   if (!state) {
     state = {
       session: createLabSession({ brainFor: (key) => brainFor(key) }),
-      playback: createLabPlayback(),
+      playback: null,
       view: 'diagram',
       filter: 'all',
       collapsed: [],
       shapeKey: '',
       selected: null, // el Laboratorio abre sin neurona elegida (D15)
-      manual: createManualChanges(),
       missions: createLabMissions({ completed: completedMissions }),
       recorder: createRecorder({ sensors: DEFAULT_SENSORS }),
-      wasPlaying: true,
-      firstTime: true,
+      wasPlaying: false, // abre en pausa: nada aprende sin pedirlo (laboratorio-empieza-por-compuertas D4)
       saveNotice: null,
       lastPoints: null,
       dataFilter: { failing: false, group: 'all' },
@@ -111,6 +108,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     };
   }
   const session = state.session;
+  if (!state.playback) state.playback = createLabPlayback(kindPlayback(session.kind));
   const playback = state.playback;
   playback.pause();
 
@@ -128,7 +126,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // neuronas, recalculada como mucho 15 veces por segundo, cuando la red cambia.
   const maps = { key: null, at: -Infinity, grid: null, canvases: [] };
   function refreshMaps() {
-    if (!isPoints()) return null;
+    if (!hasPlane()) return null;
     const key = `${session.version}:${changesVersion}:${run().network.sizes.join('-')}`;
     const now = performance.now();
     if (maps.grid && (key === maps.key || now - maps.at < 1000 / PLANE_FPS) && maps.grid.layers.length === run().network.sizes.length) return maps;
@@ -158,7 +156,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const keyboard = createKeyboardController();
   const run = () => session.run;
   const ctx = () => ({ kind: session.kind, sizes: run().network.sizes });
-  const isPoints = () => session.kind === 'points';
+  // Con compuertas y con puntos hay plano (y punto de prueba); con tu manejo, la escena.
+  const hasPlane = () => session.kind !== 'driving';
+  const isGates = () => session.kind === 'gates';
 
   // ==================================================================================================
   // Zona izquierda: la red
@@ -218,7 +218,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         if (!sel || sel.input === undefined) return;
         manualChange(() => run().setWeight(sel.layer, sel.neuron, sel.input, value), info.gesture);
       },
-      end: () => state.manual.end(),
+      end: () => session.manual.end(),
     },
   });
   const headerLayer = el('div', { class: 'inspect-headers' });
@@ -313,7 +313,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
   /** Con puntos, dónde se enciende más una neurona oculta (lo que el mapa dice con color, D12). */
   function mapRegionText(l, j) {
-    const values = isPoints() && l > 0 && l < run().network.sizes.length - 1 ? maps.grid?.layers[l]?.[j] : null;
+    const values = hasPlane() && l > 0 && l < run().network.sizes.length - 1 ? maps.grid?.layers[l]?.[j] : null;
     return values ? `. ${t('lab.aria.map', { where: t(`lab.region.${brightestRegion(values, PLANE_GRID)}`) }).replace(/^./, (c) => c.toUpperCase())}` : '';
   }
   function labelNeuron(b, l, j) {
@@ -384,7 +384,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   let probeDrag = null; // pointerId mientras se arrastra
   /** La persona movió el punto: la red lo muestra (D5); si estaba en un ejemplo a medio corregir, solo cambia la vista. */
   function moveProbe(p, { announceIt = false } = {}) {
-    if (!isPoints()) return;
+    if (!hasPlane()) return;
     const changed = session.setProbe(p);
     if (!(playback.playing && isRunning(playback.size))) probeView = true;
     if (changed || announceIt) draw();
@@ -395,7 +395,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     return pxToPlane(plane.geometry, e.clientX - box.left, e.clientY - box.top);
   };
   planeBox.addEventListener('pointerdown', (e) => {
-    if (!isPoints() || e.button !== 0) return;
+    if (!hasPlane() || e.button !== 0) return;
     // Un clic en el plano lleva el punto ahí (D3, WCAG 2.5.7); sobre el marcador, lo agarra. Las dos cosas
     // siguen como arrastre mientras el botón esté apretado.
     e.preventDefault();
@@ -430,7 +430,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   let probeLabelKey = '';
   /** Marcador y rótulo en su lugar (D4): el rótulo dice lo que contesta la red, o lo que da la neurona elegida. */
   function placeProbe(r, focus, dim) {
-    const on = isPoints();
+    const on = hasPlane();
     show(probeMarker, on);
     show(probeLabel, on);
     if (!on) return;
@@ -625,7 +625,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     layerNames: (l) => layerName(t, l, run().network.sizes.length),
     onWeight: (i, v, info) => manualChange(() => run().setWeight(state.selected.layer, state.selected.neuron, i, v), info.gesture),
     onBias: (v, info) => manualChange(() => run().setBias(state.selected.layer, state.selected.neuron, v), info.gesture),
-    onGestureEnd: () => state.manual.end(),
+    onGestureEnd: () => session.manual.end(),
     // Deslizador de la entrada x o y: mueve el punto de prueba (punto-de-prueba D3).
     onInput: (i, v) => { const p = session.probe; moveProbe(i === 0 ? { x: v, y: p.y } : { x: p.x, y: v }); },
     onToggleNeuron: () => {
@@ -648,7 +648,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       const sel = state.selected;
       if (sel && sel.input !== undefined) manualChange(() => run().setWeight(sel.layer, sel.neuron, sel.input, v), info.gesture);
     },
-    onGestureEnd: () => state.manual.end(),
+    onGestureEnd: () => session.manual.end(),
     onToggle: () => {
       const sel = state.selected;
       if (sel && sel.input !== undefined) manualChange(() => run().setOff({ kind: 'connection', layer: sel.layer, neuron: sel.neuron, input: sel.input }, !run().isOff(sel.layer, sel.neuron, sel.input)), null);
@@ -686,7 +686,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Barra: los datos (D5)
   // ==================================================================================================
   let scenario = null;
-  const kindButtons = ['points', 'driving'].map((k) => el('button', {
+  const kindButtons = DATA_KINDS.map((k) => el('button', {
     class: 'segment', i18n: `lab.kind.${k}`, help: `lab.kind.${k}`,
     attrs: { type: 'button', role: 'radio', 'aria-checked': 'false' }, dataset: { kind: k },
     on: { click: () => setKind(k) },
@@ -719,12 +719,28 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const pointsBar = el('div', { class: 'scenario-bar lab-bar', i18nAttr: 'aria-label:bar.title', attrs: { role: 'group' } },
     kindGroup, shapeGroup, pointsGroup, el('div', { class: 'bar-group bar-group-reset' }, pointsReset));
 
+  // Compuertas (laboratorio-empieza-por-compuertas D1): AND, OR y XOR con su miniatura de cuatro casos.
+  // Sin ruido ni cantidad: no sirven con cuatro casos fijos, así que no se muestran.
+  const gateOptions = GATES.map((gate) => el('button', {
+    class: 'bar-track lab-shape lab-gate', help: `lab.gate.${gate}`, i18nAttr: `aria-label:lab.gate.${gate}.name`,
+    attrs: { type: 'button', role: 'radio', 'aria-checked': 'false', tabindex: '-1' }, dataset: { gate },
+    on: { click: () => setGate(gate) },
+  }, gateThumbnail(gate), el('span', { class: 'bar-track-name', i18n: `lab.gate.${gate}.name`, attrs: { 'aria-hidden': 'true' } })));
+  const gateGroup = barGroupNode({ id: 'lab-gate', labelKey: 'lab.bar.gate', labelId: 'lab-gate-label', help: 'lab.bar.gate' },
+    el('div', { class: 'bar-tracks', attrs: { role: 'radiogroup', 'aria-labelledby': 'lab-gate-label' }, on: { keydown: onGateKey } }, gateOptions));
+  const gatesReset = el('button', { class: 'tool bar-reset', i18n: 'bar.reset', help: 'lab.bar.resetGates', attrs: { type: 'button' }, on: { click: () => { if (session.resetGates()) restarted(); } } });
+  const gatesBar = el('div', { class: 'scenario-bar lab-bar', i18nAttr: 'aria-label:bar.title', attrs: { role: 'group' } },
+    gateGroup, el('div', { class: 'bar-group bar-group-reset' }, gatesReset));
+
   function buildBar() {
     scenario?.dispose();
     scenario = null;
     bar?.replaceChildren();
-    if (isPoints()) {
-      pointsBar.prepend(kindGroup); // el grupo de los datos va primero en las dos barras
+    if (isGates()) {
+      gatesBar.prepend(kindGroup); // el grupo de los datos va primero en las tres barras
+      bar?.append(gatesBar);
+    } else if (hasPlane()) {
+      pointsBar.prepend(kindGroup);
       bar?.append(pointsBar);
     } else {
       // Con tu manejo: los datos, y la pista, el tráfico y la velocidad de siempre (sin sensores).
@@ -742,12 +758,31 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function setKind(k) {
     const focused = document.activeElement && kindButtons.includes(document.activeElement);
     if (recording) stopRecording({ use: false });
-    if (!session.setKind(k)) return;
+    const config = playback.config;
+    if (k === session.kind || !['gates', 'points', 'driving'].includes(k)) return;
+    // Cada clase con su paso y su ritmo (D3): se guardan con la que se deja y vuelven con la que se elige;
+    // reproducir o pausar sigue como estaba (D4).
+    session.playbackConfig = config;
+    session.setKind(k);
+    playback.apply(session.playbackConfig ?? kindPlayback(k));
+    if (isRunning(playback.size)) run().clearActive();
     buildBar();
     restarted();
     if (focused) kindButtons.find((b) => b.dataset.kind === k)?.focus();
   }
   function setPoints(partial) { if (session.setPoints(partial)) restarted(); else sync(); }
+  /** Otra compuerta: datos, tabla y curvas nuevos con la misma red y sus pesos (D1). */
+  function setGate(gate) { if (session.setGate(gate)) restarted(); else sync(); }
+  function onGateKey(e) {
+    const i = GATES.indexOf(session.gate);
+    const n = GATES.length;
+    const to = { ArrowRight: (i + 1) % n, ArrowDown: (i + 1) % n, ArrowLeft: (i - 1 + n) % n, ArrowUp: (i - 1 + n) % n, Home: 0, End: n - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setGate(GATES[to]);
+    gateOptions[to].focus();
+  }
   function onShapeKey(e) {
     const i = POINT_SHAPES.indexOf(session.settings.points.shape);
     const n = POINT_SHAPES.length;
@@ -784,14 +819,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       buildOverlay();
     }
     buildNeuronSliders();
-    // El aprendizaje empezó de nuevo: no quedan cambios a mano (todo encendido). Al volver a la pestaña
-    // con el mismo aprendizaje, los cambios se conservan.
-    if (state.runVersion !== session.version) { state.manual.clear(); state.runVersion = session.version; }
+    // Los cambios a mano viven con la clase de datos (session.manual): la sesión los vacía cuando el
+    // aprendizaje empieza de nuevo y los conserva al cambiar de compuerta o de clase.
     // Datos o red nuevos: ninguna fila elegida y la tabla vuelve arriba.
     state.selectedRow = null;
     dataKey = '';
     dataTable.resetScroll();
-    if (!isPoints()) ensureWorld(true);
+    if (!hasPlane()) ensureWorld(true);
     planeForce = true;
     chartKey = '';
   }
@@ -803,7 +837,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const snap = run().snapshot();
     const wasMid = Boolean(run().active && !run().active.done && run().active.cursor.started);
     if (!apply()) return;
-    state.manual.record(snap, { gesture });
+    session.recordManual(snap, { gesture });
     afterManual(wasMid);
   }
   function afterManual(wasMid = false) {
@@ -816,14 +850,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
   let restartedNote = false;
   function undoManual() {
-    const snap = state.manual.undo();
+    const snap = session.manual.undo();
     if (!snap) return;
     run().restore(snap);
     afterManual();
-    announce(t('inspect.announce.undone', { count: state.manual.count }));
+    announce(t('inspect.announce.undone', { count: session.manual.count }));
   }
   function resetManual() {
-    const snap = state.manual.reset();
+    const snap = session.manual.reset();
     if (!snap) return;
     run().restore(snap);
     afterManual();
@@ -837,7 +871,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     restartedNote = false;
     probeView = false; // el paso siguiente vuelve a mostrar el ejemplo (punto-de-prueba D5)
     if (animation) { animation.finish(); animation = null; }
-    const r = run().advance(size);
+    const r = session.advance(size);
     const a = run().active;
     changesVersion += 1;
     if (a && r.units.length > 0) {
@@ -923,7 +957,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     crashTicks = 0;
   }
   function stepScene() {
-    if (isPoints()) return;
+    if (hasPlane()) return;
     ensureWorld();
     if (world.crashed) {
       crashTicks += 1;
@@ -944,7 +978,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (recording && world.crashed) state.recorder.newAttempt();
   }
   function startRecording() {
-    if (isPoints() || recording) return;
+    if (hasPlane() || recording) return;
     state.wasPlayingBeforeRecord = playback.playing;
     playback.pause();
     recording = true;
@@ -982,7 +1016,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
 
   function saveBrain() {
-    if (!library || isPoints() || run().epoch === 0) return;
+    if (!library || hasPlane() || run().epoch === 0) return;
     const d = session.settings.driving;
     let brain;
     try {
@@ -1033,11 +1067,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     tableZone.hidden = state.view !== 'table';
     dataZone.hidden = state.view !== 'data';
     // Cambios a mano: siempre a la vista; sin cambios, sin acción y con su explicación (D16).
-    const count = state.manual.count;
+    const count = session.manual.count;
     setText(changesCount, count === 0 ? 'inspect.changes.none' : 'inspect.changes.count', { value: count });
     setData(changesCount, 'changed', String(count > 0));
-    setAttr(undoButton, 'aria-disabled', String(!state.manual.canUndo));
-    setData(undoButton, 'help', state.manual.canUndo ? 'lab.undo' : 'lab.undo.none');
+    setAttr(undoButton, 'aria-disabled', String(!session.manual.canUndo));
+    setData(undoButton, 'help', session.manual.canUndo ? 'lab.undo' : 'lab.undo.none');
     setAttr(resetChangesButton, 'aria-disabled', String(count === 0));
     setData(resetChangesButton, 'help', count === 0 ? 'lab.resetChanges.none' : 'lab.resetChanges');
     const isLink = Boolean(state.selected) && state.selected.input !== undefined;
@@ -1060,6 +1094,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     setData(paceInput, 'help', `lab.pace.${playback.kind}`);
     // Barra
     for (const b of kindButtons) { const on = b.dataset.kind === s.kind; setAttr(b, 'aria-checked', String(on)); setAttr(b, 'tabindex', on ? '0' : '-1'); }
+    for (const o of gateOptions) { const on = o.dataset.gate === session.gate; setAttr(o, 'aria-checked', String(on)); setAttr(o, 'tabindex', on ? '0' : '-1'); }
     for (const o of shapeOptions) { const on = o.dataset.shape === s.points.shape; setAttr(o, 'aria-checked', String(on)); setAttr(o, 'tabindex', on ? '0' : '-1'); }
     for (const sl of [[noiseSlider, s.points.noise], [countSlider, s.points.count]]) {
       const [x, v] = sl;
@@ -1070,7 +1105,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     }
     scenario?.sync({ ...s.driving });
     // Panel: guía, red y aprendizaje
-    setText(intro, isPoints() ? 'lab.guide' : 'lab.guide.driving');
+    setText(intro, hasPlane() ? 'lab.guide' : 'lab.guide.driving');
     for (const b of layerButtons) setAttr(b, 'aria-pressed', String(Number(b.dataset.layers) === s.hidden.length));
     neuronSliders.forEach((x, k) => {
       if (x.gesture.active) return;
@@ -1089,14 +1124,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       setAttr(holdoutInput, 'aria-valuetext', t('drive.value.percent', { value: s.holdout }));
     }
     // Guardar: solo con tu manejo; sin épocas, sin acción y con su explicación.
-    show(saveButton, !isPoints());
+    show(saveButton, !hasPlane());
     const untrained = run().epoch === 0;
     setAttr(saveButton, 'aria-disabled', String(untrained));
     setData(saveButton, 'help', untrained ? 'lab.save.none' : 'lab.save');
-    show(saveMessage, !isPoints() && Boolean(state.saveNotice));
+    show(saveMessage, !hasPlane() && Boolean(state.saveNotice));
     if (state.saveNotice) setText(saveMessage, state.saveNotice.key, state.saveNotice.params);
     // Tu manejo
-    show(teacherSection, !isPoints());
+    show(teacherSection, !hasPlane());
     write(teacherName, teacherLabel());
     setText(recordButton, recording ? 'lab.record.finish' : 'lab.record');
     setData(recordButton, 'help', recording ? 'lab.record.finish' : 'lab.record');
@@ -1109,8 +1144,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     show(recordNotice, notice !== '');
     write(recordNotice, notice);
     // Tablero
-    show(planeBox, isPoints());
-    show(scene, !isPoints());
+    show(planeBox, hasPlane());
+    show(scene, !hasPlane());
     // Misiones
     for (const m of state.missions.missions) {
       const r = missionRows.find((x) => x.id === m.id);
@@ -1208,7 +1243,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       cursor = learningCursor(a, anim);
     } else if (playedExample) {
       trace = forwardSoft(r.network, playedExample.example.inputs, r.off).trace;
-    } else if (isPoints()) {
+    } else if (hasPlane()) {
       const p = session.probe;
       trace = forwardSoft(r.active ? r.shownNetwork() : r.network, [p.x, p.y], r.off).trace;
     } else {
@@ -1239,16 +1274,16 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Operación en curso: en pausa y de a fases, capas o neuronas (D11).
     // Con puntos, la franja dice siempre de quién es la cuenta (punto-de-prueba D4): el punto de prueba,
     // o el ejemplo, con su operación.
-    const showOp = isPoints() || !(playback.playing && isRunning(playback.size));
+    const showOp = hasPlane() || !(playback.playing && isRunning(playback.size));
     show(opStrip, showOp);
     if (showOp) {
       const exampleName = (ex) => t('lab.owner.example', { n: ex.order + 1, total: r.size });
       let text;
       if (a && lastStep) text = `${exampleName(a)}: ${describeLearningStep({ t, fmt, last: lastStep.units[lastStep.units.length - 1], detail: lastStep.detail, ctx: ctx() })}`;
       else if (a && restartedNote && !a.done && !a.cursor.started) text = t('lab.op.restarted');
-      else if (a && isPoints()) text = t('lab.owner.exampleOnly', { n: a.order + 1, total: r.size });
+      else if (a && hasPlane()) text = t('lab.owner.exampleOnly', { n: a.order + 1, total: r.size });
       else if (playedExample) text = t('lab.owner.playing', { n: playedExample.order + 1, total: r.size });
-      else if (isPoints()) {
+      else if (hasPlane()) {
         const p = session.probe;
         const ans = probeAnswer(r.active ? r.shownNetwork() : r.network, p.x, p.y, r.off);
         text = t('lab.op.probe', { x: fmt(p.x), y: fmt(p.y), answer: t(`lab.class.${ans.cls}`), pct: Math.round(ans.confidence * 100) });
@@ -1258,16 +1293,16 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     write(where, whereText({ t, run: r, ctx: ctx(), running }));
     const selNow = state.selected;
     if (selNow && selNow.input === undefined) {
-      const probeInput = isPoints() && selNow.layer === 0
+      const probeInput = hasPlane() && selNow.layer === 0
         ? { value: selNow.neuron === 0 ? session.probe.x : session.probe.y, label: t('lab.probe.sliderLabel', { name: nameOf(0, selNow.neuron) }) } : null;
       card.sync({ target: selNow, sizes, network: a ? r.shownNetwork() : r.network, isOff: (l, j, i = null) => r.isOff(l, j, i), probe: probeInput });
     }
     // Tablero, con tu manejo: la curva de la neurona elegida (oculta o de salida), o el renglón que dice
     // que ahí va a aparecer.
-    const curveOn = !isPoints() && Boolean(selNow) && selNow.input === undefined && selNow.layer > 0;
-    show(curveBlock, !isPoints());
+    const curveOn = !hasPlane() && Boolean(selNow) && selNow.input === undefined && selNow.layer > 0;
+    show(curveBlock, !hasPlane());
     show(curve.node, curveOn);
-    show(curveHint, !isPoints() && !curveOn);
+    show(curveHint, !hasPlane() && !curveOn);
     if (curveOn) {
       const inputs = trace.inputs ?? trace.layers[0].neurons.map((n) => n.raw ?? n.output);
       curve.sync({
@@ -1289,7 +1324,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
 
     // Tablero
     const highlight = a ? a.index : null;
-    if (isPoints()) {
+    if (hasPlane()) {
       const indexInData = highlight === null ? null : session.data.examples.indexOf(session.split.practice[highlight]);
       // El plano muestra lo elegido (D12): el mapa de la neurona oculta bajo el cursor o elegida, o lo que
       // contesta la red; el rótulo dice cuál.
@@ -1346,7 +1381,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const ex = a.example;
     const fwdDone = a.cursor.phaseDone('forward');
     const out = a.detail.forward.outputs;
-    if (isPoints()) {
+    if (hasPlane()) {
       show(fan, false);
       show(actionsRows, false);
       const cls = ex.targets[0] >= 0.5 ? 'a' : 'b';
@@ -1416,21 +1451,21 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function describeBoard() {
     const h = run().history;
     const last = h[h.length - 1];
-    if (isPoints()) {
+    if (hasPlane()) {
       const p = session.settings.points;
       setAttr(planeBox, 'aria-label', t('lab.plane.description', { shape: t(`lab.shape.${p.shape}`), count: session.data.examples.length, heldOut: last ? pct(last.heldOut.accuracy) : '–' }));
     } else {
       sceneDescription.set(t(recording ? 'lab.scene.recording' : 'lab.scene.description', { track: t(`track.${session.settings.driving.track}`) }));
     }
     const sm = summary(session.data, session.split);
-    if (isPoints()) write(dataSummary, '');
+    if (hasPlane()) write(dataSummary, '');
     else {
       write(dataSummary, t('lab.summary', {
         count: sm.count, who: session.source === 'recorded' ? t('lab.who.you') : candidateName(candidates.find((x) => x.key === session.teacherKey)), practice: sm.practice, heldOut: sm.heldOut,
         forward: pct(sm.controls.forward), left: pct(sm.controls.left), right: pct(sm.controls.right), reverse: pct(sm.controls.reverse),
       }));
     }
-    show(dataSummary, !isPoints());
+    show(dataSummary, !hasPlane());
   }
 
   function placeOverlay() {
@@ -1510,8 +1545,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   buildBar();
   checkVersion();
   buildOverlay();
-  if (state.firstTime || state.wasPlaying) playback.play();
-  state.firstTime = false;
+  if (state.wasPlaying) playback.play();
   sync();
   draw();
   loop.start();
@@ -1568,6 +1602,28 @@ export function chartPoints(history, marker = null, max = CHART_MAX_POINTS) {
   if (history.length <= max) return history;
   const stride = Math.ceil(history.length / max);
   return history.filter((e, k) => k % stride === 0 || k === history.length - 1 || e.epoch === marker);
+}
+
+/** Miniatura de una compuerta (para la barra): los cuatro casos con el color y la forma de su respuesta. */
+function gateThumbnail(gate) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 30 21');
+  svg.setAttribute('width', '30');
+  svg.setAttribute('height', '21');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', 'lab-shape-thumb');
+  for (const ex of gatesDataset({ gate }).examples) {
+    const [x, y] = ex.inputs;
+    const px = 9 + x * 12;
+    const py = 16 - y * 11;
+    const yes = ex.targets[0] === 1;
+    const n = document.createElementNS(ns, yes ? 'circle' : 'rect');
+    if (yes) { n.setAttribute('cx', px); n.setAttribute('cy', py); n.setAttribute('r', 2.4); n.setAttribute('class', 'lab-dot-a'); }
+    else { n.setAttribute('x', px - 2.1); n.setAttribute('y', py - 2.1); n.setAttribute('width', 4.2); n.setAttribute('height', 4.2); n.setAttribute('class', 'lab-dot-b'); }
+    svg.append(n);
+  }
+  return svg;
 }
 
 /** Miniatura de una forma de puntos (para la barra): unos puntos de cada clase. */

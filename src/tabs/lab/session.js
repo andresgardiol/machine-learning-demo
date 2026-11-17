@@ -1,7 +1,13 @@
 // Sesión del Laboratorio (pestana-laboratorio, design.md D4 a D9), sin DOM: los datos, la red y el
 // aprendizaje, y qué empieza de nuevo con cada cambio. La pestaña (index.js) la dibuja.
 //
-//   kind        'points' | 'driving'
+// Cada clase de datos guarda lo suyo (laboratorio-empieza-por-compuertas D3): la forma de la red, la
+// activación, la tasa, la semilla, el aprendizaje (red, curvas, ejemplo en curso), los cambios a mano,
+// el punto de prueba y el paso y el ritmo de la barra. Cambiar de clase guarda el registro vigente y
+// trae el de la otra, o lo crea con los valores por defecto de esa clase (KIND_DEFAULTS).
+//
+//   kind        'gates' | 'points' | 'driving'
+//   gates       { gate: 'and' | 'or' | 'xor' }
 //   points      { shape, count, noise }            (D5)
 //   driving     { track, lanes, density, irregularity, maxSpeed }
 //   holdout     % apartado (10 a 50)
@@ -16,11 +22,16 @@
 import { createNetwork } from '../../core/network.js';
 import { createRandom } from '../../core/random.js';
 import { createLearningRun } from '../../core/learning-cursor.js';
-import { pointsDataset, splitDataset, drivingExamples, normalizePoints, DEFAULT_POINTS, HOLDOUT_LIMITS } from '../../core/datasets.js';
+import { pointsDataset, gatesDataset, splitDataset, drivingExamples, normalizePoints, gateOf, GATES, DEFAULT_POINTS, HOLDOUT_LIMITS } from '../../core/datasets.js';
+import { evaluate } from '../../core/backprop.js';
+import { createManualChanges } from './manual-changes.js';
 import { carForBrain } from '../../core/brain.js';
 import { DEFAULT_SENSORS } from '../../core/sensors.js';
 import { normalizeSettings as normalizeStreet, DEFAULT_SETTINGS as STREET_DEFAULTS } from '../shared/street-settings.js';
-import { NETWORK_DEFAULTS, LAB_NETWORK_LIMITS, RATE_LIMITS, LAB_ACTIVATIONS, DATA_SEED, FIRST_WEIGHT_SEED, NEW_LAYER_NEURONS } from './defaults.js';
+import {
+  NETWORK_DEFAULTS, LAB_NETWORK_LIMITS, RATE_LIMITS, LAB_ACTIVATIONS, DATA_SEED, FIRST_WEIGHT_SEED, NEW_LAYER_NEURONS,
+  DATA_KINDS, KIND_DEFAULTS, DEFAULT_GATE, XOR_EXPLAIN, PLANE_RANGES,
+} from './defaults.js';
 
 /** Segundos de manejo que se toman del maestro (D8). */
 export const TEACHER_SECONDS = 60;
@@ -64,32 +75,29 @@ export const holdoutOf = (v) => {
 /**
  * @param {object} [spec]
  * @param {(key:string) => object|null} [spec.brainFor] el cerebro de una clave ('example:<id>' o 'brain:<id>')
+ * @param {string} [spec.kind] la clase con que abre (por defecto, compuertas)
  */
-export function createLabSession({ brainFor = () => null } = {}) {
+export function createLabSession({ brainFor = () => null, kind: firstKind = DATA_KINDS[0] } = {}) {
+  // Lo que comparten las clases: los ajustes de los datos de cada una y de quién son los ejemplos.
   const s = {
-    kind: 'points',
+    kind: DATA_KINDS.includes(firstKind) ? firstKind : DATA_KINDS[0],
+    gates: { gate: DEFAULT_GATE },
     points: { ...DEFAULT_POINTS },
     driving: { ...DRIVING_DEFAULTS },
     holdout: HOLDOUT_LIMITS.default,
-    hidden: [...NETWORK_DEFAULTS.hidden],
-    activation: NETWORK_DEFAULTS.activation,
-    rate: NETWORK_DEFAULTS.rate,
-    weightSeed: FIRST_WEIGHT_SEED,
     source: 'teacher',
     teacher: DEFAULT_TEACHER,
   };
-  let data = null;
-  let split = null;
-  let run = null;
   let recorded = null; // datos grabados (se conservan al volver al maestro)
-  let version = 0; // cambia cada vez que el aprendizaje empieza de nuevo
-  // Punto de prueba (punto-de-prueba D6): dónde lo dejó la persona. Ningún cambio de datos, de red ni
-  // de pesos lo mueve; la red no aprende de él.
-  let probe = { x: 0, y: 0 };
+  let version = 0; // cambia cada vez que el aprendizaje empieza de nuevo o cambia la clase
+  const records = {}; // por clase: el registro de D3
+  let rec = null; // el de la clase elegida
 
   function teacherBrain() { return brainFor(s.teacher) ?? brainFor(DEFAULT_TEACHER); }
+  const defaultsOf = (k) => KIND_DEFAULTS[k];
 
   function makeData() {
+    if (s.kind === 'gates') return gatesDataset({ gate: s.gates.gate });
     if (s.kind === 'points') return pointsDataset({ ...s.points, seed: DATA_SEED });
     if (s.source === 'recorded' && recorded && recorded.examples.length > 0) return recorded;
     const brain = teacherBrain();
@@ -97,54 +105,107 @@ export function createLabSession({ brainFor = () => null } = {}) {
     return { ...drivingExamples({ controller: car.controller, sensors: car.sensors, ...s.driving, seconds: TEACHER_SECONDS, seed: DATA_SEED }), teacher: s.teacher };
   }
 
-  function makeRun() {
-    const network = createNetwork({ inputs: data.inputs, hidden: [...s.hidden], outputs: data.outputs, activation: s.activation, random: createRandom(s.weightSeed) });
-    run = createLearningRun({ network, practice: split.practice, heldOut: split.heldOut, rate: s.rate, seed: s.weightSeed });
+  /** Pesos nuevos: en cero sin capas ocultas con compuertas (D3); si no, al azar de la serie. */
+  function newNetwork() {
+    const network = createNetwork({ inputs: rec.data.inputs, hidden: [...rec.hidden], outputs: rec.data.outputs, activation: rec.activation, random: createRandom(rec.weightSeed) });
+    if (defaultsOf(rec.kind).zeroWeights && rec.hidden.length === 0) {
+      for (const layer of network.layers) { layer.weights = layer.weights.map((r) => r.map(() => 0)); layer.biases = layer.biases.map(() => 0); }
+    }
+    return network;
+  }
+
+  /** Aprendizaje desde cero con `network` (o pesos nuevos). `keepChanges`: los cambios a mano siguen. */
+  function makeRun({ network = null, keepChanges = false } = {}) {
+    rec.run = createLearningRun({ network: network ?? newNetwork(), practice: rec.split.practice, heldOut: rec.split.heldOut, rate: rec.rate, seed: rec.weightSeed });
+    if (!keepChanges) rec.manual.clear();
     version += 1;
+    if (rec.kind === 'gates') xorReset();
   }
 
   /** Datos nuevos, separación nueva y aprendizaje desde cero. */
   function rebuildData() {
-    data = makeData();
-    split = splitDataset(data, { holdout: s.holdout, seed: DATA_SEED });
-    makeRun();
-  }
-  function resplit() {
-    split = splitDataset(data, { holdout: s.holdout, seed: DATA_SEED });
+    rec.data = makeData();
+    rec.split = splitDataset(rec.data, { holdout: s.holdout, seed: DATA_SEED });
     makeRun();
   }
 
-  rebuildData();
+  function createRecord(k) {
+    const d = defaultsOf(k);
+    rec = {
+      kind: k, hidden: [...d.hidden], activation: d.activation, rate: d.rate, weightSeed: FIRST_WEIGHT_SEED,
+      data: null, split: null, run: null, manual: createManualChanges(), probe: { x: 0, y: 0 }, playback: null,
+      // Con compuertas (D8 y D10): los contadores de XOR sin capas ocultas y, por compuerta, si sigue "a mano".
+      xor: { changes: 0, epochBase: 0 }, hand: Object.fromEntries(GATES.map((g) => [g, true])),
+    };
+    records[k] = rec;
+    rebuildData();
+  }
+
+  // --- XOR sin capas ocultas (D8) y "a mano" (D10) ---------------------------------------------------
+  function xorReset() { rec.xor = { changes: 0, epochBase: rec.run.epoch }; }
+
+  createRecord(s.kind);
+
+  const range = () => PLANE_RANGES[s.kind];
 
   const session = {
-    get settings() { return { ...s, points: { ...s.points }, driving: { ...s.driving }, hidden: [...s.hidden] }; },
+    get settings() {
+      return { ...s, gates: { ...s.gates }, points: { ...s.points }, driving: { ...s.driving }, hidden: [...rec.hidden], activation: rec.activation, rate: rec.rate, weightSeed: rec.weightSeed };
+    },
     get kind() { return s.kind; },
-    get data() { return data; },
-    get split() { return split; },
-    get run() { return run; },
+    get gate() { return s.gates.gate; },
+    get data() { return rec.data; },
+    get split() { return rec.split; },
+    get run() { return rec.run; },
     get version() { return version; },
-    /** Punto de prueba del plano: { x, y } entre −1 y 1. Empieza en el centro. */
-    get probe() { return { ...probe }; },
+    /** Los cambios a mano de la clase elegida (manual-changes.js). */
+    get manual() { return rec.manual; },
+    /** ¿Ya hay un registro de esa clase (se eligió alguna vez)? */
+    visited: (k) => Boolean(records[k]),
+    /** Rango del plano de la clase elegida: [mínimo, máximo] en los dos ejes (D2). */
+    get range() { return range(); },
+    /** Punto de prueba del plano: { x, y } dentro del rango. Empieza en (0, 0). */
+    get probe() { return { ...rec.probe }; },
     setProbe(p) {
-      const c = (v) => Math.max(-1, Math.min(1, Number.isFinite(v) ? v : 0));
+      const [lo, hi] = range();
+      const c = (v) => Math.max(lo, Math.min(hi, Number.isFinite(v) ? v : 0));
       const next = { x: c(p.x), y: c(p.y) };
-      if (next.x === probe.x && next.y === probe.y) return false;
-      probe = next;
+      if (next.x === rec.probe.x && next.y === rec.probe.y) return false;
+      rec.probe = next;
       return true;
     },
+    /** Paso y ritmo de la barra guardados con la clase (los pone la pestaña), o null la primera vez. */
+    get playbackConfig() { return rec.playback; },
+    set playbackConfig(v) { rec.playback = v; },
     get recorded() { return recorded; },
     /** Sensores de los ejemplos de manejo (los del maestro, o los de siempre si son grabados). */
-    get sensors() { return data.sensors ?? { ...DEFAULT_SENSORS }; },
+    get sensors() { return rec.data.sensors ?? { ...DEFAULT_SENSORS }; },
     get teacherKey() { return s.teacher; },
     get source() { return s.source; },
 
+    /** Otra clase de datos: trae su registro tal como quedó, o lo crea con sus valores por defecto. */
     setKind(kind) {
-      if (kind !== 'points' && kind !== 'driving') return false;
-      if (kind === s.kind) return false;
+      if (!DATA_KINDS.includes(kind) || kind === s.kind) return false;
       s.kind = kind;
-      rebuildData();
+      // Los ajustes de los datos de una clase solo se cambian con esa clase elegida: su registro sigue al día.
+      if (records[kind]) { rec = records[kind]; version += 1; } else createRecord(kind);
       return true;
     },
+    /** Otra compuerta (D1): datos, tabla y curvas nuevos; la red, sus pesos y sus cambios a mano siguen. */
+    setGate(gate) {
+      const g = gateOf(gate);
+      if (g === s.gates.gate) return false;
+      s.gates.gate = g;
+      if (s.kind !== 'gates') return true;
+      const snap = rec.run.snapshot();
+      rec.data = makeData();
+      rec.split = splitDataset(rec.data, { holdout: s.holdout, seed: DATA_SEED });
+      makeRun({ network: snap.network, keepChanges: true });
+      rec.run.restore(snap);
+      return true;
+    },
+    /** Restablecer los datos de compuertas: AND, con la misma red. */
+    resetGates() { return session.setGate(DEFAULT_GATE); },
     setPoints(partial) {
       const next = normalizePoints({ ...s.points, ...partial });
       if (JSON.stringify(next) === JSON.stringify(s.points)) return false;
@@ -166,50 +227,83 @@ export function createLabSession({ brainFor = () => null } = {}) {
       const h = holdoutOf(v);
       if (h === s.holdout) return false;
       s.holdout = h;
-      resplit();
+      if (s.kind === 'gates') return true; // con compuertas no se aparta nada
+      rec.split = splitDataset(rec.data, { holdout: s.holdout, seed: DATA_SEED });
+      makeRun();
       return true;
     },
-    /** Cantidad de capas ocultas: las que quedan conservan sus neuronas; las nuevas, 4. */
+    /** Cantidad de capas ocultas: las que quedan conservan sus neuronas; las nuevas, las de la clase (2 o 4). */
     setLayers(count) {
       const n = clamp(Math.round(count), LAB_NETWORK_LIMITS.layers.min, LAB_NETWORK_LIMITS.layers.max);
-      if (n === s.hidden.length) return false;
-      const next = s.hidden.slice(0, n);
-      while (next.length < n) next.push(NEW_LAYER_NEURONS);
-      s.hidden = next;
+      if (n === rec.hidden.length) return false;
+      const next = rec.hidden.slice(0, n);
+      while (next.length < n) next.push(defaultsOf(s.kind).newLayer);
+      rec.hidden = next;
       makeRun();
       return true;
     },
     setNeurons(layer, count) {
-      if (layer < 0 || layer >= s.hidden.length) return false;
+      if (layer < 0 || layer >= rec.hidden.length) return false;
       const n = clamp(Math.round(count), LAB_NETWORK_LIMITS.neurons.min, LAB_NETWORK_LIMITS.neurons.max);
-      if (n === s.hidden[layer]) return false;
-      s.hidden = s.hidden.map((v, i) => (i === layer ? n : v));
+      if (n === rec.hidden[layer]) return false;
+      rec.hidden = rec.hidden.map((v, i) => (i === layer ? n : v));
       makeRun();
       return true;
     },
     setActivation(a) {
-      if (!LAB_ACTIVATIONS.includes(a) || a === s.activation) return false;
-      s.activation = a;
+      if (!LAB_ACTIVATIONS.includes(a) || a === rec.activation) return false;
+      rec.activation = a;
       makeRun();
       return true;
     },
     /** La tasa se aplica en marcha, desde el ejemplo siguiente. */
     setRate(v) {
       const r = rateOf(v);
-      if (r === s.rate) return false;
-      s.rate = r;
-      run.rate = r;
+      if (r === rec.rate) return false;
+      rec.rate = r;
+      rec.run.rate = r;
       return true;
     },
-    /** Reiniciar pesos: la semilla siguiente, con los mismos datos y la misma forma. */
-    resetWeights() { s.weightSeed += 1; makeRun(); },
-    /** Restablecer la red: una capa de 4 con tanh y la tasa por defecto (y la primera semilla). */
+    /** Reiniciar pesos: la semilla siguiente, con los mismos datos y la misma forma (en cero, sin capas, con compuertas). */
+    resetWeights() { rec.weightSeed += 1; makeRun(); handBack(); },
+    /** Red de siempre: la forma, la activación y la tasa por defecto de la clase, con la primera semilla. */
     resetNetwork() {
-      s.hidden = [...NETWORK_DEFAULTS.hidden];
-      s.activation = NETWORK_DEFAULTS.activation;
-      s.rate = NETWORK_DEFAULTS.rate;
+      const d = defaultsOf(s.kind);
+      rec.hidden = [...d.hidden];
+      rec.activation = d.activation;
+      rec.rate = d.rate;
       makeRun();
+      handBack();
     },
+
+    // --- Pasos del aprendizaje y cambios a mano, con lo que cuentan (D8 y D10) ------------------------
+    /** Un paso del aprendizaje (lo mismo que run.advance): con compuertas, la compuerta deja de estar "a mano". */
+    advance(size) {
+      const r = rec.run.advance(size);
+      if (s.kind === 'gates' && (r.units.length > 0 || r.epochDone)) rec.hand[s.gates.gate] = false;
+      return r;
+    },
+    /** Un cambio a mano (manual-changes.record), que cuenta para XOR. Devuelve si es un cambio nuevo. */
+    recordManual(snap, opts) {
+      const fresh = rec.manual.record(snap, opts);
+      if (fresh && s.kind === 'gates') rec.xor.changes += 1;
+      return fresh;
+    },
+    /** ¿La compuerta elegida sigue resuelta solo a mano? (nada aprendió desde que se eligió o se reinició). */
+    get handOnly() { return s.kind === 'gates' && rec.hand[s.gates.gate]; },
+    /** Aciertos de la red de ahora sobre los ejemplos de práctica. */
+    get score() { return evaluate(rec.run.network, rec.split.practice, rec.run.off); },
+    /**
+     * XOR sin capas ocultas (D8): { changes, epochs, explain }. `explain` se enciende con 5 cambios a mano
+     * o 50 épocas sin 4 de 4. Con otra compuerta o con capas ocultas, null.
+     */
+    get xor() {
+      if (s.kind !== 'gates' || s.gates.gate !== 'xor' || rec.hidden.length > 0) return null;
+      const epochs = rec.run.epoch - rec.xor.epochBase;
+      const solved = session.score.correct === rec.split.practice.length;
+      return { changes: rec.xor.changes, epochs, explain: !solved && (rec.xor.changes >= XOR_EXPLAIN.changes || epochs >= XOR_EXPLAIN.epochs) };
+    },
+
     /** Otro maestro: sus ejemplos, con sus sensores, y aprendizaje desde cero. */
     setTeacher(key) {
       if (!brainFor(key)) return false;
@@ -242,5 +336,8 @@ export function createLabSession({ brainFor = () => null } = {}) {
     /** ¿Lo grabado son pocos segundos para aprender? */
     get fewRecorded() { return Boolean(recorded) && recorded.examples.length * (1 / 60) < FEW_RECORDED_SECONDS; },
   };
+
+  /** Reiniciar pesos o "Red de siempre": las compuertas vuelven a estar "a mano" (D10). */
+  function handBack() { if (s.kind === 'gates') rec.hand = Object.fromEntries(GATES.map((g) => [g, true])); }
   return session;
 }

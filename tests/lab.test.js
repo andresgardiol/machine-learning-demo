@@ -17,7 +17,8 @@ import en from '../src/i18n/en.js';
 import { planeGrid, cellShade } from '../src/render/plane-view.js';
 
 const brainFor = (key) => EXAMPLE_BRAINS.find((b) => `example:${b.id}` === key) ?? null;
-const session = () => createLabSession({ brainFor });
+// El Laboratorio abre con compuertas; estas pruebas son de puntos: los eligen, como haría la persona.
+const session = () => { const s = createLabSession({ brainFor }); s.setKind('points'); return s; };
 
 // --- Sesión ------------------------------------------------------------------------------------------
 test('sesión por defecto: puntos en círculo, 200, ruido 10 %, 30 % apartados, una capa de 4 con tanh, tasa 0,1', () => {
@@ -143,11 +144,13 @@ test('lo grabado: pasa a ser los ejemplos; borrar vuelve al maestro; volver al m
 });
 
 // --- Reproducción ------------------------------------------------------------------------------------
-test('reproducción: por defecto reproduce de a épocas a 10 por segundo; ritmos por tamaño', () => {
+test('reproducción: arranca en pausa de a épocas a 10 por segundo; al reproducir, ritmos por tamaño', () => {
   const p = createLabPlayback();
   assert.equal(p.size, 'epoch');
-  assert.equal(p.playing, true);
+  assert.equal(p.playing, false);
+  assert.equal(p.tick(), 0);
   assert.equal(p.rate, 10);
+  p.play();
   let n = 0;
   for (let k = 0; k < 60; k++) n += p.tick();
   assert.equal(n, 10);

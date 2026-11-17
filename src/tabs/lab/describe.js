@@ -27,14 +27,16 @@ export function layerName(t, layer, count) {
 
 /**
  * Nombre de una neurona. Las entradas y salidas se llaman según los datos: x e y y "Color" con
- * puntos; los sensores, la velocidad y las cuatro acciones con tu manejo.
+ * puntos; A, B y "Respuesta" con compuertas; los sensores, la velocidad y las cuatro acciones con tu manejo.
  */
 export function neuronName(t, { kind, sizes }, layer, neuron) {
   const L = sizes.length - 1;
   if (layer === 0) {
+    if (kind === 'gates') return t(neuron === 0 ? 'lab.input.a' : 'lab.input.b');
     if (kind === 'points') return t(neuron === 0 ? 'lab.input.x' : 'lab.input.y');
     return neuron === sizes[0] - 1 ? t('network.input.speed') : t('network.input.sensor', { n: neuron + 1 });
   }
+  if (layer === L && kind === 'gates') return t('lab.output.answer');
   if (layer === L) return kind === 'points' ? t('lab.output.color') : t(`network.output.${['forward', 'left', 'right', 'reverse'][neuron]}`);
   return t('lab.neuron.n', { n: neuron + 1 });
 }

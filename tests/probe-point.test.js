@@ -71,6 +71,7 @@ test('blanco cómodo: el área de agarre mide 24 px o más', () => {
 test('el punto se conserva al cambiar la forma de los datos, reiniciar los pesos o cambiar la red', async () => {
   const { createLabSession } = await import('../src/tabs/lab/session.js');
   const session = createLabSession();
+  session.setKind('points'); // el Laboratorio abre con compuertas; el punto de estas pruebas es el de puntos
   assert.deepEqual(session.probe, { x: 0, y: 0 }, 'empieza en el centro');
   assert.equal(session.setProbe({ x: 0.3, y: -0.45 }), true);
   const examples = session.data.examples.length;
@@ -88,6 +89,7 @@ test('el punto se conserva al cambiar la forma de los datos, reiniciar los pesos
 test('sin efecto en el aprendizaje: mover el punto cien veces no cambia pesos, época, curvas ni el ejemplo a medio corregir', async () => {
   const { createLabSession } = await import('../src/tabs/lab/session.js');
   const session = createLabSession();
+  session.setKind('points'); // el Laboratorio abre con compuertas; el punto de estas pruebas es el de puntos
   const run = session.run;
   run.advance('epoch');
   run.advance('phase'); // un ejemplo a medio corregir
