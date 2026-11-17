@@ -1,6 +1,7 @@
 // Datos de ejemplo del Laboratorio (pestana-laboratorio, design.md D4), sin DOM.
 //
 //   pointsDataset({ shape, count, noise, seed })          → { kind: 'points', examples, ... }
+//   gatesDataset({ gate })                                → { kind: 'gates', gate, examples, ... }
 //   drivingExamples({ controller, sensors, track, ... })  → { kind: 'driving', examples, ... }
 //   createRecorder({ sensors })                           → junta ejemplos de un mundo en marcha
 //   splitDataset(data, { holdout, seed })                 → { practice, heldOut, held }
@@ -12,7 +13,7 @@ import { createRandom, deriveSeed } from './random.js';
 import { createWorld } from './world.js';
 import { sensorConfig, DEFAULT_SENSORS } from './sensors.js';
 import { STEP } from './constants.js';
-import { forwardValues, isCorrect } from './backprop.js';
+import { forwardValues, isCorrect, outputCorrect } from './backprop.js';
 
 export const POINT_SHAPES = Object.freeze(['blobs', 'circle', 'xor', 'spiral']);
 /** Vueltas de cada brazo de la espiral (espiral-aprendible D1). */
@@ -122,6 +123,26 @@ export function pointsDataset(spec = {}) {
   return { kind: 'points', shape, count, noise, seed, inputs: 2, outputs: 1, examples };
 }
 
+// --- Compuertas (laboratorio-empieza-por-compuertas D1 y D2) ----------------------------------------
+export const GATES = Object.freeze(['and', 'or', 'xor']);
+const GATE_RULES = Object.freeze({ and: (a, b) => a && b, or: (a, b) => a || b, xor: (a, b) => a !== b });
+/** Los cuatro casos, siempre en este orden: (0, 0), (0, 1), (1, 0), (1, 1). */
+export const GATE_CASES = Object.freeze([[0, 0], [0, 1], [1, 0], [1, 1]].map((c) => Object.freeze(c)));
+/** Compuerta válida: AND, OR o XOR; cualquier otra, AND. */
+export const gateOf = (g) => (GATES.includes(g) ? g : 'and');
+
+/**
+ * Los cuatro casos de la tabla de verdad de una compuerta, con entradas 0 y 1. Sin ruido ni cantidad:
+ * siempre los mismos, en el mismo orden.
+ * @param {{gate?:string}} [spec]
+ */
+export function gatesDataset(spec = {}) {
+  const gate = gateOf(spec.gate);
+  const rule = GATE_RULES[gate];
+  const examples = GATE_CASES.map(([a, b]) => ({ inputs: [a, b], targets: [rule(a === 1, b === 1) ? 1 : 0] }));
+  return { kind: 'gates', gate, inputs: 2, outputs: 1, examples };
+}
+
 /** Un ejemplo de manejo: lo que percibía el auto y los cuatro controles. */
 export function drivingExample(perception, controls, attempt = 0, step = 0) {
   return {
@@ -216,6 +237,8 @@ export function splitDataset(data, { holdout = HOLDOUT_LIMITS.default, seed = 1 
   const share = clamp(Number(holdout) || HOLDOUT_LIMITS.default, HOLDOUT_LIMITS.min, HOLDOUT_LIMITS.max) / 100;
   const n = data.examples.length;
   const held = new Array(n).fill(false);
+  // Compuertas: con cuatro casos no se aparta ninguno; los cuatro son de práctica.
+  if (data.kind === 'gates') return { practice: data.examples.slice(), heldOut: [], held };
   const random = createRandom(deriveSeed(seed, 7919));
   if (data.kind === 'points') {
     for (const label of [1, 0]) {
@@ -289,7 +312,7 @@ export function evaluatedRows(net, examples, held, off = null) {
     const outputs = forwardValues(net, ex.inputs, off).outputs;
     const correct = isCorrect(outputs, ex.targets);
     const mismatched = [];
-    for (let k = 0; k < outputs.length; k++) if ((outputs[k] > 0.5) !== (ex.targets[k] >= 0.5)) mismatched.push(k);
+    for (let k = 0; k < outputs.length; k++) if (!outputCorrect(outputs[k], ex.targets[k])) mismatched.push(k);
     const group = held[i] ? 'heldOut' : 'practice';
     rows[i] = { index: i, inputs: ex.inputs, targets: ex.targets, outputs, correct, mismatched, group };
     summary[group].count += 1;

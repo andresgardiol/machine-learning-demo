@@ -358,9 +358,15 @@ export function forwardValues(net, inputs, off = null) {
 /** Respuesta suave de la red (solo las salidas). */
 export const softOutputs = (net, inputs, off = null) => forwardValues(net, inputs, off).outputs;
 
+/**
+ * ¿Una salida queda del lado correcto de 0,5? Exactamente 0,5 no se decide: no es acierto con ninguna
+ * respuesta (laboratorio-empieza-por-compuertas D6).
+ */
+export const outputCorrect = (out, target) => (target >= 0.5 ? out > 0.5 : out < 0.5);
+
 /** ¿Todas las salidas quedan del lado correcto de 0,5? */
 export function isCorrect(outputs, targets) {
-  for (let k = 0; k < outputs.length; k++) if ((outputs[k] > 0.5) !== (targets[k] >= 0.5)) return false;
+  for (let k = 0; k < outputs.length; k++) if (!outputCorrect(outputs[k], targets[k])) return false;
   return true;
 }
 
