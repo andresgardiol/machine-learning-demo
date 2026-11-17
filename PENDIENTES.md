@@ -18,11 +18,15 @@ compuertas (`laboratorio-empieza-por-compuertas`). El 17 de noviembre,
 destella más de tres veces por segundo en Inspeccionar, el Laboratorio y
 Entrenar; lo que titubea se ve quieto y rayado. Implementado y medido sin
 ventana, sin archivar; lo que quedó, en *Inspeccionar y vista de la red*.
+También el 17 de noviembre, `manejar-vos-en-inspeccionar`: en Inspeccionar se
+toma el volante con las flechas (o "Manejar vos") y la decisión muestra
+"Vos" y "La red" lado a lado, con cuánto coincidieron; "Devolver el volante"
+deja a la red seguir desde donde quedó el auto. Implementado y verificado
+sin ventana, sin archivar; lo que quedó, en *Inspeccionar y vista de la red*.
 
 ## En curso
 
-- `manejar-vos-en-inspeccionar`: tomar el volante con las flechas en
-  Inspeccionar y ver qué decidiría la red. Planificado, sigue al anterior.
+Nada.
 
 ## Para probar a mano (dueño)
 
@@ -305,6 +309,32 @@ arreglarlos de a uno.
   - No tocado: el rótulo bajo el cursor que queda debajo de las pastillas de
     las perillas (nota en *Laboratorio y compuertas*) sigue igual; este cambio
     solo le sumó la explicación del rayado.
+
+- **Lo que quedó de `manejar-vos-en-inspeccionar`** (17 de noviembre de 2026).
+  El mundo de Inspeccionar usa un controlador con observador
+  (`createObservedController`): la red siempre calcula; maneja ella o el
+  teclado.
+  - Sin probar: con el navegador a la vista (todo se verificó con Chrome sin
+    ventana y teclas por CDP; el panel integrado estaba oculto y ahí los
+    cuadros se frenan), con un lector de pantalla real (los anuncios de "Vos"
+    y "La red", las marcas "coinciden" / "no coinciden" y el aviso de la
+    escena), con teclados de otras distribuciones (W A S D van por posición
+    física), Safari y Firefox.
+  - Las marcas ✓ / ✗ y el contorno punteado de lo que no coincide siguen
+    también a las teclas de la persona, sin guarda de destellos (como la fila
+    "Vos"): zigzagueando cuatro veces por segundo, una marca cambió hasta 12
+    veces en un segundo. Son elementos chicos y los provoca la persona; la
+    tecla de la red que titubea sí pasa por la guarda y su marca es ≈.
+  - La escena se enfoca con un clic o con "Manejar vos", no con Tab
+    (`tabindex="-1"`, a diferencia de D3): con Tab la auditoría le pide un
+    tooltip, que aparecería al posar el cursor en toda la escena. Con el
+    teclado se llega a "Manejar vos", y las flechas también toman el volante
+    desde el cuerpo de la página o un botón común.
+  - Medido una vez y no repetido: un cuadro de 200 ms al apretar "Manejar
+    vos" en la primera tanda de fluidez; en las demás, peor 16,8 ms.
+  - La coincidencia cuenta los pasos del mundo con la persona manejando
+    (también los de N en pausa) y vuelve a cero al tomar o devolver el volante
+    y al rearmar el mundo, no al chocar.
 
 ## Entrenar, tráfico y aprendizaje
 

@@ -36,6 +36,9 @@
 
 ## 5. Cierre
 
-- [ ] 5.1 Verificación manual en el navegador contra el filtro de entrada de la propuesta, con capturas: manejando con las filas coincidiendo, sin coincidir, y la red sacando al auto de una situación armada.
-- [ ] 5.2 PENDIENTES.md: lo no probado (por ejemplo, lector de pantalla real).
-- [ ] 5.3 `npm test` y `openspec validate manejar-vos-en-inspeccionar --strict`.
+- [x] 5.1 Verificación manual en el navegador contra el filtro de entrada de la propuesta, con capturas: manejando con las filas coincidiendo, sin coincidir, y la red sacando al auto de una situación armada.
+  *Hecho contra el filtro de entrada (Chrome sin ventana, teclas por CDP). Concepto: manejando vos, la red decide con lo que ve el auto y su fila cambia según la situación que arma la persona ("La red: avanzar, derecha" mientras se avanza recto). ¿Se entiende solo?: "Manejar vos" con su tooltip; al apretarlo, el título pasa a "Tu decisión y la de la red" con "Vos" y "La red" lado a lado, ✓ y ✗, y la línea de cuánto coincidieron. ¿El mentor puede ignorarlo?: sin tocarlo, la escena y el recorrido son los de antes (2.1) y la decisión es la de una fila. ¿Si se usa mal?: "Devolver el volante", el mismo botón o cambiar de pestaña devuelven el control a la red; al chocar, el intento vuelve a empezar. Situación armada: manejando, avanzar y torcer hacia el borde izquierdo (ángulo 0,30, y 3,7), pausar y "Devolver el volante": la red dobla a la derecha y en 2 s queda centrada en un carril (ángulo 0,03, y −2,05) sin chocar. Capturas en la carpeta de notas: `manejar-vos-3.1-coinciden`, `manejar-vos-3.1-no-coinciden`, `manejar-vos-5.1-situacion-armada` y `manejar-vos-5.1-la-red-sale`. Con el navegador a la vista: sin probar.*
+- [x] 5.2 PENDIENTES.md: lo no probado (por ejemplo, lector de pantalla real).
+  *Hecho. En "Hecho" de arriba, el cambio con su fecha, sin archivar; "En curso" queda vacío. La nota "Lo que quedó de `manejar-vos-en-inspeccionar`" va en *Inspeccionar y vista de la red*: sin probar con el navegador a la vista, con un lector de pantalla real, otras distribuciones de teclado, Safari y Firefox; las marcas ✓/✗ siguen a la persona sin guarda; la escena con `tabindex="-1"`; el cuadro de 200 ms no repetido; y cuándo vuelve a cero la coincidencia.*
+- [x] 5.3 `npm test` y `openspec validate manejar-vos-en-inspeccionar --strict`.
+  *`npm test`: 1291 en verde. `openspec validate manejar-vos-en-inspeccionar --strict`: válido.*
