@@ -56,6 +56,39 @@ mismo día: pausar en Inspeccionar para mostrar el valor a mano, abrir la tarjet
 del programa si está plegada, el primer peso con XOR antes de la explicación,
 el anillo como `box-shadow` y el nombre corto que se anuncia.
 
+El 18 de noviembre, `sistema-de-diseno-base` (cambio 0 de la revisión del sistema de diseño,
+  punto 2 de la *Prioridad 1*): hecho y archivado el 18 de noviembre de 2026.
+  El antes y el después están en `borradores/sistema-de-diseno/comparacion.md`
+  (local). Es la propuesta B (Roles del contrato), con:
+  - el celeste `#a5e4ff` para "entra";
+  - tokens en tres capas;
+  - cuatro tamaños de letra a la vista (12, 14, 16 y 20, más 13 de código);
+  - tres alturas (24, 32 y 44);
+  - espaciado de 4 a 32 px y tres radios;
+  - los estados *se cumple*, *error* y *choque*, cada uno con su forma;
+  - la acción terciaria y los deslizadores de la app;
+  - rótulos de rol que se apagan con la guía;
+  - `mlLab.auditSistema()`.
+
+  Medido sin ventana: `mlLab.auditSistema()` da 0 problemas en las ocho vistas
+  de D3, a 1440×900 y a 1366×768. Lo que quedó:
+  - a 1366×768, el tablero de Reglas a mano desborda 71 px (37 en el commit de
+    partida), por las alturas y la letra nuevas;
+  - las acciones terciarias (Exportar, Importar, "Mostrame", "Más sobre esta
+    pestaña") se ven como texto suelto y no anuncian que se tocan hasta pasar
+    el cursor (observado, sin medir);
+  - en la "Red del líder" de Entrenar, el contorno celeste de las entradas casi
+    no se ve: las tapa el relleno del valor (observado).
+
+  Lo que no se pudo medir:
+  - Firefox (no está instalado);
+  - el uso con un lector de pantalla;
+  - el clic real con el mouse (se probó con clics programáticos y con el
+    teclado por el protocolo de Chrome).
+
+  Sigue `reglas-mesa-de-trabajo`, que ya puede usar la acción terciaria, las
+  tres alturas, los estados y los rótulos.
+
 ## En curso
 
 Nada.
@@ -143,6 +176,35 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      estados) separado de lo propuesto para Reglas a mano, y de ahí propuestas
      de OpenSpec. Lo que ya fijan `jerarquia-visual` y `consigna-de-pestana`
      es punto de partida, no límite.
+   - **Hecho (17 de noviembre de 2026): la crítica de Reglas a mano**, con
+     las dos skills. Está en `borradores/sistema-de-diseno/critica-reglas-a-mano.md`
+     (local) y trae tres propuestas para la pestaña. Al dueño le gustaron las
+     tres y se acordó hacerlas en secuencia, cada una con su OpenSpec y sus
+     capturas del antes y del después:
+     0. `sistema-de-diseno-base` (M, transversal): tipografía, alturas de
+        control, botón terciario, un color con un solo significado,
+        superficies y los estados *se cumple*, *error* y *choque*. Su diseño
+        trae tres propuestas de sistema, a pedido del dueño.
+     1. `reglas-mesa-de-trabajo` (M): dos zonas (el auto y el programa), la
+        percepción pegada a la escena, Rayos en la cabecera del editor y un
+        clic en una barra que inserta el sensor con su valor.
+     2. `reglas-el-choque-ensena` (L): el choque se congela, con repetición,
+        una tarjeta del caso, "Escribir una regla para este caso" y un
+        cuaderno de casos contra reglas.
+     3. `reglas-como-fichas` (L+): un editor de fichas como segunda vista del
+        mismo programa; el texto sigue siendo la fuente de verdad.
+     4. `modo-proyector` (L, después de `reglas-mesa-de-trabajo`): la
+        propuesta C de `sistema-de-diseno-base`, con una escala para proyectar
+        en un aula y un interruptor para el mentor. Se descartó del cambio 0
+        porque a 1280×720 rompía la disposición en las ocho vistas medidas
+        (`borradores/sistema-de-diseno/muestras/comparacion.md`). Necesita
+        decidir qué se pliega en modo proyector.
+     Para el cambio 0, el dueño eligió la propuesta B (Roles del contrato) con
+     el celeste `#a5e4ff` para "entra" (17 de noviembre de 2026).
+     Decisiones pendientes, una por cambio: si la marcha sigue siendo la
+     acción principal en Reglas a mano, si Reintentar solo viene apagado,
+     si el orden nuevo se lleva a todas las pestañas y qué vista se abre por
+     defecto con las fichas.
    - Observado por Claude en la captura del dueño de Reglas a mano (17 de
      noviembre, hipótesis, sin medir):
      - en la columna derecha conviven unos diez botones con contorno y la
@@ -232,6 +294,28 @@ arreglarlos de a uno.
     - conviene juntarlo con lo pendiente de atajos de *Prioridad 2* y de
       *Entrenar, tráfico y aprendizaje*, como los tooltips que nombran la
       tecla con los atajos apagados.
+- **Un auto que se parezca al de la vista previa.** Pedido del dueño (18 de
+  noviembre de 2026): "Me encantó la imagen para las previews del link. Me
+  gustaría que el auto se asemeje más al de la imagen". La imagen es
+  `assets/og-image.png` (la que muestran los enlaces compartidos).
+  - Lo que se ve en la imagen (observado en una captura que mandó el dueño):
+    un auto verde de líneas redondeadas, con volumen (luces y sombras sobre la
+    carrocería), parabrisas y luneta oscuros, y un halo de luz en la trompa de
+    donde salen los rayos de los sensores, que también brillan.
+  - A tener en cuenta (hipótesis, sin probar):
+    - es solo el dibujo: el tamaño y la forma de choque del auto en la
+      simulación no cambian (Art. 7: lo que se ve tiene que seguir siendo lo
+      que se calcula);
+    - el auto se dibuja muchas veces por cuadro en Entrenar (toda la
+      población), así que el dibujo nuevo tiene que medirse contra la fluidez
+      (Art. 10). Quizás conviene un dibujo rico para el auto que se sigue y uno
+      simple para el resto;
+    - los colores siguen siendo los de `tokens.css` (el verde del auto, el rojo
+      del choque, el violeta de la élite y el celeste de "entra" para los
+      rayos, de `sistema-de-diseno-base`). El brillo no puede pasar el límite
+      de destellos de `accesibilidad`;
+    - el auto chocado, la élite y los competidores numerados de Competir
+      tienen que seguir distinguiéndose sin depender del color.
 - Cerebros incluidos elegidos por el dueño.
 - Elegir con un clic qué auto seguir en el entrenamiento.
 - Entrenar en segundo plano (Web Worker).

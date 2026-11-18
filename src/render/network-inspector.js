@@ -110,6 +110,7 @@ const COLOR_VARS = {
   positive: '--color-weight-positive',
   negative: '--color-weight-negative',
   active: '--color-neuron-active',
+  input: '--color-network-input', // entra: contorno de las entradas (sistema-de-diseno-base D1, B)
   node: '--color-neuron',
   label: '--color-text-muted',
   text: '--color-text',
@@ -1410,8 +1411,8 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     ctx.beginPath();
     ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
     if (bias === undefined) {
-      // Una entrada: contorno liso; sin leer todavía, punteado como lo que falta calcular.
-      ctx.strokeStyle = colors.node;
+      // Una entrada: contorno liso del color de "entra"; sin leer todavía, punteado como lo que falta calcular.
+      ctx.strokeStyle = colors.input;
       ctx.lineWidth = computed ? 1 : 1.2;
       ctx.setLineDash(computed ? [] : [2, 3]);
     } else if (!computed && !biasShown) {
@@ -1443,7 +1444,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     ctx.globalAlpha = n.off ? 0.4 : 1;
     ctx.lineWidth = 1;
     if (bias === undefined || !computed) {
-      ctx.strokeStyle = colors.node;
+      ctx.strokeStyle = bias === undefined ? colors.input : colors.node;
       ctx.setLineDash(computed ? [] : [2, 2]);
     } else {
       const s = biasStroke(bias, maxWeight);

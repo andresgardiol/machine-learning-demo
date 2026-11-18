@@ -60,6 +60,7 @@ import { topConnections } from '../../core/network-changes.js';
 import { createResponseCurve } from '../shared/response-curve.js';
 import { createConnectionDetail } from '../shared/connection-detail.js';
 import { createWeightHistory } from '../shared/weight-history.js';
+import { roleTag } from '../../ui/role-tag.js';
 import { PLANE_GRID, PLANE_FPS, mapShade, brightestRegion, PROBE, planeToPx, pxToPlane, nudgeProbe, probeLabelBox, probeAnswer } from '../../render/plane-view.js';
 
 /** Con tu manejo, el error de ahora (D11) se mide sobre una muestra fija de hasta tantos ejemplos. */
@@ -253,6 +254,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const neuronLayer = el('div', { class: 'inspect-neurons', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.neurons.label', on: { keydown: (e) => onNeuronKey(e) } });
   inspector.overlay.append(headerLayer, neuronLayer);
   let headerButtons = [];
+  // Rótulo "Entra" de las entradas del diagrama (sistema-de-diseno-base 5.2): debajo de la cabecera de la capa 0.
+  // "Decide", debajo de la cabecera de la primera capa que calcula (la oculta, o la de salida si no hay).
+  const inputTag = roleTag('in');
+  const decideTag = roleTag('decide', { which: 'network' });
+  i18n.translateTree(inputTag);
+  i18n.translateTree(decideTag);
   let tableHeaders = [];
   let neuronButtons = [];
   const nameOf = (l, j) => neuronName(t, ctx(), l, j);
@@ -283,6 +290,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     neuronLayer.replaceChildren();
     tableHeaders = [];
     headerButtons = sizes.map((_, l) => { const h = makeHeader(l, { inTable: false }); headerLayer.append(h); return h; });
+    headerLayer.append(inputTag, decideTag);
     neuronButtons = sizes.map((count, l) => Array.from({ length: count }, (_, j) => {
       const b = el('button', {
         class: 'inspect-neuron', help: 'lab.neuron', dataset: { layer: String(l), neuron: String(j), focus: 'keep', shortcuts: 'pass' },
@@ -1737,6 +1745,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const rows = crowded ? 2 : 1;
     if (rows !== headerRows) { headerRows = rows; layoutKey = ''; }
     sizes.forEach((_, l) => { headerButtons[l].style.transform = `translate(${Math.round(lefts[l])}px, ${rows === 2 && l % 2 === 1 ? 32 : 4}px)`; });
+    const tagTop = rows === 2 ? 60 : 32;
+    inputTag.style.transform = `translate(${Math.round(lefts[0])}px, ${tagTop}px)`;
+    decideTag.style.transform = `translate(${Math.round(lefts[1])}px, ${tagTop}px)`;
     const r = inspector.radius;
     neuronButtons.forEach((row, l) => row.forEach((b, j) => {
       const p = inspector.screenOf(l, j);

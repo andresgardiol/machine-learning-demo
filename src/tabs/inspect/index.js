@@ -57,6 +57,7 @@ import { createNeuronCard, weightRange } from './card.js';
 import { createConnectionDetail, linkShare } from '../shared/connection-detail.js';
 import { createResponseCurve } from '../shared/response-curve.js';
 import { OUTPUT_KEYS } from '../../render/network-view.js';
+import { roleTag } from '../../ui/role-tag.js';
 
 /** Semilla del tráfico: la misma para todos (misma semilla, misma escena). */
 export const SEED = 1;
@@ -537,6 +538,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const neuronLayer = el('div', { class: 'inspect-neurons', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.neurons.label', on: { keydown: (e) => onNeuronKey(e) } });
   inspector.overlay.append(headerLayer, neuronLayer);
   let headerButtons = [];
+  // Rótulo "Entra" de las entradas del diagrama (sistema-de-diseno-base 5.2): debajo de la cabecera de la capa 0.
+  // "Decide", debajo de la cabecera de la primera capa que calcula (la oculta, o la de salida si no hay).
+  const inputTag = roleTag('in');
+  const decideTag = roleTag('decide', { which: 'network' });
+  i18n.translateTree(inputTag);
+  i18n.translateTree(decideTag);
   let tableHeaders = [];
   let neuronButtons = []; // [layer][neuron]
   let focusTarget = { layer: 1, neuron: 0 };
@@ -560,6 +567,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     headerLayer.replaceChildren();
     neuronLayer.replaceChildren();
     headerButtons = net.sizes.map((_, l) => { const h = makeHeader(l, { inTable: false }); headerLayer.append(h); return h; });
+    headerLayer.append(inputTag, decideTag);
     neuronButtons = net.sizes.map((count, l) => Array.from({ length: count }, (_, j) => {
       const b = el('button', {
         class: 'inspect-neuron', help: 'inspect.neuron', dataset: { layer: String(l), neuron: String(j), focus: 'keep', shortcuts: 'pass' },
@@ -740,7 +748,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   });
   scene.append(el('div', { class: 'inspect-scene-badges' }, driveBadge, manualBadge, crashBadge, pausedBadge, speedBadge), driveButton);
   const description = stageDescription({ stage: scene });
-  const decision = actionBlock({ i18n });
+  const decision = actionBlock({ i18n, role: true });
   // Manejando la persona (manejar-vos D4): "Vos" y "La red" lado a lado, y cuánto coincidieron.
   const compare = actionCompare({ i18n });
   const matchWindow = createMatchWindow();
@@ -1216,6 +1224,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       const top = rows === 2 && l % 2 === 1 ? 32 : 4;
       headerButtons[l].style.transform = `translate(${Math.round(left)}px, ${top}px)`;
     });
+    const tagTop = rows === 2 ? 60 : 32;
+    inputTag.style.transform = `translate(${Math.round(lefts[0])}px, ${tagTop}px)`;
+    decideTag.style.transform = `translate(${Math.round(lefts[1])}px, ${tagTop}px)`;
     const r = inspector.radius;
     neuronButtons.forEach((row, l) => row.forEach((b, j) => {
       const p = inspector.screenOf(l, j);

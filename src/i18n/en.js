@@ -1944,4 +1944,15 @@ export default {
   'consigna.lab.points': 'Press Play, below the network, and watch it separate the points.',
   'consigna.lab.driving': 'Press Play, below the network: it learns to drive by imitating.',
   'consigna.missions.allDone': '✓ You completed every mission in this tab.',
+  // Role labels (sistema-de-diseno-base D1, B): the controller contract, on every zone that shows a role.
+  'role.in': 'In · what it senses',
+  'role.decide.program': 'Decides · the program',
+  'role.decide.network': 'Decides · the network',
+  'role.out': 'Out · what it does',
+  'help.role.in.what': 'What goes into the controller: the sensor readings and the speed. It is all it knows about the world; what does not come in, it cannot take into account.',
+  'help.role.in.why': 'A controller can only decide with what it senses. That is why these bars, the rays in the scene and the inputs of the network share the same light blue.',
+  'help.role.decide.what': 'What decides: the program or the network turns what comes in into what goes out. What holds right now is marked with a light bar on the side.',
+  'help.role.decide.why': 'It is the part that changes between tabs: you, a hand-written program or a network that learned. What comes in and what goes out are always the same.',
+  'help.role.out.what': 'What comes out of the controller: which car controls are being used right now. They are keys that light up, not buttons to press.',
+  'help.role.out.why': 'It is the result of the decision. Comparing what comes in with what goes out is how you understand what a controller does.',
 };

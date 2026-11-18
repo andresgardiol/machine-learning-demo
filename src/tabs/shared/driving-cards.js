@@ -5,6 +5,7 @@ import { el, setData } from '../../ui/dom.js';
 import { formatFixed } from '../../ui/i18n.js';
 import { createTextSetter } from '../../ui/controls.js';
 import { createFlashGuard } from '../../render/flash-guard.js';
+import { roleTag } from '../../ui/role-tag.js';
 
 /** Con más sensores que este, las barras se muestran sin su número (ni su nombre) debajo. */
 export const READINGS_MAX = 12;
@@ -35,7 +36,7 @@ const writeText = (node, text) => { if (node.textContent !== text) node.textCont
  *   para los sensores) y la velocidad se rotula con `speedKey`.
  * @returns {{node: HTMLElement, update:(perception:{sensors:number[], speed:number}) => void}}
  */
-export function perceptionBlock({ i18n, count, names = null }) {
+export function perceptionBlock({ i18n, count, names = null, role = true }) {
   const setText = createTextSetter(i18n);
   const bars = el('div', { class: 'sensor-bars', attrs: { role: 'img' }, i18nAttr: 'aria-label:drive.perception.bars' });
   const barValues = el('div', { class: 'sensor-values', attrs: { 'aria-hidden': 'true' } });
@@ -88,7 +89,7 @@ export function perceptionBlock({ i18n, count, names = null }) {
   const speedKey = names ? names.speedKey : 'network.input.speed';
   const speedLabel = el('span', { class: names ? 'speed-label speed-name' : 'speed-label', i18n: speedKey });
   const node = el('div', { class: 'perception' },
-    el('div', { class: 'perception-sensors' }, bars, barValues, barNames),
+    el('div', { class: 'perception-sensors' }, role ? roleTag('in') : null, bars, barValues, barNames),
     el('div', { class: 'perception-speed' },
       el('span', { class: 'sensor-bar speed-bar', attrs: { role: 'img' }, i18nAttr: `aria-label:${speedKey}` }, speedFill),
       speedValue,
@@ -120,10 +121,11 @@ export function perceptionBlock({ i18n, count, names = null }) {
  * un segundo se ve quieta, rayada y a medio encender (`data-on="mixed"`, con la parte del último medio
  * segundo que estuvo encendida en `--action-level`), y su nombre accesible dice que titubea
  * (sin-destellos-en-la-red D4). Sin `live` (en pausa, paso a paso o manejando la persona), exacta.
- * @param {{i18n?: object}} [spec] con `i18n`, el texto de "titubea" para el lector de pantalla
+ * @param {{i18n?: object, role?: boolean}} [spec] con `i18n`, el texto de "titubea" para el lector de pantalla; con
+ *   `role`, el rótulo "Sale · lo que acciona" arriba de las teclas (sistema-de-diseno-base 5.2)
  * @returns {{node: HTMLElement, update:(controls:{forward:boolean, reverse:boolean, left:boolean, right:boolean}, opts?:{live?:boolean, now?:number}) => void}}
  */
-export function actionBlock({ i18n = null } = {}) {
+export function actionBlock({ i18n = null, role = false } = {}) {
   const flickerText = () => (i18n ? i18n.t('flicker.action') : '');
   const marks = {};
   const keys = Object.fromEntries(ACTIONS.map((a) => {
@@ -134,7 +136,7 @@ export function actionBlock({ i18n = null } = {}) {
       el('span', { class: 'action-name', i18n: `drive.action.${a}` }),
       marks[a])];
   }));
-  const node = el('div', { class: 'action-keys' }, ACTIONS.map((a) => keys[a]));
+  const node = el('div', { class: 'action-keys' }, role ? roleTag('out') : null, ACTIONS.map((a) => keys[a]));
   const guard = createFlashGuard();
   function update(controls, { live = false, now = globalThis.performance?.now() ?? 0 } = {}) {
     if (!live) guard.reset();
@@ -148,6 +150,8 @@ export function actionBlock({ i18n = null } = {}) {
       }
       const k = keys[a];
       if (k.dataset.on !== on) k.dataset.on = on;
+      // Estado "se cumple" (sistema-de-diseno-base D6): la tecla encendida, con la misma barra que la línea del programa.
+      if (on === 'true') { if (k.dataset.state !== 'holds') k.dataset.state = 'holds'; } else if (k.dataset.state) delete k.dataset.state;
       const lv = level === null ? '' : level.toFixed(2);
       if (k.style.getPropertyValue('--action-level') !== lv) {
         if (lv) k.style.setProperty('--action-level', lv); else k.style.removeProperty('--action-level');

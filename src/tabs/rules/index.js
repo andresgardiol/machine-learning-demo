@@ -42,6 +42,7 @@ import {
   DEFAULT_SEED, INITIAL_PROGRAM, EXAMPLES, knownTexts, settingsForProgram, rememberedSensors,
 } from './examples.js';
 import { shortcutFor } from './shortcuts.js';
+import { roleTag } from '../../ui/role-tag.js';
 
 export { DEFAULT_SEED };
 
@@ -191,6 +192,8 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   const errorList = el('ul', { class: 'rules-errors' });
   const palette = el('div', { class: 'guide rules-palette', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.palette.label' });
   programCard.append(editor.node, status, errorList, palette);
+  // Rótulo "Decide" en el renglón del título de la tarjeta (sistema-de-diseno-base D1, B): no empuja el editor.
+  programCard.node.append(roleTag('decide', { which: 'program' }));
 
   /** Texto de un error del análisis, con su línea delante. */
   function errorParams(e) {
@@ -217,7 +220,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
       status.dataset.state = 'errors';
     }
     const items = errors.map((e) => {
-      const li = el('li', { class: 'rules-error' });
+      const li = el('li', { class: 'rules-error', attrs: { 'data-state': 'error' } });
       const [key, params] = errorParams(e);
       setText(li, key, params);
       return li;
@@ -278,9 +281,15 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   const perception = perceptionBlock({
     i18n, count: state.world.perception.sensors.length,
     names: { sensorKey: 'rules.data.sensor', speedKey: 'rules.data.speed' },
+    role: false,
   });
   const action = actionBlock();
   ioCard.append(el('div', { class: 'rules-io' }, perception.node, action.node));
+  // Rótulos de rol en el renglón del título, cada uno sobre su columna, en lugar del título "Lo que percibe y lo
+  // que acciona" (decisión del dueño, 18 de noviembre de 2026): con la guía encendida el título queda solo para el
+  // lector de pantalla; con la guía apagada vuelve. No suman alto a la tarjeta.
+  ioCard.node.append(el('div', { class: 'guide card-roles' },
+    roleTag('in'), el('span', { class: 'card-roles-out' }, roleTag('out'))));
 
   board.append(strip.node, programCard.node, ioCard.node);
 
@@ -330,8 +339,10 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   const confirm = inlineConfirm({ i18n });
   const message = el('p', { class: 'rules-message', attrs: { role: 'status' } });
   message.hidden = true;
-  function showMessage(key, params) {
+  /** `error`: el aviso usa el estado "error" del sistema de diseño (sistema-de-diseno-base D6). */
+  function showMessage(key, params, { error = false } = {}) {
     setText(message, key, params);
+    if (error) message.dataset.state = 'error'; else delete message.dataset.state;
     message.hidden = false;
   }
 
@@ -375,14 +386,15 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     message.hidden = true;
     replaceProgram(i18n.t(INITIAL_PROGRAM.textKey), INITIAL_PROGRAM.sensors, { message: 'rules.confirm.reset' });
   });
+  // Exportar e Importar no cambian la escena: acción terciaria (sistema-de-diseno-base D5).
   const exportButton = button('rules.export', 'rules.export', () => {
     downloadText({ fileName: i18n.t('rules.export.fileName'), text: editor.value, type: 'text/plain' });
-  });
+  }, 'tool tertiary');
   const fileInput = el('input', {
     class: 'library-file', help: 'rules.import',
     attrs: { type: 'file', accept: '.txt,text/plain', tabindex: '-1', 'aria-hidden': 'true' },
   });
-  const importButton = button('rules.import', 'rules.import', () => fileInput.click());
+  const importButton = button('rules.import', 'rules.import', () => fileInput.click(), 'tool tertiary');
   fileInput.addEventListener('change', async () => {
     const file = fileInput.files?.[0];
     fileInput.value = '';
@@ -393,17 +405,17 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
       const text = raw.replace(/\r\n?/g, '\n');
       // eslint-disable-next-line no-control-regex
       if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(text)) {
-        showMessage('rules.import.notText', { file: file.name });
+        showMessage('rules.import.notText', { file: file.name }, { error: true });
         return;
       }
       if (text.length > RULES_PROGRAM_MAX || countLines(text) > RULES_LIMITS.lines) {
-        showMessage('rules.import.tooLong', { file: file.name });
+        showMessage('rules.import.tooLong', { file: file.name }, { error: true });
         return;
       }
       replaceProgram(text, null, { message: 'rules.confirm.import', params: { file: file.name } },
         () => showMessage('rules.import.done', { file: file.name }));
     } catch {
-      showMessage('rules.import.notText', { file: file.name });
+      showMessage('rules.import.notText', { file: file.name }, { error: true });
     }
   });
 
@@ -481,7 +493,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   const crashBody = el('p', {});
   const crashHowto = el('p', { i18n: 'rules.crash.howto' });
   const crashRestart = button('rules.restart', 'rules.restart', restart);
-  const crashBox = el('div', { class: 'crash-box', attrs: { role: 'alert' } },
+  const crashBox = el('div', { class: 'crash-box', attrs: { role: 'alert', 'data-state': 'crash' } },
     el('h2', { i18n: 'rules.crash.title' }),
     crashBody,
     crashHowto,

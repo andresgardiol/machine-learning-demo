@@ -5,8 +5,8 @@ Fija qué significa cada estilo de control en toda la aplicación (acción princ
 
 ## Requirements
 
-### Requirement: Cuatro estilos con un significado cada uno
-Todo control y toda salida de la red SHALL verse con uno de cuatro estilos (acción principal, acción secundaria, opción elegida, estado o salida de la red), con el mismo significado en todas las pestañas. La principal lleva el relleno del color de acción y negrita, con la misma altura que su renglón y sin partirse; la secundaria, contorno sin ese relleno. Hay dos alturas: normal y compacta (barras densas). Ese relleno MUST NOT usarse en nada más. Los enlaces, como Créditos, MAY verse subrayados.
+### Requirement: Cinco estilos con un significado cada uno
+Todo control y toda salida de la red SHALL verse con uno de cinco estilos (acción principal, acción secundaria, acción terciaria, opción elegida, estado o salida de la red), con el mismo significado en todas las pestañas. La principal lleva el relleno del color de acción y negrita, con la altura grande y sin partirse; la secundaria, contorno sin ese relleno; la terciaria, solo texto, sin contorno ni relleno, y se usa para lo que no cambia la escena (Exportar, Importar, "Más sobre esta pestaña", "Mostrame"). Hay tres alturas: grande, normal y compacta (barras densas). Ese relleno MUST NOT usarse en nada más. Los enlaces, como Créditos, MAY verse subrayados.
 
 #### Scenario: El azul relleno es solo de la acción principal
 - **WHEN** se recorren las seis pestañas a 1440×900 y se buscan los elementos rellenos con el color de acción
@@ -21,15 +21,27 @@ Todo control y toda salida de la red SHALL verse con uno de cuatro estilos (acci
 - **THEN** los dos botones tienen la misma altura y cada texto entra en un renglón
 
 #### Scenario: Dos alturas
-- **WHEN** se miden todos los botones visibles de las seis pestañas
-- **THEN** cada uno tiene la altura normal o la compacta, y la compacta solo aparece en barras densas: las de arriba y abajo de la red, las filas de la lista de competidores, el renglón de Cambiar y Apagar de la tarjeta de la neurona en Inspeccionar y en el Laboratorio, los avisos sobre la escena de Inspeccionar, las filas de la biblioteca de cerebros y la barra de arriba de la app
+- **WHEN** se miden todos los botones visibles de las seis pestañas, salvo la acción principal y los botones de su renglón
+- **THEN** cada uno tiene la altura normal o la compacta, y la compacta solo aparece en barras densas: las de arriba y abajo de la red, las filas de la lista de competidores, el renglón de Cambiar y Apagar de la tarjeta de la neurona en Inspeccionar y en el Laboratorio, los avisos sobre la escena de Inspeccionar, las filas de la biblioteca de cerebros, la barra de arriba de la app, la cabecera de capas del diagrama de la red, las filas de la tarjeta de la neurona y la tabla de verdad del Laboratorio
+
+#### Scenario: Tres alturas
+- **WHEN** se mide la acción principal de cada pestaña y los botones de su mismo renglón
+- **THEN** tienen la altura grande, más alta que la normal
+
+#### Scenario: Acción terciaria
+- **WHEN** la persona mira en Reglas a mano "Exportar" e "Importar" junto a "Restablecer"
+- **THEN** "Exportar" e "Importar" se ven como acción terciaria, solo texto, y "Restablecer", que cambia el programa, como acción secundaria
+
+#### Scenario: "Mostrame" sin excepción de altura
+- **WHEN** la tarjeta de consigna muestra "Mostrame" junto a la misión en curso
+- **THEN** "Mostrame" se ve como acción terciaria y no como un botón compacto con contorno dentro de la tarjeta
 
 #### Scenario: Estado sin depender del color
 - **WHEN** se ve la app en escala de grises
-- **THEN** la acción principal se reconoce por su relleno y su letra en negrita, una opción elegida por su letra en negrita y su contorno, un interruptor encendido por la posición de su perilla y una salida encendida por su relleno y su letra en negrita
+- **THEN** la acción principal se reconoce por su relleno y su letra en negrita, una opción elegida por su letra en negrita y su contorno, un interruptor encendido por la posición de su perilla, una salida encendida por su relleno y su letra en negrita, y una acción terciaria por ser texto sin contorno con el cursor de mano
 
 #### Scenario: Contraste de los estilos nuevos
-- **WHEN** se mide el texto de la acción principal contra su relleno, el texto de una opción elegida contra su fondo y el contorno de una opción elegida contra la superficie donde está
+- **WHEN** se mide el texto de la acción principal contra su relleno, el texto de una opción elegida contra su fondo, el contorno de una opción elegida contra la superficie donde está y el texto de una acción terciaria contra su superficie
 - **THEN** el texto da 4,5:1 o más y el contorno 3:1 o más
 
 ### Requirement: La salida de la red no parece botón

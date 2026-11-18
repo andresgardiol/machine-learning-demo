@@ -1944,4 +1944,15 @@ export default {
   'consigna.lab.points': 'Tocá Reproducir, abajo de la red, y mirá cómo separa los puntos.',
   'consigna.lab.driving': 'Tocá Reproducir, abajo de la red: aprende a manejar imitando.',
   'consigna.missions.allDone': '✓ Cumpliste todas las misiones de esta pestaña.',
+  // Rótulos de rol (sistema-de-diseno-base D1, B): el contrato de controlador, en cada zona que muestra un rol.
+  'role.in': 'Entra · lo que percibe',
+  'role.decide.program': 'Decide · el programa',
+  'role.decide.network': 'Decide · la red',
+  'role.out': 'Sale · lo que acciona',
+  'help.role.in.what': 'Lo que entra al controlador: las lecturas de los sensores y la velocidad. Es todo lo que sabe del mundo; lo que no entra, no lo puede tener en cuenta.',
+  'help.role.in.why': 'Un controlador solo decide con lo que percibe. Por eso estas barras, los rayos de la escena y las entradas de la red tienen el mismo color celeste.',
+  'help.role.decide.what': 'Lo que decide: el programa o la red convierte lo que entra en lo que sale. Lo que se está cumpliendo ahora se marca con una barra clara al costado.',
+  'help.role.decide.why': 'Es la parte que cambia entre pestañas: vos, un programa escrito a mano o una red que aprendió. Lo que entra y lo que sale son siempre los mismos.',
+  'help.role.out.what': 'Lo que sale del controlador: qué controles del auto se accionan en este momento. Son teclas que se encienden, no botones para tocar.',
+  'help.role.out.why': 'Es el resultado de la decisión. Comparar lo que entra con lo que sale es la forma de entender qué hace un controlador.',
 };

@@ -57,6 +57,8 @@ export function createCodeEditor({
     const state = error ? 'error' : active ? 'active' : 'none';
     if (g.dataset.mark !== state) g.dataset.mark = state;
     if (c.dataset.mark !== state) c.dataset.mark = state;
+    // Estado "se cumple" del sistema de diseño (sistema-de-diseno-base D6): la línea activa.
+    if (active) { if (c.dataset.state !== 'holds') c.dataset.state = 'holds'; } else if (c.dataset.state) delete c.dataset.state;
   }
 
   /** Vuelve a dibujar el texto coloreado y, si cambió la cantidad de líneas, la columna de números. */

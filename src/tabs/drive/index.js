@@ -164,7 +164,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   perceptionCard.append(perception.node);
 
   // Acción: los cuatro controles accionados
-  const action = actionBlock();
+  const action = actionBlock({ role: true });
   const actionCard = boardCard({
     id: 'drive-action', titleKey: 'drive.action.title', help: 'drive.action', hintKey: 'drive.action.hint',
     open: cards.action, grow: 1, onToggle: (open) => { cards.action = open; },
@@ -210,7 +210,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   const crashBody = el('p', {});
   const crashRestart = button('drive.restart', 'drive.restart', restart);
   const crashHowto = el('p', { i18n: 'drive.crash.howto' });
-  const crashBox = el('div', { class: 'crash-box', attrs: { role: 'alert' } },
+  const crashBox = el('div', { class: 'crash-box', attrs: { role: 'alert', 'data-state': 'crash' } },
     el('h2', { i18n: 'drive.crash.title' }),
     crashBody,
     crashHowto,

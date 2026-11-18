@@ -11,6 +11,6 @@ import { el } from '../../ui/dom.js';
  */
 export function createGuideMore(...content) {
   return el('details', { class: 'guide guide-more' },
-    el('summary', { class: 'guide-more-summary', i18n: 'guide.more', help: 'guide.more' }),
+    el('summary', { class: 'guide-more-summary tertiary', i18n: 'guide.more', help: 'guide.more' }),
     el('div', { class: 'guide-more-body' }, ...content));
 }
