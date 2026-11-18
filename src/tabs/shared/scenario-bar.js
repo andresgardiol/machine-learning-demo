@@ -30,6 +30,16 @@ export const BAR_GROUPS = Object.freeze([
   Object.freeze({ id: 'car', keys: Object.freeze(['maxSpeed']) }),
 ]);
 
+/**
+ * Grupos que se ven en la barra, en orden, para una configuración `{ omit, aside }` de `scenarioBar`:
+ * los omitidos no se arman y los "aparte" se arman fuera de la barra. Sin DOM.
+ * @param {{omit?:string[], aside?:string[]}} [config]
+ * @returns {string[]}
+ */
+export function barGroupsShown({ omit = [], aside = [] } = {}) {
+  return BAR_GROUPS.map((g) => g.id).filter((id) => !omit.includes(id) && !aside.includes(id));
+}
+
 /** Ajustes de la barra, en el orden en que se ven. */
 export const BAR_KEYS = Object.freeze(BAR_GROUPS.flatMap((g) => g.keys));
 
@@ -120,12 +130,16 @@ const FORMATS = Object.freeze({
  *   ocultos ni en el orden del foco; los demás conservan su orden
  * @param {{after:string, node:HTMLElement}[]} [spec.extra] grupos propios de la pestaña (barra-escenario,
  *   "Grupo propio de una pestaña"), armados con `barGroupNode`, que van después del grupo `after`
- * @returns {{node:HTMLElement, sync:(settings:object)=>void, slot:(group:string)=>HTMLElement, dispose:()=>void}}
+ * @param {string[]} [spec.aside] grupos que se arman igual (mismos controles, mismo estado y mismos avisos)
+ *   pero no van en la barra: la pestaña los pone en otro lugar con `group(id)` (reglas-mesa-de-trabajo D4,
+ *   los sensores de Reglas a mano en la cabecera del programa)
+ * @returns {{node:HTMLElement, sync:(settings:object)=>void, slot:(group:string)=>HTMLElement,
+ *   group:(id:string)=>HTMLElement|null, dispose:()=>void}}
  */
 export function scenarioBar({
   i18n, settings, onChange, onReset, idPrefix = 'bar',
   help = (key) => `drive.${key}`, trackHelp = 'track', noTrafficHelp = 'drive.noTraffic', resetHelp = 'drive.resetSettings',
-  omit = [], extra = [],
+  omit = [], extra = [], aside = [],
 }) {
   const shown = (id) => !omit.includes(id);
   const setText = createTextSetter(i18n);
@@ -232,6 +246,7 @@ export function scenarioBar({
   });
   slots.reset = el('div', { class: 'bar-slot' });
 
+  const asideNodes = {};
   const node = el('div', { class: 'scenario-bar', i18nAttr: 'aria-label:bar.title', attrs: { role: 'group' } },
     ...[
       () => group('track', { i18n: 'bar.group.track', help: trackHelp, attrs: { id: trackLabelId } }, trackGroup),
@@ -240,8 +255,14 @@ export function scenarioBar({
       () => group('sensors', { i18n: 'bar.group.sensors', attrs: { id: `${idPrefix}-sensors-label` } },
         sliderNode('sensorCount'), sliderNode('sensorRange'), sliderNode('sensorSpread')),
       () => group('car', { i18n: 'bar.group.car', attrs: { id: `${idPrefix}-car-label` } }, sliderNode('maxSpeed')),
-    ].flatMap((make, i) => (shown(BAR_GROUPS[i].id) ? [make()] : [])
-      .concat(extra.filter((x) => x.after === BAR_GROUPS[i].id).map((x) => x.node))),
+    ].flatMap((make, i) => {
+      const id = BAR_GROUPS[i].id;
+      if (!shown(id)) return extra.filter((x) => x.after === id).map((x) => x.node);
+      const made = make();
+      // Un grupo "aparte" se arma igual pero lo ubica la pestaña: no va en la barra.
+      if (aside.includes(id)) { asideNodes[id] = made; return extra.filter((x) => x.after === id).map((x) => x.node); }
+      return [made, ...extra.filter((x) => x.after === id).map((x) => x.node)];
+    }),
     el('div', { class: 'bar-group bar-group-reset' }, resetButton, slots.reset));
 
   /** Muestra los valores de `next`. Un deslizador que se está arrastrando conserva el suyo. */
@@ -274,6 +295,8 @@ export function scenarioBar({
     sync,
     /** Lugar pegado a la barra, debajo de un grupo ('sensors', 'reset', …), para una confirmación. */
     slot: (id) => slots[id],
-    dispose() { offLanguage(); node.remove(); },
+    /** Nodo de un grupo armado "aparte" (spec.aside), para ponerlo fuera de la barra; null si no lo es. */
+    group: (id) => asideNodes[id] ?? null,
+    dispose() { offLanguage(); node.remove(); for (const n of Object.values(asideNodes)) n.remove(); },
   };
 }

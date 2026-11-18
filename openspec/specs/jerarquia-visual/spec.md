@@ -22,7 +22,7 @@ Todo control y toda salida de la red SHALL verse con uno de cinco estilos (acci�
 
 #### Scenario: Dos alturas
 - **WHEN** se miden todos los botones visibles de las seis pestañas, salvo la acción principal y los botones de su renglón
-- **THEN** cada uno tiene la altura normal o la compacta, y la compacta solo aparece en barras densas: las de arriba y abajo de la red, las filas de la lista de competidores, el renglón de Cambiar y Apagar de la tarjeta de la neurona en Inspeccionar y en el Laboratorio, los avisos sobre la escena de Inspeccionar, las filas de la biblioteca de cerebros, la barra de arriba de la app, la cabecera de capas del diagrama de la red, las filas de la tarjeta de la neurona y la tabla de verdad del Laboratorio
+- **THEN** cada uno tiene la altura normal o la compacta, y la compacta solo aparece en barras densas: las de arriba y abajo de la red, las filas de la lista de competidores, el renglón de Cambiar y Apagar de la tarjeta de la neurona en Inspeccionar y en el Laboratorio, los avisos sobre la escena de Inspeccionar, las filas de la biblioteca de cerebros, la barra de arriba de la app, la cabecera de capas del diagrama de la red, las filas de la tarjeta de la neurona y la tabla de verdad del Laboratorio, las filas de percepción de Reglas a mano y el renglón de interruptores de su barra de marcha
 
 #### Scenario: Tres alturas
 - **WHEN** se mide la acción principal de cada pestaña y los botones de su mismo renglón
@@ -43,6 +43,10 @@ Todo control y toda salida de la red SHALL verse con uno de cinco estilos (acci�
 #### Scenario: Contraste de los estilos nuevos
 - **WHEN** se mide el texto de la acción principal contra su relleno, el texto de una opción elegida contra su fondo, el contorno de una opción elegida contra la superficie donde está y el texto de una acción terciaria contra su superficie
 - **THEN** el texto da 4,5:1 o más y el contorno 3:1 o más
+
+#### Scenario: Filas que insertan
+- **WHEN** la persona mira la columna de percepción de Reglas a mano con 12 sensores o menos
+- **THEN** cada fila de sensor muestra, también en reposo, una marca de que se puede tocar para insertarla, y la marca no usa el relleno del color de acción
 
 ### Requirement: La salida de la red no parece botón
 Lo que el auto acciona y lo que la red decide ("Lo que estás accionando", "Decisión de la red" y las teclas de salida) SHALL verse con el estilo de estado: sin el color de acción, sin contorno de control y sin cambiar al pasar el cursor. Una salida encendida SHALL distinguirse de una apagada por su relleno y por el peso de la letra.

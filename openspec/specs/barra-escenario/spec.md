@@ -15,7 +15,8 @@ ancho, una barra con los ajustes de su escenario en este orden: pista; tráfico
 velocidad máxima del auto; y restablecer. Un grupo que no tiene efecto en una
 pestaña no se muestra en ella. Los que se muestran MUST estar a la vista sin
 desplegar nada, con su nombre y su valor. La barra muestra los valores de la
-pestaña a la vista.
+pestaña a la vista. En Reglas a mano, el grupo de sensores va en la cabecera del
+programa y no en la barra.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la aplicación
@@ -23,7 +24,7 @@ pestaña a la vista.
 
 #### Scenario: Mismo lugar en las tres pestañas
 - **WHEN** la persona pasa de El problema a Reglas a mano y a Entrenar
-- **THEN** la barra está en el mismo lugar, con los mismos controles en el mismo orden, y en Reglas a mano y en Entrenar suma el grupo de sensores
+- **THEN** la barra está en el mismo lugar, con los mismos controles en el mismo orden, y en Entrenar suma el grupo de sensores; en Reglas a mano los sensores están en la cabecera del programa
 
 #### Scenario: Valores de cada pestaña
 - **WHEN** la persona pone 4 carriles en El problema y abre Entrenar
@@ -101,8 +102,8 @@ valores MUST conservarse para cuando se vuelva a la calle recta.
 - **THEN** la densidad sigue en 80 %
 
 ### Requirement: Restablecer el escenario
-La barra SHALL ofrecer un botón que devuelve la pista, el tráfico, los sensores
-y la velocidad de la pestaña a la vista a sus valores por defecto, con el
+La barra SHALL ofrecer un botón que devuelve los ajustes que muestra en la pestaña a la vista (la pista, el
+tráfico, los sensores y la velocidad) a sus valores por defecto, con el
 mismo efecto que cambiarlos uno por uno.
 
 #### Scenario: Restablecer
@@ -112,6 +113,10 @@ mismo efecto que cambiarlos uno por uno.
 #### Scenario: Restablecer en Entrenar con los sensores cambiados
 - **WHEN** en Entrenar restablecer implica cambiar los sensores, con generaciones terminadas
 - **THEN** se pide la confirmación de entrenamiento nuevo antes de aplicar nada
+
+#### Scenario: Restablecer en Reglas a mano
+- **WHEN** en Reglas a mano la persona cambió los carriles y los sensores, y presiona restablecer en la barra
+- **THEN** los carriles vuelven a su valor por defecto y los sensores no cambian; los sensores vuelven a los iniciales con Restablecer del programa
 
 ### Requirement: Barra explicada y accesible
 Cada control de la barra SHALL tener un tooltip que diga qué hace y por qué
@@ -148,8 +153,8 @@ los suyos.
 - **THEN** la barra no muestra el grupo de sensores, ni un hueco en su lugar
 
 #### Scenario: Vuelve a aplicar
-- **WHEN** la persona pasa de Competir a Reglas a mano
-- **THEN** el grupo de sensores vuelve a estar en la barra, con los valores de Reglas a mano
+- **WHEN** la persona pasa de Competir a Entrenar
+- **THEN** el grupo de sensores vuelve a estar en la barra, con los valores de Entrenar
 
 #### Scenario: Sensores en El problema
 - **WHEN** la persona abre El problema

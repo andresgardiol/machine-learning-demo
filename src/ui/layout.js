@@ -31,14 +31,22 @@ export const ZONES = Object.freeze({
   step: 16, // con las flechas del teclado
 });
 
-/** Disposición: 'plain' si la pestaña no usa el tablero; si no, 'wide' desde 960 px y 'stacked' por debajo. */
-export function layoutMode(windowWidth, hasBoard) {
+/**
+ * Disposición: 'plain' si la pestaña no usa el tablero; si no, 'wide' desde 960 px y 'stacked' por debajo.
+ * Una pestaña sin panel (`spec.panel === false`, reglas-mesa-de-trabajo D1) queda siempre lado a lado:
+ * por debajo de 600 px manda el aviso de pantalla angosta.
+ */
+export function layoutMode(windowWidth, hasBoard, spec = {}) {
   if (!hasBoard) return 'plain';
+  if (spec.panel === false) return 'wide';
   return windowWidth >= ZONES.wideFrom ? 'wide' : 'stacked';
 }
 
-/** Ancho útil para las tres zonas: la ventana menos los dos bordes. */
-const freeWidth = (windowWidth) => windowWidth - 2 * ZONES.splitter;
+/** ¿La pestaña tiene panel? Solo Reglas a mano lo saca (reglas-mesa-de-trabajo D1). */
+const hasPanel = (spec) => spec.panel !== false;
+
+/** Ancho útil para las zonas: la ventana menos los bordes (dos con panel, uno sin él). */
+const freeWidth = (windowWidth, spec = {}) => windowWidth - (hasPanel(spec) ? 2 : 1) * ZONES.splitter;
 
 /** Número redondeado, o el valor por defecto si no es válido. */
 function widthOr(value, fallback) {
@@ -60,8 +68,9 @@ export function stageMinFor(spec, windowWidth, panel) {
   return Math.max(spec.stageFloor, Math.min(min, freeWidth(windowWidth) - (spec.boardKeep ?? ZONES.board.min) - panel));
 }
 
-/** Límites del panel al arrastrar su borde, con el escenario en `stage`. */
+/** Límites del panel al arrastrar su borde, con el escenario en `stage`. Sin panel, 0 y 0. */
 export function panelLimits(stage, windowWidth, spec = {}) {
+  if (!hasPanel(spec)) return { min: 0, max: 0 };
   const half = Math.floor(windowWidth * ZONES.panel.maxFraction);
   return { min: ZONES.panel.min, max: Math.max(ZONES.panel.min, Math.min(half, freeWidth(windowWidth) - (spec.boardMin ?? ZONES.board.min) - stage)) };
 }
@@ -71,8 +80,9 @@ export function panelLimits(stage, windowWidth, spec = {}) {
  * mínimo para su zona izquierda (`spec.stageMin`, pestana-inspeccionar D1: la red no baja de 600 px).
  */
 export function stageLimits(panel, windowWidth, spec = {}) {
-  const min = stageMinFor(spec, windowWidth, panel);
-  return { min, max: Math.max(min, freeWidth(windowWidth) - (spec.boardMin ?? ZONES.board.min) - panel) };
+  const p = hasPanel(spec) ? panel : 0; // sin panel, el ancho del panel guardado no cuenta
+  const min = stageMinFor(spec, windowWidth, p);
+  return { min, max: Math.max(min, freeWidth(windowWidth, spec) - (spec.boardMin ?? ZONES.board.min) - p) };
 }
 
 /**
@@ -80,10 +90,18 @@ export function stageLimits(panel, windowWidth, spec = {}) {
  * (hasta 360), después el escenario (hasta 260) y por último el panel (hasta 300).
  * @param {{stage?:number|null, panel?:number|null}} preferred
  * @param {number} windowWidth
- * @param {{stageMin?:number, stageDefault?:number|'rest', boardMin?:number}} [spec] zonas propias de una pestaña
+ * Sin panel (`spec.panel === false`, reglas-mesa-de-trabajo D1), el panel vale 0 y el ancho de panel
+ * recibido no se usa ni se toca: escenario y tablero se reparten la ventana menos un borde.
+ * @param {{panel?:false, stageMin?:number, stageDefault?:number|'rest', boardMin?:number}} [spec] zonas propias de una pestaña
  * @returns {{stage:number, board:number, panel:number}}
  */
 export function fitZones({ stage, panel } = {}, windowWidth, spec = {}) {
+  if (!hasPanel(spec)) {
+    const F = freeWidth(windowWidth, spec);
+    const min = spec.stageMin ?? ZONES.stage.min;
+    const s = clamp(widthOr(stage, spec.stageDefault ?? ZONES.stage.default), min, F - (spec.boardMin ?? ZONES.board.min));
+    return { stage: s, board: F - s, panel: 0 };
+  }
   // Una pestaña puede tener su propio mínimo y su propio ancho por defecto para la zona izquierda
   // (pestana-inspeccionar D1): 'rest' es todo lo que dejan el tablero en su mínimo y el panel.
   // Con su propio mínimo de tablero (spec.boardMin), el tablero cede antes que la zona izquierda y que

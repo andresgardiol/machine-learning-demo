@@ -1,11 +1,13 @@
 // Pestaña 2, "Reglas a mano": la persona programa el auto escribiendo reglas y lo ve manejar con ellas
 // en la misma calle con tráfico de la pestaña 1.
 //
-// Composición (design.md D6): mundo del núcleo + controlador de reglas + vista + bucle; el tablero con
-// los indicadores, la tarjeta del programa (editor, estado, errores y paleta) y la de percepción y
-// acción (D11); y el panel con guía, marcha, vista y reintento, programa (ejemplos, restablecer,
-// exportar e importar), misiones y configuración avanzada. Lo que se prueba sin DOM vive en
-// program.js, session.js, examples.js y shortcuts.js.
+// Composición (design.md D6): mundo del núcleo + controlador de reglas + vista + bucle. Dos zonas y
+// ningún panel (reglas-mesa-de-trabajo D1): el escenario con la escena, la barra de marcha (marcha,
+// interruptores de vista y reintento, y las cifras del intento) y la tarjeta de lo que percibe y acciona;
+// y el tablero con la tarjeta de consigna, el texto de guía, la tarjeta del programa (cabecera con la
+// cifra de reglas, los sensores, los ejemplos, restablecer, exportar e importar; editor, estado, errores
+// y paleta) y las misiones. Lo que se prueba sin DOM vive en program.js, session.js, examples.js,
+// shortcuts.js y workbench.js.
 //
 // El estado vive en variables del módulo, como en Entrenar: el texto, el mundo, los ajustes, la
 // semilla, el reintento, las tarjetas y las misiones cumplidas. Al volver a la pestaña se retoma todo.
@@ -23,7 +25,7 @@ import { statStrip, boardCard } from '../../ui/board.js';
 import { createCodeEditor } from '../../ui/editor.js';
 import { downloadText, readText } from '../../ui/files.js';
 import { RULES_PROGRAM_MAX } from '../../ui/preferences.js';
-import { perceptionBlock, actionBlock, READINGS_MAX } from '../shared/driving-cards.js';
+import { perceptionRows, actionBlock, READINGS_MAX } from '../shared/driving-cards.js';
 import { setUnavailable } from '../shared/street-advanced.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
 import { currentMission } from '../../ui/current-mission.js';
@@ -43,19 +45,34 @@ import {
 } from './examples.js';
 import { shortcutFor } from './shortcuts.js';
 import { roleTag } from '../../ui/role-tag.js';
+import { RULES_BAR, scenarioReset, comparisonFor, insertAt } from './workbench.js';
 
 export { DEFAULT_SEED };
+
+/** Alto mínimo del editor: 10 líneas de 20 px, su relleno (4 + 4) y su borde (D3). */
+const EDITOR_MIN = 10 * 20 + 2 * 4 + 2;
+/** Separación entre el editor, el estado y los errores en la tarjeta (--space-1). */
+const EDITOR_GAP = 4;
 
 /** Retardo (ms) desde la última tecla hasta analizar el texto y, si es válido, ponerlo a manejar (D7). */
 export const COMMIT_DELAY_MS = 250;
 
+/**
+ * Dos zonas y ningún panel (reglas-mesa-de-trabajo D1): el escenario, de 520 px por defecto, con la
+ * escena, la columna de lo que percibe el auto al costado y la marcha debajo; y el tablero, que ocupa también el lugar del panel.
+ */
+export const ZONES = Object.freeze({ panel: false, stageDefault: 520, stageMin: 300, boardMin: 520, preference: 'rulesStageWidth' });
+
 /** Textos conocidos (programa inicial y ejemplos, en los dos idiomas): los demás son propios. */
 const KNOWN = knownTexts({ es, en });
 
-/** Palabras de la paleta, en orden: papel del vocabulario y tipo de palabra (para su forma). */
+/**
+ * Palabras de la paleta, en orden: papel del vocabulario y tipo de palabra (para su forma). Sin los sensores
+ * ni `velocidad`, que se insertan desde sus barras (reglas-mesa-de-trabajo D6).
+ */
 const PALETTE_WORDS = Object.freeze([
   ['if', 'keyword'], ['then', 'keyword'], ['and', 'keyword'], ['or', 'keyword'], ['not', 'keyword'],
-  ['forward', 'action'], ['reverse', 'action'], ['left', 'action'], ['right', 'action'], ['speed', 'data'],
+  ['forward', 'action'], ['reverse', 'action'], ['left', 'action'], ['right', 'action'],
 ]);
 
 // Misiones cumplidas y tráficos recorridos: siguen hasta cerrar la aplicación.
@@ -90,10 +107,16 @@ function createState({ i18n, store, preferences }) {
   };
 }
 
-export function mount({ stage, board, panel, bar, i18n, store, preferences, reportError }) {
+export function mount({ stage, board, bar, i18n, store, preferences, reportError }) {
   state ??= createState({ i18n, store, preferences });
   const { program, controller, session } = state;
-  const view = createStageView({ container: stage, store });
+  // Zona del escenario (reglas-mesa-de-trabajo D2), de arriba abajo: la escena, la barra de marcha con las
+  // cifras del intento, y lo que percibe y acciona el auto. Sin panel: el tablero ocupa su lugar (D1).
+  const scene = el('div', { class: 'rules-scene' });
+  const stageZone = el('div', { class: 'rules-stage-zone' }, scene);
+  stage.append(stageZone);
+  stage.classList.add('rules-stage');
+  const view = createStageView({ container: scene, store });
   // Descripción en texto del escenario, para lectores de pantalla (panel-de-entrenar-por-vistas D9).
   const description = stageDescription({ stage });
   const setText = createTextSetter(i18n);
@@ -170,18 +193,22 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     }, COMMIT_DELAY_MS);
   }
 
-  // --- Tablero: indicadores ---------------------------------------------------------
+  // --- Escenario: cifras del intento, en la barra de marcha (D2) ---------------------------
   const strip = statStrip([
     { id: 'distance', labelKey: 'drive.stats.distance' },
     { id: 'passed', labelKey: 'drive.stats.passed' },
     { id: 'best', labelKey: 'drive.stats.best' },
-    { id: 'rules', labelKey: 'rules.stats.rules' },
   ]);
+  strip.node.classList.add('run-stats');
+  // La cifra de reglas va en la cabecera del programa, destacada (D3).
+  const rulesValue = el('span', { class: 'rules-count-value' });
+  const rulesCount = el('p', { class: 'rules-count', dataset: { stat: 'rules' } },
+    el('span', { class: 'rules-count-label', i18n: 'rules.stats.rules' }), rulesValue);
 
   // --- Tablero: tarjeta del programa ------------------------------------------------
   const programCard = boardCard({
     id: 'rules-program', titleKey: 'rules.program.title', help: 'rules.program', hintKey: 'rules.program.hint',
-    open: state.cards.program, grow: 3, onToggle: (open) => { state.cards.program = open; },
+    open: state.cards.program, grow: 3, onToggle: (open) => { state.cards.program = open; fitEditor(); },
   });
   const editor = createCodeEditor({
     i18n, value: program.text, classify: classifyLine,
@@ -192,8 +219,6 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   const errorList = el('ul', { class: 'rules-errors' });
   const palette = el('div', { class: 'guide rules-palette', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.palette.label' });
   programCard.append(editor.node, status, errorList, palette);
-  // Rótulo "Decide" en el renglón del título de la tarjeta (sistema-de-diseno-base D1, B): no empuja el editor.
-  programCard.node.append(roleTag('decide', { which: 'program' }));
 
   /** Texto de un error del análisis, con su línea delante. */
   function errorParams(e) {
@@ -257,11 +282,11 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     const words = PALETTE_WORDS.map(([role, kind]) => paletteButton({
       textKey: `rules.word.${role}`, help: `rules.word.${role}`, kind, insert: () => i18n.t(`rules.word.${role}`),
     }));
-    const shown = Math.min(count, READINGS_MAX);
-    const sensors = Array.from({ length: shown }, (_, i) => paletteButton({
-      textKey: 'rules.data.sensor', params: { n: i + 1 }, help: 'rules.word.sensor', helpParams: { n: i + 1 },
-      kind: 'data', insert: () => i18n.t('rules.data.sensor', { n: i + 1 }),
-    }));
+    // Con más de 12 sensores las barras no son botones: la paleta ofrece la palabra `sensor` (D5).
+    const sensors = count > READINGS_MAX ? [paletteButton({
+      textKey: 'rules.data.sensor', params: { n: '' }, help: 'rules.word.sensorAny', helpParams: { last: `sensor${count}` },
+      kind: 'data', insert: () => i18n.t('rules.data.sensor', { n: '' }),
+    })] : [];
     const more = count > READINGS_MAX
       ? el('span', { class: 'palette-note', i18n: 'rules.palette.more', params: { count, last: `sensor${count}` } })
       : null;
@@ -273,35 +298,41 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     i18n.translateTree(palette);
   }
 
-  // --- Tablero: percepción y acción en una sola tarjeta (D11) ---------------------------
+  /**
+   * Inserta en el cursor del editor la comparación de una barra (D5), por el mismo camino de la paleta
+   * (entra en el deshacer del editor), y devuelve el foco al editor.
+   */
+  function insertComparison(datum, value) {
+    const input = editor.input;
+    const r = insertAt(input.value, input.selectionStart, comparisonFor(datum, value, i18n.language), input.selectionEnd);
+    editor.insert(r.insert);
+    if (input.selectionStart !== r.cursor) input.setSelectionRange(r.cursor, r.cursor);
+  }
+
+  // --- Escenario: percepción y acción en una columna al costado de la escena (D2) ----------
+  // La misma tarjeta plegable de siempre. La ayuda de la tarjeta dice lo que antes decía su renglón de guía.
   const ioCard = boardCard({
-    id: 'rules-io', titleKey: 'rules.io.title', help: 'rules.io', hintKey: 'rules.io.hint',
+    id: 'rules-io', titleKey: 'rules.io.title', help: 'rules.io',
     open: state.cards.io, grow: 1, onToggle: (open) => { state.cards.io = open; },
   });
-  const perception = perceptionBlock({
+  const perception = perceptionRows({
     i18n, count: state.world.perception.sensors.length,
     names: { sensorKey: 'rules.data.sensor', speedKey: 'rules.data.speed' },
-    role: false,
+    help: 'rules.barInsert', onInsert: insertComparison,
   });
-  const action = actionBlock();
+  const action = actionBlock({ role: true });
   ioCard.append(el('div', { class: 'rules-io' }, perception.node, action.node));
-  // Rótulos de rol en el renglón del título, cada uno sobre su columna, en lugar del título "Lo que percibe y lo
-  // que acciona" (decisión del dueño, 18 de noviembre de 2026): con la guía encendida el título queda solo para el
-  // lector de pantalla; con la guía apagada vuelve. No suman alto a la tarjeta.
-  ioCard.node.append(el('div', { class: 'guide card-roles' },
-    roleTag('in'), el('span', { class: 'card-roles-out' }, roleTag('out'))));
 
-  board.append(strip.node, programCard.node, ioCard.node);
 
-  // --- Panel: guía, marcha, vista y reintento ---------------------------------------
+  // --- Escenario: barra de marcha (D2) -----------------------------------------------
   const intro = el('section', { class: 'guide rules-intro' }, el('p', { i18n: 'rules.guide' }));
 
   const pauseButton = button('rules.pause', 'rules.pause', togglePause);
   pauseButton.setAttribute('aria-pressed', 'false');
   const newTrafficButton = button('rules.newTraffic', 'rules.newTraffic', newTraffic);
-  const run = el('section', { class: 'drive-run' },
-    el('div', { class: 'run-main' }, pauseButton, button('rules.restart', 'rules.restart', restart)));
-  // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
+  const run = el('div', { class: 'run-main' }, pauseButton, button('rules.restart', 'rules.restart', restart));
+  // Tarjeta de consigna (tarjeta-de-consigna D4), al principio del tablero y sin la marcha (D3): la
+  // consigna y la misión en curso.
   // "Mostrame" (misiones-que-muestran-el-control): lleva al editor del programa o a Tráfico nuevo. Si la
   // tarjeta del programa está plegada, la abre (traerlo a la vista), como si la persona la abriera.
   const missionReveal = createMissionReveal({
@@ -315,7 +346,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
       newTraffic: () => newTrafficButton,
     },
   });
-  const card = createConsignaCard({ i18n, run, onReveal: missionReveal.reveal });
+  const card = createConsignaCard({ i18n, onReveal: missionReveal.reveal });
 
   const sensorsSwitch = switchButton('rules.sensors', 'rules.sensors', state.showSensors, () => {
     state.showSensors = !state.showSensors;
@@ -332,10 +363,15 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   });
   const viewSwitches = el('div', { class: 'switch-row', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.view.title' },
     sensorsSwitch, machineSwitch, retrySwitch);
-  // Tráfico nuevo, fuera de la tarjeta, junto a los interruptores de vista (tarjeta-de-consigna D11).
-  const viewRow = el('div', { class: 'view-row' }, viewSwitches, newTrafficButton);
+  // La barra de marcha, debajo de la escena y de la columna: Pausar (acción principal), Reiniciar y Tráfico
+  // nuevo en un renglón; en otro, compacto, los interruptores de vista y Reintentar solo (el mismo grupo de
+  // siempre) y las cifras del intento.
+  const runBar = el('div', { class: 'rules-runbar', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.runbar.label' },
+    el('div', { class: 'rules-runbar-main' }, run, newTrafficButton),
+    el('div', { class: 'rules-runbar-second' }, viewSwitches, strip.node));
+  stageZone.append(ioCard.node, runBar);
 
-  // --- Panel: programa (ejemplos, restablecer, exportar e importar; D8) ------------------
+  // --- Tablero: cabecera del programa (ejemplos, restablecer, exportar e importar; D3) ------
   const confirm = inlineConfirm({ i18n });
   const message = el('p', { class: 'rules-message', attrs: { role: 'status' } });
   message.hidden = true;
@@ -419,14 +455,11 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     }
   });
 
-  const programSection = el('section', { class: 'rules-program-actions' },
-    el('h2', { class: 'panel-heading', i18n: 'rules.program.section' }),
-    el('div', { class: 'rules-examples', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.examples' },
-      el('span', { class: 'rules-examples-label', i18n: 'rules.examples' }), exampleButtons),
-    el('div', { class: 'rules-file-actions' }, resetButton, exportButton, importButton, fileInput),
-    confirm.node, message);
+  const examples = el('div', { class: 'rules-examples', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.examples' },
+    el('span', { class: 'rules-examples-label', i18n: 'rules.examples' }), exampleButtons);
+  const fileActions = el('div', { class: 'rules-file-actions' }, resetButton, exportButton, importButton, fileInput);
 
-  // --- Panel: misiones --------------------------------------------------------------
+  // --- Tablero: misiones -------------------------------------------------------------
   // Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2).
   const describeMission = (m) => ({
     done: m.done,
@@ -471,18 +504,53 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     }
     sync();
   }
+  // El grupo de sensores se arma con la misma barra y el mismo estado, pero va en la cabecera del
+  // programa (D4); el "Restablecer" de la barra no toca los sensores.
   const scenario = scenarioBar({
-    i18n, settings: state.settings, idPrefix: 'rules',
+    i18n, settings: state.settings, idPrefix: 'rules', ...RULES_BAR,
     onChange: (key, value, { first }) => {
       if (state.settings[key] !== value) applySettings({ ...state.settings, [key]: value }, { countAttempt: first });
     },
-    onReset: () => applySettings({ ...DEFAULT_SETTINGS }, { countAttempt: true }),
+    onReset: () => applySettings(scenarioReset(state.settings), { countAttempt: true }),
   });
   bar?.append(scenario.node);
 
-  panel.append(
+  // Cabecera del programa en dos renglones (D3): el título, el rótulo Decide, "Reglas: N", Restablecer,
+  // Exportar e Importar; y los sensores con los ejemplos. Fuera del cuerpo plegable: siempre a la vista.
+  const programHeading = programCard.node.querySelector('.card-heading');
+  const programTop = el('div', { class: 'rules-program-top' });
+  programCard.node.insertBefore(programTop, programHeading);
+  programTop.append(programHeading, roleTag('decide', { which: 'program' }), rulesCount, fileActions);
+  const programTools = el('div', { class: 'rules-program-tools' }, scenario.group('sensors'), examples);
+  programCard.node.insertBefore(programTools, programCard.body);
+  programCard.node.insertBefore(el('div', { class: 'rules-program-notes' }, confirm.node, message), programCard.body);
+
+  // Tablero, de arriba abajo (D3): la tarjeta de consigna, el texto de guía, el programa y las misiones.
+  const guideMore = createGuideMore(intro);
+  board.append(
     el('h1', { class: 'sr-only', i18n: 'rules.title' }),
-    card.node, createGuideMore(intro), viewRow, programSection, missions);
+    card.node, guideMore, programCard.node, missions);
+
+  // El editor ocupa el alto que queda hasta el final del tablero visible, con un mínimo de 10 líneas (D3): el
+  // estado y los errores quedan a la vista debajo; la paleta y las misiones, desplazando el tablero. Se
+  // recalcula cuando cambia el tamaño del tablero o de lo que está arriba del editor, y con los errores.
+  function fitEditor() {
+    const node = editor.node;
+    if (!node.isConnected || board.clientHeight === 0 || !programCard.open) { node.style.removeProperty('height'); return; }
+    const b = board.getBoundingClientRect();
+    const top = node.getBoundingClientRect().top - b.top + board.scrollTop;
+    const below = [status, errorList].reduce((h, x) => h + (x.hidden ? 0 : x.getBoundingClientRect().height + EDITOR_GAP), 0);
+    // Lo que cierra la tarjeta y el tablero: el relleno de abajo del cuerpo, el borde y el relleno del tablero.
+    const px = (n, prop) => Number.parseFloat(getComputedStyle(n)[prop]) || 0;
+    const closing = px(programCard.body, 'paddingBottom') + px(programCard.node, 'borderBottomWidth') + px(board, 'paddingBottom');
+    const height = Math.max(EDITOR_MIN, Math.floor(board.clientHeight - top - below - closing));
+    const h = `${height}px`;
+    if (node.style.height !== h) node.style.height = h;
+  }
+  const fitObserver = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver(() => fitEditor()) : null;
+  for (const n of [board, card.node, guideMore, programTop, programTools, programCard.node.querySelector('.rules-program-notes'), status, errorList]) {
+    if (n) fitObserver?.observe(n);
+  }
 
   // --- Mensajes sobre el escenario ----------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
@@ -500,7 +568,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     crashRestart);
   const crashLayer = el('div', { class: 'crash-layer' }, crashBox);
   view.corner.append(el('div', { class: 'stage-badges' }, pauseBadge, machineBadge, crashBadge));
-  stage.append(crashLayer);
+  scene.append(crashLayer);
 
   // --- Sincronizar con el estado ------------------------------------------------------
   const meters = (v) => ({ value: Math.floor(v) });
@@ -517,7 +585,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
     missionsCircuit.hidden = !circuit;
     setUnavailable(newTrafficButton, circuit, 'rules.newTraffic');
     setText(strip.values.best, 'drive.value.meters', meters(session.best));
-    setText(strip.values.rules, 'drive.value.count', { value: program.rules });
+    setText(rulesValue, 'drive.value.count', { value: program.rules });
 
     // Misiones: la lista y, en la tarjeta, la primera sin cumplir (en un circuito no hay misiones).
     const current = currentMission(session.missions, { available: !circuit });
@@ -600,16 +668,16 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   // Tras un clic con el mouse en un control, el foco vuelve al escenario; la paleta lo deja en el editor.
   function onClick(e) {
     if (e.detail === 0 || !e.target?.closest) return;
-    if (e.target.closest('.rules-palette, .code-editor')) return;
+    if (e.target.closest('.rules-palette, .code-editor, .sensor-row')) return;
     if (returnsFocusToStage(e.target)) focusStage();
   }
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
-  panel.addEventListener('click', onClick);
   board.addEventListener('click', onClick);
   stage.addEventListener('click', onClick);
   bar?.addEventListener('click', onClick);
   const offLanguage = i18n.onChange(() => {
+    perception.relabel();
     renderPalette();
     sync();
   });
@@ -617,6 +685,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
   renderStatus();
   renderPalette();
   sync();
+  fitEditor();
   loop.start();
   focusStage();
 
@@ -634,11 +703,11 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
         commit(); // lo escrito en el último cuarto de segundo también se recuerda
       }
       loop.dispose();
+      fitObserver?.disconnect();
       offLanguage();
       confirm.dispose();
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
-      panel.removeEventListener('click', onClick);
       board.removeEventListener('click', onClick);
       stage.removeEventListener('click', onClick);
       bar?.removeEventListener('click', onClick);
@@ -646,6 +715,7 @@ export function mount({ stage, board, panel, bar, i18n, store, preferences, repo
       description.dispose();
       scenario.dispose();
       view.dispose();
+      stage.classList.remove('rules-stage');
     },
   };
 }

@@ -184,11 +184,12 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   let hasBoard = false; // la pestaña montada puso contenido en el tablero
   // Zona izquierda propia de la pestaña montada (pestana-inspeccionar D1): { stageMin, stageDefault,
   // preference } que la pestaña declara en su módulo como ZONES; null para las que usan los anchos comunes.
+  // Con `panel: false` (Reglas a mano, reglas-mesa-de-trabajo D1), la pestaña no tiene panel.
   let zoneSpec = null;
   const commonStage = () => preferences.stageWidth ?? ZONES.stage.default;
   // Ancho de la app (el de la ventana): se lee del elemento observado para no depender del orden de los avisos.
   const windowWidth = () => shell.clientWidth || window.innerWidth;
-  const mode = () => layoutMode(windowWidth(), hasBoard);
+  const mode = () => layoutMode(windowWidth(), hasBoard, zoneSpec ?? {});
 
   const setVar = (name, px) => shell.style.setProperty(name, `${px}px`);
   function setAria(node, value, { min, max }) {
@@ -214,7 +215,10 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     const W = windowWidth();
     const m = mode();
     shell.dataset.board = hasBoard ? 'on' : 'off';
-    shell.dataset.layout = layoutMode(W, true);
+    shell.dataset.layout = layoutMode(W, true, zoneSpec ?? {});
+    // Sin panel (Reglas a mano, reglas-mesa-de-trabajo D1): ni el panel ni su borde ocupan lugar, y el
+    // ancho del panel elegido (`chosen.panel`) no se toca: al volver a otra pestaña, vuelve.
+    shell.dataset.panel = zoneSpec?.panel === false ? 'off' : 'on';
     if (m === 'wide') {
       const z = fitZones(chosen, W, zoneSpec ?? {});
       shown.stage = z.stage;

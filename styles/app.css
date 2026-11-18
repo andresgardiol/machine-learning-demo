@@ -169,6 +169,13 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .app[data-board="on"][data-layout="stacked"] .splitter[data-edge="panel"] { grid-column: 2; grid-row: 1 / 3; }
 .app[data-board="on"][data-layout="stacked"] .panel { grid-column: 3; grid-row: 1 / 3; }
 .app[data-board="on"][data-layout="stacked"] .splitter[data-edge="stage"] { display: none; }
+/* Dos zonas sin panel (Reglas a mano, reglas-mesa-de-trabajo D1): escenario y tablero lado a lado desde
+   600 px; el tablero ocupa también el lugar del panel. */
+.app[data-panel="off"] .panel,
+.app[data-panel="off"] .splitter[data-edge="panel"] { display: none; }
+.app[data-board="on"][data-layout="wide"][data-panel="off"] .workspace {
+  grid-template-columns: var(--stage-width) auto minmax(0, 1fr);
+}
 /* Borde ajustable del panel (como en un IDE). */
 .splitter {
   width: 6px;
@@ -741,12 +748,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .sensor-name, .speed-name { font-family: var(--font-code); font-size: var(--text-label); color: var(--color-sensor); }
 /* Panel */
 .rules-intro p { margin: 0; font-size: var(--text-body); color: var(--color-text-muted); }
-.rules-program-actions { display: grid; gap: var(--space-2); }
-.rules-program-actions .panel-heading { margin: 0; }
 .rules-examples { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
 .rules-examples-label { font-size: var(--text-body); color: var(--color-text-muted); margin-right: var(--space-1); }
 .rules-file-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.rules-program-actions .inline-confirm { margin: 0; }
 .rules-message { margin: 0; font-size: var(--text-body); padding: var(--space-1) var(--space-2); border-left: 3px solid var(--color-accent); background: var(--color-surface-2); }
 .rules-message[hidden] { display: none; }
 .crash-badge { border-color: var(--color-car-crashed); }
@@ -768,6 +772,93 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 @container board (max-width: 326.98px) {
   .rules-io .action-keys { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ---- Reglas a mano: mesa de trabajo (reglas-mesa-de-trabajo D2 y D3) --------------------------------
+   Zona del escenario: arriba, la escena (crece) y al costado la columna de lo que percibe y acciona, a todo
+   el alto; abajo, a todo el ancho, la barra de marcha (100 px o menos). El escenario no se desplaza: si la
+   columna no entra, se desplaza ella sola. */
+.rules-stage-zone {
+  position: absolute; inset: 0; display: grid; min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 220px; grid-template-rows: minmax(0, 1fr) auto;
+}
+.rules-scene { position: relative; grid-column: 1; grid-row: 1; min-height: 0; overflow: hidden; }
+.rules-stage-zone > .card[data-card="rules-io"] {
+  grid-column: 2; grid-row: 1; min-height: 0; overflow-y: auto;
+  border-width: 0 0 0 1px; border-radius: 0;
+}
+.rules-stage-zone > .card[data-card="rules-io"][data-open="true"] > .card-body { min-height: 0; padding: 0 var(--space-2) var(--space-2); }
+.rules-stage-zone > .card[data-card="rules-io"] .card-title { gap: var(--space-1); padding: 0 var(--space-2); font-size: var(--text-label); white-space: nowrap; }
+.rules-stage-zone .rules-io { flex-direction: column; gap: var(--space-3); }
+.rules-stage-zone .rules-io .action-keys { width: auto; align-self: stretch; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Una fila por sensor: el nombre, la barra y el valor. Con 12 o menos es un botón que escribe su comparación. */
+.perception-rows { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sensor-rows { display: flex; flex-direction: column; gap: 2px; }
+.sensor-row {
+  display: grid; grid-template-columns: 70px minmax(0, 1fr) 34px; align-items: center; gap: var(--space-1);
+  min-height: 24px; padding: 0 var(--space-1); margin: 0;
+  background: transparent; border: 1px solid transparent; border-radius: var(--radius-control);
+  color: var(--color-text); font: inherit; font-size: var(--text-label); text-align: left;
+}
+button.sensor-row { cursor: pointer; grid-template-columns: 70px minmax(0, 1fr) 34px 12px; }
+/* Marca de que la fila se toca para insertar (jerarquia-visual, "Filas que insertan"): un "+" tenue también en
+   reposo, sin el relleno del color de acción; se refuerza al pasar el cursor o con el foco. Decorativa: el texto
+   alternativo vacío la deja fuera del nombre accesible, que da la ayuda. */
+button.sensor-row::after { content: "+" / ""; justify-self: end; color: var(--color-text-muted); font-weight: var(--weight-regular); }
+button.sensor-row:hover::after, button.sensor-row:focus-visible::after { color: var(--color-text); font-weight: var(--weight-bold); }
+button.sensor-row:hover { border-color: var(--color-control-border); background: var(--color-surface-2); }
+button.sensor-row:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 0; }
+.sensor-row-name { font-family: var(--font-code); color: var(--color-sensor); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sensor-row-track { position: relative; display: block; height: 12px; background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-control); overflow: hidden; }
+.sensor-row-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--color-sensor); }
+.sensor-row-value { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sensor-row-value[hidden] { display: none; }
+/* Más de 12 sensores: filas finas, sin nombre ni valor, que no son botones. */
+.sensor-rows[data-labeled="false"] { gap: 1px; }
+.sensor-row-bare { grid-template-columns: minmax(0, 1fr); min-height: 0; padding: 0 var(--space-1); }
+.sensor-row-bare .sensor-row-track { height: 8px; }
+.speed-row { margin-top: var(--space-1); }
+/* Barra de marcha: Pausar, Reiniciar y Tráfico nuevo; y un renglón compacto con los interruptores y las cifras. */
+.rules-runbar {
+  grid-column: 1 / -1; grid-row: 2; display: flex; flex-direction: column; gap: var(--space-1);
+  padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-border); background: var(--color-surface-2);
+}
+.rules-runbar-main { display: flex; align-items: center; gap: var(--space-2); }
+.rules-runbar .run-main .tool.primary { flex: 0 0 auto; }
+.rules-runbar-second { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); }
+.rules-runbar-second .switch-row { gap: var(--space-1); flex-wrap: nowrap; }
+.rules-runbar-second .switch { gap: var(--space-1); padding: 0 var(--space-1); min-height: var(--control-h-sm); font-size: var(--text-label); }
+/* Cifras del intento: rótulo chico y número, sin cajas. */
+.rules-runbar .run-stats { display: flex; flex-wrap: nowrap; gap: var(--space-2); margin: 0 0 0 auto; line-height: 14px; }
+.rules-runbar .run-stats .board-stat { flex-direction: row; align-items: baseline; gap: var(--space-1); padding: 0; background: none; border: 0; }
+.rules-runbar .run-stats .board-stat-value { font-size: var(--text-body); }
+.rules-runbar .run-stats dt, .rules-runbar .run-stats dd { line-height: 14px; }
+/* Tablero: cada parte mide lo suyo; el alto del editor lo pone la pestaña (hasta el final del tablero
+   visible, con un mínimo de 10 líneas, D3). */
+.app[data-panel="off"] .board > .card[data-card="rules-program"] { flex: 0 0 auto; }
+.app[data-panel="off"] .board > .card[data-card="rules-program"] > .card-body { min-height: 0; }
+.app[data-panel="off"] .card[data-card="rules-program"] .code-editor { flex: 0 0 auto; min-height: calc(10 * 20px + 2 * var(--space-1) + 2px); }
+/* Tablero: la tarjeta del programa crece; la consigna, la guía y las misiones miden lo suyo. */
+.app[data-panel="off"] .board > .consigna-card,
+.app[data-panel="off"] .board > .guide-more,
+.app[data-panel="off"] .board > .drive-missions { flex: 0 0 auto; }
+.app[data-panel="off"] .board > .drive-missions .panel-heading { margin-bottom: var(--space-1); }
+/* Cabecera del programa, en dos renglones (D3), fuera del cuerpo plegable. */
+.rules-program-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); padding-right: var(--space-4); }
+.rules-program-top > .card-heading { flex: 1 1 auto; min-width: 140px; }
+.rules-program-top > .role-tag { align-self: center; }
+.rules-count { display: inline-flex; align-items: baseline; gap: var(--space-1); margin: 0; }
+.rules-count-label { font-size: var(--text-body); color: var(--color-text-muted); }
+.rules-count-value { font-size: var(--text-figure); font-weight: var(--weight-bold); font-variant-numeric: tabular-nums; }
+.rules-program-top .rules-file-actions { gap: var(--space-1); align-items: center; }
+.rules-program-tools { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-2) var(--space-3); padding: 0 var(--space-4) var(--space-2); }
+.rules-program-tools .bar-group-sensors { flex: 1 1 300px; }
+.rules-program-tools .bar-control { flex: 1 1 96px; min-width: 96px; }
+.rules-program-tools .bar-control:nth-child(2) { min-width: 116px; }
+.rules-program-tools .rules-examples { flex: 0 1 auto; }
+.rules-program-notes { display: grid; gap: var(--space-2); padding: 0 var(--space-4); }
+.rules-program-notes:empty, .rules-program-notes:not(:has(> :not([hidden]))) { display: none; }
+.rules-program-notes .inline-confirm { margin: 0 0 var(--space-2); }
+.rules-program-notes .rules-message:not([hidden]) { margin-bottom: var(--space-2); }
 
 /* Fuerza de mutación con el enfriamiento en uso: el valor se mueve solo y no se edita. */
 .setting.auto-value input[type="range"] { cursor: not-allowed; opacity: 0.6; }
@@ -1710,17 +1801,3 @@ input[type="range"]:disabled::-moz-range-thumb, input[type="range"][aria-disable
 .card > .role-tag { position: absolute; top: var(--space-2); right: var(--space-4); }
 .card[data-open="false"] > .role-tag { display: none; }
 
-/* Reglas a mano: "Entra" y "Sale" en el renglón del título de la tarjeta de percepción, después del triángulo,
-   cada uno sobre su columna (las teclas miden 184 px). El texto del título se vuelve transparente pero sigue
-   siendo el nombre del botón que pliega la tarjeta. Con la guía apagada (`.guide`) vuelve el título. */
-.card-roles {
-  position: absolute; top: 0; left: calc(var(--space-4) + 1em + var(--space-2)); right: var(--space-4); height: var(--control-h);
-  display: flex; align-items: center; gap: var(--space-4); pointer-events: none;
-}
-.card-roles .role-tag { pointer-events: auto; align-self: center; }
-.card-roles > .role-tag { flex: 0 1 auto; min-width: 0; margin-right: auto; }
-.card-roles-out { flex: 0 0 184px; display: flex; }
-.card[data-open="false"] > .card-roles { display: none; }
-.app[data-guide="on"] .card[data-card="rules-io"][data-open="true"] .card-title { color: transparent; }
-.app[data-guide="on"] .card[data-card="rules-io"][data-open="true"] .card-title::before { color: var(--color-text-muted); }
-@container board (max-width: 559.98px) { .card-roles-out { flex-basis: auto; } }

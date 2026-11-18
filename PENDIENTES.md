@@ -89,6 +89,44 @@ El 18 de noviembre, `sistema-de-diseno-base` (cambio 0 de la revisión del siste
   Sigue `reglas-mesa-de-trabajo`, que ya puede usar la acción terciaria, las
   tres alturas, los estados y los rótulos.
 
+El 18 de noviembre, `reglas-mesa-de-trabajo` hecho y archivado el 18 de noviembre de 2026.
+  El antes y el después están en `borradores/reglas-mesa-de-trabajo/comparacion.md`
+  (local).
+  Cambio 1 de Reglas a mano. Dos zonas solo en esta pestaña (sin panel): el
+  escenario, de 520 px, con la escena, la columna de percepción al costado
+  (una fila por sensor que escribe su comparación en el editor al tocarla) y
+  la marcha debajo; y el tablero, con la consigna, el programa (el grupo de
+  sensores y los ejemplos en su cabecera; el editor ocupa el alto que queda) y
+  las misiones. La paleta, sin sensores ni `velocidad`. Hubo una parada en la
+  tarea 3.4: con la percepción debajo de la escena, la escena medía 229 px a
+  1366×768; el dueño eligió la columna al costado.
+
+  Medido sin ventana (`capturar.mjs`): a 1366×768, escena de 547 px de alto
+  (unos 300 de ancho) y 15 líneas del editor (antes 8); a 1440×900, 679 px y
+  22 líneas. `auditSistema()` y `auditHierarchy()`: 0 problemas en las 12
+  vistas de 1440 y 1366. Lo que quedó:
+  - **800×600 no funciona bien:** las zonas siguen lado a lado, pero el
+    escenario mide 300 px y la columna 220, así que la escena queda en unos
+    80 px de ancho, los controles de cámara se salen y la marcha se parte en
+    renglones (5 problemas de altura de `auditSistema()`). Hace falta otra
+    disposición de la zona para escenarios angostos (por ejemplo, la columna
+    debajo de la escena por debajo de cierto ancho).
+  - Retoques de la revisión del dueño (grupo 7): la ayuda de Sensores ya no
+    habla del tablero, las filas que insertan llevan un "+" tenue y la delta
+    de `jerarquia-visual` suma las filas de percepción y el renglón de
+    interruptores a las barras densas, igual que el auditor.
+  - `help.mission.reveal.why` dice "sin buscar por todo el panel", y Reglas a
+    mano no tiene panel (se dejó: la ayuda es de las seis pestañas).
+  - El aviso de choque queda apretado en una escena de 300 px; lo rediseña
+    `reglas-el-choque-ensena`.
+
+  Lo que no se pudo medir: con el navegador a la vista (el panel estaba
+  oculto; todo se probó en Chrome sin ventana, con clics programáticos y
+  teclas por el protocolo de Chrome); "Mostrame" de "Superá 10 en 3 tráficos
+  distintos"; lectores de pantalla; Firefox.
+
+  Sigue `reglas-el-choque-ensena`.
+
 ## En curso
 
 Nada.
@@ -294,6 +332,27 @@ arreglarlos de a uno.
     - conviene juntarlo con lo pendiente de atajos de *Prioridad 2* y de
       *Entrenar, tráfico y aprendizaje*, como los tooltips que nombran la
       tecla con los atajos apagados.
+- **Lavado de cara con dirección de arte.** Pedido del dueño (18 de noviembre
+  de 2026), dejado para después de los cambios de Reglas a mano: "esperaba un
+  cambio más notable [...] mi idea original era ver si con las skills de UX y
+  diseño lográbamos un lavado de cara interesante".
+  - Por qué `sistema-de-diseno-base` no lo dio (análisis de Claude): ordenó lo
+    que había, sin cambiar el esqueleto. La escena ocupa una columna de 400 px
+    y el resto son unos 60 controles en cajas con contorno. Las tres muestras
+    solo variaban el color, y las skills que se usaron son de usabilidad, no
+    de dirección de arte.
+  - Propuesta (hipótesis, sin probar): primero ver, después especificar. Tres
+    maquetas de una pestaña entera con `assets/og-image.png` como referencia
+    y los tokens nuevos, con la skill `frontend-design`. Con la que elija el
+    dueño, un OpenSpec de dirección de arte:
+    - la escena como protagonista, más grande, con los paneles más angostos
+      o flotando;
+    - el dibujo con volumen y brillo (ver el ítem del auto, abajo);
+    - menos controles a la vista, junto con `barra-de-escenario-plegable` y
+      `ajustes-por-niveles`;
+    - agrupar con superficies y espacio en vez de contornos. Choca con el
+      contorno de 3:1 que pide `accesibilidad` para reconocer un control.
+  - Va antes o junto con los cambios que tocan la disposición.
 - **Un auto que se parezca al de la vista previa.** Pedido del dueño (18 de
   noviembre de 2026): "Me encantó la imagen para las previews del link. Me
   gustaría que el auto se asemeje más al de la imagen". La imagen es
@@ -319,7 +378,9 @@ arreglarlos de a uno.
 - Cerebros incluidos elegidos por el dueño.
 - Elegir con un clic qué auto seguir en el entrenamiento.
 - Entrenar en segundo plano (Web Worker).
-- Más variedad en el tráfico con densidad alta, y otros tipos de vehículos.
+- **Tráfico menos regular y con variedad de vehículos** (importante para el
+  dueño, 18 de noviembre de 2026). Detalle en *Entrenar, tráfico y
+  aprendizaje*, "Tráfico menos regular".
 - Lo que quedó fuera de alcance en cada cambio (Competir, circuitos,
   operación por operación, punto de prueba, vista de la red, Inspeccionar,
   Laboratorio, compuertas, panel de entrenar). Está al final de cada nota de
@@ -408,6 +469,27 @@ arreglarlos de a uno.
     navegador a la vista (medida en Chrome sin ventana).
 
 ## Inspeccionar y vista de la red
+
+- **Zoom en la escena chica de Inspeccionar y del Laboratorio.** Pedido del
+  dueño (18 de noviembre de 2026), con una captura de Inspeccionar: "la
+  preview tanto de la tab 5 como la 6 deberían poder hacer zoom in y out".
+  - Choca con la spec: `pestana-inspeccionar`, requisito "Escena del auto en
+    segundo plano", dice que la escena se encuadra para que se vean los rayos
+    y lo que tocan, "sin controles de cámara". Hay que modificar ese
+    requisito, y su equivalente en el Laboratorio si lo hay (a revisar en
+    `pestana-laboratorio`).
+  - A tener en cuenta (hipótesis, sin probar):
+    - usar los mismos controles de cámara que el resto (+, − y restablecer la
+      vista, con la rueda del mouse), por el Art. 9 y por `vista-escenario`;
+    - la escena es chica: los botones tienen que entrar sin tapar el auto ni
+      "Manejar vos", y respetar los 24 px de `accesibilidad`;
+    - el zoom por defecto tiene que seguir mostrando enteros los rayos (el
+      escenario "Encuadre"), y restablecer la vista vuelve a ese encuadre;
+    - la rueda del mouse sobre la escena no tiene que mover la página ni la
+      red de al lado.
+  - Observado de paso en la misma captura: en la tarjeta de consigna de
+    Inspeccionar, la misión "Seguí la cuenta de una neurona" se parte en tres
+    renglones junto a "Pendiente" y "Mostrame", porque el tablero es angosto.
 
 - **Vista de la red: lo que quedó sin medir, sin probar o fuera de alcance.**
   Del cambio `vista-de-la-red` (16 de noviembre de 2026):
@@ -533,6 +615,25 @@ arreglarlos de a uno.
 
 ## Entrenar, tráfico y aprendizaje
 
+- **La red del líder, arriba de la curva de fitness.** Pedido del dueño (18 de
+  noviembre de 2026), con una captura de Entrenar: "la red debería estar
+  arriba de la curva fitness, es lo más interesante de la tab. Y queda
+  actualmente en un lugar menos importante de lo que debería".
+  - Observado en la captura: al abrir la pestaña, la primera tarjeta del
+    tablero es la curva de fitness, y está vacía ("La curva aparece cuando
+    termina la primera generación"). La red del líder, que ya se mueve, queda
+    debajo y se ve cortada.
+  - Lo que dicen las specs hoy (`pestana-entrenar`): "Red del líder" pide una
+    tarjeta plegable, visible por defecto, y el escenario "Red y curva a la
+    vez" pide que, a 1440×900, las dos se vean completas a la vez. Ninguna
+    spec fija el orden, así que invertirlo no contradice nada. Conviene sumar
+    un escenario que fije la red primero.
+  - A tener en cuenta (hipótesis, sin probar): al plegar la red, la curva
+    ocupa su lugar ("Plegar el diagrama"). Con el orden invertido, la curva
+    tiene que subir. También conviene medir a 1366×768 cuál de las dos queda
+    cortada.
+  - Es un cambio chico (S). Puede ir solo o junto con el lavado de cara.
+
 - **Manejar sin chocar con tráfico irregular.** El cambio
   `fitness-que-premia-superar` hizo que, con los valores por defecto (ventaja
   sobre el tráfico, élite 10, mutación que se enfría e irregularidad 0 %), la
@@ -626,28 +727,65 @@ arreglarlos de a uno.
   a costa de duplicar el estado para dibujarlo y de cuidar la
   reproducibilidad.
 
-- **Más variedad en el tráfico con densidad alta.** Con 4 carriles y densidad
-  e irregularidad al máximo, el tráfico se ve monótono: los grupos quedan a
-  distancias muy parecidas y casi siempre con 3 vehículos.
-  - Causa: a densidad máxima, la separación promedio entre grupos (24 m) casi
-    coincide con el mínimo permitido (unos 21 m con el escalonado), así que el
-    sorteo solo puede variar unos 3 m. Además, la cantidad de vehículos por
-    grupo depende solo de la densidad y al 100 % es siempre `carriles - 1`, y
-    el escalonado queda acotado a menos de 1 m.
-  - Direcciones posibles: que la densidad suba también variando la cantidad de
-    vehículos por grupo y dejando tramos más cargados y otros más vacíos (en
-    vez de achicar siempre la separación); permitir grupos vacíos o de un solo
-    vehículo aun con densidad alta; o dejar de pensar en grupos y ubicar cada
-    vehículo por su cuenta, con una regla que garantice el camino libre.
-  - Siempre con las dos garantías: el tráfico no se choca entre sí y nunca
-    cierra todos los carriles al auto principal.
-
-- **Otros tipos de vehículos.** Camiones y motos, además de autos, para tener
-  variedad de tamaños (largo y ancho). Cada tipo con su contorno de choque, y
-  el dibujo siempre dentro de ese contorno. Implica revisar el hueco mínimo
-  entre grupos y el carril libre según el tamaño (un camión largo ocupa más),
-  que el tráfico siga sin chocarse y que siempre quede un camino libre para el
-  auto principal. Va de la mano de la idea anterior.
+- **Tráfico menos regular y con variedad de vehículos.** Pedido del dueño
+  (18 de noviembre de 2026), con una captura de Entrenar en la generación 61:
+  "El tráfico es demasiado regular, la densidad solo cambia cuántos van de
+  costado, pero todos aparecen a la misma distancia vertical [...] no ayuda
+  al auto a aprender más generalizadamente. La irregularidad solo los mueve
+  unos píxeles de su carril, arriba y abajo. Además me gustaría variedad:
+  camiones grandes, motos pequeñas, camionetas medianas, para que sea más
+  diverso y menos aburrido". Junta y reemplaza las dos notas anteriores
+  ("Más variedad en el tráfico con densidad alta" y "Otros tipos de
+  vehículos").
+  - Lo que dice el código hoy (leído en `src/core/traffic.js` y
+    `constants.js`, sin correr):
+    - el tráfico se arma en **grupos**: filas de vehículos a la misma distancia,
+      uno por carril ocupado. La densidad cambia la separación entre grupos
+      (de 80 m a 24 m, centro a centro) y cuántos carriles ocupa cada grupo
+      (de 1 a `carriles - 1`);
+    - la irregularidad mueve cada vehículo dentro de su grupo, como mucho
+      `TRAFFIC_MAX_STAGGER` = 4 m (un largo de auto) hacia adelante o atrás,
+      acotado además a (separación − 20 m) / 6. Con los valores por defecto
+      (densidad 50 % e irregularidad 50 %) da unos ±2 m: medio auto. También
+      lo corre de costado dentro del carril, y reparte un poco más desparejas
+      las separaciones entre grupos;
+    - todos los vehículos van a la misma velocidad (`TRAFFIC_SPEED` = 10 m/s)
+      y miden lo mismo (4 × 2 m), así que el tráfico se mueve como un bloque
+      rígido;
+    - a densidad máxima, la separación promedio (24 m) casi coincide con el
+      mínimo permitido (unos 21 m), así que el sorteo solo varía unos 3 m.
+  - Por qué importa para el ADN (análisis de Claude): la etapa "¿generaliza?"
+    necesita que el auto vea casos variados. Con filas a distancias parejas,
+    la red puede aprender un ritmo ("cada tanto aparece una fila") en vez de
+    mirar los sensores. Sirve, pero enseña menos de lo que podría.
+  - Direcciones posibles (hipótesis, sin probar):
+    - dejar de pensar en grupos y ubicar cada vehículo por su cuenta, con una
+      regla que garantice que nunca se cierran todos los carriles al auto
+      principal; o mantener los grupos pero dejar que la irregularidad los
+      desarme de verdad (adelantos de varios largos, tramos cargados y tramos
+      vacíos);
+    - velocidades distintas por tipo o por vehículo, para que el tráfico no se
+      mueva como un bloque (exige revisar que no se choquen entre sí);
+    - **tipos de vehículo**: motos (angostas y cortas), autos, camionetas
+      (medianas) y camiones (largos y anchos), cada uno con su contorno de
+      choque y su dibujo siempre dentro de ese contorno (Art. 7). Revisar el
+      hueco mínimo y el carril libre según el largo: un camión largo ocupa más;
+    - un ajuste de "variedad de vehículos" en la barra de escenario, o que la
+      irregularidad también la controle (a definir con el dueño).
+  - A tener en cuenta:
+    - determinismo (Art. 8): misma semilla, mismo tráfico. Pero cambiar cómo se
+      genera cambia el tráfico de todas las semillas;
+    - los cerebros guardados y los de ejemplo se entrenaron con el tráfico de
+      hoy: hay que medir cuánto empeoran, y quizás volver a entrenar los de
+      ejemplo;
+    - varias specs dependen del tráfico actual: los escenarios de los
+      programas de ejemplo de Reglas a mano ("Siete sensores supera al menos
+      10"), las misiones y las medidas de aprendizaje de
+      `fitness-que-premia-superar`. Hay que revisarlas con el tráfico nuevo;
+    - fluidez (Art. 10): más formas para dibujar y más contornos para probar
+      choques por cuadro, con toda la población de Entrenar en pantalla;
+    - el sensor tiene que leer bien un vehículo angosto (moto) con pocos rayos:
+      puede pasar entre dos rayos sin que lo vea, y eso también enseña algo.
 
 ## Competir y circuitos
 

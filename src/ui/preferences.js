@@ -2,7 +2,7 @@
 // de la pestaña Reglas a mano y paisaje). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', hints: 'mlLab.hints', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', inspectStageWidth: 'mlLab.inspect.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', hints: 'mlLab.hints', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', inspectStageWidth: 'mlLab.inspect.stageWidth', rulesStageWidth: 'mlLab.rules.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
 
 /** Atajos de una tecla encendidos por defecto (panel-de-entrenar-por-vistas D9). */
 export const DEFAULT_SHORTCUTS = true;
@@ -88,6 +88,12 @@ export function createPreferences(getStorage = defaultStorage) {
       return Number.isFinite(v) && v > 0 ? v : null;
     },
     set inspectStageWidth(value) { write(KEYS.inspectStageWidth, String(Math.round(value))); },
+    /** Ancho del escenario de Reglas a mano, que no tiene panel (reglas-mesa-de-trabajo D1). */
+    get rulesStageWidth() {
+      const v = Number.parseInt(read(KEYS.rulesStageWidth) ?? '', 10);
+      return Number.isFinite(v) && v > 0 ? v : null;
+    },
+    set rulesStageWidth(value) { write(KEYS.rulesStageWidth, String(Math.round(value))); },
     /** Velocidad máxima del auto elegida (m/s), compartida por todas las pestañas, o null si no se guardó una válida. */
     get carSpeed() {
       const v = Number.parseFloat(read(KEYS.carSpeed) ?? '');

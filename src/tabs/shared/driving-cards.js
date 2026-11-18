@@ -115,6 +115,75 @@ export function perceptionBlock({ i18n, count, names = null, role = true }) {
 }
 
 /**
+ * Percepción en filas horizontales (reglas-mesa-de-trabajo D2 y D5), para la columna al costado de la escena
+ * de Reglas a mano: una fila por sensor, de `sensor1` arriba, con el nombre a la izquierda, la barra y el
+ * valor a la derecha; y la fila de la velocidad. Con hasta `READINGS_MAX` sensores y `onInsert`, cada fila es
+ * un botón que avisa `onInsert(dato, valor)` con la lectura que muestra (la del último cuadro dibujado):
+ * `dato` es `{ sensor: n }` o `'speed'`. Con más, las filas de los sensores van sin nombre ni valor y no son
+ * botones; la de la velocidad sigue siendo un botón.
+ * @param {{i18n: object, count: number, names: {sensorKey: string, speedKey: string}, help?: string,
+ *   onInsert?: ((datum: {sensor:number}|'speed', value: number) => void)|null, role?: boolean}} spec
+ * @returns {{node: HTMLElement, update:(perception:{sensors:number[], speed:number}) => void}}
+ */
+export function perceptionRows({ i18n, count, names, help = null, onInsert = null, role = true }) {
+  const setText = createTextSetter(i18n);
+  let shown = { sensors: [], speed: 0 }; // lo que muestran las filas ahora (dos decimales)
+  /** Una fila: botón si se puede insertar; si no, un elemento quieto. */
+  function row({ nameKey, params, datum, labeled }) {
+    const fill = el('span', { class: 'sensor-row-fill' });
+    const value = el('span', { class: 'sensor-row-value' });
+    const name = labeled ? el('span', { class: 'sensor-row-name', i18n: nameKey, params }) : null;
+    const track = el('span', { class: 'sensor-row-track', attrs: { 'aria-hidden': 'true' } }, fill);
+    const button = Boolean(onInsert) && labeled;
+    const node = button
+      ? el('button', {
+        class: 'sensor-row', help, attrs: { type: 'button', 'data-focus': 'keep', 'data-help-params': JSON.stringify({ name: i18n.t(nameKey, params) }) },
+        on: { click: () => onInsert(datum, datum === 'speed' ? shown.speed : shown.sensors[datum.sensor - 1] ?? 0) },
+      }, name, track, value)
+      : el('span', { class: labeled ? 'sensor-row' : 'sensor-row sensor-row-bare' }, name, track, labeled ? value : null);
+    if (!labeled) value.hidden = true;
+    return { node, fill, value, name, nameKey, params };
+  }
+  const list = el('div', { class: 'sensor-rows', attrs: { role: 'group' }, i18nAttr: 'aria-label:drive.perception.bars' });
+  let rows = [];
+  function build(n) {
+    const labeled = n <= READINGS_MAX;
+    rows = Array.from({ length: n }, (_, i) => row({ nameKey: names.sensorKey, params: { n: i + 1 }, datum: { sensor: i + 1 }, labeled }));
+    list.replaceChildren(...rows.map((r) => r.node));
+    list.dataset.labeled = String(labeled);
+    i18n.translateTree(list);
+  }
+  build(count);
+  const speed = row({ nameKey: names.speedKey, datum: 'speed', labeled: true });
+  speed.node.classList.add('speed-row');
+  i18n.translateTree(speed.node);
+  const node = el('div', { class: 'perception-rows' }, role ? roleTag('in') : null, list, speed.node);
+
+  const width = (v) => `${Math.round(Math.max(0, Math.min(1, v)) * 100)}%`;
+  function update(perception) {
+    if (perception.sensors.length !== rows.length) build(perception.sensors.length);
+    const read = readings(perception);
+    perception.sensors.forEach((v, i) => {
+      const w = width(v);
+      if (rows[i].fill.style.width !== w) rows[i].fill.style.width = w;
+    });
+    if (read.sensors) read.sensors.forEach((v, i) => writeText(rows[i].value, formatFixed(v, 2, i18n.language)));
+    const sw = width(read.speed);
+    if (speed.fill.style.width !== sw) speed.fill.style.width = sw;
+    writeText(speed.value, formatFixed(read.speed, 2, i18n.language));
+    shown = { sensors: read.sensors ?? [], speed: read.speed };
+  }
+  /** Vuelve a escribir los nombres y las ayudas en el idioma activo. */
+  function relabel() {
+    for (const r of [...rows, speed]) {
+      if (r.name) setText(r.name, r.nameKey, r.params);
+      if (r.node.tagName === 'BUTTON') r.node.setAttribute('data-help-params', JSON.stringify({ name: i18n.t(r.nameKey, r.params) }));
+    }
+  }
+  return { node, update, relabel };
+}
+
+/**
  * Los cuatro controles del auto; cada uno se resalta mientras está accionado.
  *
  * Con la red manejando de corrido (`live`), una tecla que se encendería y apagaría más de tres veces en

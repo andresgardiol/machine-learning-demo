@@ -84,6 +84,9 @@ export function auditHierarchy({ root = document } = {}) {
 export const DENSE_SELECTOR = [
   '.topbar', '.inspect-controls', '.inspect-playbar', '.inspect-layer-head', '.compete-list', '.inspect-card-head',
   '.inspect-scene', '.library-item', '.inspect-rows', '.lab-tt', '.inspect-brain-head',
+  // Reglas a mano (reglas-mesa-de-trabajo, escenario "Dos alturas" de jerarquia-visual): las filas de percepción
+  // (los sensores y la velocidad) y el renglón de interruptores de su barra de marcha (con las cifras del intento).
+  '.sensor-rows', '.speed-row', '.rules-runbar-second',
 ].join(', ');
 
 /** Controles que se miden: los que se accionan con el cursor y tienen forma de control. */
