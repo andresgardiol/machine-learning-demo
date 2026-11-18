@@ -2163,4 +2163,16 @@ export default {
   'lab.dragHint': 'Arrastrá un peso ↕',
   'consigna.lab.gates.learn': 'Ahora dejá que aprenda: tocá Reproducir o Paso y mirá cómo lo hace.',
   'consigna.lab.gates.tries': 'El aprendizaje te muestra cómo corregir los pesos: tocá Reproducir o Paso.',
+  // manejo-amable-y-competir-sin-cortes: el volante suave, la cinta del manejo y el cartel de primer manejo (D1 a D3)
+  'help.drive.action.steer.what': 'Cuánto dobla: crece de 0 a 100 % en 0,3 s mientras mantenés la flecha y vuelve a 0 al soltarla.',
+  'help.drive.action.steer.why': 'En cada instante la salida sigue siendo sí o no: el giro suave sale de repartir los «sí» en el tiempo.',
+  'drive.tape.title': 'La cinta del manejo',
+  'help.drive.tape.what': 'Los últimos 10 segundos, un instante por columna: arriba lo que percibía el auto y abajo lo que accionaste. Se congela al chocar y se vacía al reiniciar.',
+  'help.drive.tape.why': 'Cada columna es un dato: lo que entra y lo que sale. Con datos así aprende una red a imitar a quien maneja.',
+  'drive.tape.guide': 'Cada columna es un instante: arriba lo que percibías, abajo lo que hiciste. Con datos así, una red aprende a imitarte (Laboratorio, Tu manejo).',
+  'drive.tape.label': 'Cinta del manejo: los últimos 10 segundos, cuadro por cuadro, de lo que percibía el auto y de lo que accionaste.',
+  'drive.tape.sensor': 'S{n}',
+  'drive.tape.speed': 'Vel.',
+  'drive.tape.crash': 'Choque',
+  'drive.howto': 'Manejá con las flechas: ↑ avanza, ← → doblan',
 };

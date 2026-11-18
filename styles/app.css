@@ -2128,3 +2128,24 @@ input[type="range"]:disabled::-moz-range-thumb, input[type="range"][aria-disable
 }
 .lab-drag-hint::after { content: " ▶"; color: var(--color-accent); }
 .lab-drag-hint[hidden] { display: none; }
+
+/* ---- El problema: el volante suave, la cinta y el cartel (manejo-amable-y-competir-sin-cortes) ---------------
+   Izquierda y derecha se llenan de abajo hacia arriba con el nivel del volante y lo dicen en por ciento. */
+.action-key[data-steer="true"][data-on="true"]:not([data-full="true"]) {
+  background: linear-gradient(to top, var(--color-output-on) calc(var(--steer-level, 0) * 100%), var(--color-surface-2) calc(var(--steer-level, 0) * 100%));
+  color: var(--color-text);
+}
+.action-level { font-size: var(--text-label); line-height: 1.2; min-height: 1.2em; font-variant-numeric: tabular-nums; }
+.action-key[data-steer="true"]:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+/* La cinta ocupa el alto que deja la acción, con un mínimo de 80 px. */
+.card[data-card="drive-tape"] > .card-body { display: flex; flex-direction: column; gap: var(--space-1); }
+.drive-tape { position: relative; flex: 1 1 auto; min-height: 80px; }
+.drive-tape-canvas { position: absolute; inset: 0; display: block; }
+/* El cartel de primer manejo, como el de largada de Competir; no se toca: se va con la primera tecla. */
+.drive-howto-layer { z-index: 1; }
+.drive-howto { pointer-events: none; text-align: center; }
+/* La acción toma el alto de su contenido (sin el mínimo de 160 px de las tarjetas): lo que sobra es de la cinta. */
+.card[data-card="drive-action"][data-open="true"] { flex: 0 0 auto; }
+.card[data-card="drive-action"] > .card-body { min-height: 0; }
+.card[data-card="drive-tape"][data-open="true"] { flex-basis: 0; }
+.card[data-card="drive-tape"] > .card-body { min-height: 0; }

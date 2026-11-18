@@ -194,15 +194,26 @@ export function perceptionRows({ i18n, count, names, help = null, onInsert = nul
  *   `role`, el rótulo "Sale · lo que acciona" arriba de las teclas (sistema-de-diseno-base 5.2)
  * @returns {{node: HTMLElement, update:(controls:{forward:boolean, reverse:boolean, left:boolean, right:boolean}, opts?:{live?:boolean, now?:number}) => void}}
  */
-export function actionBlock({ i18n = null, role = false } = {}) {
+/**
+ * Los cuatro controles. Con `steer` (manejo-amable D1, El problema), izquierda y derecha muestran el nivel del volante
+ * suave: `update` recibe para ellas un número de 0 a 1, que llena la tecla de abajo hacia arriba y se lee en por ciento.
+ */
+export function actionBlock({ i18n = null, role = false, steer = false } = {}) {
   const flickerText = () => (i18n ? i18n.t('flicker.action') : '');
   const marks = {};
+  const levels = {};
+  const isSteer = (a) => steer && (a === 'left' || a === 'right');
   const keys = Object.fromEntries(ACTIONS.map((a) => {
     marks[a] = el('span', { class: 'sr-only action-flicker' });
     marks[a].hidden = true;
-    return [a, el('span', { class: `action-key action-${a}`, dataset: { on: 'false' } },
+    if (isSteer(a)) levels[a] = el('span', { class: 'action-level num' });
+    return [a, el('span', {
+      class: `action-key action-${a}`, dataset: { on: 'false', ...(isSteer(a) ? { steer: 'true' } : {}) },
+      ...(isSteer(a) ? { help: 'drive.action.steer', attrs: { tabindex: '0' } } : {}),
+    },
       el('span', { class: 'action-glyph', i18n: `drive.action.${a}.key`, attrs: { 'aria-hidden': 'true' } }),
       el('span', { class: 'action-name', i18n: `drive.action.${a}` }),
+      levels[a] ?? null,
       marks[a])];
   }));
   const node = el('div', { class: 'action-keys' }, role ? roleTag('out') : null, ACTIONS.map((a) => keys[a]));
@@ -210,6 +221,7 @@ export function actionBlock({ i18n = null, role = false } = {}) {
   function update(controls, { live = false, now = globalThis.performance?.now() ?? 0 } = {}) {
     if (!live) guard.reset();
     for (const a of ACTIONS) {
+      if (isSteer(a) && typeof controls[a] === 'number') { showLevel(a, controls[a]); continue; }
       const exact = Boolean(controls[a]);
       let on = String(exact);
       let level = null;
@@ -230,6 +242,20 @@ export function actionBlock({ i18n = null, role = false } = {}) {
       const say = mixed ? flickerText() : '';
       if (marks[a].textContent !== say) marks[a].textContent = say;
     }
+  }
+  /** Izquierda o derecha con el nivel del volante: el relleno y el número (sin destellos: el nivel cambia de a poco). */
+  function showLevel(a, value) {
+    const k = keys[a];
+    const v = Math.max(0, Math.min(1, value));
+    const on = String(v > 0);
+    if (k.dataset.on !== on) k.dataset.on = on;
+    if (v > 0) { if (k.dataset.state !== 'holds') k.dataset.state = 'holds'; } else if (k.dataset.state) delete k.dataset.state;
+    const full = String(v >= 1);
+    if (k.dataset.full !== full) k.dataset.full = full;
+    const lv = v.toFixed(2);
+    if (k.style.getPropertyValue('--steer-level') !== lv) k.style.setProperty('--steer-level', lv);
+    const text = v > 0 ? `${Math.round(v * 100)} %` : '';
+    if (levels[a].textContent !== text) levels[a].textContent = text;
   }
   return { node, update };
 }
