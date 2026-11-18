@@ -246,3 +246,7 @@ test('Tarjeta de consigna: no hay consignas sin tope', () => {
   const sinTope = Object.keys(es).filter((k) => k.startsWith('consigna.') && k !== 'consigna.title' && !CONSIGNAS.includes(k));
   assert.deepEqual(sinTope, []);
 });
+
+test('Inspeccionar: los cinco textos de la línea de guía, de hasta 120 caracteres (red-al-centro D4)', () => {
+  for (const k of ['none', 'neuron', 'link', 'crash', 'driving']) assertMax(`inspect.guideLine.${k}`, HINT_MAX);
+});

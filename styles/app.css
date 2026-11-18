@@ -2077,3 +2077,25 @@ input[type="range"]:disabled::-moz-range-thumb, input[type="range"][aria-disable
 .inspect-replay-label { font-weight: var(--weight-bold); }
 .inspect-replay-input { flex: 1 1 auto; min-width: 0; accent-color: var(--color-accent); }
 .inspect-replay-value { flex: 0 0 auto; min-width: 9ch; text-align: right; font-variant-numeric: tabular-nums; }
+/* La barra de la red en tres grupos rotulados (red-al-centro D3): el nombre arriba y los grupos en un renglón,
+   con el rótulo de cada grupo arriba, como en la barra de escenario. Si no entran, el último baja entero. */
+.net-bar { gap: 2px; }
+.net-bar-head { display: flex; align-items: center; min-width: 0; }
+.net-bar-head .inspect-net-title { flex: 1 1 auto; }
+.net-bar-groups { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-1) var(--space-4); min-width: 0; }
+.net-bar-group { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.net-bar-group[hidden] { display: none; }
+.net-bar-group-label { font-size: var(--text-label); line-height: 14px; font-weight: var(--weight-bold); letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-muted); white-space: nowrap; align-self: flex-start; }
+.net-bar-group-body { display: flex; align-items: center; gap: var(--space-1); }
+.net-bar-group-zoom { margin-left: auto; }
+.net-bar .inspect-zoom-group { margin-left: 0; }
+/* La franja de los cambios (red-al-centro D3): debajo de la barra, solo con cambios. Reservada, guarda su alto sin verse. */
+.net-changes { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); margin: var(--space-1) calc(-1 * var(--space-2)) calc(-1 * var(--space-1)); padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-border); background: var(--color-surface-2); }
+.net-changes[hidden] { display: none; }
+.net-changes[data-state="reserved"] { visibility: hidden; }
+.net-changes-buttons { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.net-changes-buttons .tool { white-space: nowrap; }
+/* Línea de guía (red-al-centro D4): arriba del detalle; con la guía encendida, reemplaza el texto del bloque vacío. */
+.inspect-guide-line { margin: 0; font-size: var(--text-body); color: var(--color-text-muted); }
+.app[data-guide="on"] .inspect-empty-text { display: none; }
+.inspect-release-selection { flex: 0 0 auto; white-space: nowrap; }

@@ -62,6 +62,8 @@ import { createConnectionDetail } from '../shared/connection-detail.js';
 import { createWeightHistory } from '../shared/weight-history.js';
 import { roleTag } from '../../ui/role-tag.js';
 import { NET_ZONES } from '../shared/net-zones.js';
+import { netBar } from '../shared/net-bar.js';
+import { createChangesStrip } from '../shared/changes-strip.js';
 import { PLANE_GRID, PLANE_FPS, mapShade, brightestRegion, PROBE, planeToPx, pxToPlane, nudgeProbe, probeLabelBox, probeAnswer } from '../../render/plane-view.js';
 
 /** Con tu manejo, el error de ahora (D11) se mide sobre una muestra fija de hasta tantos ejemplos. */
@@ -190,21 +192,29 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     attrs: { type: 'button', 'aria-pressed': 'false' }, dataset: { filter: String(f) },
     on: { click: () => { state.filter = f; sync(); } },
   }));
-  const filterGroup = el('div', { class: 'inspect-filter', attrs: { role: 'group', 'aria-labelledby': 'lab-filter-label' } },
-    el('span', { class: 'inspect-label', i18n: 'inspect.filter.label', help: 'inspect.filter', attrs: { id: 'lab-filter-label' } }),
-    el('div', { class: 'segments' }, filterButtons));
+  const filterGroup = el('div', { class: 'segments inspect-filter' }, filterButtons);
   const collapseAll = el('button', { class: 'tool small inspect-collapse-all', attrs: { type: 'button' }, on: { click: () => toggleAll() } });
   // Cambios a mano (D15 y D16): el contador, "Deshacer" y "Restablecer la red", en el lugar de Inspeccionar.
-  const changesCount = el('span', { class: 'inspect-changes', attrs: { role: 'status' } });
+  const changesCount = el('span', { class: 'inspect-changes net-changes-count', attrs: { role: 'status' } });
   const undoButton = el('button', { class: 'tool small inspect-undo', i18n: 'inspect.undo', attrs: { type: 'button' }, on: { click: () => undoManual() } });
   const resetChangesButton = el('button', { class: 'tool small inspect-reset', i18n: 'inspect.resetNetwork', attrs: { type: 'button' }, on: { click: () => resetManual() } });
   const zoomOut = el('button', { class: 'tool small inspect-zoom', i18n: 'camera.zoomOut', help: 'inspect.zoomOut', i18nAttr: 'aria-label:camera.zoomOut.label', attrs: { type: 'button' }, on: { click: () => inspector.zoomOut() } });
   const zoomIn = el('button', { class: 'tool small inspect-zoom', i18n: 'camera.zoomIn', help: 'inspect.zoomIn', i18nAttr: 'aria-label:camera.zoomIn.label', attrs: { type: 'button' }, on: { click: () => inspector.zoomIn() } });
   const zoomReset = el('button', { class: 'tool small inspect-zoom-reset', i18n: 'inspect.zoomReset', help: 'inspect.zoomReset', attrs: { type: 'button' }, on: { click: () => inspector.resetView() } });
   const zoomGroup = el('div', { class: 'inspect-zoom-group', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.zoom.label' }, zoomOut, zoomIn, zoomReset);
-  const controls = el('div', { class: 'inspect-controls' },
-    el('div', { class: 'inspect-row' }, netTitle, viewGroup, filterGroup),
-    el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetChangesButton), zoomGroup));
+  // La barra de arriba de la red en tres grupos, como en Inspeccionar (red-al-centro D3); la Vista suma Datos.
+  const netBarParts = netBar({
+    title: netTitle, idPrefix: 'lab',
+    groups: [
+      { id: 'view', labelKey: 'net.bar.view', children: [viewGroup] },
+      { id: 'links', labelKey: 'net.bar.links', help: 'inspect.filter', children: [filterGroup, collapseAll] },
+      { id: 'zoom', labelKey: 'net.bar.zoom', children: [zoomGroup] },
+    ],
+  });
+  const controls = netBarParts.node;
+  // Los cambios a mano, en la franja que aparece solo con cambios, en el lugar que tiene en Inspeccionar.
+  const changesStrip = createChangesStrip({ text: changesCount, buttons: [undoButton, resetChangesButton], label: 'lab.changes.label' });
+  let netDragging = false; // un arrastre de una pastilla sobre la red: la franja no aparece hasta soltar
 
   const area = el('div', {
     class: 'inspect-area', attrs: { role: 'group', 'aria-labelledby': 'lab-net-title' },
@@ -229,15 +239,17 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       change: (value, info) => {
         const sel = state.selected;
         if (!sel || sel.input === undefined) return;
+        netDragging = Boolean(info.gesture);
         manualChange(() => run().setWeight(sel.layer, sel.neuron, sel.input, value), info.gesture);
       },
-      end: () => session.manual.end(),
+      end: () => { session.manual.end(); netDragging = false; sync(); },
     },
     // Perillas sobre la red (laboratorio-empieza-por-compuertas D5): cada peso o sesgo es un cambio a mano
     // (un arrastre, uno solo); las entradas mueven el punto de prueba y no cambian la red.
     onKnob: {
       change: (target, value, info) => {
         liveGesture = Boolean(info.gesture);
+        netDragging = liveGesture;
         manualChange(() => (target.bias ? run().setBias(target.layer, target.neuron, value) : run().setWeight(target.layer, target.neuron, target.input, value)), info.gesture, target);
       },
       input: (i, value) => {
@@ -246,6 +258,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       },
       end: () => {
         session.manual.end();
+        netDragging = false;
+        sync();
         if (liveGesture) { liveGesture = false; planeForce = true; }
         if (errorCompare) announce(errorCompareText());
       },
@@ -407,6 +421,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'inspect-playbar-main' }, playButton, stepButton, sizeGroup),
     el('div', { class: 'inspect-playbar-pace' }, paceGroup, where));
   const netZone = el('div', { class: 'inspect-net' }, controls, area, opStrip, playbar);
+  controls.append(changesStrip.node); // la franja va dentro de la barra de arriba de la red, debajo de los grupos
   board.append(netZone);
   board.classList.add('net-board', 'lab-net-board');
 
@@ -1230,7 +1245,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     setText(collapseAll, all ? 'inspect.openAll' : 'inspect.collapseAll');
     setData(collapseAll, 'help', all ? 'inspect.openAll' : 'inspect.collapseAll');
     // En la tabla de datos no sirven el filtro de conexiones, acercar ni resumir: no se muestran (D14).
-    zoomGroup.hidden = state.view !== 'diagram';
+    netBarParts.groups.zoom.hidden = state.view !== 'diagram'; // con la tabla o los datos, acercar no tiene efecto
     filterGroup.hidden = state.view === 'data';
     collapseAll.hidden = state.view === 'data';
     diagram.hidden = state.view !== 'diagram';
@@ -1238,8 +1253,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     dataZone.hidden = state.view !== 'data';
     // Cambios a mano: siempre a la vista; sin cambios, sin acción y con su explicación (D16).
     const count = session.manual.count;
-    setText(changesCount, count === 0 ? 'inspect.changes.none' : 'inspect.changes.count', { value: count });
+    setText(changesCount, count === 1 ? 'lab.changes.strip.one' : 'lab.changes.strip', { value: count });
     setData(changesCount, 'changed', String(count > 0));
+    // La franja de los cambios a mano: solo con cambios; no aparece en medio de un arrastre (red-al-centro D3).
+    if (changesStrip.sync({ count, dragging: netDragging, reserve: false })) layoutKey = '';
     setAttr(undoButton, 'aria-disabled', String(!session.manual.canUndo));
     setData(undoButton, 'help', session.manual.canUndo ? 'lab.undo' : 'lab.undo.none');
     setAttr(resetChangesButton, 'aria-disabled', String(count === 0));

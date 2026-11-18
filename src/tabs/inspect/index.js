@@ -61,6 +61,8 @@ import { OUTPUT_KEYS } from '../../render/network-view.js';
 import { roleTag } from '../../ui/role-tag.js';
 import { NET_ZONES } from '../shared/net-zones.js';
 import { createReplayBuffer } from '../shared/replay-buffer.js';
+import { netBar } from '../shared/net-bar.js';
+import { createChangesStrip } from '../shared/changes-strip.js';
 import { caseOf, CASE_FRAMES, CASE_START } from './crash-case.js';
 
 /** Semilla del tráfico: la misma para todos (misma semilla, misma escena). */
@@ -558,11 +560,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     attrs: { type: 'button', 'aria-pressed': 'false' }, dataset: { filter: String(f) },
     on: { click: () => { state.filter = f; sync(); } },
   }));
-  const filterGroup = el('div', { class: 'inspect-filter', attrs: { role: 'group', 'aria-labelledby': 'inspect-filter-label' } },
-    el('span', { class: 'inspect-label', i18n: 'inspect.filter.label', help: 'inspect.filter', attrs: { id: 'inspect-filter-label' } }),
-    el('div', { class: 'segments' }, filterButtons));
+  const filterGroup = el('div', { class: 'segments inspect-filter' }, filterButtons);
   const collapseAll = el('button', { class: 'tool small inspect-collapse-all', attrs: { type: 'button' }, on: { click: () => toggleAll() } });
-  const changesCount = el('span', { class: 'inspect-changes', attrs: { role: 'status' } });
+  const changesCount = el('span', { class: 'inspect-changes net-changes-count', attrs: { role: 'status' } });
   const undoButton = el('button', { class: 'tool small inspect-undo', i18n: 'inspect.undo', attrs: { type: 'button' }, on: { click: () => undo() } });
   const resetButton = el('button', { class: 'tool small inspect-reset', i18n: 'inspect.resetNetwork', attrs: { type: 'button' }, on: { click: () => resetNetwork() } });
   // "Ver original": un botón de resorte (D13). Vale mientras se mantiene apretado, con el mouse o con la
@@ -600,18 +600,24 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     attrs: { type: 'button', role: 'switch', 'aria-checked': String(flowOn) },
     on: { click: () => { flowOn = !flowOn; setAttr(flowSwitch, 'aria-checked', String(flowOn)); draw(); } },
   }, el('span', { class: 'switch-track', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'inspect.flow' }));
-  const topRow = el('div', { class: 'inspect-row' }, netTitle, viewGroup, flowSwitch, filterGroup);
-  const editsRow = el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetButton, originalButton), zoomGroup);
-  const controls = el('div', { class: 'inspect-controls' }, topRow, editsRow);
-  // Ventana angosta (D18): con la red por debajo de 600 px, los botones de acercar pasan detrás del
-  // filtro de conexiones, así los dos grupos comparten renglón cuando la barra se parte. Desde 600 px,
-  // vuelven al segundo renglón (la barra en dos renglones, como siempre).
+  // La barra de arriba de la red en tres grupos rotulados (red-al-centro D3): Vista, Conexiones y Acercar.
+  const netBarParts = netBar({
+    title: netTitle, idPrefix: 'inspect',
+    groups: [
+      { id: 'view', labelKey: 'net.bar.view', children: [viewGroup, flowSwitch] },
+      { id: 'links', labelKey: 'net.bar.links', help: 'inspect.filter', children: [filterGroup, collapseAll] },
+      { id: 'zoom', labelKey: 'net.bar.zoom', children: [zoomGroup] },
+    ],
+  });
+  const controls = netBarParts.node;
+  // Los cambios de prueba, en una franja aparte que aparece solo con cambios (red-al-centro D3).
+  const changesStrip = createChangesStrip({ text: changesCount, buttons: [undoButton, resetButton, originalButton], label: 'inspect.changes.label' });
+  let pillDragging = false; // un arrastre de la pastilla sobre la red: la franja no aparece hasta soltar
+  // Con la red por debajo de 600 px, la barra de reproducción usa los nombres sin atajo (consulta 5.1).
   const NARROW_BAR = 600;
   let narrowBar = false;
   const placeZoom = () => {
     const narrow = controls.clientWidth > 0 && controls.getBoundingClientRect().width < NARROW_BAR;
-    const parent = narrow ? topRow : editsRow;
-    if (zoomGroup.parentElement !== parent) parent.append(zoomGroup);
     setData(controls, 'narrow', String(narrow));
     // Con la red angosta, la barra de reproducción usa los nombres sin atajo (operacion-por-operacion
     // D7, consulta 5.1); el atajo sigue en el tooltip.
@@ -635,8 +641,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     onViewChange: () => { layoutKey = ''; },
     // Pastilla sobre la conexión elegida (D8): el mismo cambio que el deslizador del detalle.
     onPill: {
-      change: (value) => { if (state.selected && state.connection !== null && !originalHeld) setWeight(state.connection, value); },
-      end: () => {},
+      change: (value) => { pillDragging = true; if (state.selected && state.connection !== null && !originalHeld) setWeight(state.connection, value); },
+      end: () => { pillDragging = false; sync(); },
     },
   });
   // Encabezados de capa sobre el diagrama (D6): botones de verdad que siguen a su columna.
@@ -822,6 +828,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'inspect-playbar-main' }, playButton, stepButton, backButton, sizeGroup),
     el('div', { class: 'inspect-playbar-pace' }, paceGroup, where));
   const netZone = el('div', { class: 'inspect-net' }, controls, area, opStrip, playbar);
+  controls.append(changesStrip.node); // la franja va dentro de la barra de arriba de la red, debajo de los grupos
   board.append(netZone);
   board.classList.add('net-board');
 
@@ -1039,11 +1046,28 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const row = el('li', { class: 'mission inspect-mission' }, el('span', { class: 'mission-name', i18n: `inspect.mission.${m.id}` }), status);
     return { id: m.id, row, status };
   });
+  // Línea de guía (red-al-centro D4): siempre arriba del detalle, cambia según lo que se mira.
+  const guideLine = el('p', { class: 'guide inspect-guide-line' });
+  // "Soltar" junto al nombre de la neurona o de la conexión elegida: vuelve al panel sin nada elegido.
+  const releaseButtons = [card.node, linkDetail.node].map((n) => {
+    const b = el('button', {
+      class: 'tool small inspect-release-selection', i18n: 'inspect.release', help: 'inspect.release', dataset: { focus: 'keep' },
+      attrs: { type: 'button' }, on: { click: () => releaseSelection() },
+    });
+    n.querySelector('.inspect-card-head')?.append(b);
+    return b;
+  });
+  function releaseSelection() {
+    const hadFocus = releaseButtons.some((b) => b.contains(document.activeElement));
+    select(null);
+    draw(); // los atajos se muestran en el dibujo: tienen que estar a la vista para recibir el foco
+    if (hadFocus) (shortcutButtons.find((b) => !b.parentElement.hidden) ?? changeBrain).focus({ preventScroll: true });
+  }
   const missions = el('section', { class: 'guide inspect-missions' },
     el('h2', { class: 'sr-only', i18n: 'inspect.missions.title' }),
     el('ol', { class: 'mission-list inspect-mission-list' }, missionRows.map((r) => r.row)));
   panel.append(el('h1', { class: 'sr-only', i18n: 'inspect.title' }),
-    el('div', { class: 'inspect-panel' }, consigna.node, introMore, brainSection, emptyBlock, card.node, linkDetail.node, legend, missions));
+    el('div', { class: 'inspect-panel' }, consigna.node, introMore, brainSection, guideLine, emptyBlock, card.node, linkDetail.node, legend, missions));
 
   const picker = createPicker({
     id: 'inspect-picker', anchor: changeBrain, t,
@@ -1116,16 +1140,18 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const all = state.collapsed.every(Boolean);
     setText(collapseAll, all ? 'inspect.openAll' : 'inspect.collapseAll');
     setData(collapseAll, 'help', all ? 'inspect.openAll' : 'inspect.collapseAll');
-    // Deshacer y restablecer: siempre a la vista; sin cambios, en su tope y con su explicación (D12).
+    // Deshacer, restablecer y "Ver original": en la franja, que se ve solo con cambios (red-al-centro D3).
     const count = changes.count;
-    setText(changesCount, count === 0 ? 'inspect.changes.none' : 'inspect.changes.count', { value: count });
+    setText(changesCount, count === 1 ? 'inspect.changes.strip.one' : 'inspect.changes.strip', { value: count });
     setData(changesCount, 'changed', String(count > 0));
+    const inSession = count > 0 || [...state.changesBy.values()].some((list) => list.length > 0);
+    if (changesStrip.sync({ count, dragging: pillDragging, reserve: inSession })) layoutKey = '';
     for (const [b, key] of [[undoButton, 'inspect.undo'], [resetButton, 'inspect.resetNetwork'], [originalButton, 'inspect.original.view']]) {
       setAttr(b, 'aria-disabled', String(count === 0));
       setData(b, 'help', count === 0 ? `${key}.none` : key);
     }
     if (count === 0 && originalHeld) holdOriginal(false);
-    zoomGroup.hidden = state.view !== 'diagram';
+    netBarParts.groups.zoom.hidden = state.view !== 'diagram'; // con la tabla de pesos, acercar no tiene efecto
     diagram.hidden = state.view !== 'diagram';
     tableZone.hidden = state.view !== 'table';
     // Reproducción
@@ -1155,6 +1181,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Caso del choque (red-al-centro D5): la tarjeta, la repetición y la acción principal.
     syncCase();
     applyMainAction({ run: playButton, retry: retryButton }, mainAction('inspect', { crashed: Boolean(crash) }));
+    // Línea de guía: el choque, la persona manejando, una conexión, una neurona o nada elegido (D4).
+    setText(guideLine, crash ? 'inspect.guideLine.crash' : driving() ? 'inspect.guideLine.driving'
+      : state.selected && state.connection !== null ? 'inspect.guideLine.link' : state.selected ? 'inspect.guideLine.neuron' : 'inspect.guideLine.none');
     // Quién maneja
     setAttr(driveButton, 'aria-pressed', String(driving()));
     show(driveBadge, driving());
