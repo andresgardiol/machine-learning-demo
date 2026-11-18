@@ -59,9 +59,10 @@ test('teclado con filtro propio: lo que el filtro rechaza no maneja', () => {
     Object.defineProperty(e, 'target', { value: target });
     win.dispatchEvent(e);
   };
+  // Lo apretado se lee con held(): control() pasa por el volante suave (manejo-amable D1).
   send('keydown', 'ArrowLeft', node('BUTTON', { role: 'radio', inside: true }));
-  assert.equal(kb.control().left, false);
+  assert.equal(kb.held().left, false);
   send('keydown', 'ArrowLeft', node('DIV'));
-  assert.equal(kb.control().left, true);
+  assert.equal(kb.held().left, true);
   kb.dispose();
 });

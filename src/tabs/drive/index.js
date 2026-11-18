@@ -252,7 +252,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
 
     // Percepción: barras y, con hasta 12 sensores, su lectura con dos decimales en el idioma activo.
     perception.update(world.perception);
-    action.update(keyboard.control());
+    action.update(keyboard.display()); // sin avanzar el volante: el nivel de cada costado, de 0 a 1
     sensorsSwitch.setAttribute('aria-checked', String(options.showSensors));
     machineSwitch.setAttribute('aria-checked', String(options.machineView));
 

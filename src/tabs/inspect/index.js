@@ -1322,7 +1322,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       setText(decisionNote, decided ? (state.manual ? 'inspect.decision.manual' : 'inspect.decision.live') : 'inspect.decision.undecided');
     } else {
       // La fila "La red" pasa por la misma guarda de destellos que la decisión de una fila (D4).
-      const mine = keyboard.control();
+      const mine = keyboard.held(); // lo que la persona aprieta, sin avanzar el volante suave
       compare.update(mine, theirs, { live: liveKeys, now, decided });
       // Cuánto coincidieron: se reescribe como mucho cuatro veces por segundo, para poder leerlo.
       if (now - shareAt >= 250) { shareAt = now; const p = matchWindow.percent(); setText(decisionNote, p === null ? 'inspect.compare.empty' : 'inspect.compare.share', p === null ? undefined : { value: p }); }

@@ -1165,8 +1165,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   };
   const recordingController = {
     control(perception) {
+      // Lo grabado es lo que devolvió el controlador, con el volante suave (manejo-amable D1): lo que movió al auto.
       const c = keyboard.control();
-      if (!recordStarted && (c.forward || c.left || c.right || c.reverse)) recordStarted = true;
+      const h = keyboard.held();
+      if (!recordStarted && (h.forward || h.left || h.right || h.reverse)) recordStarted = true;
       if (recordStarted) state.recorder.add(perception, c);
       return c;
     },
@@ -1197,8 +1199,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       return;
     }
     if (recording && !recordStarted) {
-      // El auto espera la primera tecla: el mundo no avanza, así no se graba una espera.
-      const c = keyboard.control();
+      // El auto espera la primera tecla: el mundo no avanza, así no se graba una espera. Sin avanzar el volante.
+      const c = keyboard.held();
       if (!(c.forward || c.left || c.right || c.reverse)) return;
     }
     world.step();

@@ -49,15 +49,21 @@ test('A, S y D, y las demás flechas, accionan su control', () => {
   for (const [code, action] of [['KeyA', 'left'], ['KeyS', 'reverse'], ['KeyD', 'right'], ['ArrowLeft', 'left'], ['ArrowDown', 'reverse'], ['ArrowRight', 'right']]) {
     const { kb, press } = setup();
     press(code);
+    assert.deepEqual(kb.held(), { ...NONE, [action]: true }, code);
+    // Retroceder, al instante; los costados, por el volante suave: todos los cuadros desde el 18.
+    for (let k = 0; k < 17; k++) kb.control();
     assert.deepEqual(kb.control(), { ...NONE, [action]: true }, code);
   }
 });
 
-test('dos teclas a la vez: flecha arriba y flecha izquierda devuelven avanzar e izquierda', () => {
+test('dos teclas a la vez: avanzar en todos los cuadros e izquierda en todos desde que el volante llegó al máximo', () => {
   const { kb, press } = setup();
   press('ArrowUp');
   press('ArrowLeft');
-  assert.deepEqual(kb.control(), { ...NONE, forward: true, left: true });
+  const frames = Array.from({ length: 30 }, () => kb.control()); // medio segundo
+  assert.ok(frames.every((c) => c.forward));
+  assert.ok(frames.slice(17).every((c) => c.left), 'desde el cuadro 18');
+  assert.ok(frames.slice(0, 17).some((c) => !c.left), 'antes, repartido');
 });
 
 test('soltar la tecla: sin teclas presionadas no devuelve ningún control', () => {

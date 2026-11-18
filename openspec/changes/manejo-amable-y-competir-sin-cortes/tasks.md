@@ -46,10 +46,31 @@
 
 ## 2. Volante suave
 
-- [ ] 2.1 El volante suave en el controlador de teclado: nivel por lado, acumulador, 18 cuadros de subida (`STEER_RAMP_STEPS`), vuelta a 0 al soltar y sin avanzar en pausa (D1). La lógica va en una función sin DOM. Verificación: pruebas de *Volante suave* ("Toque corto", "Mantener apretada", "Soltar", "En pausa", "Determinismo") y de *Controlador de teclado*.
-- [ ] 2.2 Pruebas de que nada más cambia: los cerebros de ejemplo y un programa de reglas dan los mismos cuadros que antes del cambio, con la misma semilla (`reproducibility`, `example-brains`, `compete-logic`). Verificación: `npm test`; escenario "Otros controladores".
-- [ ] 2.3 La grabación del Laboratorio guarda lo que devolvió el controlador. Verificación: escenario "Lo grabado es lo que hizo el auto", con una prueba o una sonda. No se mide si la imitación aprende.
-- [ ] 2.4 Repetir la medida de 1.3 con el volante suave. Verificación: tabla antes y después en la comparación.
+- [x] 2.1 El volante suave en el controlador de teclado: nivel por lado, acumulador, 18 cuadros de subida (`STEER_RAMP_STEPS`), vuelta a 0 al soltar y sin avanzar en pausa (D1). La lógica va en una función sin DOM. Verificación: pruebas de *Volante suave* ("Toque corto", "Mantener apretada", "Soltar", "En pausa", "Determinismo") y de *Controlador de teclado*.
+
+  *Hecho: `src/input/steering.js`, sin DOM: `createSteering()` con `STEER_RAMP_STEPS = 18`; por lado, cuántos cuadros lleva apretado (el nivel es eso sobre 18, hasta 1) y un acumulador; en cada `step` suma el nivel y, si llega a 1, ese cuadro dobla y resta 1. Soltar vuelve el nivel y el acumulador a 0 en el mismo cuadro; cada lado lleva el suyo. `keyboard.js` lo usa en `control()`, que la simulación llama una vez por cuadro (en pausa el mundo no lo llama: no sube). Suma `held()` (lo apretado, sin avanzar el volante), `display()` (avanzar y retroceder, y el nivel de cada costado) y `last` (lo que devolvió el último cuadro). Pruebas en `tests/steering.test.js`; las del teclado que esperaban giro desde el primer cuadro leen ahora `held()` o recorren los 18 cuadros.*
+
+  *Medido: `steering.test.js` (7 pruebas): 6 cuadros dan izquierda en 1 ("Toque corto"); manteniendo 60, todos desde el 18 ("Mantener apretada"); al soltar, el mismo cuadro sin giro y el nivel otra vez desde 1/18 ("Soltar"); con el mundo en pausa 30 pasos, el nivel sigue en 0, y mostrarlo no lo avanza ("En pausa"); la misma secuencia de teclas cuadro por cuadro da los mismos controles y el mismo auto ("Determinismo"). `keyboard.test.js`, "Dos teclas a la vez": avanzar en los 30 cuadros e izquierda en todos desde el 18.*
+- [x] 2.2 Pruebas de que nada más cambia: los cerebros de ejemplo y un programa de reglas dan los mismos cuadros que antes del cambio, con la misma semilla (`reproducibility`, `example-brains`, `compete-logic`). Verificación: `npm test`; escenario "Otros controladores".
+
+  *Hecho: `tests/steering-others.test.js`: la huella de 900 pasos (posición y ángulo de cada paso) del cerebro de ejemplo y del programa de reglas de 20 sensores, en la calle con tráfico y semilla 1, calculada sobre el código de antes (`2f7ffa9`, en un árbol de trabajo aparte) y fija en la prueba.*
+
+  *Medido: las dos huellas son iguales antes y después (cerebro 2057855322, programa 1330019139). `reproducibility`, `example-brains` y `compete-logic` pasan sin cambios. `npm test`: 1500, todas pasan ("Otros controladores").*
+- [x] 2.3 La grabación del Laboratorio guarda lo que devolvió el controlador. Verificación: escenario "Lo grabado es lo que hizo el auto", con una prueba o una sonda. No se mide si la imitación aprende.
+
+  *Hecho: en el Laboratorio, la grabación guarda lo que devolvió `keyboard.control()` (lo que movió al auto); para saber si ya empezó a grabar y para esperar la primera tecla usa `held()`, que no avanza el volante. Inspeccionar compara "Vos" con lo apretado (`held()`), y El problema muestra `display()`: ninguno avanza el volante al dibujar.*
+
+  *Medido (guion de verificación, `v2.3-grabado`, Chrome sin ventana): grabando con Tu manejo, 1 s de flecha arriba y un toque de 100 ms de izquierda dan 138 ejemplos; uno solo dice izquierda, y es el único paso en que el auto giró a la izquierda ("Lo grabado es lo que hizo el auto"). No se midió si la imitación aprende.*
+- [x] 2.4 Repetir la medida de 1.3 con el volante suave. Verificación: tabla antes y después en la comparación.
+
+  *Medido (`medir-giro.mjs`, Node, 20 m/s, con la flecha arriba apretada):*
+
+  | Recorrido | Antes: cuadros que giraron | Antes: giro | Antes: corrimiento en el segundo siguiente | Después: cuadros que giraron | Después: giro | Después: corrimiento |
+  |---|---|---|---|---|---|---|
+  | Toque corto (6 cuadros) | 6 | 0,18 rad (10,3°) | 3,58 m | 1 | 0,03 rad (1,7°) | 0,60 m |
+  | Mantener (60 cuadros) | 29, choca | 0,87 rad (49,8°) | — | 28, choca | 0,84 rad (48,1°) | — |
+
+  *La cuenta de D1 para el toque (0,03 rad) se cumple. La de mantener 1 s (1,53 rad) no se puede medir así: a 20 m/s, la izquierda sostenida saca al auto de la calle a los 0,5 s, antes y después.*
 
 ## 3. El problema
 
