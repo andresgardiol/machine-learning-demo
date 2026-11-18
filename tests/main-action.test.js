@@ -9,9 +9,11 @@ test('por defecto la marcha es la acción principal en las seis pestañas', () =
   assert.equal(mainAction('train', { panelView: 'training' }), 'run');
 });
 
-test('con un choque, Reiniciar en El problema y en Reglas a mano', () => {
+test('con un choque, Reiniciar en El problema y "Compará con los ejemplos" en Reglas a mano', () => {
   assert.equal(mainAction('drive', { crashed: true }), 'restart');
-  assert.equal(mainAction('rules', { crashed: true }), 'restart');
+  // reglas-el-choque-ensena D1: con el reintento encendido o apagado, el caso del choque lleva a comparar.
+  assert.equal(mainAction('rules', { crashed: true }), 'compare');
+  assert.equal(mainAction('rules', { crashed: false }), 'run', 'al reiniciar, la marcha vuelve a ser la principal');
   // El choque solo cambia esas dos pestañas.
   assert.equal(mainAction('inspect', { crashed: true }), 'run');
 });

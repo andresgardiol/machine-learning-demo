@@ -107,7 +107,7 @@ Que un control sea la acción principal MUST NOT cambiar lo que hace, su texto n
 ### Requirement: Estados que cambian la acción principal
 Mientras dura su estado, la acción principal SHALL ser otra:
 
-- con un choque a la vista en El problema o en Reglas a mano, Reiniciar;
+- con un choque a la vista en El problema, Reiniciar; en Reglas a mano, "Compará con los ejemplos";
 - en Entrenar, con la selección manual esperando una elección, Elegir al líder;
 - en Competir, con la carrera terminada, Otra carrera.
 
@@ -128,6 +128,10 @@ Al terminar ese estado, la marcha SHALL volver a ser la acción principal.
 #### Scenario: Carrera terminada
 - **WHEN** en Competir la carrera termina
 - **THEN** "Otra carrera" es la única acción principal
+
+#### Scenario: Choque en Reglas a mano
+- **WHEN** en Reglas a mano el auto choca, con el reintento automático encendido o apagado
+- **THEN** "Compará con los ejemplos" es la única acción principal, Reiniciar y "Escribir una regla para este caso" se ven como secundarias, y al reiniciar la marcha vuelve a ser la acción principal
 
 ### Requirement: Guardar no compite con la marcha
 En la vista de cerebros de Entrenar, la acción principal SHALL ser Guardar como nuevo. "Guardar campeón", en la vista de entrenamiento, y "Agregar una capa oculta" y "Guardar como cerebro", en el Laboratorio, SHALL verse como acciones secundarias.

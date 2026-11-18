@@ -6,8 +6,11 @@
 // interruptores de vista y reintento, y las cifras del intento) y la tarjeta de lo que percibe y acciona;
 // y el tablero con la tarjeta de consigna, el texto de guía, la tarjeta del programa (cabecera con la
 // cifra de reglas, los sensores, los ejemplos, restablecer, exportar e importar; editor, estado, errores
-// y paleta) y las misiones. Lo que se prueba sin DOM vive en program.js, session.js, examples.js,
-// shortcuts.js y workbench.js.
+// y paleta) y las misiones. Al chocar (reglas-el-choque-ensena), la tarjeta del caso ocupa el lugar de la
+// marcha, un deslizador sobre la escena repite los últimos 3 s grabados, el cuaderno de casos va entre la
+// escena y la marcha, y la comparación con los ejemplos se abre en la tarjeta del programa. Lo que se
+// prueba sin DOM vive en program.js, session.js, examples.js, shortcuts.js, workbench.js, case.js y
+// compare.js.
 //
 // El estado vive en variables del módulo, como en Entrenar: el texto, el mundo, los ajustes, la
 // semilla, el reintento, las tarjetas y las misiones cumplidas. Al volver a la pestaña se retoma todo.
@@ -41,8 +44,10 @@ import {
 import { createProgramState } from './program.js';
 import { createRulesSession, MISSIONS, viewOptions } from './session.js';
 import {
-  DEFAULT_SEED, INITIAL_PROGRAM, EXAMPLES, knownTexts, settingsForProgram, rememberedSensors,
+  DEFAULT_SEED, INITIAL_PROGRAM, EXAMPLES, knownTexts, settingsForProgram, rememberedSensors, programIdOf, normalizeText,
 } from './examples.js';
+import { compareRuns, compareNotes, compareResult } from './compare.js';
+import { caseCondition, createReplayBuffer, frameOf, raysOf } from './case.js';
 import { shortcutFor } from './shortcuts.js';
 import { roleTag } from '../../ui/role-tag.js';
 import { RULES_BAR, scenarioReset, comparisonFor, insertAt } from './workbench.js';
@@ -104,6 +109,15 @@ function createState({ i18n, store, preferences }) {
     showSensors: true,
     machineView: false, // ver como la máquina (circuitos-y-paisaje D13): solo cambia lo que se dibuja
     cards: { program: true, io: true },
+    // El caso del choque (reglas-el-choque-ensena): la grabación de los últimos 3 s (D3), los datos del
+    // choque a la vista, el cuadro de la repetición, "Tu programa" (D5), el cuaderno (D7) y si la
+    // comparación está abierta (D4). Nada de esto se guarda entre visitas.
+    replay: createReplayBuffer(),
+    caseInfo: null, // { distance, cause, lines, sensors, circuit } mientras el choque está a la vista
+    replayOffset: 0, // 0 es el cuadro del choque; -60, un segundo antes
+    own: null, // { text, sensors: { count, range, spread } }
+    casebook: { cases: [], best: 0 }, // cases: [{ distance, cause }]
+    compareOpen: false,
   };
 }
 
@@ -139,10 +153,38 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     } else {
       state.world.reset();
     }
+    // El intento que termina cuenta para la mejor distancia del cuaderno (D7), choque o no.
+    state.casebook.best = Math.max(state.casebook.best, session.distance);
     session.restart({ countAttempt });
+    clearCase();
     view.followCar();
     sync();
   }
+  /** Saca el caso del choque de todos lados (spec "Vuelta atrás") y vacía la grabación (D3). */
+  function clearCase() {
+    state.replay.clear();
+    state.caseInfo = null;
+    state.replayOffset = 0;
+  }
+  /**
+   * El auto acaba de chocar: guarda los datos del caso (D1), lo anota en el cuaderno (D7). Las líneas son
+   * las que decidió el programa en el paso del choque; las lecturas, las de la columna congelada.
+   */
+  function onCrash() {
+    const { world } = state;
+    const distance = Math.max(0, world.progress);
+    state.caseInfo = {
+      distance, cause: world.crashCause, lines: [...controller.activeLines],
+      sensors: [...world.perception.sensors], circuit: world.track.closed,
+    };
+    state.replayOffset = 0;
+    state.casebook.cases.push({ distance, cause: world.crashCause });
+    state.casebook.best = Math.max(state.casebook.best, distance);
+  }
+  /** Borra el cuaderno de casos (al restablecer el programa o al cambiar de pista, D7). */
+  function clearCasebook() { state.casebook = { cases: [], best: 0 }; }
+  /** La persona tocó un control del caso: la cuenta regresiva se detiene (D2). */
+  function holdCase() { if (state.caseInfo) session.hold(); }
   const restart = () => restartAttempt();
   function newTraffic() {
     if (onCircuit(state.settings)) return; // en un circuito no hay tráfico
@@ -166,8 +208,11 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     dirty = false;
     const result = program.update(editor.value);
     afterProgramChange(result);
+    // "Tu programa" sigue al texto propio que está en el editor: volver a él no pierde nada (D5).
+    if (state.own && program.isOwn(KNOWN)) state.own = { text: program.text, sensors: currentSensors() };
     remember();
   }
+  const currentSensors = () => ({ count: state.settings.sensorCount, range: state.settings.sensorRange, spread: state.settings.sensorSpread });
 
   /** Recuerda el programa junto con los sensores del auto para el que está escrito (D15). */
   function remember() {
@@ -318,7 +363,8 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   const perception = perceptionRows({
     i18n, count: state.world.perception.sensors.length,
     names: { sensorKey: 'rules.data.sensor', speedKey: 'rules.data.speed' },
-    help: 'rules.barInsert', onInsert: insertComparison,
+    // Con el caso a la vista, tocar una fila también detiene la cuenta regresiva (D2).
+    help: 'rules.barInsert', onInsert: (datum, value) => { holdCase(); insertComparison(datum, value); },
   });
   const action = actionBlock({ role: true });
   ioCard.append(el('div', { class: 'rules-io' }, perception.node, action.node));
@@ -369,7 +415,61 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   const runBar = el('div', { class: 'rules-runbar', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.runbar.label' },
     el('div', { class: 'rules-runbar-main' }, run, newTrafficButton),
     el('div', { class: 'rules-runbar-second' }, viewSwitches, strip.node));
-  stageZone.append(ioCard.node, runBar);
+
+  // --- Escenario: la tarjeta del caso, en el lugar de la marcha (reglas-el-choque-ensena D1) -----------
+  // Título y datos, la cuenta regresiva y las acciones: "Compará con los ejemplos" (principal), "Escribir
+  // una regla para este caso" y Reiniciar. Con el estado "choque" del sistema de diseño.
+  const caseTitle = el('h2', { class: 'rules-case-title', attrs: { 'aria-live': 'polite' } });
+  const caseLines = el('span', { class: 'rules-case-lines' });
+  const caseCount = el('span', { class: 'rules-case-count' });
+  const caseCompare = button('rules.case.compare', 'rules.case.compare', () => openCompare({ focus: true }));
+  caseCompare.dataset.keepsFocus = 'true';
+  const caseWrite = button('rules.case.write', 'rules.case.write', writeCaseRule);
+  caseWrite.dataset.keepsFocus = 'true';
+  const caseRestart = button('rules.restart', 'rules.restart', restart);
+  // Reiniciar va en el renglón del título: así las dos acciones del caso entran en un renglón y la tarjeta
+  // no pasa de 140 px (D1).
+  const caseCard = el('section', { class: 'rules-case', attrs: { 'data-state': 'crash' }, i18nAttr: 'aria-label:rules.case.label' },
+    el('div', { class: 'rules-case-head' }, caseTitle, caseRestart),
+    el('p', { class: 'rules-case-data' }, caseLines, ' ', caseCount),
+    el('div', { class: 'rules-case-actions' }, caseCompare, caseWrite));
+  caseCard.hidden = true;
+
+  // --- Escenario: el cuaderno de casos, entre la escena y la marcha (D7). Solo con la guía. ----------------
+  const casebookSummary = el('p', { class: 'casebook-summary' });
+  const casebookAxis = el('div', { class: 'casebook-axis' });
+  const casebook = el('div', { class: 'guide rules-casebook', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.casebook.label' },
+    casebookSummary, casebookAxis);
+  stageZone.append(ioCard.node, casebook, runBar, caseCard);
+
+  // --- Escenario: el deslizador de la repetición, sobre la escena (D3) ------------------------------------
+  const replayInput = el('input', {
+    class: 'rules-replay-input', help: 'rules.replay', i18nAttr: 'aria-label:rules.replay.label',
+    attrs: { type: 'range', min: '-179', max: '0', step: '1', value: '0' },
+  });
+  replayInput.dataset.keepsFocus = 'true';
+  const replayValue = el('span', { class: 'rules-replay-value', attrs: { 'aria-hidden': 'true' } });
+  const replay = el('div', { class: 'rules-replay' },
+    el('span', { class: 'rules-replay-label', i18n: 'rules.replay.label', attrs: { 'aria-hidden': 'true' } }), replayInput, replayValue);
+  replay.hidden = true;
+  scene.append(replay);
+  function setReplay(offset) {
+    const min = Number(replayInput.min);
+    state.replayOffset = Math.max(min, Math.min(0, Math.round(offset)));
+    if (Number(replayInput.value) !== state.replayOffset) replayInput.value = String(state.replayOffset);
+    holdCase();
+    sync();
+  }
+  replayInput.addEventListener('input', () => setReplay(Number(replayInput.value)));
+  replayInput.addEventListener('keydown', (e) => {
+    // Las flechas mueven la repetición y no llegan a ningún otro atajo de la ventana (spec "Con el teclado").
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+    e.stopPropagation();
+    if (!e.shiftKey) return;
+    e.preventDefault();
+    const dir = e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 1;
+    setReplay(state.replayOffset + dir * 10); // Mayús + flecha: de a 10 cuadros (unos 0,17 s)
+  });
 
   // --- Tablero: cabecera del programa (ejemplos, restablecer, exportar e importar; D3) ------
   const confirm = inlineConfirm({ i18n });
@@ -389,17 +489,20 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   }
 
   /**
-   * Reemplaza el programa (un ejemplo, restablecer o importar), con confirmación si el texto es
-   * propio. Con `sensors` (un ejemplo o restablecer) cambia primero los sensores del auto y después
-   * pone el texto, para que se analice ya con su auto; al final reinicia el intento con ese auto y
-   * ese programa (así el intento nuevo cuenta entero con el programa nuevo).
+   * Reemplaza el programa (un ejemplo, "Tu programa", una fila de la comparación, restablecer o
+   * importar). Restablecer e importar piden confirmación si el texto es propio; probar un programa no
+   * (`ask: false`): el texto propio queda en "Tu programa" (reglas-el-choque-ensena D5). Con `sensors`
+   * cambia primero los sensores del auto y después pone el texto, para que se analice ya con su auto; al
+   * final reinicia el intento con ese auto y ese programa (así el intento nuevo cuenta entero con el
+   * programa nuevo, y sale de la retención del caso).
    */
-  function replaceProgram(text, sensors, request, after) {
+  function replaceProgram(text, sensors, request, after, { ask = true } = {}) {
     // Los ejemplos y el programa inicial son para la calle recta: desde un circuito se vuelve a ella
     // y la confirmación lo avisa siempre, aunque el texto no sea propio.
     const leavesCircuit = Boolean(sensors) && onCircuit(state.settings);
     const doReplace = () => {
       if (sensors) {
+        if (leavesCircuit) clearCasebook(); // vuelve a la calle recta: otra pista, otro cuaderno (D7)
         state.settings = normalizeSettings(settingsForProgram(state.settings, { sensors }));
         program.setSensors(state.settings.sensorCount);
       }
@@ -410,17 +513,39 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
       after?.();
     };
     if (leavesCircuit) confirm.open({ ...request, message: `${request.message}.circuit`, confirmKey: 'rules.confirm.replace', onConfirm: doReplace });
-    else if (isOwn()) confirm.open({ ...request, confirmKey: 'rules.confirm.replace', onConfirm: doReplace });
+    else if (ask && isOwn()) confirm.open({ ...request, confirmKey: 'rules.confirm.replace', onConfirm: doReplace });
     else doReplace();
   }
 
-  const exampleButtons = EXAMPLES.map((ex) => button(ex.nameKey, `rules.example.${ex.id}`, () => {
+  /**
+   * Prueba un programa (un ejemplo, "Tu programa" o una fila de la comparación) sin confirmación: si el
+   * texto a la vista es propio, primero lo guarda como "Tu programa", con sus sensores (D5).
+   */
+  function tryProgram(text, sensors, name) {
     message.hidden = true;
-    replaceProgram(i18n.t(ex.textKey), ex.sensors, { message: 'rules.confirm.example', params: { name: i18n.t(ex.nameKey) } });
+    if (isOwn()) state.own = { text: program.text, sensors: currentSensors() };
+    replaceProgram(text, sensors, { message: 'rules.confirm.example', params: { name } }, null, { ask: false });
+  }
+
+  // "Tu programa" (D5): primera opción de los ejemplos, solo si hay un texto propio guardado; con el estilo
+  // de opción elegida cuando es el que está en el editor.
+  const ownButton = button('rules.own', 'rules.own', () => {
+    if (!state.own || ownInEditor()) return;
+    tryProgram(state.own.text, state.own.sensors, i18n.t('rules.own'));
+  });
+  ownButton.hidden = true;
+  const ownInEditor = () => Boolean(state.own) && normalizeText(editor.value) === normalizeText(state.own.text);
+  const exampleButtons = EXAMPLES.map((ex) => button(ex.nameKey, `rules.example.${ex.id}`, () => {
+    tryProgram(i18n.t(ex.textKey), ex.sensors, i18n.t(ex.nameKey));
   }));
   const resetButton = button('rules.reset', 'rules.reset', () => {
     message.hidden = true;
-    replaceProgram(i18n.t(INITIAL_PROGRAM.textKey), INITIAL_PROGRAM.sensors, { message: 'rules.confirm.reset' });
+    // Restablecer borra también "Tu programa" y el cuaderno de casos (D5 y D7).
+    replaceProgram(i18n.t(INITIAL_PROGRAM.textKey), INITIAL_PROGRAM.sensors, { message: 'rules.confirm.reset' }, () => {
+      state.own = null;
+      clearCasebook();
+      sync();
+    });
   });
   // Exportar e Importar no cambian la escena: acción terciaria (sistema-de-diseno-base D5).
   const exportButton = button('rules.export', 'rules.export', () => {
@@ -455,9 +580,164 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     }
   });
 
+  // "Comparar" (acción terciaria, D4): la comparación también se abre sin chocar. Va en el renglón de arriba
+  // de la cabecera, con las otras acciones terciarias: junto a los ejemplos partía su renglón en dos y le
+  // quitaba dos líneas al editor a 1366×768.
+  const compareButton = button('rules.compare.open', 'rules.compare.open', () => openCompare({ focus: true }), 'tool tertiary');
+  compareButton.dataset.keepsFocus = 'true';
   const examples = el('div', { class: 'rules-examples', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.examples' },
-    el('span', { class: 'rules-examples-label', i18n: 'rules.examples' }), exampleButtons);
-  const fileActions = el('div', { class: 'rules-file-actions' }, resetButton, exportButton, importButton, fileInput);
+    el('span', { class: 'rules-examples-label', i18n: 'rules.examples' }), ownButton, exampleButtons);
+
+  // --- Tablero: la comparación con los ejemplos, entre la cabecera y el editor (D4) ---------------------
+  const compareTitleId = 'rules-compare-title';
+  const compareStatus = el('p', { class: 'rules-compare-status', attrs: { role: 'status' } });
+  const compareNoteCircuit = el('p', { class: 'rules-compare-note', i18n: 'rules.compare.note.circuit' });
+  const compareNoteSpeed = el('p', { class: 'rules-compare-note' });
+  const compareBody = el('tbody');
+  const compareTable = el('table', { class: 'rules-compare-table' },
+    // "Superados" es la primera columna de cifras, destacada: es lo que miden las misiones (D4, "Qué columna
+    // manda"). La distancia va después, con el peso del cuerpo.
+    el('thead', {}, el('tr', {}, ...['program', 'passed', 'sensors', 'rules', 'distance', 'result'].map((c) => el('th', {
+      attrs: { scope: 'col' }, class: `col-${c}`, i18n: `rules.compare.col.${c}`,
+    })), el('th', { attrs: { scope: 'col' }, class: 'col-try' }))),
+    compareBody);
+  const compareClose = button('rules.compare.close', 'rules.compare.close', () => closeCompare(), 'tool tertiary');
+  const compareSection = el('section', { class: 'rules-compare', attrs: { tabindex: '-1', 'aria-labelledby': compareTitleId } },
+    el('div', { class: 'rules-compare-head' },
+      el('h3', { class: 'rules-compare-title', i18n: 'rules.compare.title', attrs: { id: compareTitleId } }),
+      el('span', { class: 'rules-compare-caption', i18n: 'rules.compare.caption' }),
+      compareClose),
+    compareNoteCircuit, compareNoteSpeed, compareStatus, compareTable);
+  compareSection.hidden = true;
+  let compareRun = null; // { key, gen, frame } de la corrida en curso
+  let compareKey = null; // clave de la última corrida terminada
+  let compareRows = null;
+
+  /** Programas de la comparación: el que maneja (si no es un ejemplo), los tres ejemplos y "Tu programa". */
+  function compareEntries() {
+    const driving = program.validText;
+    const drivingId = driving === null ? null : programIdOf(driving, { es, en });
+    const entries = [];
+    if (driving !== null && (drivingId === null || drivingId === 'initial')) {
+      entries.push({ id: drivingId ?? 'own', nameKey: drivingId ? 'rules.program.initial.name' : 'rules.own', text: driving, sensors: currentSensors() });
+    }
+    for (const ex of EXAMPLES) entries.push({ id: ex.id, nameKey: ex.nameKey, text: i18n.t(ex.textKey), sensors: { ...ex.sensors } });
+    if (state.own && drivingId !== null) entries.push({ id: 'saved', nameKey: 'rules.own', text: state.own.text, sensors: { ...state.own.sensors } });
+    const same = (a, b) => a.count === b.count && a.range === b.range && a.spread === b.spread;
+    for (const e of entries) e.driving = driving !== null && normalizeText(e.text) === normalizeText(driving) && same(e.sensors, currentSensors());
+    return entries;
+  }
+  const keyOf = (entries) => JSON.stringify([state.seed, state.settings.maxSpeed, state.settings.lanes, state.settings.density,
+    state.settings.irregularity, entries.map((e) => [e.id, e.text, e.sensors, e.driving])]);
+
+  /** Abre la comparación (y la tarjeta del programa, si estaba plegada); con el caso a la vista, lo retiene. */
+  function openCompare({ focus = false } = {}) {
+    holdCase();
+    if (!programCard.open) { programCard.setOpen(true); state.cards.program = true; }
+    state.compareOpen = true;
+    sync();
+    fitEditor();
+    if (focus) compareSection.focus({ preventScroll: false });
+  }
+  function closeCompare() {
+    state.compareOpen = false;
+    stopCompare();
+    sync();
+    fitEditor();
+  }
+  function stopCompare() {
+    if (compareRun?.frame) window.cancelAnimationFrame(compareRun.frame);
+    compareRun = null;
+  }
+  /** Corre la comparación por tramos, uno por cuadro de animación (D4): la escena sigue animándose. */
+  function startCompare(entries, key) {
+    stopCompare();
+    compareRows = null;
+    const gen = compareRuns({ seed: state.seed, settings: state.settings, programs: entries });
+    const runState = { key, gen, entries, frame: 0 };
+    const pump = () => {
+      if (compareRun !== runState) return;
+      try {
+        const r = gen.next();
+        if (r.done) {
+          compareRun = null;
+          compareKey = key;
+          compareRows = r.value.map((row, i) => ({ ...row, entry: entries[i] }));
+          renderCompare();
+        } else {
+          runState.frame = window.requestAnimationFrame(pump);
+        }
+      } catch (err) {
+        compareRun = null;
+        reportError(err);
+      }
+    };
+    compareRun = runState;
+    runState.frame = window.requestAnimationFrame(pump);
+  }
+  /** Rehace la tabla con las cifras de la última corrida. */
+  function renderCompare() {
+    const rows = (compareRows ?? []).map((r) => {
+      const e = r.entry;
+      const name = el('th', { attrs: { scope: 'row' } }, el('span', { i18n: e.nameKey }));
+      if (e.driving) name.append(el('span', { class: 'rules-compare-driving', i18n: 'rules.compare.driving' }));
+      const res = compareResult(r);
+      const result = [res.key, res.params ?? {}];
+      const tryButton = button('rules.compare.try', 'rules.compare.try', () => tryProgram(e.text, e.sensors, i18n.t(e.nameKey)));
+      const tr = el('tr', { attrs: { 'aria-current': e.driving ? 'true' : null } },
+        name,
+        el('td', { class: 'num col-passed', text: r.ok ? String(r.passed) : '–' }),
+        el('td', { class: 'num', text: String(r.sensors.count) }),
+        el('td', { class: 'num', text: r.ok ? String(r.rules) : '–' }),
+        el('td', { class: 'num col-distance', text: r.ok ? i18n.t('drive.value.meters', { value: Math.floor(r.distance) }) : '–' }),
+        el('td', { class: 'rules-compare-result', attrs: { 'data-crashed': r.ok ? String(r.crashed) : null, 'data-result': res.key.split('.').pop() }, i18n: result[0], params: result[1] }),
+        el('td', {}, tryButton));
+      return tr;
+    });
+    compareBody.replaceChildren(...rows);
+    i18n.translateTree(compareBody);
+  }
+  /** Estado de la comparación en cada sincronización: abierta o no, calculando o lista, y sus avisos. */
+  function syncCompare() {
+    compareSection.hidden = !state.compareOpen;
+    compareButton.setAttribute('aria-expanded', String(state.compareOpen));
+    if (!state.compareOpen) return;
+    const entries = compareEntries();
+    const key = keyOf(entries);
+    if (key !== compareKey && compareRun?.key !== key) startCompare(entries, key);
+    const computing = compareRun !== null;
+    compareSection.dataset.state = computing ? 'computing' : 'done';
+    compareStatus.hidden = !computing;
+    if (computing) setText(compareStatus, 'rules.compare.computing');
+    compareTable.hidden = computing;
+    const notes = compareNotes(state.settings, onCircuit(state.settings));
+    compareNoteCircuit.hidden = !notes.circuit;
+    compareNoteSpeed.hidden = !notes.speed;
+    if (notes.speed) setText(compareNoteSpeed, 'rules.compare.note.speed', { value: state.settings.maxSpeed });
+  }
+
+  // --- Escenario: la regla para el caso (D6) ---------------------------------------------------------
+  /**
+   * Agrega al final del programa la condición con los sensores que más leían al chocar, sin acción, por el
+   * camino de inserción del editor (se deshace con Ctrl+Z), y deja el cursor al final, en el editor.
+   */
+  function writeCaseRule() {
+    const info = state.caseInfo;
+    if (!info) return;
+    holdCase();
+    if (!programCard.open) { programCard.setOpen(true); state.cards.program = true; }
+    const input = editor.input;
+    const end = input.value.length;
+    input.focus({ preventScroll: true });
+    input.setSelectionRange(end, end);
+    const lead = end === 0 || input.value.endsWith('\n') ? '' : '\n';
+    editor.insert(`${lead}${caseCondition(info.sensors, i18n.language)}`);
+    const at = input.value.length;
+    input.setSelectionRange(at, at);
+    // Lleva el final del programa a la vista.
+    input.scrollTop = input.scrollHeight;
+  }
+  const fileActions = el('div', { class: 'rules-file-actions' }, compareButton, resetButton, exportButton, importButton, fileInput);
 
   // --- Tablero: misiones -------------------------------------------------------------
   // Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2).
@@ -494,6 +774,8 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
       afterProgramChange(program.setSensors(state.settings.sensorCount));
     }
     if (['sensorCount', 'sensorRange', 'sensorSpread'].some((k) => state.settings[k] !== before[k])) remember();
+    // Cambiar de pista borra el cuaderno de casos (D7): los casos de otra pista no se comparan.
+    if (state.settings.track !== before.track) clearCasebook();
     if (needsRestart(before, state.settings)) {
       restartAttempt({ rebuild: true, countAttempt });
       return;
@@ -524,6 +806,8 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   const programTools = el('div', { class: 'rules-program-tools' }, scenario.group('sensors'), examples);
   programCard.node.insertBefore(programTools, programCard.body);
   programCard.node.insertBefore(el('div', { class: 'rules-program-notes' }, confirm.node, message), programCard.body);
+  // La comparación va dentro del cuerpo plegable, antes del editor (D4).
+  editor.node.before(compareSection);
 
   // Tablero, de arriba abajo (D3): la tarjeta de consigna, el texto de guía, el programa y las misiones.
   const guideMore = createGuideMore(intro);
@@ -548,27 +832,15 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     if (node.style.height !== h) node.style.height = h;
   }
   const fitObserver = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver(() => fitEditor()) : null;
-  for (const n of [board, card.node, guideMore, programTop, programTools, programCard.node.querySelector('.rules-program-notes'), status, errorList]) {
+  for (const n of [board, card.node, guideMore, programTop, programTools, programCard.node.querySelector('.rules-program-notes'), compareSection, status, errorList]) {
     if (n) fitObserver?.observe(n);
   }
 
   // --- Mensajes sobre el escenario ----------------------------------------------------
   const pauseBadge = el('div', { class: 'stage-badge pause-badge', i18n: 'drive.paused', attrs: { role: 'status' } });
   const machineBadge = el('div', { class: 'stage-badge machine-badge', i18n: 'drive.machine.badge' });
-  const crashBadgeText = el('span', {});
-  const crashBadge = el('div', { class: 'stage-badge crash-badge', attrs: { role: 'status' } },
-    crashBadgeText, el('span', { class: 'crash-badge-retry', i18n: 'rules.crash.retrying' }));
-  const crashBody = el('p', {});
-  const crashHowto = el('p', { i18n: 'rules.crash.howto' });
-  const crashRestart = button('rules.restart', 'rules.restart', restart);
-  const crashBox = el('div', { class: 'crash-box', attrs: { role: 'alert', 'data-state': 'crash' } },
-    el('h2', { i18n: 'rules.crash.title' }),
-    crashBody,
-    crashHowto,
-    crashRestart);
-  const crashLayer = el('div', { class: 'crash-layer' }, crashBox);
-  view.corner.append(el('div', { class: 'stage-badges' }, pauseBadge, machineBadge, crashBadge));
-  scene.append(crashLayer);
+  // El choque ya no lleva cartel ni aviso sobre la escena: se ve en la tarjeta del caso (D1).
+  view.corner.append(el('div', { class: 'stage-badges' }, pauseBadge, machineBadge));
 
   // --- Sincronizar con el estado ------------------------------------------------------
   const meters = (v) => ({ value: Math.floor(v) });
@@ -595,12 +867,18 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     card.setConsigna('consigna.rules');
     card.setMission(current && !current.allDone ? { ...describeMission(current), reveal: missionReveal.has(current.id) } : current);
 
-    perception.update(world.perception);
-    action.update(controller.controls);
-    // Líneas que se cumplen: solo si el texto a la vista es el programa que maneja (y ya se analizó).
+    // Con un cuadro de la repetición a la vista, la columna y el editor muestran lo de ese cuadro (D3).
+    const info = state.caseInfo;
+    const frame = replayFrame();
+    perception.update(frame ? { sensors: Array.from(frame.sensors), speed: frame.speed } : world.perception);
+    action.update(frame ? frame.controls : controller.controls);
+    // Líneas que se cumplen: solo si el texto a la vista es el programa que maneja (y ya se analizó). Con
+    // el caso a la vista, las del instante del choque llevan el estado "choque" (D1); en la repetición,
+    // las de ese cuadro, como "se cumple".
     const running = program.showsRunning && !dirty;
     editor.setMarks({
-      active: running ? controller.activeLines : [],
+      active: frame ? frame.lines : info ? [] : running ? controller.activeLines : [],
+      crash: info && !frame ? info.lines : [],
       errors: dirty ? [] : program.errors.map((e) => e.line),
     });
 
@@ -617,31 +895,126 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
       t: i18n.t, track: state.settings.track, lanes: state.settings.lanes, paused: world.paused, crashed,
       meters: session.distance, machineView: state.machineView && !crashed,
     }));
-    const crashKey = world.crashCause === 'vehicle' ? 'rules.crash.vehicle' : circuit ? 'rules.crash.edge.circuit' : 'rules.crash.edge';
-    setText(crashHowto, circuit ? 'rules.crash.howto.circuit' : 'rules.crash.howto');
-    crashBadge.hidden = !(crashed && state.autoRetry);
-    crashLayer.hidden = !(crashed && !state.autoRetry);
-    // Acción principal (jerarquia-de-botones D3): la marcha, o Reiniciar del aviso con el aviso a la vista.
-    applyMainAction({ run: pauseButton, restart: crashRestart }, mainAction('rules', { crashed: !crashLayer.hidden }));
-    if (crashed) {
-      setText(state.autoRetry ? crashBadgeText : crashBody, crashKey, meters(session.distance));
-    }
+    syncCase(world);
+    syncCasebook();
+    syncCompare();
+    // "Tu programa": a la vista si hay uno guardado; elegido si es el que está en el editor (D5).
+    ownButton.hidden = !state.own;
+    ownButton.setAttribute('aria-pressed', String(ownInEditor()));
+    // Acción principal (jerarquia-visual): la marcha, o "Compará con los ejemplos" con el caso a la vista.
+    applyMainAction({ run: pauseButton, compare: caseCompare }, mainAction('rules', { crashed: Boolean(info) }));
     scenario.sync(state.settings);
+  }
+
+  /** Cuadro de la repetición a la vista, o null si se ve el presente (o el instante del choque). */
+  function replayFrame() {
+    if (!state.caseInfo || state.replayOffset >= 0) return null;
+    return state.replay.at(state.replayOffset);
+  }
+
+  /** La tarjeta del caso en el lugar de la marcha, y el deslizador de la repetición (D1, D2 y D3). */
+  function syncCase(world) {
+    const info = state.caseInfo;
+    runBar.hidden = Boolean(info);
+    caseCard.hidden = !info;
+    const frames = state.replay.length;
+    replay.hidden = !info || frames < 2;
+    if (!info) return;
+    const titleKey = info.cause === 'vehicle' ? 'rules.case.title.vehicle' : info.circuit ? 'rules.case.title.edge.circuit' : 'rules.case.title.edge';
+    setText(caseTitle, titleKey, meters(info.distance));
+    if (info.lines.length === 0) setText(caseLines, 'rules.case.lines.none');
+    else setText(caseLines, info.lines.length === 1 ? 'rules.case.lines.one' : 'rules.case.lines.many', { lines: listOf(info.lines) });
+    // La cuenta regresiva (D2): en tiempo de simulación, así la pausa la detiene.
+    if (!state.autoRetry) setText(caseCount, 'rules.case.manual');
+    else if (session.held) setText(caseCount, 'rules.case.held');
+    else if (world.paused) setText(caseCount, 'rules.case.paused');
+    else setText(caseCount, 'rules.case.countdown', { value: Math.max(1, Math.ceil(session.retryIn / 60)) });
+    // El deslizador cubre lo grabado: 3 s o lo que duró el intento (spec "Intento corto").
+    const min = String(-(frames - 1));
+    if (replayInput.min !== min) replayInput.min = min;
+    if (Number(replayInput.value) !== state.replayOffset) replayInput.value = String(state.replayOffset);
+    const seconds = formatFixed(-state.replayOffset / 60, 1, i18n.language);
+    const at = state.replayOffset === 0 ? i18n.t('rules.replay.now') : i18n.t('rules.replay.at', { value: seconds });
+    if (replayValue.textContent !== at) replayValue.textContent = at;
+    if (replayInput.getAttribute('aria-valuetext') !== at) replayInput.setAttribute('aria-valuetext', at);
+  }
+  /** "3, 4 y 5" en el idioma activo. */
+  function listOf(numbers) {
+    const items = numbers.map(String);
+    try { return new Intl.ListFormat(i18n.language, { type: 'conjunction' }).format(items); } catch { return items.join(', '); }
+  }
+
+  /** El cuaderno de casos (D7): la cuenta y un punto por choque sobre la distancia. Se rehace si cambió. */
+  let casebookKey = '';
+  function syncCasebook() {
+    const { cases, best } = state.casebook;
+    const key = JSON.stringify([cases.length, Math.floor(best), program.rules, i18n.language, cases.length ? cases[cases.length - 1].distance : 0]);
+    if (key === casebookKey) return;
+    casebookKey = key;
+    casebook.dataset.empty = String(cases.length === 0);
+    if (cases.length === 0) {
+      setText(casebookSummary, 'rules.casebook.empty');
+      casebookAxis.replaceChildren();
+      return;
+    }
+    const n = (k, value) => i18n.t(value === 1 ? `${k}.one` : k, { value });
+    // Texto armado de tres partes: sin data-i18n, para que la traducción general no lo pise (se rehace al
+    // cambiar de idioma, porque el idioma está en la clave).
+    casebookSummary.removeAttribute('data-i18n');
+    casebookSummary.removeAttribute('data-i18n-params');
+    casebookSummary.textContent = [n('rules.casebook.cases', cases.length), n('rules.casebook.rules', program.rules),
+      i18n.t('rules.casebook.best', { value: Math.floor(best) })].join(' · ');
+    const scale = Math.max(best, 1);
+    casebookAxis.replaceChildren(...cases.map((c) => {
+      const kind = c.cause === 'vehicle' ? 'vehicle' : 'edge';
+      const value = Math.floor(c.distance);
+      const dot = el('span', {
+        class: 'casebook-dot', help: `rules.casebook.dot.${kind}`, text: '✸',
+        attrs: { 'data-help-params': JSON.stringify({ value }), 'aria-label': i18n.t(`rules.casebook.dot.${kind}`, { value }), role: 'img' },
+      });
+      dot.style.left = `${(100 * c.distance) / scale}%`;
+      return dot;
+    }));
   }
 
   // --- Bucle --------------------------------------------------------------------------
   const loop = createLoop({
     step: () => {
       const { world } = state;
+      const before = world.steps;
       world.step();
+      if (world.steps !== before) {
+        // Graba el cuadro que se acaba de calcular (D3); si es el del choque, el caso queda a la vista.
+        state.replay.push(frameOf(world, controller));
+        if (world.crashed && !state.caseInfo) onCrash();
+      }
       if (session.step(world, { seed: state.seed, autoRetry: state.autoRetry }) === 'retry') restartAttempt();
     },
     render: () => {
-      view.render(state.world, viewOptions(state, state.world));
+      // En la repetición se dibuja el cuadro guardado en lugar del mundo (D3), con el tráfico de ese instante.
+      const frame = replayFrame();
+      const shown = frame ? frameWorld(frame) : state.world;
+      view.render(shown, viewOptions(state, shown));
       sync();
     },
     onError: reportError,
   });
+
+  /**
+   * Un cuadro de la repetición con la forma de un mundo para el dibujo: la pose y los rayos guardados, y el
+   * tráfico recalculado para ese instante (es una función pura del tiempo).
+   */
+  function frameWorld(frame) {
+    const { world } = state;
+    return {
+      track: world.track, trackId: world.trackId, seed: world.seed,
+      car: { ...world.car, position: { x: frame.car.x, y: frame.car.y }, angle: frame.car.angle, speed: frame.car.speed, crashed: frame.car.crashed },
+      rays: raysOf(frame),
+      perception: { sensors: Array.from(frame.sensors), speed: frame.speed },
+      crashed: frame.car.crashed,
+      vehiclesIn: (from, to) => world.traffic.vehicles(frame.time, from, to),
+    };
+  }
 
   // --- Atajos y foco --------------------------------------------------------------------
   let handledSpace = false;
@@ -668,7 +1041,7 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   // Tras un clic con el mouse en un control, el foco vuelve al escenario; la paleta lo deja en el editor.
   function onClick(e) {
     if (e.detail === 0 || !e.target?.closest) return;
-    if (e.target.closest('.rules-palette, .code-editor, .sensor-row')) return;
+    if (e.target.closest('.rules-palette, .code-editor, .sensor-row, [data-keeps-focus]')) return;
     if (returnsFocusToStage(e.target)) focusStage();
   }
   window.addEventListener('keydown', onKeyDown);
@@ -679,6 +1052,7 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   const offLanguage = i18n.onChange(() => {
     perception.relabel();
     renderPalette();
+    renderCompare();
     sync();
   });
 
@@ -703,6 +1077,7 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
         commit(); // lo escrito en el último cuarto de segundo también se recuerda
       }
       loop.dispose();
+      stopCompare();
       fitObserver?.disconnect();
       offLanguage();
       confirm.dispose();

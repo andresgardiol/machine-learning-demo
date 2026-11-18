@@ -127,6 +127,44 @@ El 18 de noviembre, `reglas-mesa-de-trabajo` hecho y archivado el 18 de noviembr
 
   Sigue `reglas-el-choque-ensena`.
 
+El 18 de noviembre, `reglas-el-choque-ensena`, hecho y archivado el mismo día.
+  El antes y el después están en `borradores/reglas-el-choque-ensena/comparacion.md`
+  (local).
+  Cambio 2 de Reglas a mano. Al chocar, la columna queda congelada, el editor
+  marca con el estado "choque" (rayado y ✸) las líneas que se cumplían, y una
+  tarjeta del caso ocupa el lugar de la marcha. La tarjeta tiene la cuenta
+  regresiva de 5 s, "Compará con los ejemplos" (acción principal), "Escribir
+  una regla para este caso" y Reiniciar. Además: la repetición de 3 s grabada
+  mientras el auto anda; la comparación en el mismo tráfico, por tramos, en la
+  tarjeta del programa; los ejemplos sin confirmación, con "Tu programa"; y el
+  cuaderno de casos (con la guía).
+
+  Medido sin ventana (`capturar.mjs` y sondas): a 1366×768 la escena mide
+  479 px con el caso y el cuaderno (antes 547; el mínimo era 450) y el editor
+  sigue en 15 líneas. Fluidez mientras se calcula la comparación
+  (`medir-fluidez.mjs`, Chrome sin ventana en tiempo real): 60 cuadros por
+  segundo, ningún cuadro de más de 16,8 ms, 350 ms en total. Comparación con
+  la semilla 2: inicial 82 m (1 regla), 3 sensores 1224 m sin chocar, 7
+  sensores 1041 m (5 reglas), 20 sensores 290 m (9 reglas).
+  `auditTooltips()`, `auditSistema()` y `auditHierarchy()`: 0 problemas, en
+  español y en inglés. `npm test`: 0 fallas. Lo que quedó:
+  - "Comparar" quedó en el renglón de arriba de la cabecera y no junto a los
+    ejemplos (D4): ahí partía el renglón y le quitaba 2 líneas al editor.
+  - Con la comparación abierta a 1366×768 el editor baja a su mínimo y el
+    tablero se desplaza.
+  - Con el caso a la vista no se ven Reintentar solo ni los interruptores de
+    vista (la tarjeta reemplaza a la marcha, D1).
+  - La regla para el caso sin sensores por encima de 0,3 puede escribir
+    `sensor1 > 0,00`.
+
+  Lo que no se pudo medir: con el navegador a la vista (el panel estaba
+  oculto), así que la fluidez es de Chrome sin ventana; un choque antes de
+  los 3 s; "Ninguna regla se cumplía" en la pestaña; Ctrl+Z con el teclado
+  real; borrar el cuaderno al cambiar de pista desde la barra; lectores de
+  pantalla.
+
+  Sigue `reglas-como-fichas`.
+
 ## En curso
 
 Nada.
