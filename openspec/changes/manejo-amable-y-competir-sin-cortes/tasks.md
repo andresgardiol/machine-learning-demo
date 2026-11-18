@@ -111,7 +111,15 @@
   *Comprobado antes de tocar: los botones 👁 y ✕ de cada competidor ya tenían nombre accesible con el nombre del competidor («Sensores de 7 sensores: ocultos», «Quitar a 7 sensores de la carrera») y tooltip en los dos idiomas (`compete.sensorsOf`, `compete.remove`). No hubo que cambiarlos. El nombre del competidor en la lista suma su `title`, por si se corta.*
 
   *Medido (guion, `10-competir-tooltip-ojo`): con el mouse del protocolo sobre el 👁 aparece «Muestra u oculta en el escenario los sensores de este competidor, se lo siga o no» ("Sensores de un competidor"). `auditTooltips()` en 0 en todas las vistas de Competir, antes y después ("Auditoría"). "Lector de pantalla": el nombre accesible del ✕ es «Quitar a 7 sensores de la carrera» (dice "Quitar a 7 sensores" y agrega de dónde); sin probar con un lector de pantalla.*
-- [ ] 4.3 Competidores en un renglón y el panel sin desplazarse a 1366×768 con tres; con seis, solo la lista. Si con tres el panel se sigue desplazando después de achicar los espacios, **parar y consultar**. Verificación: escenarios de *Panel a la vista en 1366×768* y los de *Pestaña a la vista sin desplazarse* a 1440×900, que siguen igual.
+- [x] 4.3 Competidores en un renglón y el panel sin desplazarse a 1366×768 con tres; con seis, solo la lista. Si con tres el panel se sigue desplazando después de achicar los espacios, **parar y consultar**. Verificación: escenarios de *Panel a la vista en 1366×768* y los de *Pestaña a la vista sin desplazarse* a 1440×900, que siguen igual.
+
+  *Hecho: cada competidor de la lista va en un renglón (el nombre y el tipo en la misma línea, el tipo en gris; el nombre con puntos suspensivos y su `title`), de 30 px en vez de 37. El panel de Competir es una columna flexible y la lista de competidores se desplaza por dentro cuando no entra. El espacio entre bloques bajó de 8 a 4 px.*
+
+  *Parada: con eso, a 1366×768 y tres competidores, el panel todavía se desplazaba 23 px (16 en inglés). Medido: el panel muestra 647 px y el contenido medía 670. Consulté a la sesión de diseño con las medidas de cada bloque.*
+
+  *Decisión de la sesión de diseño: el título «Misiones» de Competir queda solo para el lector de pantalla (`sr-only`), como en Inspeccionar y en el Laboratorio. Si quedaba algún píxel, se sumaba la penalización en un renglón: no hizo falta.*
+
+  *Medido (guion de verificación, `v4.3-misiones-*`): a 1440×900 y a 1366×768, en español y en inglés, con tres y con seis competidores, el panel no se desplaza (0 px en los ocho casos) y las tres misiones se ven enteras dentro del panel ("Por defecto", y *Pestaña a la vista sin desplazarse* a 1440×900). Con seis a 1366×768, solo la lista se desplaza por dentro (89 px) ("Seis competidores"). Cada competidor mide 30 px con el panel en 360 ("Un renglón por competidor"). Antes: 83 px a 1366 con tres, y con seis 63 px a 1440 y 195 a 1366.*
 
 ## 5. Cierre
 

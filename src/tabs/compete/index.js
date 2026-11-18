@@ -430,7 +430,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     return { id: m.id, row, status, fill };
   });
   const missions = el('section', { class: 'guide compete-missions' },
-    el('h2', { class: 'panel-heading', i18n: 'compete.missions.title' }),
+    // El título, solo para el lector de pantalla, como en Inspeccionar y el Laboratorio (manejo-amable D4, consulta 4.3).
+    el('h2', { class: 'sr-only', i18n: 'compete.missions.title' }),
     el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row)));
   const clearButton = button('compete.clear', 'compete.clear', () => { results.clear(); renderTable(); }, 'tool compete-clear');
 
