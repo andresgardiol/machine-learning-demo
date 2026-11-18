@@ -123,22 +123,50 @@
 
 ## 5. Cierre
 
-- [ ] 5.1 `npm test` completo, y las tres auditorías en todas las vistas del guion, en los dos idiomas. Verificación: los resultados anotados; lo que ya fallaba se anota sin arreglarlo.
-- [ ] 5.2 Fluidez de El problema con la cinta y de Competir con seis competidores en el circuito de curvas, en Chrome sin ventana, antes y después. Si alguno baja de la medida sustituta de 55 cuadros por segundo, **parar y consultar**. Verificación: tabla con las medidas.
-- [ ] 5.3 El después con el mismo guion en `borradores/manejo-amable-y-competir-sin-cortes/despues/`, con vistas nuevas: la cinta después de 5 s de manejo, la cinta congelada en un choque, el cartel de primer manejo y el tooltip del ícono de sensores. Escribir `comparacion.md` con el antes y el después lado a lado y las medidas. Verificación: la comparación muestra cada punto de *What Changes*.
-- [ ] 5.4 Escribir `borradores/cuatro-pestanas-antes-y-despues.md`, la comparación de toda la revisión en el orden en que se hizo. Lleva:
+- [x] 5.1 `npm test` completo, y las tres auditorías en todas las vistas del guion, en los dos idiomas. Verificación: los resultados anotados; lo que ya fallaba se anota sin arreglarlo.
+
+  *Medido: `npm test`, 1505 pruebas, todas pasan. `auditSistema()`, `auditHierarchy()` y `auditTooltips()` en 0 en las 23 vistas del después (y las 20 del antes), a 1440×900, 1366×768 y 1236×863, en español y, en las vistas 08, 09 y 11, en inglés. No había nada que ya fallara.*
+- [x] 5.2 Fluidez de El problema con la cinta y de Competir con seis competidores en el circuito de curvas, en Chrome sin ventana, antes y después. Si alguno baja de la medida sustituta de 55 cuadros por segundo, **parar y consultar**. Verificación: tabla con las medidas.
+
+  *Hecho: `borradores/manejo-amable-y-competir-sin-cortes/medir-fluidez.mjs`, en tiempo real: El problema manejando (flecha arriba y toques de izquierda de 100 ms cada medio segundo) con la cinta, 3 s; después, Competir con seis competidores en Curvas, en carrera, 3 s. El antes, sobre `2f7ffa9` en un árbol de trabajo aparte.*
+
+  *Medido (3 corridas cada uno, 1440×900):*
+
+  | | Antes | Después |
+  |---|---|---|
+  | El problema manejando | 53,4 / 60 / 59,7 fps (la primera, con un cuadro de 250 ms al arrancar; el auto se sale de la calle con los toques) | 56 / 60 / 60 fps (la primera, con un cuadro de 183 ms al arrancar; el auto sigue en la calle; cinta de 601×159 con 175–182 cuadros) |
+  | Competir, 6 en Curvas | 60 / 60 / 60 fps | 60 / 60 / 60 fps |
+
+  *Ninguna corrida del después baja de 55: no hubo parada. La primera corrida de cada lado arranca en frío, antes y después.*
+- [x] 5.3 El después con el mismo guion en `borradores/manejo-amable-y-competir-sin-cortes/despues/`, con vistas nuevas: la cinta después de 5 s de manejo, la cinta congelada en un choque, el cartel de primer manejo y el tooltip del ícono de sensores. Escribir `comparacion.md` con el antes y el después lado a lado y las medidas. Verificación: la comparación muestra cada punto de *What Changes*.
+
+  *Hecho: `borradores/manejo-amable-y-competir-sin-cortes/despues/` con las vistas del antes y las nuevas: la cinta después de 5 s de manejo (12, a 1440 y 1366), la cinta congelada en un choque (03) y el cartel de primer manejo (01 y 08), el tooltip del volante (13) y el del ícono de los sensores (10, que ya estaba en el antes). Se sumó a los dos lados la vista 11 (seis competidores en inglés). `comparacion.md` pone el antes y el después lado a lado, punto por punto de *What Changes*, con las medidas; todos sus enlaces a imágenes existen (comprobado con un guion de shell).*
+- [x] 5.4 Escribir `borradores/cuatro-pestanas-antes-y-despues.md`, la comparación de toda la revisión en el orden en que se hizo. Lleva:
   - un índice;
   - "De punta a punta" de cada pestaña: el antes del primer cambio que la tocó y el después del último;
   - por cada punto de *What Changes* de `red-al-centro` y de este cambio, en orden: qué cambió en una o dos oraciones, la tabla de medidas antes y después, y las capturas lado a lado, con enlaces relativos a `red-al-centro/` y a `manejo-amable-y-competir-sin-cortes/`.
 
   Usa el formato de `borradores/comparaciones-entrenar.md`. Cada afirmación lleva su rótulo: medido (con cómo), observado o sin probar. Verificación: todos los enlaces a imágenes existen (comprobarlo con un script).
-- [ ] 5.5 Verificación en el navegador contra el filtro de entrada:
+
+  *Hecho: `borradores/cuatro-pestanas-antes-y-despues.md`, con el formato de `comparaciones-entrenar.md`: índice; "De punta a punta" de El problema, Competir, Inspeccionar y Laboratorio (el antes del único cambio que tocó cada una y su después); y los ocho puntos de `red-al-centro` y los cinco de este cambio, en orden, cada uno con una o dos oraciones, su tabla de medidas con rótulo y las capturas lado a lado, con enlaces relativos a `red-al-centro/` y `manejo-amable-y-competir-sin-cortes/`.*
+
+  *Medido: los 45 enlaces a imágenes existen (comprobado con un guion de shell).*
+
+- [x] 5.5 Verificación en el navegador contra el filtro de entrada:
   - un toque corto de flecha no saca al auto de la calle a 20 m/s;
   - la cinta muestra lo que se hizo y se congela al chocar;
   - el cartel se va con la primera tecla y no se ve con la guía apagada;
   - Competir se lee entero a 1366×768.
 
   Anotar lo que no se pudo probar. La sensación del volante la prueba el dueño a mano.
+
+  *Medido y observado en Chrome sin ventana (guion de verificación):*
+  - *Un toque de izquierda de 100 ms a 20 m/s, en la calle sin tráfico: después, el auto gira 0,03 rad, se corre 0,91 m en 1,5 s y sigue andando; sobre `2f7ffa9`, el mismo toque gira 0,21 rad y lo saca de la calle (`v5.5-toque-corto`).*
+  - *La cinta muestra avanzar e izquierda en los cuadros en que se accionaron y se congela al chocar (`v3.2-cinta`).*
+  - *El cartel se va con la primera tecla y no se ve con la guía apagada (`v3.3-cartel`).*
+  - *Competir se lee entero a 1366×768: el marcador y la tabla sin cortes, y el panel sin desplazarse con tres ni con seis, en los dos idiomas (`v4.3-misiones-*`).*
+
+  *Sin probar: la sensación del volante (la prueba el dueño a mano), los botones de Competir con un lector de pantalla real y que el auto arranque en el mismo cuadro en que se va el cartel. No se midió si la imitación aprende.*
 
 ## Workflow follow-up
 
