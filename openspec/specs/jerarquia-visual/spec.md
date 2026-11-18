@@ -84,7 +84,7 @@ La acción principal de cada pestaña SHALL ser su control de marcha, el mismo e
 | Entrenar | Pausar o seguir, en la barra de abajo de la escena |
 | Competir | Largar, pausar o reanudar |
 | Inspeccionar | Reproducir o pausar |
-| Laboratorio | Reproducir o pausar |
+| Laboratorio | Reproducir o pausar, salvo en Compuertas mientras se resuelve a mano (ver *A mano primero en Compuertas*) |
 
 Que un control sea la acción principal MUST NOT cambiar lo que hace, su texto ni su atajo de teclado.
 
@@ -93,8 +93,12 @@ Que un control sea la acción principal MUST NOT cambiar lo que hace, su texto n
 - **THEN** la acción principal es el botón de pausar, y "Reiniciar" y "Tráfico nuevo" se ven como secundarias
 
 #### Scenario: Laboratorio
-- **WHEN** la persona entra al Laboratorio en Compuertas, Puntos o Tu manejo
+- **WHEN** la persona entra al Laboratorio en Puntos o en Tu manejo, o en Compuertas después de resolverla a mano
 - **THEN** la acción principal es el botón de reproducir, y "Agregar una capa oculta" y "Guardar como cerebro" se ven como secundarias
+
+#### Scenario: Compuertas sin resolver
+- **WHEN** la persona entra al Laboratorio en Compuertas y todavía no resolvió la compuerta a mano
+- **THEN** no hay ninguna acción principal a la vista y el botón de reproducir se ve como secundaria
 
 #### Scenario: Mismo comportamiento
 - **WHEN** la persona usa cualquier botón que cambió de estilo, con el mouse o con su atajo
@@ -107,7 +111,7 @@ Que un control sea la acción principal MUST NOT cambiar lo que hace, su texto n
 ### Requirement: Estados que cambian la acción principal
 Mientras dura su estado, la acción principal SHALL ser otra:
 
-- con un choque a la vista en El problema, Reiniciar; en Reglas a mano, "Compará con los ejemplos";
+- con un choque a la vista en El problema, Reiniciar; en Reglas a mano, "Compará con los ejemplos"; en Inspeccionar, "Reintentar desde acá";
 - en Entrenar, con la selección manual esperando una elección, Elegir al líder;
 - en Competir, con la carrera terminada, Otra carrera.
 
@@ -132,6 +136,10 @@ Al terminar ese estado, la marcha SHALL volver a ser la acción principal.
 #### Scenario: Choque en Reglas a mano
 - **WHEN** en Reglas a mano el auto choca, con el reintento automático encendido o apagado
 - **THEN** "Compará con los ejemplos" es la única acción principal, Reiniciar y "Escribir una regla para este caso" se ven como secundarias, y al reiniciar la marcha vuelve a ser la acción principal
+
+#### Scenario: Choque en Inspeccionar
+- **WHEN** en Inspeccionar el auto choca
+- **THEN** "Reintentar desde acá" es la única acción principal, "Reiniciar", "Elegir esta neurona" y el botón de reproducir se ven como secundarias, y al reiniciar o reintentar el botón de reproducir vuelve a ser la acción principal
 
 ### Requirement: Guardar no compite con la marcha
 En Entrenar la marcha SHALL seguir siendo la acción principal en las tres vistas del panel, porque queda siempre a la vista debajo de la escena. "Guardar como nuevo", en la vista de cerebros, "Guardar campeón", en la vista de entrenamiento, y "Agregar una capa oculta" y "Guardar como cerebro", en el Laboratorio, SHALL verse como acciones secundarias.

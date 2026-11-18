@@ -284,24 +284,29 @@ El 18 de noviembre, `entrenar-mutacion-a-la-vista` (cambio 3 y último de la
   la población en la escena y el "Vos elegís" guiado (los 4 mejores en
   miniatura al fin de la generación).
 
+El 18 de noviembre de 2026, la revisión de diseño de las cuatro pestañas que
+faltaban, en dos cambios archivados: `red-al-centro` (Inspeccionar y
+Laboratorio: el mundo a la izquierda y la red al centro, la barra de la red en
+tres grupos, la guía que no se va, el choque que enseña con "Reintentar desde
+acá", "Atrás" entre cuadros, tres experimentos y "a mano primero" en
+Compuertas) y `manejo-amable-y-competir-sin-cortes` (volante suave del
+teclado, la cinta del manejo, el cartel de primer manejo y Competir sin
+cortes). Antes y después en `borradores/cuatro-pestanas-antes-y-despues.md`.
+Lo que quedó:
+- Inspeccionar a 1366×768 sin nada elegido: el panel se desplaza 67 px,
+  porque la leyenda pasó al panel (medido).
+- La cinta del manejo a 1366×768 entra justo en 80 px, con filas de sensores
+  de unos 4 px (observado).
+- El tooltip de una pastilla de Compuertas puede tapar la del sesgo mientras
+  la primera tiene el foco (observado).
+- Sin probar: la sensación del volante suave (0,3 s, `STEER_RAMP_STEPS`); un
+  choque sin capas ocultas o antes de 3 s en el navegador; los botones de
+  Competir con un lector de pantalla real; la imitación del Laboratorio con
+  el volante suave.
+
 ## En curso
 
-Revisión de diseño de las cuatro pestañas que faltaban (18 de noviembre de
-2026), en dos cambios, uno tras otro, sobre la rama `feat/cuatro-pestanas`:
-
-1. `red-al-centro` (L): Inspeccionar y Laboratorio con el mundo a la
-   izquierda y la red al centro; la barra de la red en tres grupos y los
-   cambios de prueba solo con cambios; la guía que no desaparece; el choque
-   que enseña (caso, repetición de 3 s, la neurona que decidió y "Reintentar
-   desde acá"); "Atrás" entre cuadros; tres experimentos a la vista y "a mano
-   primero" en Compuertas. Absorbe el pedido de zoom en la escena chica.
-2. `manejo-amable-y-competir-sin-cortes` (M): volante suave en el teclado
-   (sin tocar la física ni el contrato), la cinta del manejo en el centro de
-   El problema, el cartel de primer manejo y los cortes de Competir.
-
-Al final, `borradores/cuatro-pestanas-antes-y-despues.md` con todo el antes y
-el después en orden. Las decisiones, con sus opciones, están en el
-`design.md` de cada cambio; las eligió Claude y el dueño puede revertirlas.
+Nada.
 
 ## Para probar a mano (dueño)
 

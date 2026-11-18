@@ -32,27 +32,23 @@ nuevo. El auto SHALL manejar en una pista donde ese cerebro entrenó.
 - **THEN** ven al auto hacer lo mismo
 
 ### Requirement: La red en el centro
-La pestaña SHALL mostrar la red en la zona grande de la pantalla; la escena
-del auto, chica, en el tablero, con la decisión de la red debajo; y en el
-panel, lo que se sabe y se puede cambiar de la neurona elegida. Las zonas
-conservan los divisores para cambiarles el ancho. En una ventana angosta la
-red MUST ceder ancho antes de que el tablero deje de leerse.
+La pestaña SHALL mostrar la escena del auto en la zona izquierda, con la decisión de la red debajo; la red en la zona central, que es la más ancha; y en el panel, lo que se sabe y se puede cambiar de la neurona elegida. Las zonas conservan los divisores para cambiarles el ancho. En una ventana angosta la zona izquierda MUST ceder ancho primero, y la red después, antes de que el panel deje de leerse.
 
 #### Scenario: Pantalla de 1440×900
 - **WHEN** se abre la pestaña con la ventana en 1440×900
-- **THEN** la red ocupa la zona más grande, el tablero muestra la escena y la decisión, y el panel muestra el cerebro, la neurona elegida y las misiones, sin desplazar ninguna zona
+- **THEN** la escena ocupa el alto de la zona izquierda con la decisión debajo, la red ocupa la zona central, y el panel muestra el cerebro, la neurona elegida y las misiones, sin desplazar ninguna zona
 
 #### Scenario: Anchos por defecto
 - **WHEN** se abre la pestaña por primera vez con la ventana en 1440 píxeles de ancho
-- **THEN** el tablero y el panel miden 360 píxeles cada uno y la red ocupa todo lo demás
+- **THEN** la zona izquierda mide 400 píxeles, el panel 360 y la red ocupa todo lo demás
 
 #### Scenario: Agrandar la red
-- **WHEN** la persona mueve el divisor para agrandar la zona de la red
-- **THEN** la red crece y la escena conserva su proporción
+- **WHEN** la persona mueve un divisor para agrandar la zona de la red
+- **THEN** la red crece y la escena conserva su encuadre
 
 #### Scenario: La red no se achica de más
-- **WHEN** la persona mueve el divisor para achicar la zona de la red
-- **THEN** la red no baja de 600 píxeles de ancho mientras la ventana deje 280 para el tablero, y sus controles de arriba siguen en dos renglones
+- **WHEN** la persona mueve un divisor para achicar la zona de la red
+- **THEN** la red no baja de 600 píxeles de ancho mientras la ventana deje 280 para la zona izquierda
 
 #### Scenario: Anchos propios
 - **WHEN** la persona cambia el ancho de la red en Inspeccionar y pasa a otra pestaña
@@ -60,34 +56,38 @@ red MUST ceder ancho antes de que el tablero deje de leerse.
 
 #### Scenario: Orden del foco
 - **WHEN** la persona recorre la pestaña con Tab
-- **THEN** el foco pasa por la red y sus controles, después por el tablero y al final por el panel
+- **THEN** el foco pasa por la escena y la decisión, después por la red y sus controles y al final por el panel
 
 #### Scenario: Ventana angosta
 - **WHEN** la ventana mide entre 1032 y 1240 píxeles de ancho
-- **THEN** el tablero mide al menos 280 píxeles, la red cede ancho sin bajar de 440, y los nombres de las cuatro decisiones se leen enteros
+- **THEN** la zona izquierda mide al menos 280 píxeles, la red cede ancho sin bajar de 440, y los nombres de las cuatro decisiones se leen enteros
 
 #### Scenario: Ventana en su mínimo
 - **WHEN** la ventana mide entre 960 y 1032 píxeles de ancho
-- **THEN** la red mide 440 píxeles, el tablero se queda con lo que sobra, no menos de 200, y los nombres de las cuatro decisiones se leen enteros
+- **THEN** la red mide 440 píxeles, la zona izquierda se queda con lo que sobra, no menos de 200, y los nombres de las cuatro decisiones se leen enteros
 
 #### Scenario: Barra de arriba en ventana angosta
 - **WHEN** la zona de la red mide entre 500 y 600 píxeles de ancho, en español o en inglés
-- **THEN** sus controles de arriba ocupan tres renglones o menos, con los botones de acercar en el mismo renglón que el filtro de conexiones; con 440 píxeles, cuatro o menos
+- **THEN** sus controles de arriba ocupan dos renglones o menos; con 440 píxeles, tres o menos
 
 ### Requirement: Escena del auto en segundo plano
-La escena SHALL mostrar al auto con sus sensores, encuadrado de modo que se
-vea lo que alcanzan a ver, sin controles de cámara. Si el auto choca, el
-intento SHALL volver a empezar solo, con el mismo tráfico. La pista, el
-tráfico y la velocidad se cambian en la barra de escenario, que no muestra
-los sensores: los trae el cerebro.
+La escena SHALL mostrar al auto con sus sensores, siguiéndolo, con los controles de cámara de El problema: seguir al auto, acercar y alejar con botones y con la rueda. Por defecto, el encuadre deja ver enteros los rayos y lo que tocan. Si el auto choca, la pestaña SHALL mostrar el caso del choque (ver *Caso del choque en Inspeccionar*) y no volver a empezar sola. La pista, el tráfico y la velocidad se cambian en la barra de escenario, que no muestra los sensores: los trae el cerebro.
 
 #### Scenario: Encuadre
-- **WHEN** el auto maneja
+- **WHEN** el auto maneja y la persona no tocó la cámara
 - **THEN** la escena lo sigue y se ven enteros sus rayos y lo que tocan
+
+#### Scenario: Acercar
+- **WHEN** la persona usa la rueda sobre la escena o el botón de acercar
+- **THEN** la escena se acerca al auto, sin mover la página ni la red
+
+#### Scenario: Volver al encuadre
+- **WHEN** la persona acercó la escena y elige seguir al auto
+- **THEN** la escena vuelve al encuadre por defecto
 
 #### Scenario: Choque
 - **WHEN** el auto choca
-- **THEN** la escena muestra el choque un momento y el intento vuelve a empezar desde la salida, con el mismo tráfico
+- **THEN** la reproducción se congela en el cuadro del choque y aparece el caso; el intento no vuelve a empezar hasta que la persona reinicia o reintenta
 
 #### Scenario: Cambiar de pista
 - **WHEN** la persona elige otra pista en la barra
@@ -178,13 +178,7 @@ cuadro sigue con el siguiente.
 - **THEN** el control de ritmo pasa a decir pasos por segundo, con un valor que deja ver cada paso
 
 ### Requirement: Avance paso a paso
-Con la reproducción en pausa, "Paso" SHALL avanzar la cuenta una vez, del
-tamaño elegido, con su animación en la red. Una operación es una sola cuenta:
-leer una entrada, multiplicar un valor por su peso, sumar un aporte, sumar el
-sesgo o aplicar la activación. La cuenta de un cuadro empieza por las
-entradas. Al completarse, el paso siguiente SHALL mover el auto con esa
-decisión y empezar la cuenta del cuadro nuevo. "Atrás" SHALL deshacer el
-último paso dentro del cuadro.
+Con la reproducción en pausa, "Paso" SHALL avanzar la cuenta una vez, del tamaño elegido, con su animación en la red. Una operación es una sola cuenta: leer una entrada, multiplicar un valor por su peso, sumar un aporte, sumar el sesgo o aplicar la activación. La cuenta de un cuadro empieza por las entradas. Al completarse, el paso siguiente SHALL mover el auto con esa decisión y empezar la cuenta del cuadro nuevo. "Atrás" SHALL deshacer el último paso dentro del cuadro y, al principio de un cuadro, volver al cuadro anterior, con el auto donde estaba, hasta 3 segundos atrás.
 
 #### Scenario: Una operación
 - **WHEN** la persona avanza de a una operación
@@ -234,9 +228,17 @@ decisión y empezar la cuenta del cuadro nuevo. "Atrás" SHALL deshacer el
 - **WHEN** la persona va por la mitad de una neurona y presiona "Atrás" de a neuronas
 - **THEN** la cuenta vuelve al principio de esa neurona
 
+#### Scenario: Atrás al cuadro anterior
+- **WHEN** la cuenta del cuadro todavía no empezó y la persona presiona "Atrás"
+- **THEN** el auto vuelve a donde estaba en el cuadro anterior y la red muestra la cuenta completa de ese cuadro
+
 #### Scenario: Atrás al principio del cuadro
-- **WHEN** la cuenta del cuadro todavía no empezó
-- **THEN** "Atrás" no hace nada y su explicación dice que el auto ya se movió y ese cuadro no se puede deshacer
+- **WHEN** el intento acaba de empezar, la cuenta del primer cuadro todavía no empezó y la persona presiona "Atrás"
+- **THEN** no pasa nada y la explicación de "Atrás" dice que no hay cuadros anteriores guardados
+
+#### Scenario: Seguir desde un cuadro anterior
+- **WHEN** la persona volvió 30 cuadros con "Atrás" y reproduce
+- **THEN** el auto sigue desde ahí y hace lo mismo que la primera vez, con la misma red y la misma semilla
 
 ### Requirement: Operación en curso
 En pausa y al reproducir de a capas, neuronas u operaciones, la pestaña SHALL
@@ -503,20 +505,15 @@ SHALL quedar a la vista junto al cambiado.
 - **THEN** el peso cambia de a 0,01 y el efecto se ve igual
 
 ### Requirement: Deshacer y restablecer la red
-Sobre la red SHALL haber, siempre a la vista, un botón para deshacer el
-último cambio hecho a la red y otro para restablecerla entera, y cuántos
-cambios tiene. Valen para todo cambio: pesos, sesgos y partes apagadas. Sin
-cambios, los dos se ven sin acción y lo explican. Los cambios MUST NOT
-modificar el cerebro guardado, y SHALL conservarse por cerebro hasta cerrar
-la aplicación.
+Con cambios de prueba, sobre la red SHALL aparecer una franja con cuántos cambios hay, un botón para deshacer el último y otro para restablecer la red entera, y "Ver original". Valen para todo cambio: pesos, sesgos y partes apagadas. Sin cambios, la franja MUST NOT verse. Su aparición MUST NOT correr la red de golpe mientras la persona arrastra una perilla. Los cambios MUST NOT modificar el cerebro guardado, y SHALL conservarse por cerebro hasta cerrar la aplicación.
 
 #### Scenario: Sin cambios
 - **WHEN** la red no tiene cambios
-- **THEN** "Deshacer" y "Restablecer la red" están a la vista, sin acción, y su tooltip dice que no hay cambios que deshacer
+- **THEN** no se ven "Deshacer", "Restablecer la red" ni "Ver original", ni un contador de cambios
 
 #### Scenario: Red modificada
 - **WHEN** la persona apaga una neurona y cambia dos pesos
-- **THEN** sobre la red se lee que tiene 3 cambios y los dos botones quedan habilitados
+- **THEN** aparece la franja, que dice que la red tiene 3 cambios de prueba, con los botones habilitados
 
 #### Scenario: Deshacer
 - **WHEN** la persona deshace
@@ -524,11 +521,11 @@ la aplicación.
 
 #### Scenario: Deshacer varias veces
 - **WHEN** la persona hizo cuatro cambios y deshace cuatro veces
-- **THEN** la red queda igual a la del cerebro
+- **THEN** la red queda igual a la del cerebro y la franja se va
 
 #### Scenario: Restablecer
 - **WHEN** la persona restablece la red
-- **THEN** todos los pesos, sesgos y partes apagadas vuelven a los del cerebro, sin pedir confirmación
+- **THEN** todos los pesos, sesgos y partes apagadas vuelven a los del cerebro, sin pedir confirmación, y la franja se va
 
 #### Scenario: El cerebro guardado no cambia
 - **WHEN** la persona cambia pesos de un cerebro guardado y lo abre en Entrenar o en Competir
@@ -536,14 +533,14 @@ la aplicación.
 
 #### Scenario: Cambios por cerebro
 - **WHEN** la persona cambia un peso, pasa a otro cerebro y vuelve al primero
-- **THEN** el primero conserva su cambio
+- **THEN** el primero conserva su cambio y su franja
+
+#### Scenario: Con el teclado
+- **WHEN** la persona cambia un peso con las flechas en una pastilla
+- **THEN** la franja aparece y el foco sigue en la pastilla
 
 ### Requirement: Vista de la red a la vista
-Sobre la red SHALL estar, siempre a la vista, el nombre del cerebro, la
-elección entre diagrama y tabla de pesos, el filtro de conexiones, resumir o
-abrir todas las capas, deshacer y restablecer, y los controles de
-acercamiento. Cada capa se resume desde su encabezado, en la red misma. Ninguna función de la pestaña MUST quedar en una sección
-plegable del panel.
+Sobre la red SHALL haber, siempre a la vista, el nombre del cerebro y un renglón de controles en tres grupos rotulados: **Vista** (diagrama o tabla de pesos, y el flujo), **Conexiones** (el filtro y resumir o abrir todas las capas) y **Acercar** (alejar, acercar y ver entera). Cada capa se resume desde su encabezado, en la red misma. Los cambios de prueba van en una franja aparte (ver *Deshacer y restablecer la red*). Ninguna función de la pestaña MUST quedar en una sección plegable del panel.
 
 #### Scenario: Cambiar de vista
 - **WHEN** la persona elige la tabla de pesos
@@ -557,8 +554,12 @@ plegable del panel.
 - **WHEN** se pasa de una red sin capas ocultas a una con tres
 - **THEN** los controles de arriba de la red son los mismos y ocupan lo mismo
 
+#### Scenario: Un renglón al abrir
+- **WHEN** se abre la pestaña con la ventana en 1440×900, en español o en inglés
+- **THEN** los tres grupos ocupan un solo renglón, cada uno con su rótulo, y ningún control de arriba de la red está sin acción
+
 ### Requirement: Guía, leyenda y misiones
-Con la guía activa, el panel SHALL ofrecer, plegado debajo de la tarjeta de consigna, un texto breve que diga qué se está viendo, y SHALL mostrar a la vista una leyenda de cómo se lee la red y tres misiones con su progreso, en tres renglones: seguir la cuenta de una neurona paso a paso, cambiar una decisión moviendo una entrada a mano, y apagar una neurona y ver qué cambia. Las misiones MUST NOT bloquear nada. Con algo elegido, el texto cede su lugar. Se despliega con "Más sobre esta pestaña".
+Con la guía activa, el panel SHALL ofrecer, plegado debajo de la tarjeta de consigna, un texto breve que diga qué se está viendo, y SHALL mostrar a la vista una línea de guía arriba del detalle, una leyenda de cómo se lee la red y tres misiones con su progreso, en tres renglones: seguir la cuenta de una neurona paso a paso, cambiar una decisión moviendo una entrada a mano, y apagar una neurona y ver qué cambia. La línea de guía MUST NOT desaparecer al elegir algo: cambia según lo que se mira (nada elegido, una neurona, una conexión, un choque o la persona manejando). Las misiones MUST NOT bloquear nada. Se despliega con "Más sobre esta pestaña".
 
 #### Scenario: Texto plegado
 - **WHEN** la guía está activa y la persona entra a la pestaña
@@ -570,7 +571,7 @@ Con la guía activa, el panel SHALL ofrecer, plegado debajo de la tarjeta de con
 
 #### Scenario: Guía oculta
 - **WHEN** la persona apaga la guía
-- **THEN** el texto, la leyenda y las misiones no se muestran
+- **THEN** el texto, la línea de guía, la leyenda y las misiones no se muestran
 
 #### Scenario: Misión de la cuenta
 - **WHEN** la persona avanza paso a paso las cuatro operaciones de una misma neurona
@@ -593,8 +594,12 @@ Con la guía activa, el panel SHALL ofrecer, plegado debajo de la tarjeta de con
 - **THEN** un tooltip dice qué es con palabras llanas y con su nombre técnico
 
 #### Scenario: Con algo elegido
-- **WHEN** hay una neurona o una conexión elegida
-- **THEN** el texto de arriba del panel no se muestra, las misiones siguen a la vista y el detalle usa ese lugar
+- **WHEN** hay una neurona elegida
+- **THEN** la línea de guía dice qué mirar en una neurona, el detalle se ve debajo, las misiones siguen a la vista y "Soltar" está junto al nombre de la neurona
+
+#### Scenario: Soltar vuelve a los atajos
+- **WHEN** la persona elige "Soltar"
+- **THEN** no queda nada elegido, la línea de guía vuelve a la de inicio y se ven los atajos de *Panel sin nada elegido*
 
 #### Scenario: Leyenda corta
 - **WHEN** la guía está activa
@@ -742,10 +747,7 @@ MUST quedar un hueco vacío.
 - **THEN** el panel vuelve a mostrar la frase y los atajos
 
 ### Requirement: Comparar con el original
-Con cambios a mano, sobre la red SHALL haber un botón que, mientras se
-mantiene apretado, muestra la red y la decisión sin esos cambios, y al
-soltarlo vuelve a mostrarlos. MUST NOT deshacer nada. Sin cambios, se ve sin
-acción y lo explica. SHALL tener tooltip y textos en español y en inglés.
+Con cambios a mano, la franja de cambios SHALL ofrecer un botón que, mientras se mantiene apretado, muestra la red y la decisión sin esos cambios, y al soltarlo vuelve a mostrarlos. MUST NOT deshacer nada. Sin cambios no se ve. SHALL tener tooltip y textos en español y en inglés.
 
 #### Scenario: Mantener apretado
 - **WHEN** la persona cambió dos pesos y mantiene apretado "Ver original"
@@ -761,7 +763,7 @@ acción y lo explica. SHALL tener tooltip y textos en español y en inglés.
 
 #### Scenario: Sin cambios
 - **WHEN** la red no tiene cambios
-- **THEN** el botón está a la vista, sin acción, y su tooltip dice que no hay cambios que comparar
+- **THEN** el botón no se ve
 
 ### Requirement: Flujo de la señal en Inspeccionar
 Sobre la red SHALL haber un interruptor "Flujo", encendido por defecto, que
@@ -881,11 +883,7 @@ de dónde sale ese número: el rayo de ese sensor, o la velocidad del auto.
 - **THEN** la frase de la franja dice que el valor lo puso la persona y no el auto
 
 ### Requirement: Manejar vos
-La escena SHALL ofrecer "Manejar vos", un botón con tooltip en español y en
-inglés. Al activarlo, o al apretar una flecha con el foco en la escena o en
-ningún control, el auto pasa a manejarse con el teclado como en El problema,
-y la reproducción pasa a correr en tiempo real de a cuadros. La red sigue
-calculando cada cuadro y se ve igual que cuando maneja.
+La escena SHALL ofrecer "Manejar vos", un botón con tooltip en español y en inglés, en el renglón de los controles de cámara, con la altura normal. Al activarlo, o al apretar una flecha con el foco en la escena o en ningún control, el auto pasa a manejarse con el teclado como en El problema, y la reproducción pasa a correr en tiempo real de a cuadros. La red sigue calculando cada cuadro y se ve igual que cuando maneja.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña
@@ -917,7 +915,7 @@ calculando cada cuadro y se ve igual que cuando maneja.
 
 #### Scenario: Choque
 - **WHEN** la persona choca mientras maneja
-- **THEN** la escena muestra el choque un momento, el intento vuelve a empezar desde la salida con el mismo tráfico, y sigue manejando la persona
+- **THEN** la escena se congela con el caso del choque, como cuando maneja la red, y al reiniciar o reintentar sigue manejando la persona
 
 #### Scenario: Atajos apagados
 - **WHEN** los atajos de una tecla están apagados
@@ -975,3 +973,84 @@ volante.
 #### Scenario: Tooltip
 - **WHEN** la persona posa el cursor sobre "Devolver el volante"
 - **THEN** un tooltip, en español y en inglés, dice que la red sigue manejando desde donde quedó el auto, para ver cómo sale de la situación
+
+### Requirement: Caso del choque en Inspeccionar
+Al chocar, la pestaña SHALL congelar la reproducción y mostrar, debajo de la decisión, una tarjeta del caso con: a los cuántos metros y contra qué chocó, qué decidió la red en el cuadro que se mira, y qué neurona aportó más a esa decisión, con un botón "Elegir esta neurona". La decisión es la acción encendida de mayor valor; la neurona que más aportó es la de la última capa oculta con el mayor aporte positivo (valor por peso) a esa salida, o la entrada, si la red no tiene capas ocultas. La tarjeta SHALL ofrecer "Reintentar desde acá" y "Reiniciar (R)". Reiniciar o reintentar SHALL cerrar el caso.
+
+#### Scenario: Estado por defecto
+- **WHEN** el cerebro de ejemplo choca con los valores por defecto
+- **THEN** la reproducción queda en pausa, la escena muestra el auto chocado y la tarjeta dice a los cuántos metros, contra qué, qué decidió la red y qué neurona aportó más, con su aporte en números
+
+#### Scenario: Elegir la neurona que decidió
+- **WHEN** la persona elige "Elegir esta neurona"
+- **THEN** esa neurona queda elegida en la red, el panel muestra su tarjeta con la cuenta de ese cuadro y la línea de guía habla del choque
+
+#### Scenario: Sin capas ocultas
+- **WHEN** choca un cerebro sin capas ocultas
+- **THEN** la tarjeta nombra la entrada que más aportó a la decisión y el botón la elige
+
+#### Scenario: Ninguna acción encendida
+- **WHEN** en el cuadro que se mira la red no tenía ninguna acción encendida
+- **THEN** la tarjeta dice que la red no accionaba nada y no nombra una neurona
+
+#### Scenario: Reiniciar
+- **WHEN** la persona reinicia con R o con el botón
+- **THEN** la tarjeta y el deslizador desaparecen, el intento vuelve a la salida con el mismo tráfico y la reproducción sigue como estaba antes del choque
+
+#### Scenario: Sin depender del color
+- **WHEN** se ve el caso en escala de grises
+- **THEN** la neurona que más aportó se distingue en la red por su marca, no solo por el color
+
+#### Scenario: Textos y tooltips
+- **WHEN** la persona posa el cursor sobre "Elegir esta neurona", "Reintentar desde acá" o "Reiniciar"
+- **THEN** cada uno tiene un tooltip en español y en inglés que dice qué hace y por qué importa
+
+### Requirement: Repetición del choque en Inspeccionar
+Con un choque a la vista, un deslizador sobre la escena SHALL permitir volver a ver los últimos 3 segundos antes del choque, cuadro por cuadro. La escena, la red, la decisión, la tarjeta del caso y la tarjeta de la neurona elegida siguen al deslizador. Lo que se muestra MUST ser lo que se calculó mientras el auto andaba, con la red de ese momento, aunque la persona la haya cambiado después; en ese caso la tarjeta lo dice. El deslizador SHALL empezar 1 segundo antes del choque, tener tooltip y manejarse con el teclado.
+
+#### Scenario: Al chocar
+- **WHEN** el auto choca después de 5 segundos de intento
+- **THEN** el deslizador cubre los últimos 3 segundos y está 1 segundo antes del choque, con la escena, la red y la decisión de ese cuadro
+
+#### Scenario: Volver atrás en el tiempo
+- **WHEN** la persona lleva el deslizador a 2 segundos antes del choque
+- **THEN** la escena muestra el auto donde estaba en ese instante, la red muestra la cuenta de ese cuadro y la tarjeta, la decisión y la neurona que más aportó en ese cuadro
+
+#### Scenario: Con el teclado
+- **WHEN** la persona llega al deslizador con Tab y presiona la flecha izquierda
+- **THEN** la repetición retrocede un cuadro y el auto no gira
+
+#### Scenario: Intento corto
+- **WHEN** el auto choca antes de cumplir 3 segundos
+- **THEN** el deslizador cubre solo el tiempo que duró el intento
+
+#### Scenario: Red cambiada después del choque
+- **WHEN** con el caso a la vista la persona apaga una neurona y mueve el deslizador
+- **THEN** la repetición muestra la cuenta con la red de antes del cambio, y la tarjeta dice que el cambio rige al reintentar
+
+#### Scenario: Determinismo
+- **WHEN** la persona reinicia y el auto vuelve a chocar igual
+- **THEN** la repetición muestra los mismos cuadros que la vez anterior
+
+### Requirement: Reintentar desde un cuadro
+Con un choque a la vista, "Reintentar desde acá" SHALL volver el mundo al cuadro que muestra el deslizador (el auto, el tiempo, el tráfico y el progreso) y seguir reproduciendo desde ahí con la red de ahora, con sus cambios de prueba. Es la acción principal mientras se ve el caso. MUST NOT cambiar el cerebro guardado. Desde un mismo cuadro, con la misma red, SHALL dar siempre el mismo resultado.
+
+#### Scenario: Reintentar con un cambio
+- **WHEN** con el caso a la vista la persona apaga la neurona que más aportó y elige "Reintentar desde acá" 1 segundo antes del choque
+- **THEN** el auto sigue desde donde estaba en ese cuadro, con la red sin esa neurona, y la escena muestra si esta vez choca o no
+
+#### Scenario: Reintentar sin cambios
+- **WHEN** la persona reintenta desde un cuadro sin cambiar la red
+- **THEN** el auto vuelve a chocar en el mismo lugar y en el mismo cuadro
+
+#### Scenario: Acción principal
+- **WHEN** se ve el caso del choque
+- **THEN** "Reintentar desde acá" es la única acción principal, y "Reiniciar" y "Elegir esta neurona" se ven como secundarias
+
+#### Scenario: Volver atrás
+- **WHEN** el auto reintentado vuelve a chocar
+- **THEN** aparece el caso nuevo, con su repetición, y "Reiniciar" sigue volviendo a la salida
+
+#### Scenario: Con la persona manejando
+- **WHEN** la persona manejaba al chocar y reintenta desde un cuadro
+- **THEN** sigue manejando la persona desde ese cuadro y la coincidencia con la red vuelve a cero
