@@ -83,7 +83,7 @@ En El problema, Entrenar y Competir, los controles de marcha SHALL ir adentro de
 - **THEN** la tarjeta muestra la consigna y la misión en curso, y "Pausar (espacio)", que es la acción principal, está en la barra de abajo de la escena, junto a Reiniciar y Tráfico nuevo
 
 ### Requirement: Misión en curso
-La tarjeta SHALL mostrar la misión en curso: la primera sin cumplir, en el orden de la lista, con el mismo nombre, progreso y barra que en la lista. Con todas cumplidas, SHALL decirlo; sin misiones en ese modo, SHALL no mostrar misión. La lista completa SHALL seguir al final del panel, con la misión en curso marcada también por algo que no es el color.
+La tarjeta SHALL mostrar la misión en curso: la primera sin cumplir, en el orden de la lista, con el mismo nombre, progreso y barra que en la lista. Con todas cumplidas, SHALL decirlo; sin misiones en ese modo, SHALL no mostrar misión. La lista completa SHALL seguir al final del panel, con la misión en curso marcada también por algo que no es el color. En Entrenar la lista SHALL ir plegada en un renglón que dice cuántas van cumplidas, como fija `pestana-entrenar`; en las demás pestañas, a la vista.
 
 #### Scenario: Primera misión por defecto
 - **WHEN** la persona entra a El problema sin haber cumplido nada
@@ -108,6 +108,10 @@ La tarjeta SHALL mostrar la misión en curso: la primera sin cumplir, en el orde
 #### Scenario: Misiones recordadas
 - **WHEN** la persona cumple una misión, reinicia el intento y vuelve a la pestaña más tarde, sin cerrar la app
 - **THEN** la tarjeta sigue mostrando como misión en curso la primera que falta
+
+#### Scenario: La lista plegada de Entrenar
+- **WHEN** la persona llega a la generación 5 en Entrenar con la lista de misiones plegada
+- **THEN** la tarjeta pasa a mostrar la misión siguiente y el renglón plegado pasa a decir una misión cumplida
 
 ### Requirement: Tarjeta con la guía apagada
 El interruptor de guía SHALL ocultar la consigna y la misión en curso de la tarjeta, junto con los demás textos de guía y las misiones. La marcha SHALL quedar en el mismo lugar y funcionar igual. Al volver a encender la guía, la tarjeta SHALL mostrar otra vez la consigna y la misión en curso al día.

@@ -209,6 +209,20 @@ El 18 de noviembre, `reglas-como-fichas`, hecho y archivado el mismo día. El
     y constantes en un renglón. A 1366×768 con la guía se ven 6 de 7 reglas
     con 7 sensores y 4 de 22 con 20 (antes, 1 ficha entera). Auditorías en 0.
 
+El 18 de noviembre, `entrenar-red-primero` (cambio 0 de la crítica de Entrenar),
+  hecho y archivado el mismo día. El antes y el después están en
+  `borradores/entrenar-red-primero/comparacion.md` (local). La red del líder es
+  la primera tarjeta del tablero y la lista de misiones va plegada en un
+  renglón "Todas las misiones · N de 4" al final del panel. Medido con el
+  guion: a 1440×900 el panel pasa de desbordar 126 px a 0, en español y en
+  inglés y después de guardar, sin un píxel de sobra. `npm test`: 1428, 0
+  fallas. Lo que quedó:
+  - a 1366×768 los dos lienzos miden 120 px y el panel desborda 252 px (lo
+    resuelve `entrenar-mesa-de-trabajo`);
+  - `auditSistema()` da 1 problema después de guardar: el botón Renombrar del
+    resultado mide 24 px (ya estaba antes);
+  - sin probar: lector de pantalla, Firefox y una ventana visible.
+
 ## En curso
 
 Nada.
@@ -325,6 +339,26 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      acción principal en Reglas a mano, si Reintentar solo viene apagado,
      si el orden nuevo se lleva a todas las pestañas y qué vista se abre por
      defecto con las fichas.
+   - **Hecho (18 de noviembre de 2026): la crítica de Entrenar**, con las
+     mismas dos skills. Está en `borradores/sistema-de-diseno/critica-entrenar.md`
+     (local). Medido: a 1440×900 el panel desborda 126 px (865 en 739), en
+     contra de *Panel a la vista sin desplazarse*; la marcha desaparece al
+     pasar a Ajustes o Cerebros; a 1366×768 la red mide 120 px de alto. Por
+     pedido del dueño, Claude eligió el orden y las decisiones, que el dueño
+     puede revertir (tabla en §6 de la crítica):
+     0. ~~`entrenar-red-primero`~~ (S, hecho el 18 de noviembre): la red del líder arriba de la curva (el
+        pedido de *Entrenar, tráfico y aprendizaje*) y el arreglo del
+        desborde del panel.
+     1. `entrenar-mesa-de-trabajo` (M): sin panel, como Reglas a mano; barra
+        de transporte bajo la escena, "Probá esto" junto a la curva y "Más
+        ajustes" plegado.
+     2. `entrenar-la-generacion-ensena` (L): corte de unos 2 s al fin de cada
+        generación (salteado a 4× o más), tarjeta de generación, los pesos que
+        mutaron en la red y marcas de ajuste en la curva.
+     3. `entrenar-mutacion-a-la-vista` (S–M): trazo fantasma en la red al
+        mover la fuerza de mutación.
+     Sigue esperando al dueño: el artículo de jerarquía visual y la tabla de
+     "Probá esto".
    - Observado por Claude en la captura del dueño de Reglas a mano (17 de
      noviembre, hipótesis, sin medir):
      - en la columna derecha conviven unos diez botones con contorno y la
