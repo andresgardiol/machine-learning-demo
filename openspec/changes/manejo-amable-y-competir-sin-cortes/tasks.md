@@ -2,7 +2,7 @@
 
 ## 1. Antes
 
-- [ ] 1.1 Armar `borradores/manejo-amable-y-competir-sin-cortes/capturar.mjs` a partir del guion de `red-al-centro`. Vistas, a 1440×900 y 1366×768:
+- [x] 1.1 Armar `borradores/manejo-amable-y-competir-sin-cortes/capturar.mjs` a partir del guion de `red-al-centro`. Vistas, a 1440×900 y 1366×768:
   - El problema al abrir;
   - manejando unos segundos con un recorrido de teclas fijo, cuadro por cuadro;
   - en el momento de un choque;
@@ -21,8 +21,28 @@
   - `auditSistema()` y `auditHierarchy()`.
 
   Verificación: dos corridas seguidas dan las mismas medidas.
-- [ ] 1.2 Sacar el antes en `borradores/manejo-amable-y-competir-sin-cortes/antes/`, con `indice.md`, también en escala de grises. Es sobre el commit de partida de este cambio, o sea, después de `red-al-centro`. Verificación: el índice lista todas las vistas y las medidas.
-- [ ] 1.3 Medir el giro de hoy en Node: con el recorrido de teclas de "toque corto" (izquierda 6 cuadros) y de "mantener" (izquierda 60 cuadros) a 20 m/s, cuánto gira el auto y cuánto se corre de costado en el segundo siguiente. Verificación: tabla con las medidas, que se repite después del cambio.
+
+  *Hecho: `borradores/manejo-amable-y-competir-sin-cortes/capturar.mjs`, con la base del guion de `red-al-centro` (Chrome sin ventana, tiempo virtual, perfil nuevo por vista). Vistas a 1440×900 y 1366×768: El problema al abrir, manejando (recorrido fijo con eventos de teclado reales: flecha arriba 3 s; izquierda 0,3 s; nada 1 s; derecha 0,3 s; nada 1 s), en el choque (arriba e izquierda hasta el primer cuadro chocado), Competir al abrir, en carrera (5 s después de Largar), con seis competidores (agregados desde el selector); Competir en carrera a 1236×863; El problema y Competir en inglés; y el tooltip del 👁 con el mouse del protocolo. Medidas: el alto de la tarjeta de acción, el hueco dentro de ella y lo libre debajo; el desplazamiento de cada zona y de la lista de competidores; cuánto sale cada encabezado del marcador de su caja y el hueco entre encabezados vecinos; los renglones (con `Range.getClientRects`) y el corte de los nombres en la tabla por pista y en «Primero»; si el número de la meta y su unidad quedan en el mismo renglón del cartel; el alto de cada competidor; las tres auditorías. `indice.mjs` las pasa a tabla.*
+
+  *Medido: dos corridas seguidas sobre `2f7ffa9` dieron los tres `medidas-*.json` idénticos byte a byte (`cmp`).*
+- [x] 1.2 Sacar el antes en `borradores/manejo-amable-y-competir-sin-cortes/antes/`, con `indice.md`, también en escala de grises. Es sobre el commit de partida de este cambio, o sea, después de `red-al-centro`. Verificación: el índice lista todas las vistas y las medidas.
+
+  *Hecho: `borradores/manejo-amable-y-competir-sin-cortes/antes/` sobre `2f7ffa9` (después de `red-al-centro`), con 36 capturas e `indice.md` de 18 vistas.*
+
+  *Medido:*
+  - *El problema: la tarjeta de acción se estira (302 px a 1440, 247 a 1366) y tiene adentro un hueco de 176 px a 1440 y 121 a 1366 debajo de las teclas. El recorrido fijo termina con el auto **fuera de la calle** (0,3 s de izquierda a la velocidad que lleva a los 3 s).*
+  - *Competir: «Choques» sale 7 px de su caja y queda encimado 3 px con «Estado» («ChoquesEstado»); en inglés, «Progress» sale 3 px y «Crashes» 4, con 1 px entre ellos. «Calle, tráfico nuevo» ocupa 1 renglón en la tabla por pista a 1440, 2 a 1366 y 3 a 1236; «Primero» con «7 sensores», 3 renglones a 1236. En el cartel, «1000» y «m» quedan en renglones distintos a 1440 y a 1366. El panel se desplaza 83 px a 1366 con los tres competidores (76 en inglés); con seis, 63 px a 1440 y 195 a 1366 (y el tablero 25). Cada competidor mide 36–37 px.*
+  - *Distinto de lo anotado en el análisis: el tooltip del 👁 **sí** aparece al posar el mouse («Muestra u oculta en el escenario los sensores de este competidor…»), y los botones 👁 y ✕ ya tienen nombre accesible; `auditTooltips()` en 0 en todas las vistas, igual que `auditSistema()` y `auditHierarchy()`.*
+- [x] 1.3 Medir el giro de hoy en Node: con el recorrido de teclas de "toque corto" (izquierda 6 cuadros) y de "mantener" (izquierda 60 cuadros) a 20 m/s, cuánto gira el auto y cuánto se corre de costado en el segundo siguiente. Verificación: tabla con las medidas, que se repite después del cambio.
+
+  *Hecho: `borradores/manejo-amable-y-competir-sin-cortes/medir-giro.mjs` (Node, con el núcleo): la calle sin tráfico, el auto acelerado con la flecha arriba hasta 20 m/s y, con la flecha arriba siempre apretada, izquierda durante 6 o 60 cuadros y después nada durante 60. Mide el giro al soltar y el corrimiento de costado respecto de la calle.*
+
+  *Medido (antes, el teclado devuelve lo apretado):*
+
+  | Recorrido | Cuadros que giraron | Giro al soltar | Corrimiento en el segundo siguiente | ¿Choca? |
+  |---|---|---|---|---|
+  | Toque corto (izquierda 6 cuadros) | 6 | 0,18 rad (10,3°) | 3,58 m | no |
+  | Mantener (izquierda 60 cuadros) | 29, hasta chocar | 0,87 rad (49,8°) | — | sí, contra el borde |
 
 ## 2. Volante suave
 
