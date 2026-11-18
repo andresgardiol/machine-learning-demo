@@ -124,3 +124,18 @@ test('Determinismo: repetir el intento da los mismos cuadros', () => {
   const b = run().buffer.frames();
   assert.deepEqual(a, b);
 });
+
+test('pop saca el último cuadro y lo devuelve; vacío, null (red-al-centro D6)', async () => {
+  const { createReplayBuffer: shared } = await import('../src/tabs/shared/replay-buffer.js');
+  const b = shared({ capacity: 3 });
+  assert.equal(b.pop(), null);
+  for (const n of [1, 2, 3, 4]) b.push(n);
+  assert.equal(b.pop(), 4);
+  assert.deepEqual(b.frames(), [2, 3]);
+  b.push(5);
+  assert.deepEqual(b.frames(), [2, 3, 5]);
+  assert.equal(b.at(0), 5);
+  b.pop(); b.pop(); b.pop();
+  assert.equal(b.length, 0);
+  assert.equal(b.at(0), null);
+});

@@ -874,6 +874,9 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     }
     if (hover && hover.input === undefined && !sameTarget(hover, selected)) ring(hover, colors.text, [], 3, 1.5);
     if (hover && hover.input !== undefined) { ring({ layer: hover.layer, neuron: hover.neuron }, colors.text, [], 3, 1.2); ring({ layer: hover.layer - 1, neuron: hover.input }, colors.text, [], 3, 1.2); }
+    // La neurona que más aportó a la decisión en el caso del choque (red-al-centro D5): un aro de puntos afuera,
+    // en el color del texto; se distingue por la forma, no solo por el color.
+    if (state.culprit) ring(state.culprit, colors.text, [2, 3], 8, 2);
     if (selected && selected.input === undefined) ring(selected, colors.selected, [], 3.5);
     if (selected && selected.input !== undefined) {
       ring({ layer: selected.layer, neuron: selected.neuron }, colors.selected, [], 3.5, 1.8);

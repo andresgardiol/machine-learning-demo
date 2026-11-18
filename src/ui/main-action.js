@@ -9,7 +9,7 @@ export const TABS_WITH_RUN = Object.freeze(['drive', 'rules', 'train', 'compete'
  * @param {string} tab Pestaña: 'drive', 'rules', 'train', 'compete', 'inspect' o 'lab'.
  * @param {{crashed?: boolean, manualPending?: boolean, raceFinished?: boolean,
  *   startCardVisible?: boolean, panelView?: string, dialogOpen?: boolean}} [state]
- * @returns {'run'|'restart'|'compare'|'chooseLeader'|'another'|'startCard'|'saveAsNew'|'dialog'|null}
+ * @returns {'run'|'restart'|'compare'|'retry'|'chooseLeader'|'another'|'startCard'|'saveAsNew'|'dialog'|null}
  */
 export function mainAction(tab, state = {}) {
   const { crashed = false, manualPending = false, raceFinished = false, startCardVisible = false,
@@ -32,6 +32,8 @@ export function mainAction(tab, state = {}) {
       if (startCardVisible) return 'startCard';
       return 'run';
     case 'inspect':
+      // Con el caso del choque a la vista, "Reintentar desde acá" (red-al-centro D5).
+      return crashed ? 'retry' : 'run';
     case 'lab':
       return 'run';
     default:

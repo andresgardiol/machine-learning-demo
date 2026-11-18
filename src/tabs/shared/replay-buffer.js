@@ -34,6 +34,15 @@ export function createReplayBuffer({ capacity = REPLAY_FRAMES } = {}) {
       const back = Math.min(length - 1, Math.max(0, -Math.round(offset)));
       return slots[(start + length - 1 - back) % capacity];
     },
+    /** Saca el último cuadro y lo devuelve (Inspeccionar: "Atrás" entre cuadros y reintentar desde uno anterior). */
+    pop() {
+      if (length === 0) return null;
+      const i = (start + length - 1) % capacity;
+      const frame = slots[i];
+      slots[i] = undefined;
+      length -= 1;
+      return frame;
+    },
     /** Cuadros del más viejo al más nuevo. */
     frames() { return Array.from({ length }, (_, i) => slots[(start + i) % capacity]); },
     get length() { return length; },
