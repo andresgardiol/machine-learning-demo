@@ -262,6 +262,28 @@ El 18 de noviembre, `entrenar-la-generacion-ensena` (cambio 2 de la crítica de
   la curva, para que una generación con tráfico difícil no parezca un
   retroceso.
 
+El 18 de noviembre, `entrenar-mutacion-a-la-vista` (cambio 3 y último de la
+  crítica de Entrenar), hecho y archivado el mismo día. El antes y el después
+  están en `borradores/entrenar-mutacion-a-la-vista/comparacion.md` (local).
+  Al mover la fuerza de mutación, con el enfriamiento apagado, la red del líder
+  muestra un hijo de ejemplo (semilla propia, sin el azar del entrenamiento)
+  con los pesos cambiados marcados y el renglón "Ejemplo: un hijo con fuerza N
+  %…", y a los 2 s vuelve a la red en vivo. Medido: el promedio da 0,04, 0,30
+  y 0,59 con 5 %, 40 % y 80 %; 60 cuadros por segundo arrastrando; el
+  determinismo no cambió. `npm test`: 1464, 0 fallas. Lo que quedó:
+  - con el enfriamiento encendido por defecto, la vista previa no se ve hasta
+    apagarlo (decisión de Claude; se podría mostrar al pasar el cursor);
+  - con probabilidad 100 % los rombos marcan siempre todo: lo que cambia con la
+    fuerza son los trazos y el promedio;
+  - `auditSistema()` encuentra dos problemas que ya estaban: «compact
+    Renombrar 24px» después de guardar, y la marca de cambios pendientes de la
+    pestaña Ajustes con el color de acción («action-fill view-tab-pending»);
+  - sin probar: lector de pantalla, Firefox, una ventana visible y un arrastre
+    real con el mouse.
+- Ideas de la crítica de Entrenar dejadas para más adelante: la vista previa de
+  la población en la escena y el "Vos elegís" guiado (los 4 mejores en
+  miniatura al fin de la generación).
+
 ## En curso
 
 Nada.
@@ -394,7 +416,7 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      2. ~~`entrenar-la-generacion-ensena`~~ (L, hecho el 18 de noviembre): corte de unos 2 s al fin de cada
         generación (salteado a 4× o más), tarjeta de generación, los pesos que
         mutaron en la red y marcas de ajuste en la curva.
-     3. `entrenar-mutacion-a-la-vista` (S–M): trazo fantasma en la red al
+     3. ~~`entrenar-mutacion-a-la-vista`~~ (S–M, hecho el 18 de noviembre): trazo fantasma en la red al
         mover la fuerza de mutación.
      Sigue esperando al dueño: el artículo de jerarquía visual y la tabla de
      "Probá esto".
