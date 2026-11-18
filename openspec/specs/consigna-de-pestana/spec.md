@@ -22,7 +22,7 @@ Cada una de las seis pestañas SHALL abrir su panel (en Reglas a mano, su tabler
 
 #### Scenario: Otras vistas de Entrenar
 - **WHEN** la persona pasa de la vista de entrenamiento a la de cerebros
-- **THEN** la tarjeta no se ve, y la acción principal de esa vista es Guardar como nuevo
+- **THEN** la tarjeta no se ve, y la marcha de abajo de la escena sigue siendo la única acción principal
 - **WHEN** vuelve a la vista de entrenamiento
 - **THEN** la tarjeta vuelve a estar al principio, con la misión en curso al día
 
@@ -60,7 +60,7 @@ La tarjeta SHALL mostrar una consigna en español y en inglés: una frase en imp
 - **THEN** ninguna pasa de 90 caracteres ni de dos renglones
 
 ### Requirement: Acción principal en la tarjeta
-En El problema, Entrenar y Competir, los controles de marcha SHALL ir adentro de la tarjeta, debajo de la consigna. Esto incluye la acción principal y botones como Reiniciar o Siguiente; "Tráfico nuevo" SHALL ir fuera, junto a los interruptores de vista. En Inspeccionar y en el Laboratorio, la marcha SHALL quedar en la barra de abajo de la red; en Reglas a mano, en la barra de abajo de la escena, con Reiniciar y Tráfico nuevo. Mover un control MUST NOT cambiar lo que hace, su texto, su tooltip ni su atajo.
+En El problema y Competir, los controles de marcha SHALL ir adentro de la tarjeta, debajo de la consigna. Esto incluye la acción principal y botones como Reiniciar o Siguiente; "Tráfico nuevo" SHALL ir fuera, junto a los interruptores de vista. En Inspeccionar y en el Laboratorio, la marcha SHALL quedar en la barra de abajo de la red; en Reglas a mano, en la barra de abajo de la escena, con Reiniciar y Tráfico nuevo; en Entrenar, en la barra de abajo de la escena, con quién elige al padre, siguiente generación, las velocidades, Reiniciar y Población nueva. Mover un control MUST NOT cambiar lo que hace, su texto, su tooltip ni su atajo.
 
 #### Scenario: El problema
 - **WHEN** la persona entra a El problema
@@ -77,6 +77,10 @@ En El problema, Entrenar y Competir, los controles de marcha SHALL ir adentro de
 #### Scenario: Mismo comportamiento
 - **WHEN** la persona usa la marcha de la tarjeta con el mouse o con su atajo
 - **THEN** hace lo mismo que antes del cambio, y una sola acción principal queda a la vista
+
+#### Scenario: Entrenar
+- **WHEN** la persona entra a Entrenar
+- **THEN** la tarjeta muestra la consigna y la misión en curso, y "Pausar (espacio)", que es la acción principal, está en la barra de abajo de la escena, junto a siguiente generación
 
 #### Scenario: Reglas a mano
 - **WHEN** la persona entra a Reglas a mano
@@ -236,11 +240,15 @@ Las misiones de Entrenar SHALL mostrar este control; "—" quiere decir sin bot�
 | Llegá a la generación 5 | — |
 | Un auto que supere 5 vehículos | — |
 | Guardá un cerebro | Guardar campeón |
-| Probá otra función de fitness | Función de fitness (vista Ajustes) |
+| Probá otra función de fitness | Función de fitness ("Probá esto") |
+
+#### Scenario: Fitness a la vista
+- **WHEN** en Entrenar la persona toca "Mostrame" junto a "Probá otra función de fitness"
+- **THEN** el selector de la función de fitness de "Probá esto" queda marcado y con el foco, sin cambiar de vista
 
 #### Scenario: Fitness en otra vista
-- **WHEN** en Entrenar la persona toca "Mostrame" junto a "Probá otra función de fitness"
-- **THEN** el panel pasa a la vista Ajustes y el selector de la función de fitness queda marcado y con el foco
+- **WHEN** el panel está en la vista de cerebros, la persona vuelve a la de entrenamiento y toca "Mostrame" junto a "Probá otra función de fitness"
+- **THEN** el selector queda marcado y con el foco en "Probá esto"
 
 ### Requirement: Controles de las misiones de Competir
 Las misiones de Competir SHALL mostrar este control.

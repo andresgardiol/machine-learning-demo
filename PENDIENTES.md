@@ -223,6 +223,23 @@ El 18 de noviembre, `entrenar-red-primero` (cambio 0 de la crítica de Entrenar)
     resultado mide 24 px (ya estaba antes);
   - sin probar: lector de pantalla, Firefox y una ventana visible.
 
+El 18 de noviembre, `entrenar-mesa-de-trabajo` (cambio 1 de la crítica de
+  Entrenar), hecho y archivado el mismo día. El antes y el después están en
+  `borradores/entrenar-mesa-de-trabajo/comparacion.md` (local). La marcha
+  (quién elige al padre, Pausar, Siguiente, la selección manual, las
+  velocidades, Reiniciar, Población nueva y los interruptores) va en una barra
+  debajo de la escena y se ve en las tres vistas del panel. La vista de
+  entrenamiento tiene "Probá esto": la función de fitness, la población y la
+  mutación. En Cerebros, "Guardar como nuevo" pasó a secundaria. Claude
+  mantuvo el panel en vez de sacarlo, como proponía la crítica (D1 del
+  diseño). Medido con el guion: a 1366×768 la escena mide 458 px con
+  selección automática, 390 con la manual y 343 mientras se ve el aviso de
+  cambio de selección (pisos de 360 y 340, decididos en la parada de la tarea
+  2.4). A 1440×900 la vista de entrenamiento no se desplaza en ningún caso, y
+  la de ajustes pasa de desbordar 178 px a 83. `npm test`: 1430, 0 fallas.
+  Sin probar: lector de pantalla, Firefox, una ventana visible y un recorrido
+  real con Tab.
+
 ## En curso
 
 Nada.
@@ -349,7 +366,7 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      0. ~~`entrenar-red-primero`~~ (S, hecho el 18 de noviembre): la red del líder arriba de la curva (el
         pedido de *Entrenar, tráfico y aprendizaje*) y el arreglo del
         desborde del panel.
-     1. `entrenar-mesa-de-trabajo` (M): sin panel, como Reglas a mano; barra
+     1. ~~`entrenar-mesa-de-trabajo`~~ (M, hecho el 18 de noviembre, con el panel): sin panel, como Reglas a mano; barra
         de transporte bajo la escena, "Probá esto" junto a la curva y "Más
         ajustes" plegado.
      2. `entrenar-la-generacion-ensena` (L): corte de unos 2 s al fin de cada
