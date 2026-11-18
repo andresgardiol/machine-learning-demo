@@ -77,8 +77,18 @@
 
 ## 3. Volver el mundo atrás (núcleo)
 
-- [ ] 3.1 `world.restore(state)` en `src/core/world.js`, con el estado que guarda cada cuadro (D5). Antes, comprobar si el tráfico se recalcula solo con el tiempo. **Si restaurar exige tocar más que `world.js` y `traffic.js`, parar y consultar**, con lo encontrado. Verificación: prueba de núcleo en Node. Desde un estado restaurado, 300 pasos con el mismo controlador dan los mismos cuadros que la corrida original, en la calle y en un circuito.
-- [ ] 3.2 `createReplayBuffer` pasa a `src/tabs/shared/replay-buffer.js` y Reglas a mano lo importa de ahí, sin cambiar su comportamiento. Verificación: las pruebas de Reglas a mano (`rules-case`, `rules-session`) pasan igual.
+- [x] 3.1 `world.restore(state)` en `src/core/world.js`, con el estado que guarda cada cuadro (D5). Antes, comprobar si el tráfico se recalcula solo con el tiempo. **Si restaurar exige tocar más que `world.js` y `traffic.js`, parar y consultar**, con lo encontrado. Verificación: prueba de núcleo en Node. Desde un estado restaurado, 300 pasos con el mismo controlador dan los mismos cuadros que la corrida original, en la calle y en un circuito.
+
+  *Comprobado antes: `traffic.vehicles(time, from, to)` no tiene estado propio más que un caché de los últimos 8 bloques, que se rearma igual desde la semilla (`randomFor(blockSeed, b)`); el único cambio de tráfico en marcha es `setTraffic`, que reemplaza el objeto. Restaurar no exigió tocar más que `world.js`: no hubo parada.*
+
+  *Hecho: `world.capture()` guarda el reloj (tiempo, pasos, pausa), el tráfico vigente y su configuración, y de cada agente el auto (pose, velocidad, choque, tope y sensores), el tramo, el progreso, las vueltas, el choque, la protección y lo que percibió (rayos, percepción y vehículos cercanos, por referencia: el mundo los reemplaza en cada paso, no los modifica). `world.restore(state)` lo repone sin volver a mirar. No toca los controladores. `traffic.js` no cambió.*
+
+  *Medido (`tests/world-restore.test.js`, Node): desde un estado guardado a los 240 pasos, 300 pasos más dan cuadros idénticos (`deepEqual` de `snapshot()` y las lecturas de los rayos) en la calle con tráfico (irregularidad 100 %) y en el óvalo. Volviendo un segundo antes del choque del caso de las capturas, el auto vuelve a chocar en el paso 628, en el mismo lugar y contra un vehículo. Avanzar después de guardar no cambia lo guardado.*
+- [x] 3.2 `createReplayBuffer` pasa a `src/tabs/shared/replay-buffer.js` y Reglas a mano lo importa de ahí, sin cambiar su comportamiento. Verificación: las pruebas de Reglas a mano (`rules-case`, `rules-session`) pasan igual.
+
+  *Hecho: `createReplayBuffer` y `REPLAY_FRAMES` pasan a `src/tabs/shared/replay-buffer.js`, sin cambios. `rules/index.js` lo importa de ahí y `rules/case.js` lo reexporta, así las pruebas que lo importaban de `case.js` siguen igual.*
+
+  *Medido: `rules-case`, `rules-session` y `architecture` pasan (29 pruebas); `npm test` completo, 1475.*
 
 ## 4. El choque enseña (Inspeccionar)
 

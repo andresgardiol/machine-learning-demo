@@ -49,7 +49,8 @@ import {
   DEFAULT_SEED, INITIAL_PROGRAM, EXAMPLES, knownTexts, settingsForProgram, rememberedSensors, programIdOf, normalizeText,
 } from './examples.js';
 import { compareRuns, compareNotes, compareResult } from './compare.js';
-import { caseCondition, createReplayBuffer, frameOf, raysOf } from './case.js';
+import { caseCondition, frameOf, raysOf } from './case.js';
+import { createReplayBuffer } from '../shared/replay-buffer.js';
 import { shortcutFor } from './shortcuts.js';
 import { roleTag } from '../../ui/role-tag.js';
 import { RULES_BAR, scenarioReset, comparisonFor, insertAt } from './workbench.js';
