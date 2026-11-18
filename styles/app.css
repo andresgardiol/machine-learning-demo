@@ -462,6 +462,19 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .stage-badges { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); pointer-events: none; }
 .stage-badge { padding: var(--space-1) var(--space-2); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); font-size: var(--text-body); font-weight: var(--weight-bold); }
 .stage-badge[hidden] { display: none; }
+/* Corte de generación (entrenar-la-generacion-ensena D4): la tarjeta, en la columna de avisos, debajo de los demás. */
+.cut-card {
+  max-width: min(260px, 70cqi); padding: var(--space-2) var(--space-3);
+  background: var(--color-surface); border: 1px solid var(--color-border); border-left: 4px solid var(--color-elite);
+  border-radius: var(--radius-card); box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+}
+.cut-card[hidden] { display: none; }
+.cut-card-title { margin: 0 0 var(--space-1); font-size: var(--text-body); font-weight: var(--weight-bold); }
+.cut-card-text { margin: 0; font-size: var(--text-label); line-height: 1.35; }
+/* La élite contada: un rombo por individuo que pasa tal cual, con la forma y el color de la marca de la escena. */
+.cut-elite { display: flex; flex-wrap: wrap; gap: var(--space-1); margin: 0 0 var(--space-2); padding-left: 2px; }
+.cut-elite[hidden] { display: none; }
+.cut-elite-mark { width: 9px; height: 9px; transform: rotate(45deg); background: var(--color-elite); outline: 1px solid var(--color-text); outline-offset: 0; }
 .pause-badge { border-color: var(--color-accent); }
 .pause-badge::before { content: "❚❚ "; color: var(--color-accent); }
 /* Arriba al centro: el auto queda abajo (calle vertical) y el mensaje no lo tapa; deja libres los controles de cámara. */
@@ -509,6 +522,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .network-zone { position: relative; flex: 1 1 auto; min-height: 120px; margin-top: var(--space-1); }
 /* El lienzo ocupa la zona (su tamaño lo fija network-view.js con el de la zona). */
 .network-canvas { position: absolute; inset: 0; display: block; }
+/* Durante el corte, cuántos pesos y sesgos cambió la mutación en el hijo de la muestra (D5). */
+.network-sample-line { margin: 0 0 var(--space-1); font-size: var(--text-label); font-weight: var(--weight-bold); }
+.network-sample-line[hidden] { display: none; }
 .network-legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: var(--space-2) 0 0; padding: 0; list-style: none; font-size: var(--text-label); color: var(--color-text-muted); }
 .network-legend li { display: inline-flex; align-items: center; gap: var(--space-2); }
 .legend-line { display: inline-block; width: 22px; border-top: 2px solid var(--color-weight-positive); }
@@ -527,6 +543,8 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .chart-line.chart-best { stroke: var(--color-chart-best); }
 .chart-line.chart-average { stroke: var(--color-chart-average); stroke-dasharray: 4 3; }
 .chart-mark.chart-best { fill: var(--color-chart-best); }
+/* Cambio de la persona (entrenar-la-generacion-ensena D6): un triángulo sobre el eje x, del color del texto. */
+.chart-change { fill: var(--color-text); stroke: var(--color-surface); stroke-width: 1; cursor: help; }
 .chart-mark.chart-average { fill: var(--color-chart-average); }
 .chart-cursor { stroke: var(--color-accent); stroke-width: 1; opacity: 0.6; }
 .chart-legend { display: flex; gap: var(--space-4); margin: var(--space-1) 0 0; padding: 0; list-style: none; font-size: var(--text-label); color: var(--color-text-muted); }

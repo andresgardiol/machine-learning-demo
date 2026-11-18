@@ -12,7 +12,7 @@
 // pendiente y el panel lo indica); o con un entrenamiento nuevo, de inmediato si todavía no terminó
 // ninguna generación y con una confirmación en línea si ya terminó alguna.
 import { createTraining, NEW_TRAINING_KEYS, SELECTION_MODES } from '../../core/training.js';
-import { FITNESS_KINDS } from '../../core/evolution.js';
+import { FITNESS_KINDS, mutationDiff } from '../../core/evolution.js';
 import { ACTIVATIONS } from '../../core/network.js';
 import { TRAFFIC_MODES, copyBrain } from '../../core/brain.js';
 import { createStageView } from '../../render/view.js';
@@ -44,6 +44,7 @@ import { setUnavailable } from '../shared/street-advanced.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
 import { createTrainSession, indicators, lastGeneration, parentStatus, leaderLabelKey } from './session.js';
 import { shortcutFor, toggleTurbo } from './shortcuts.js';
+import { createCut } from './cut.js';
 
 export const DEFAULT_SEED = 1;
 
@@ -135,6 +136,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
 
   // --- Entrenamiento ------------------------------------------------------------------------
   let offGeneration = () => {};
+  // Corte de generación (entrenar-la-generacion-ensena D3): solo de la interfaz; mientras dura no se llama a step().
+  const cut = createCut();
+  const clock = () => (globalThis.performance ?? Date).now();
+  const guideOn = () => store?.get().guide !== false;
 
   /** Se suscribe al entrenamiento en curso: curva, misiones y autoguardado al terminar cada generación. */
   function attachTraining() {
@@ -144,6 +149,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       state.missions.generationEnded(record);
       autosave();
       view.followCar();
+      // Con la guía activa y a 1× o 2×, la generación nueva espera en la largada (D3); con la página oculta, no.
+      if (cut.enter(clock(), { guide: guideOn() && !document.hidden, speed: state.settings.speed, paused: state.paused })) showCut();
+      else hideCut();
     });
   }
 
@@ -163,6 +171,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     state.missions.restart();
     state.undo = null;
     setSaveMessage(null); // el mensaje de guardado queda hasta el próximo guardado o un entrenamiento nuevo
+    cut.end();
+    hideCut();
     attachTraining();
     chart.update(state.training.history);
     view.followCar();
@@ -222,7 +232,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         view?.followCar();
       }
     }
-    if (changes.instant.includes('speed')) loop.setSpeed(target.speed);
+    if (changes.instant.includes('speed')) {
+      loop.setSpeed(target.speed);
+      if (cut.speedChanged(target.speed)) hideCut(); // a 4× o más no hay corte
+    }
     sync();
   }
   const setSetting = (key, value, confirm) => applySettings({ ...state.settings, [key]: value }, confirm);
@@ -231,9 +244,18 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function togglePause() {
     state.paused = !state.paused;
     if (state.paused) library?.flush();
+    // En el corte, la pausa lo congela: queda a la vista hasta reanudar, y al reanudar arranca la generación (D3,
+    // escenario "Pausar durante el corte").
+    if (state.paused) cut.pause(clock());
+    else if (cut.active) { cut.next(); hideCut(); }
     sync();
   }
-  function nextGeneration() { state.training.finishGeneration(); sync(); }
+  function nextGeneration() {
+    // Durante el corte, Siguiente (o N) termina el corte y no la generación nueva (D3).
+    if (cut.active) { cut.next(); hideCut(); sync(); return; }
+    state.training.finishGeneration();
+    sync();
+  }
   /** ¿La persona eligió la selección manual? Decide si se ven y se atienden elegir y deshacer (design.md D6). */
   const manualWanted = () => state.settings.selectionMode === 'manual';
   /** Elegir al líder como padre: funciona en marcha y en pausa, sin tocar la generación en curso. */
@@ -691,20 +713,41 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const networkCard = boardCard({
     id: 'train-network', titleKey: 'train.network.title', help: 'train.network', hintKey: 'train.network.hint',
     open: state.settings.showNetwork, grow: 1.3,
-    onToggle: (open) => { state.settings = { ...state.settings, showNetwork: open }; },
+    onToggle: (open) => { state.settings = { ...state.settings, showNetwork: open }; sampleDrawn = false; },
   });
   const networkZone = el('div', { class: 'network-zone' });
+  // Durante el corte, la red de un hijo con lo que cambió la mutación (D5): este renglón dice cuánto.
+  const sampleLine = el('p', { class: 'network-sample-line', attrs: { role: 'status' } });
+  sampleLine.hidden = true;
+  let sampleDrawn = false;
   const legend = el('ul', { class: 'network-legend' },
     el('li', {}, el('span', { class: 'legend-line', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.positive' })),
     el('li', {}, el('span', { class: 'legend-line negative', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.negative' })),
     el('li', {}, el('span', { class: 'legend-node', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.active' })),
     el('li', { class: 'network-note', i18n: 'train.network.legend.note' }));
-  networkCard.append(networkZone, legend);
+  networkCard.append(sampleLine, networkZone, legend);
 
   board.append(...boardOrder({ strip: strip.node, lastLine, chart: chartCard.node, network: networkCard.node }));
 
-  const chart = createFitnessChart({ container: chartZone, i18n });
+  const chart = createFitnessChart({ container: chartZone, i18n, describeChanges });
   const networkView = createNetworkView({ container: networkZone, i18n });
+
+  /**
+   * Cambios de una generación para la lectura de la curva (D6): "Fuerza de mutación: 29 % → 40 %", con los nombres
+   * y las unidades del panel, en el idioma activo.
+   */
+  function describeChanges(changes) {
+    const value = (key, v) => {
+      if (typeof v === 'boolean') return i18n.t(v ? 'train.chart.on' : 'train.chart.off');
+      if (key === 'fitness') return i18n.t(`train.fitness.${v}`);
+      if (key === 'trafficMode') return i18n.t(`train.trafficMode.${v}`);
+      if (key === 'selectionMode') return i18n.t(`train.selectionMode.${v}`);
+      if (typeof v === 'number' && FORMATS[key]) return i18n.t(FORMATS[key], { value: Math.round(v) });
+      return String(v);
+    };
+    return changes.map((c) => i18n.t('train.chart.change', { name: i18n.t(`train.setting.${c.key}`), from: value(c.key, c.from), to: value(c.key, c.to) }))
+      .join(i18n.t('train.chart.changeSeparator'));
+  }
 
   // --- Mensajes sobre el escenario ------------------------------------------------------------------
   const generationBadge = el('div', { class: 'stage-badge generation-badge', attrs: { role: 'status' } });
@@ -714,7 +757,45 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // generación, hasta que esa generación termina.
   const restartedBadge = el('p', { class: 'stage-badge restarted-badge', attrs: { role: 'status' } });
   // Esquina superior izquierda, en el segundo renglón (D11): generación, el aviso y los demás mensajes.
-  view.corner.append(el('div', { class: 'stage-badges' }, generationBadge, restartedBadge, pauseBadge, machineBadge));
+  // Tarjeta del corte (D4): en la columna de avisos, debajo de los demás, sin tapar el centro de la calle.
+  const cutTitle = el('p', { class: 'cut-card-title' });
+  const cutText = el('p', { class: 'cut-card-text' });
+  // La élite contada (decisión de la parada de la tarea 4.2): una fila de rombos, uno por individuo que pasa tal cual.
+  const cutElite = el('div', { class: 'cut-elite', attrs: { 'aria-hidden': 'true' } });
+  const cutCard = el('div', { class: 'cut-card', attrs: { role: 'status' } }, cutTitle, cutElite, cutText);
+  cutCard.hidden = true;
+  view.corner.append(el('div', { class: 'stage-badges' }, generationBadge, restartedBadge, pauseBadge, machineBadge, cutCard));
+
+  /** Muestra el corte: la tarjeta con los números reales y, en la red, el hijo de la muestra (D4 y D5). */
+  function showCut() {
+    const t = state.training;
+    const b = t.breeding;
+    setText(cutTitle, 'train.cut.title', { generation: t.generation });
+    if (!b || b.mode === 'fresh') setText(cutText, 'train.cut.fresh', { rest: b ? b.rest : t.population });
+    else if (b.mode === 'manual') setText(cutText, 'train.cut.manual', { rest: b.rest, strength: Math.round(b.strength) });
+    else {
+      const key = b.elite === 0 ? 'train.cut.auto.none' : b.elite === 1 ? 'train.cut.auto.one' : 'train.cut.auto';
+      setText(cutText, key, { elite: b.elite, rest: b.rest, selection: b.selection, strength: Math.round(b.strength) });
+    }
+    const elite = b ? b.elite : 0;
+    cutElite.replaceChildren(...Array.from({ length: elite }, () => el('span', { class: 'cut-elite-mark' })));
+    cutElite.hidden = elite === 0;
+    cutCard.hidden = false;
+    const sample = t.mutationSample;
+    if (sample) {
+      const d = mutationDiff(sample.base, sample.network);
+      setText(sampleLine, 'train.network.sample', {
+        changed: d.changedWeights.size + d.changedBiases.size, total: d.total, mean: formatFixed(d.meanChange, 2, i18n.language),
+      });
+    }
+    sampleLine.hidden = !sample;
+    sampleDrawn = false;
+  }
+  function hideCut() {
+    cutCard.hidden = true;
+    sampleLine.hidden = true;
+    sampleDrawn = false;
+  }
 
   // --- Sincronizar el panel con el estado ------------------------------------------------------------
   /**
@@ -893,6 +974,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function drawNetwork() {
     if (!networkCard.open) return;
     const t = state.training;
+    // Durante el corte, el hijo de la muestra con lo que cambió la mutación, sin actividad: se dibuja una vez (D5).
+    const sample = cut.active ? t.mutationSample : null;
+    if (sample) {
+      if (!sampleDrawn) { networkView.render(sample.network, null, { marks: mutationDiff(sample.base, sample.network) }); sampleDrawn = true; }
+      return;
+    }
     const leader = t.world.agents[t.leaderIndex];
     // Mientras corre, con la guarda de destellos (sin-destellos-en-la-red D3); en pausa, exacta.
     networkView.render(t.networks[t.leaderIndex], [...leader.perception.sensors, leader.perception.speed], { live: !state.paused });
@@ -901,17 +988,22 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // --- Bucle ----------------------------------------------------------------------------------------
   const loop = createLoop({
     step: () => {
-      if (state.paused) return;
+      if (state.paused || cut.active) return;
       state.training.step();
       state.missions.observe(state.training);
     },
     render: () => {
       const t = state.training;
+      if (cut.active) {
+        if (!guideOn()) cut.end(); else cut.tick(clock());
+        if (!cut.active) hideCut();
+      }
       view.render(t.world, {
         showSensors: state.settings.showSensors || state.machineView,
         machineView: state.machineView,
         focus: t.leaderIndex,
         elite: Array.from({ length: t.eliteCount }, (_, i) => i),
+        focusElite: cut.active && t.eliteCount > 0, // en la largada, el del foco es la copia del mejor (D4)
       });
       drawNetwork();
       sync();
@@ -980,6 +1072,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     get paused() { return state.paused; },
     get session() { return state.session; },
     get missions() { return state.missions; },
+    get cut() { return cut; },
     undoUpdate,
     views,
     togglePause, nextGeneration, chooseLeader, undoChoice, restart, newPopulation, setSpeed, applySettings, resetSettings, saveChampion, continueFrom,

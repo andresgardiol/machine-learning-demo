@@ -61,9 +61,16 @@ Si cambiar la forma que devuelve `nextGeneration` rompe a quienes la llaman, se 
 
 *Alternativa descartada:* la tarjeta en el tablero. Queda lejos de la escena, que es donde se mira en ese momento.
 
+**Decisión tras la parada de la tarea 4.2 (Claude, 18 de noviembre de 2026).** Medido por la sub-sesión: al armar la generación nueva, los 400 autos están en la misma posición, así que la élite no se distingue en la largada aunque los demás se atenúen (opacidad 0,12). Opciones:
+- (a) contar la élite en la tarjeta, con una fila de marcas, y dejar marcado en la escena solo el auto del foco;
+- (b) dibujar la élite en abanico al costado: posiciones que no existen, contra el Art. 7;
+- (c) dejar el resaltado para cuando los autos ya se separaron, que la escena ya hace con el contorno y el rombo.
+
+Elegí **(a)**, que se suma a lo que ya da (c). La escena queda quieta con el auto del foco marcado como élite, y la tarjeta lleva una fila de tantas marcas como la élite (10 por defecto), con la forma de la marca de élite. El atenuado de los demás se puede quitar si no aporta nada en la largada.
+
 ### D5. La red de la muestra
 
-Durante el corte, la tarjeta de la red dibuja `mutationSample.network` sin actividad en vivo, con las marcas de `mutationDiff`. Debajo va un renglón: "Un hijo: la mutación cambió 37 de 48 pesos y sesgos".
+Durante el corte, la tarjeta de la red dibuja `mutationSample.network` sin actividad en vivo, con las marcas de `mutationDiff`. Debajo va un renglón: "Un hijo: la mutación cambió 70 de 70 pesos y sesgos, en promedio 0,03". Con la probabilidad por defecto (100 %) cambian todos, así que lo que enseña es el promedio de |nuevo − anterior|. `mutationDiff` devuelve también ese promedio.
 
 Para las marcas hay dos caminos, en este orden:
 - reusar la marca de lo cambiado del inspector, si `network-view` puede recibir `marks` sin traer el inspector entero;

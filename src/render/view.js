@@ -550,6 +550,11 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
   function drawElite(cars, px) {
     if (cars.length === 0) return;
     silhouettes(cars, colors.car, ELITE_ALPHA);
+    eliteMarks(cars, px);
+  }
+
+  /** La marca de élite sola: el contorno propio y el rombo en el centro. */
+  function eliteMarks(cars, px) {
     ctx.strokeStyle = colors.elite;
     ctx.lineWidth = 2.5 * px;
     ctx.beginPath();
@@ -794,6 +799,8 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
    *   scenery: dibuja el paisaje alrededor de la pista (encendido por defecto; machineView lo anula).
    *   focus: índice del agente a destacar y seguir (sin focus, dibuja el primer auto como siempre).
    *   elite: índices de los agentes de élite, que llevan una marca propia.
+   *   focusElite: el auto del foco lleva la marca de élite (corte de generación, entrenar-la-generacion-ensena D4:
+   *   en la largada todos están en el mismo lugar y el del foco es la copia del mejor).
    *   competitors: en una carrera (pestana-competir D11), por cada agente { color, number, state }:
    *     color es una clave de color ('car' para la persona, 'competitor1' a 'competitor6'); state,
    *     'racing', 'penalized' (cumpliendo la penalización), 'protected' (recién reaparecido) o 'done'.
@@ -801,7 +808,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
    */
   function render(world, {
     showSensors = true, machineView = false, scenery: showScenery = sceneryOn(), focus, elite = [], competitors = null, goal = null,
-    rays: raySpec = null,
+    rays: raySpec = null, focusElite = false,
   } = {}) {
     resize();
     const population = Number.isInteger(focus) && world.agents?.[focus] !== undefined;
@@ -924,6 +931,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
       drawElite(eliteCars, px);
       if (showSensors) drawRays(world.agents[focus].rays, px);
       drawCar(car, px);
+      if (focusElite) eliteMarks([car], px);
       return;
     }
     if (raySpec) {

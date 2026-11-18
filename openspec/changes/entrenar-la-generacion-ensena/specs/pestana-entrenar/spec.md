@@ -3,9 +3,11 @@
 ### Requirement: Corte de generación
 Con la guía activa y la velocidad del entrenamiento en 1× o 2×, al terminar
 cada generación la pestaña SHALL detener la simulación unos 2 segundos antes
-de que arranque la siguiente: la escena muestra la generación nueva en la
-largada, con los individuos que son copia de la élite resaltados por algo que
-no es solo el color, y los demás atenuados. A 4× o más rápido, y con la guía
+de que arranque la siguiente: la escena muestra quieta la generación nueva en
+la largada, con el auto del foco, que es la copia del mejor, marcado como
+élite. Como en la largada todos los autos están en el mismo lugar, la élite
+SHALL contarse en la tarjeta de generación y no distinguirse uno por uno en la
+escena. A 4× o más rápido, y con la guía
 apagada, MUST NOT haber corte. El corte MUST NOT cambiar el entrenamiento:
 con la misma semilla, el resultado de cada generación SHALL ser el mismo con
 corte que sin él. Durante el corte, pausar SHALL mantener el corte a la vista
@@ -14,7 +16,7 @@ arrancar la generación.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña sin configurar nada y termina la primera generación
-- **THEN** la simulación se detiene unos 2 segundos, la escena muestra la generación 2 en la largada con la élite resaltada, y después la generación arranca sola
+- **THEN** la simulación se detiene unos 2 segundos, la escena muestra la generación 2 en la largada con el auto del foco marcado como élite, y después la generación arranca sola
 
 #### Scenario: Rápido sin corte
 - **WHEN** la velocidad está en 4×, 8× o Máx. y termina una generación
@@ -41,7 +43,9 @@ Durante el corte, al lado de la escena y sin tapar los autos, la pestaña SHALL
 mostrar una tarjeta que dice qué pasó al pasar de generación, con los números
 del entrenamiento real: cuántos individuos pasan tal cual (la élite), de qué
 parte de la población salieron los padres de los demás (la selección) y con
-qué fuerza mutaron. Con la selección manual SHALL decir que la población es
+qué fuerza mutaron. La élite SHALL verse además como una fila de tantas marcas
+como individuos pasan tal cual, con la forma de la marca de élite de la escena.
+Con la selección manual SHALL decir que la población es
 hija del padre elegido; sin padre elegido, que la población salió al azar. La
 tarjeta SHALL estar en español y en inglés, anunciarse a los lectores de
 pantalla sin mover el foco y desaparecer cuando arranca la generación.
@@ -66,12 +70,12 @@ pantalla sin mover el foco y desaparecer cuando arranca la generación.
 Durante el corte, la tarjeta de la red del líder SHALL mostrar la red de la
 muestra de la mutación, con los pesos y sesgos que cambió la mutación marcados
 por algo que no es solo el color, y un renglón que diga cuántos cambiaron de
-cuántos. Al arrancar la generación, la tarjeta SHALL volver a la red del líder
+cuántos y cuánto cambiaron en promedio. Al arrancar la generación, la tarjeta SHALL volver a la red del líder
 en vivo. Si no hay muestra, la tarjeta SHALL seguir con la red del líder.
 
 #### Scenario: Pesos cambiados
 - **WHEN** termina la primera generación con los valores por defecto
-- **THEN** durante el corte la red muestra un hijo con sus pesos cambiados marcados, y el renglón dice cuántos cambiaron de cuántos
+- **THEN** durante el corte la red muestra un hijo con sus pesos cambiados marcados, y el renglón dice cuántos cambiaron de cuántos (con la probabilidad por defecto, todos) y cuánto cambiaron en promedio
 
 #### Scenario: Vuelta a la red en vivo
 - **WHEN** termina el corte
