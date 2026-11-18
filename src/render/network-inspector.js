@@ -467,10 +467,10 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       knobPlaceKey = '';
     }
     // Dónde van: depende solo de la geometría (no de los valores), así no saltan mientras cambian.
-    const placeKey = `${order}|${P.map((col) => col.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(';')).join('/')}|${r.toFixed(2)}`;
+    const placeKey = `${order}|${P.map((col) => col.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(';')).join('/')}|${r.toFixed(2)}|${spec.size ? `${spec.size.w}x${spec.size.h}` : ''}`;
     if (placeKey !== knobPlaceKey) {
       knobPlaceKey = placeKey;
-      knobPlaced = placeKnobs(targets, { centers: P, radius: r }).knobs;
+      knobPlaced = placeKnobs(targets, { centers: P, radius: r, size: spec.size ?? null }).knobs;
     }
     targets.forEach((t, k) => {
       const key = keys[k];
@@ -509,6 +509,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       }
       if (el.dataset.help !== help) el.dataset.help = help;
       el.dataset.sign = shown < 0 ? 'negative' : 'positive';
+      el.dataset.big = String(Boolean(spec.size) && !toggle); // pastilla grande, con ▲▼ (red-al-centro D8)
       const inside = at && at.x > -at.w && at.x < viewport.width + at.w && at.y > -at.h && at.y < viewport.height + at.h && !overSquares(at.x - at.w / 2, at.x + at.w / 2);
       el.hidden = !inside;
       if (inside) el.style.transform = `translate(${Math.round(at.x)}px, ${Math.round(at.y)}px) translate(-50%, -50%)`;

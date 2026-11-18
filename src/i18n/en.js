@@ -2090,7 +2090,7 @@ export default {
   'consigna.train.manual': 'Pick the leader when it does something promising.',
   'consigna.compete': 'Start the race and see who gets furthest on each track.',
   'consigna.inspect': 'Pause with the button below the network and go one step at a time.',
-  'consigna.lab.gates': 'Move the weights to 4 of 4, or press Play below the network.',
+  'consigna.lab.gates': 'Move the weights until the table says 4 of 4.',
   'consigna.lab.points': 'Press Play, below the network, and watch it separate the points.',
   'consigna.lab.driving': 'Press Play, below the network: it learns to drive by imitating.',
   'consigna.missions.allDone': '✓ You completed every mission in this tab.',
@@ -2155,4 +2155,12 @@ export default {
   'inspect.release': 'Release',
   'help.inspect.release.what': 'Stops looking at this neuron or connection and goes back to the panel with nothing selected, with the shortcuts. Also Escape on the network.',
   'help.inspect.release.why': 'From the shortcuts you quickly reach what matters most in the network right now.',
+  // red-al-centro: the three Lab experiments and by hand first in Gates (D7 and D8)
+  'lab.bar.experiment': 'Experiment',
+  'lab.kind.gates.line': 'solve by hand',
+  'lab.kind.points.line': 'let it learn',
+  'lab.kind.driving.line': 'let it copy you',
+  'lab.dragHint': 'Drag a weight ↕',
+  'consigna.lab.gates.learn': 'Now let it learn: press Play or Step and watch how it does it.',
+  'consigna.lab.gates.tries': 'Learning shows you how to fix the weights: press Play or Step.',
 };

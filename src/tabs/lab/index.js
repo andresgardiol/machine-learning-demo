@@ -64,6 +64,7 @@ import { roleTag } from '../../ui/role-tag.js';
 import { NET_ZONES } from '../shared/net-zones.js';
 import { netBar } from '../shared/net-bar.js';
 import { createChangesStrip } from '../shared/changes-strip.js';
+import { createHandFirst, handFirstNow } from './hand-first.js';
 import { PLANE_GRID, PLANE_FPS, mapShade, brightestRegion, PROBE, planeToPx, pxToPlane, nudgeProbe, probeLabelBox, probeAnswer } from '../../render/plane-view.js';
 
 /** Con tu manejo, el error de ahora (D11) se mide sobre una muestra fija de hasta tantos ejemplos. */
@@ -78,6 +79,8 @@ export const VIEWS = Object.freeze(['diagram', 'table', 'data']);
 export const DATA_TABLE_INTERVAL_MS = 200;
 /** Mismos anchos que Inspeccionar (red-al-centro D2): la misma preferencia, así la red mide lo mismo en las dos. */
 export const ZONES = NET_ZONES;
+/** Pastillas de peso y de sesgo con compuertas (red-al-centro D8): por lo menos 24 px de alto, con ▲▼ a la izquierda. */
+export const GATE_KNOB = Object.freeze({ w: 56, h: 26 });
 /** El fondo del plano se recalcula como mucho 15 veces por segundo (plane-view.js). */
 
 // --- Estado conservado entre montajes ------------------------------------------------------------
@@ -118,8 +121,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       lastPoints: null,
       dataFilter: { failing: false, group: 'all' },
       selectedRow: null,
+      handFirst: createHandFirst(), // a mano primero en Compuertas (red-al-centro D8)
     };
   }
+  state.handFirst ??= createHandFirst();
   const session = state.session;
   if (!state.playback) state.playback = createLabPlayback(kindPlayback(session.kind));
   const playback = state.playback;
@@ -265,9 +270,26 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       },
     },
   });
+  // "Arrastrá un peso ↕" (red-al-centro D8): con compuertas y la guía, junto a la primera pastilla de peso, hasta
+  // el primer cambio a mano. Es una marca visual: la consigna dice lo mismo para el lector de pantalla.
+  const dragHint = el('p', { class: 'guide lab-drag-hint', i18n: 'lab.dragHint', attrs: { 'aria-hidden': 'true' } });
+  dragHint.hidden = true;
+  let dragHintKey = '';
+  /** Pone la marca junto a la primera pastilla de peso (en las coordenadas de la capa de la red). */
+  function placeDragHint() {
+    const knob = isGates() && !state.handFirst.touched && state.view === 'diagram' && !recording
+      ? diagram.querySelector('.inspector-knob[data-knob-kind="weight"]:not([hidden])') : null;
+    const m = knob ? /translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(knob.style.transform) : null;
+    if (dragHint.hidden !== !m) dragHint.hidden = !m;
+    if (!m) { dragHintKey = ''; return; }
+    if (m[0] === dragHintKey) return;
+    dragHintKey = m[0];
+    // A la izquierda de la pastilla, sobre su línea: del lado de las entradas hay lugar y no tapa la salida.
+    dragHint.style.transform = `translate(${Math.round(Number(m[1]) - GATE_KNOB.w / 2 - 8)}px, ${Math.round(Number(m[2]))}px) translate(-100%, -50%)`;
+  }
   const headerLayer = el('div', { class: 'inspect-headers' });
   const neuronLayer = el('div', { class: 'inspect-neurons', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.neurons.label', on: { keydown: (e) => onNeuronKey(e) } });
-  inspector.overlay.append(headerLayer, neuronLayer);
+  inspector.overlay.append(headerLayer, neuronLayer, dragHint);
   let headerButtons = [];
   // Rótulo "Entra" de las entradas del diagrama (sistema-de-diseno-base 5.2): debajo de la cabecera de la capa 0.
   // "Decide", debajo de la cabecera de la primera capa que calcula (la oculta, o la de salida si no hay).
@@ -398,7 +420,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const opStrip = el('div', { class: 'lab-op' }, opBody, legend);
   const playButton = el('button', { class: 'tool small inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
   // Acción principal (jerarquia-de-botones D3): en esta pestaña es siempre la marcha.
-  applyMainAction({ run: playButton }, mainAction('lab'));
+  // La acción principal se aplica en sync: en Compuertas, mientras se resuelve a mano, no hay (red-al-centro D8).
   const stepButton = el('button', { class: 'tool small inspect-step', i18n: 'inspect.step', help: 'lab.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
   const sizeButtons = LEARNING_STEP_SIZES.map((s) => el('button', {
     class: 'segment', i18n: `lab.size.${s}`, help: `lab.size.${s}`,
@@ -811,13 +833,26 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Barra: los datos (D5)
   // ==================================================================================================
   let scenario = null;
-  const kindButtons = DATA_KINDS.map((k) => el('button', {
-    class: 'segment', i18n: `lab.kind.${k}`, help: `lab.kind.${k}`,
-    attrs: { type: 'button', role: 'radio', 'aria-checked': 'false' }, dataset: { kind: k },
+  // Los tres experimentos (red-al-centro D7): opciones grandes y numeradas, con su nombre y para qué son. Con las
+  // flechas el foco pasa de uno a otro; Enter o espacio lo elige.
+  const kindButtons = DATA_KINDS.map((k, n) => el('button', {
+    class: 'lab-experiment', help: `lab.kind.${k}`,
+    attrs: { type: 'button', role: 'radio', 'aria-checked': 'false' }, dataset: { kind: k, step: String(n + 1) },
     on: { click: () => setKind(k) },
-  }));
-  const kindGroup = barGroupNode({ id: 'lab-kind', labelKey: 'lab.bar.data', labelId: 'lab-kind-label', help: 'lab.bar.data' },
-    el('div', { class: 'segments', attrs: { role: 'radiogroup', 'aria-labelledby': 'lab-kind-label' } }, kindButtons));
+  }, el('span', { class: 'lab-experiment-name', i18n: `lab.kind.${k}` }), el('span', { class: 'lab-experiment-line', i18n: `lab.kind.${k}.line` })));
+  function onKindKey(e) {
+    const i = kindButtons.indexOf(document.activeElement);
+    if (i < 0) return;
+    const n = kindButtons.length;
+    const to = { ArrowRight: (i + 1) % n, ArrowDown: (i + 1) % n, ArrowLeft: (i - 1 + n) % n, ArrowUp: (i - 1 + n) % n, Home: 0, End: n - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    e.stopPropagation();
+    kindButtons.forEach((b, k) => b.setAttribute('tabindex', k === to ? '0' : '-1'));
+    kindButtons[to].focus();
+  }
+  const kindGroup = barGroupNode({ id: 'lab-kind', labelKey: 'lab.bar.experiment', labelId: 'lab-kind-label', help: 'lab.bar.data' },
+    el('div', { class: 'lab-experiments', attrs: { role: 'radiogroup', 'aria-labelledby': 'lab-kind-label' }, on: { keydown: onKindKey } }, kindButtons));
   const shapeOptions = POINT_SHAPES.map((shape) => el('button', {
     class: 'bar-track lab-shape', help: `lab.shape.${shape}`, i18nAttr: `aria-label:lab.shape.${shape}`,
     attrs: { type: 'button', role: 'radio', 'aria-checked': 'false', tabindex: '-1' }, dataset: { shape },
@@ -854,7 +889,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // El rótulo lleva el término (pestana-laboratorio, "Términos con su nombre"): qué es una compuerta.
   const gateGroup = barGroupNode({ id: 'lab-gate', labelKey: 'lab.bar.gate', labelId: 'lab-gate-label', help: 'lab.term.gate' },
     el('div', { class: 'bar-tracks', attrs: { role: 'radiogroup', 'aria-labelledby': 'lab-gate-label' }, on: { keydown: onGateKey } }, gateOptions));
-  const gatesReset = el('button', { class: 'tool bar-reset', i18n: 'bar.reset', help: 'lab.bar.resetGates', attrs: { type: 'button' }, on: { click: () => { if (session.resetGates()) restarted(); } } });
+  const gatesReset = el('button', {
+    class: 'tool bar-reset', i18n: 'bar.reset', help: 'lab.bar.resetGates', attrs: { type: 'button' },
+    // Restablecer los datos vuelve a empezar a mano: AND, Reproducir secundaria y la marca (red-al-centro D8).
+    on: { click: () => { state.handFirst.reset(); if (session.resetGates()) restarted(); else sync(); } },
+  });
   const gatesBar = el('div', { class: 'scenario-bar lab-bar', i18nAttr: 'aria-label:bar.title', attrs: { role: 'group' } },
     gateGroup, el('div', { class: 'bar-group bar-group-reset' }, gatesReset));
 
@@ -966,6 +1005,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const wasMid = Boolean(run().active && !run().active.done && run().active.cursor.started);
     if (!apply()) return;
     session.recordManual(snap, { gesture });
+    if (isGates()) state.handFirst.change({ gesture, solved: session.score.correct === session.split.practice.length });
     // Error de antes y de ahora (D11): "antes" es el de antes de empezar a mover la perilla. Un arrastre es
     // una comparación; con las flechas, las teclas seguidas sobre la misma perilla también. Otra perilla,
     // otro arrastre o un paso del aprendizaje empiezan otra.
@@ -1032,8 +1072,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       manualChange(() => run().setBias(k + 1, j, layer.biases[j]), gesture);
     }));
     session.manual.end();
+    state.handFirst.showSolution();
     errorCompare = null;
     afterGateChange();
+    sync();
     announce(t('lab.solution.done', { correct: session.score.correct }));
   }
   /** Después de un cambio con compuertas: la misión que se cumplió, si alguna (D10). */
@@ -1350,7 +1392,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     for (const m of shown) {
       writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
-    consigna.setConsigna(`consigna.lab.${session.kind}`);
+    // A mano primero (red-al-centro D8): la consigna cambia cuando Reproducir pasa a ser la principal.
+    const hand = state.handFirst;
+    consigna.setConsigna(isGates() && hand.done ? (hand.reason === 'tries' ? 'consigna.lab.gates.tries' : 'consigna.lab.gates.learn') : `consigna.lab.${session.kind}`);
+    applyMainAction({ run: playButton }, mainAction('lab', { handFirst: handFirstNow(session.kind, hand) }));
     consigna.setMission(current && !current.allDone ? { ...describeMission(current), reveal: missionReveal.has(current.id) } : current);
     // Con algo elegido la tarjeta cede su lugar, como en Inspeccionar (grupo 5).
     show(consigna.node, !state.selected);
@@ -1481,6 +1526,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // (sin-destellos-en-la-red D3); de a fases, capas o neuronas, o en pausa, todo exacto.
     const live = running;
     inspector.render({ ...common, live, pill, knobs: knobSpec(), maps: mapsFn, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
+    placeDragHint();
     table.render({ ...common, live, visible: state.view === 'table', changesVersion: `${changesVersion}|${anim ? now : ''}`, filter: state.filter });
     placeOverlay();
     if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
@@ -1594,6 +1640,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         input: (i) => t(isGates() ? 'lab.knob.switch.label' : 'lab.knob.input.label', { name: nameOf(0, i) }),
       },
       help: { weight: 'lab.knob.weight', bias: 'lab.knob.bias', input: isGates() ? 'lab.knob.switch' : 'lab.knob.input' },
+      // Con compuertas, las pastillas de peso y sesgo crecen y muestran que se arrastran (red-al-centro D8).
+      size: isGates() ? GATE_KNOB : null,
     };
   }
 

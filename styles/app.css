@@ -2099,3 +2099,32 @@ input[type="range"]:disabled::-moz-range-thumb, input[type="range"][aria-disable
 .inspect-guide-line { margin: 0; font-size: var(--text-body); color: var(--color-text-muted); }
 .app[data-guide="on"] .inspect-empty-text { display: none; }
 .inspect-release-selection { flex: 0 0 auto; white-space: nowrap; }
+/* Los tres experimentos del Laboratorio (red-al-centro D7): opciones grandes (44 px), numeradas en un círculo como
+   las pestañas, con su nombre y para qué son. La elegida, con el estilo de opción elegida. */
+.lab-experiments { display: flex; gap: var(--space-1); }
+.lab-experiment {
+  display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; column-gap: var(--space-2); align-items: center;
+  min-height: var(--control-h-lg, 44px); padding: 2px var(--space-2); text-align: left; cursor: pointer; color: var(--color-text);
+  background: var(--color-surface); border: 1px solid var(--color-control-border); border-radius: var(--radius-control); font: inherit;
+}
+.lab-experiment::before {
+  content: attr(data-step); grid-row: 1 / 3; display: inline-grid; place-items: center; width: 22px; height: 22px;
+  border-radius: var(--radius-round); border: 1px solid currentColor; font-size: var(--text-label);
+}
+.lab-experiment-name { font-size: var(--text-body); font-weight: var(--weight-bold); line-height: 18px; white-space: nowrap; }
+.lab-experiment-line { font-size: var(--text-label); line-height: 14px; color: var(--color-text-muted); white-space: nowrap; }
+.lab-experiment:hover { border-color: var(--color-accent); }
+.lab-experiment[aria-checked="true"] { background: var(--color-surface-2); border-color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+.lab-experiment:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+/* Compuertas, a mano primero (red-al-centro D8): pastillas de peso y sesgo de 26 px, con ▲▼ a la izquierda y el
+   cursor de arrastre vertical; y la marca "Arrastrá un peso" junto a la primera. */
+.inspector-knob[data-big="true"] { height: 26px; min-height: 26px; min-width: 56px; padding: 0 var(--space-2) 0 var(--space-1); gap: var(--space-1); font-size: var(--text-body); cursor: ns-resize; }
+.inspector-knob[data-big="true"]::before { content: "▲\A▼"; white-space: pre; font-size: var(--text-label); line-height: 10px; transform: scale(0.75); font-weight: var(--weight-regular); color: var(--color-text-muted); }
+.lab-drag-hint {
+  position: absolute; top: 0; left: 0; margin: 0; pointer-events: none; z-index: 2; white-space: nowrap;
+  padding: var(--space-1) var(--space-2); border: 1px solid var(--color-accent); border-radius: var(--radius-card);
+  background: var(--color-surface); color: var(--color-text); font-size: var(--text-body); font-weight: var(--weight-bold);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+}
+.lab-drag-hint::after { content: " ▶"; color: var(--color-accent); }
+.lab-drag-hint[hidden] { display: none; }

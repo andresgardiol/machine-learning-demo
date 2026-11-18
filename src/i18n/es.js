@@ -2090,7 +2090,7 @@ export default {
   'consigna.train.manual': 'Elegí al líder cuando haga algo prometedor.',
   'consigna.compete': 'Largá y mirá quién llega más lejos en cada pista.',
   'consigna.inspect': 'Pausá con el botón de abajo de la red y avanzá de a un paso.',
-  'consigna.lab.gates': 'Mové los pesos hasta 4 de 4, o tocá Reproducir abajo de la red.',
+  'consigna.lab.gates': 'Mové los pesos hasta que la tabla diga 4 de 4.',
   'consigna.lab.points': 'Tocá Reproducir, abajo de la red, y mirá cómo separa los puntos.',
   'consigna.lab.driving': 'Tocá Reproducir, abajo de la red: aprende a manejar imitando.',
   'consigna.missions.allDone': '✓ Cumpliste todas las misiones de esta pestaña.',
@@ -2155,4 +2155,12 @@ export default {
   'inspect.release': 'Soltar',
   'help.inspect.release.what': 'Deja de mirar esta neurona o conexión y vuelve al panel sin nada elegido, con los atajos. También con Escape sobre la red.',
   'help.inspect.release.why': 'Desde los atajos se llega rápido a lo que más pasa ahora en la red.',
+  // red-al-centro: los tres experimentos del Laboratorio y a mano primero en Compuertas (D7 y D8)
+  'lab.bar.experiment': 'Experimento',
+  'lab.kind.gates.line': 'resolvé a mano',
+  'lab.kind.points.line': 'que aprenda sola',
+  'lab.kind.driving.line': 'que te imite',
+  'lab.dragHint': 'Arrastrá un peso ↕',
+  'consigna.lab.gates.learn': 'Ahora dejá que aprenda: tocá Reproducir o Paso y mirá cómo lo hace.',
+  'consigna.lab.gates.tries': 'El aprendizaje te muestra cómo corregir los pesos: tocá Reproducir o Paso.',
 };

@@ -236,6 +236,7 @@ const CONSIGNAS = [
   'consigna.drive', 'consigna.drive.plain', 'consigna.drive.circuit', 'consigna.drive.circuit.plain',
   'consigna.rules', 'consigna.train', 'consigna.train.manual', 'consigna.compete', 'consigna.inspect',
   'consigna.lab.gates', 'consigna.lab.points', 'consigna.lab.driving', 'consigna.missions.allDone',
+  'consigna.lab.gates.learn', 'consigna.lab.gates.tries',
 ];
 
 test('Tarjeta de consigna: cada consigna tiene hasta 90 caracteres en los dos idiomas', () => {
