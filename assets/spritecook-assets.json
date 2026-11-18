@@ -1,0 +1,15 @@
+{
+  "_nota": "Recursos generados con SpriteCook. sha12 = primeros 12 caracteres del SHA-256 del archivo original descargado.",
+  "assets": [
+    {
+      "asset_id": "e8cdfb55-bfee-4c2a-9663-6fbe5ba4649f",
+      "sha12": "2758e01d1d83",
+      "label": "Arte de la vista previa (1376×768, gemini-nano-banana-2.1). Base de og-image.png, compuesto con título y subtítulo."
+    },
+    {
+      "asset_id": "308ff4ab-4ef9-41d2-b479-a620b4b6bc35",
+      "sha12": "2e6841afecc8",
+      "label": "Ícono del autito (32×32, pixel-engine-image-v1). Base de favicon.svg, favicon.png y apple-touch-icon.png: verdes llevados a --color-car y sin los píxeles celestes de la cola."
+    }
+  ]
+}
