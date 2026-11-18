@@ -32,6 +32,8 @@ export const SETTINGS = Object.freeze([
   { key: 'showSensors', group: 'instant', kind: 'toggle', default: true },
   { key: 'showNetwork', group: 'instant', kind: 'toggle', default: true },
   { key: 'showChart', group: 'instant', kind: 'toggle', default: true },
+  // Lista completa de misiones de la vista de entrenamiento (entrenar-red-primero D2): plegada por defecto.
+  { key: 'showMissions', group: 'instant', kind: 'toggle', default: false },
   // Próxima generación: evolución
   { key: 'population', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.population), step: 1 },
   { key: 'mutationStrength', group: 'nextGeneration', kind: 'range', ...rangeOf(EVOLUTION_LIMITS.mutationStrength), step: 1 },

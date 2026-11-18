@@ -30,6 +30,7 @@ import { trainingDescription } from '../shared/stage-text.js';
 import { el } from '../../ui/dom.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { statStrip, boardCard } from '../../ui/board.js';
+import { boardOrder, missionsSummary } from './layout.js';
 import {
   button, switchButton, sliderRow, optionGroup, createTextSetter, inlineConfirm,
 } from '../../ui/controls.js';
@@ -399,9 +400,21 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       el('span', { class: 'mission-bar', attrs: { 'aria-hidden': 'true' } }, fill));
     return { id: m.id, row, status, fill };
   });
-  const missions = el('section', { class: 'guide train-missions' },
-    el('h2', { class: 'panel-heading', i18n: 'train.missions.title' }),
-    el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row)));
+  // La lista completa va plegada en un renglón "Todas las misiones · N de 4" (entrenar-red-primero D2),
+  // con el patrón de "Más sobre esta pestaña": `details` y `summary` dan el estado al lector de pantalla
+  // y el manejo con el teclado. La misión en curso ya está en la tarjeta de consigna. Abrir o cerrar se
+  // recuerda en los ajustes (como las tarjetas del tablero) y no toca el entrenamiento.
+  const missionsLabel = el('span', { class: 'train-missions-label' });
+  const missionsSummaryNode = el('summary', { class: 'guide-more-summary tertiary train-missions-summary', help: 'train.missions.toggle' }, missionsLabel);
+  const missions = el('details', { class: 'guide guide-more train-missions' },
+    missionsSummaryNode,
+    el('ol', { class: 'mission-list guide-more-body' }, missionRows.map((r) => r.row)));
+  missions.open = state.settings.showMissions;
+  missionsSummaryNode.setAttribute('aria-expanded', String(missions.open));
+  missions.addEventListener('toggle', () => {
+    missionsSummaryNode.setAttribute('aria-expanded', String(missions.open));
+    if (missions.open !== state.settings.showMissions) state.settings = { ...state.settings, showMissions: missions.open };
+  });
 
   // --- Panel: configuración ----------------------------------------------------------------------
   // Una confirmación de entrenamiento nuevo en el grupo de red y otra pegada a la barra de escenario,
@@ -644,7 +657,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (view === 'brains') libraryView.cancelConfirms();
   }
 
-  // --- Tablero: indicadores, última generación, curva y red (design.md D8) ---------------------------
+  // --- Tablero: indicadores, última generación, red y curva (design.md D8; entrenar-red-primero D1) ----
   const strip = statStrip([
     { id: 'generation', labelKey: 'train.stats.generation' },
     { id: 'alive', labelKey: 'train.stats.alive' },
@@ -677,7 +690,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('li', { class: 'network-note', i18n: 'train.network.legend.note' }));
   networkCard.append(networkZone, legend);
 
-  board.append(strip.node, lastLine, chartCard.node, networkCard.node);
+  board.append(...boardOrder({ strip: strip.node, lastLine, chart: chartCard.node, network: networkCard.node }));
 
   const chart = createFitnessChart({ container: chartZone, i18n });
   const networkView = createNetworkView({ container: networkZone, i18n });
@@ -759,6 +772,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
     card.setMission(current && !current.allDone ? { ...describeMission(current), reveal: missionReveal.has(current.id) } : current);
+    const summary = missionsSummary(missionList);
+    setText(missionsLabel, 'train.missions.summary', summary);
 
     // Selección manual (según el modo deseado): elegir y deshacer, con la línea de estado del padre.
     const manual = s.selectionMode === 'manual';
