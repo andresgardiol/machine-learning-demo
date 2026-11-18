@@ -48,7 +48,7 @@ pantalla sin mover el foco y desaparecer cuando arranca la generación.
 
 #### Scenario: Por defecto
 - **WHEN** termina la primera generación con los valores por defecto
-- **THEN** la tarjeta dice que pasan tal cual los 10 mejores y que los otros 390 son hijos del 10 % mejor con una mutación de fuerza 29 %
+- **THEN** la tarjeta dice que pasan tal cual los 10 mejores y que los otros 390 son hijos del 10 % mejor, con la fuerza de mutación con que se armó la generación 2 (la del enfriamiento)
 
 #### Scenario: Con selección manual
 - **WHEN** termina una generación con la selección manual y un padre elegido en la generación 5
