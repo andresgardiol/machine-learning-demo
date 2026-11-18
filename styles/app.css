@@ -2149,3 +2149,26 @@ input[type="range"]:disabled::-moz-range-thumb, input[type="range"][aria-disable
 .card[data-card="drive-action"] > .card-body { min-height: 0; }
 .card[data-card="drive-tape"][data-open="true"] { flex-basis: 0; }
 .card[data-card="drive-tape"] > .card-body { min-height: 0; }
+
+/* ---- Competir sin cortes (manejo-amable-y-competir-sin-cortes D4) ----------------------------------------------
+   Marcador: cada columna de cifras con su ancho; los encabezados no se parten ni se salen de su caja. */
+.compete-score thead th { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.compete-score thead th:nth-child(3) { width: 5.6em; }
+.compete-score thead th:nth-child(4) { width: 5.8em; }
+.compete-score thead th:last-child { width: 7em; }
+/* El nombre del competidor en la tabla por pista y en "Primero": en un renglón, con puntos suspensivos y el nombre
+   entero en el tooltip (title). */
+.compete-table-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
+.board-stat[data-stat="leader"] .board-stat-value { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+/* Un renglón por competidor: el nombre y el tipo en la misma línea, el tipo en gris. La lista se desplaza por dentro
+   cuando no entra (con seis), así el panel no se desplaza. */
+.compete-item { min-height: 30px; padding: 0 var(--space-2); }
+.compete-item .compete-who { flex-direction: row; align-items: baseline; gap: var(--space-2); }
+.compete-item .compete-name { flex: 0 1 auto; }
+.compete-item .compete-meta { flex: 1 1 0; min-width: 2.5em; }
+.panel:has(> .compete-panel) { overflow-y: auto; }
+.compete-panel { flex: 1 1 auto; min-height: 0; }
+.compete-panel > .compete-list-block { flex: 0 1 auto; min-height: calc(3 * 31px + 40px); }
+.compete-list-block .compete-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+/* A 1366×768 el panel de Competir entra con tres competidores: menos espacio entre bloques (D4). */
+.compete-panel { gap: var(--space-1); }

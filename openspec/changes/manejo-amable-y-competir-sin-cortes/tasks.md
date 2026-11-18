@@ -99,8 +99,18 @@
 
 ## 4. Competir sin cortes
 
-- [ ] 4.1 Marcador con anchos de columna y encabezados que no se salen; el nombre de la pista en una línea con la forma corta o puntos suspensivos y tooltip; el número y su unidad juntos en el cartel (D4). Verificación: escenarios de *Marcador y tabla sin cortes*, medidos con el guion.
-- [ ] 4.2 Nombre accesible y tooltip en los botones de solo ícono de la lista de competidores. Verificación: escenarios de *Botones de solo ícono con nombre*; `auditTooltips()` en 0 para esos botones.
+- [x] 4.1 Marcador con anchos de columna y encabezados que no se salen; el nombre de la pista en una línea con la forma corta o puntos suspensivos y tooltip; el número y su unidad juntos en el cartel (D4). Verificación: escenarios de *Marcador y tabla sin cortes*, medidos con el guion.
+
+  *Hecho: en `styles/app.css`, los encabezados del marcador no se parten (`nowrap` con puntos suspensivos por las dudas) y las columnas de cifras tienen su ancho: Lleva 5,6 em, Choques 5,8 em y Estado 7 em (antes 4,6, 4,2 y 6,4). El nombre del competidor en la tabla por pista y en «Primero» va en un renglón, con puntos suspensivos y el nombre entero en el `title`. Entre el número de la meta y su unidad, un espacio que no se parte (`\u00a0`) en `stage.describe.goal*` y `compete.goal.*`, en los dos idiomas; las pruebas de la descripción de la carrera lo esperan así.*
+
+  *Decisión fuera del `design.md`: "el nombre de la pista" de la tabla por pista y de «Primero» es el del competidor («Calle, tráfico nuevo», que lleva el nombre de la pista donde entrenó); las columnas de las pistas ya usan la forma corta. Para el nombre del competidor no hay forma corta: se usa directamente puntos suspensivos con el tooltip.*
+
+  *Medido (guion): ningún encabezado sale de su caja (antes «Choques» salía 7 px) y entre «Choques» y «Estado» hay 16 px (antes, −3: encimados); en inglés, 13 y 20 px (antes 1). «Calle, tráfico nuevo» en 1 renglón a 1440, 1366 y 1236 (antes 1, 2 y 3), con puntos suspensivos y su `title` a 1366 y 1236; «Primero» en 1 renglón a 1236 (antes 3). En el cartel, «1000 m» en el mismo renglón a 1440 y 1366 (antes, separados). `auditSistema()` y `auditHierarchy()` en 0 ("Choques y estado", "Pista en una línea", "Nombre completo", "Meta en el cartel").*
+- [x] 4.2 Nombre accesible y tooltip en los botones de solo ícono de la lista de competidores. Verificación: escenarios de *Botones de solo ícono con nombre*; `auditTooltips()` en 0 para esos botones.
+
+  *Comprobado antes de tocar: los botones 👁 y ✕ de cada competidor ya tenían nombre accesible con el nombre del competidor («Sensores de 7 sensores: ocultos», «Quitar a 7 sensores de la carrera») y tooltip en los dos idiomas (`compete.sensorsOf`, `compete.remove`). No hubo que cambiarlos. El nombre del competidor en la lista suma su `title`, por si se corta.*
+
+  *Medido (guion, `10-competir-tooltip-ojo`): con el mouse del protocolo sobre el 👁 aparece «Muestra u oculta en el escenario los sensores de este competidor, se lo siga o no» ("Sensores de un competidor"). `auditTooltips()` en 0 en todas las vistas de Competir, antes y después ("Auditoría"). "Lector de pantalla": el nombre accesible del ✕ es «Quitar a 7 sensores de la carrera» (dice "Quitar a 7 sensores" y agrega de dónde); sin probar con un lector de pantalla.*
 - [ ] 4.3 Competidores en un renglón y el panel sin desplazarse a 1366×768 con tres; con seis, solo la lista. Si con tres el panel se sigue desplazando después de achicar los espacios, **parar y consultar**. Verificación: escenarios de *Panel a la vista en 1366×768* y los de *Pestaña a la vista sin desplazarse* a 1440×900, que siguen igual.
 
 ## 5. Cierre
