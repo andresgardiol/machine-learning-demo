@@ -190,10 +190,33 @@
 
 ## 8. Cierre
 
-- [ ] 8.1 `npm test` completo, y `auditSistema()`, `auditHierarchy()` y `auditTooltips()` en todas las vistas del guion, en los dos idiomas. Verificación: los resultados anotados. Lo que ya fallaba antes se anota sin arreglarlo.
-- [ ] 8.2 Fluidez: tiempo por cuadro de Inspeccionar con la red más grande, con la escena grande y la memoria de cuadros, y del Laboratorio con Tu manejo, en Chrome sin ventana, antes y después. Si alguno baja de la medida sustituta de 55 cuadros por segundo, **parar y consultar**. Verificación: tabla con las medidas.
-- [ ] 8.3 El después con el mismo guion en `borradores/red-al-centro/despues/`, con vistas nuevas: el caso del choque con la repetición a 2 s, después de "Elegir esta neurona", después de reintentar con la neurona apagada, la franja de cambios y la marca de "Arrastrá un peso". Escribir `comparacion.md` con el antes y el después lado a lado y las medidas. Verificación: la comparación muestra cada punto de *What Changes*.
-- [ ] 8.4 Verificación en el navegador contra el filtro de entrada:
+- [x] 8.1 `npm test` completo, y `auditSistema()`, `auditHierarchy()` y `auditTooltips()` en todas las vistas del guion, en los dos idiomas. Verificación: los resultados anotados. Lo que ya fallaba antes se anota sin arreglarlo.
+
+  *Medido: `npm test`, 1491 pruebas, todas pasan. Las tres auditorías en las 28 vistas del después (las 24 del antes y las cuatro nuevas), a 1440×900 y 1366×768, en español y, en las vistas 11 y 12, en inglés: `auditSistema()` 0, `auditHierarchy()` 0 y `auditTooltips()` 0 en todas. En el antes también estaban en 0. Durante el trabajo aparecieron y se corrigieron: el tooltip de «Seguir al auto» sin texto (faltaba `help.camera.reset.rays`) y «Elegir esta neurona» compacto fuera de una barra densa.*
+- [x] 8.2 Fluidez: tiempo por cuadro de Inspeccionar con la red más grande, con la escena grande y la memoria de cuadros, y del Laboratorio con Tu manejo, en Chrome sin ventana, antes y después. Si alguno baja de la medida sustituta de 55 cuadros por segundo, **parar y consultar**. Verificación: tabla con las medidas.
+
+  *Hecho: `borradores/red-al-centro/medir-fluidez.mjs`, en tiempo real (sin el reloj virtual): guarda en la biblioteca un cerebro de 21-16-16-16-4 (20 sensores y la velocidad, tres capas de 16, pesos al azar con semilla), lo elige en Inspeccionar reproduciendo a 1× y mide 3 s de cuadros; después, el Laboratorio con Tu manejo reproduciendo, 3 s. Con el cambio, el cerebro grande choca y el caso congela la reproducción: el guion reinicia al ver el caso para medir siempre reproduciendo.*
+
+  *Medido (3 corridas cada uno, 1440×900):*
+
+  | | Antes (`926226d`) | Después |
+  |---|---|---|
+  | Inspeccionar, red 21-16-16-16-4 | 60 fps; mediana 16,7 ms; p95 16,7–16,8; máximo 16,8; escena 325×210 | 60 fps; mediana 16,7 ms; p95 16,7–16,8; máximo 16,8; escena 374×616; memoria llena de cuadros |
+  | Laboratorio, Tu manejo | 59,7–60 fps; mediana 16,7 ms; máximo 16,8–33,3 (un cuadro de más de 20 ms en 2 de 3) | 59,7–60 fps; mediana 16,7 ms; máximo 16,8–33,3 (un cuadro de más de 20 ms en 2 de 3); escena 374×450 |
+
+  *Ninguna baja de 55: no hubo parada.*
+- [x] 8.3 El después con el mismo guion en `borradores/red-al-centro/despues/`, con vistas nuevas: el caso del choque con la repetición a 2 s, después de "Elegir esta neurona", después de reintentar con la neurona apagada, la franja de cambios y la marca de "Arrastrá un peso". Escribir `comparacion.md` con el antes y el después lado a lado y las medidas. Verificación: la comparación muestra cada punto de *What Changes*.
+
+  *Hecho: `borradores/red-al-centro/despues/` con las 24 vistas del antes y cuatro nuevas a 1440×900 (13 la repetición a 2 s, 14 después de «Elegir esta neurona», 15 después de reintentar con la neurona apagada, 16 Compuertas con la solución), su `indice.md` y las versiones en grises. La franja de cambios está en la 04 y la 08, y la marca de «Arrastrá un peso» en la 07 y la 12. `borradores/red-al-centro/comparacion.md` pone el antes y el después lado a lado, punto por punto de *What Changes*, con las medidas; todos sus enlaces a imágenes existen (comprobado con un guion de shell).*
+- [x] 8.4 Verificación en el navegador contra el filtro de entrada:
+
+  *Observado y medido en Chrome sin ventana, con el guion de verificación (`capturar.mjs verificacion`, que anota en `verificacion/verificacion.json`):*
+  - *Desde el choque se llega a la neurona que decidió en dos clics («Elegir esta neurona» la elige y muestra su cuenta) y se reintenta con un cambio: con la neurona 5 apagada, el auto vuelve a chocar, antes (190 m contra 204).*
+  - *En Compuertas no hay acción principal al abrir y la marca «Arrastrá un peso» señala la primera pastilla (lo primero que se destaca es la pastilla).*
+  - *Con la guía apagada no se ven la línea de guía, la leyenda, las misiones ni la marca; «Reproducir» cambia de estilo igual.*
+  - *Reiniciar (R) cierra el caso y vuelve a la salida con el mismo tráfico; Deshacer saca la franja; Restablecer desde la barra del Laboratorio vuelve a empezar a mano.*
+
+  *Sin probar: el choque de un cerebro sin capas ocultas o sin ninguna acción encendida en el navegador (lo cubren las pruebas de Node) y un choque antes de 3 s. No se midió si la red aprende.*
   - desde un choque, llegar a la neurona que decidió y reintentar con un cambio;
   - en Compuertas, que lo primero que se destaca sea la pastilla;
   - la guía y la marca se ocultan con la guía apagada;
