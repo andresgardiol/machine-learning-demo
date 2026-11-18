@@ -2,7 +2,7 @@
 
 ## 1. Antes
 
-- [ ] 1.1 Armar `borradores/red-al-centro/capturar.mjs` a partir del guion más reciente (`borradores/entrenar-mutacion-a-la-vista/capturar.mjs`). Usa Chrome sin ventana, tiempo virtual y un perfil nuevo por vista. Vistas, a 1440×900 y 1366×768:
+- [x] 1.1 Armar `borradores/red-al-centro/capturar.mjs` a partir del guion más reciente (`borradores/entrenar-mutacion-a-la-vista/capturar.mjs`). Usa Chrome sin ventana, tiempo virtual y un perfil nuevo por vista. Vistas, a 1440×900 y 1366×768:
   - Inspeccionar al abrir;
   - con una neurona elegida;
   - la tabla de pesos;
@@ -26,7 +26,22 @@
   - los resultados de `auditSistema()`, `auditHierarchy()` y `auditTooltips()`.
 
   Verificación: dos corridas seguidas sobre el mismo código dan las mismas medidas.
-- [ ] 1.2 Sacar el antes en `borradores/red-al-centro/antes/` sobre el commit de partida, con su `indice.md`, también en escala de grises. Verificación: el índice lista todas las vistas y las medidas.
+
+  *Hecho: `borradores/red-al-centro/capturar.mjs`, copia del guion de `entrenar-mutacion-a-la-vista` (Chrome sin ventana por el protocolo DevTools, tiempo virtual, perfil nuevo por vista, `Math.random` con semilla) con las diez vistas pedidas a 1440×900 y 1366×768, más Inspeccionar y Compuertas en inglés a 1440 (22 vistas). Las medidas buscan por clase lo que existe antes y después: anchos de `.stage`, `.board` y `.panel`; el lienzo de la red y el de la escena con su zona; los renglones de los controles de `.inspect-controls`; los controles a la vista arriba (`.inspect-controls` y la franja nueva) y abajo (`.inspect-playbar`) con los que tienen `aria-disabled`; el desborde de cada zona; `auditHierarchy().filled`; qué se ve de la guía; el alto de `.inspector-knob`; los renglones del texto de las acciones del panel del Laboratorio (con `Range.getClientRects`); y las tres auditorías. `indice.mjs` las pasa a tabla.*
+
+  *El choque: con los valores por defecto (velocidad 20 m/s) el cerebro de ejemplo `example:street-new` **no choca** en 60 s (medido en Node con el núcleo: calle, 3 carriles, tráfico 50 %, irregularidad 0, semilla 1). Se usa la irregularidad en 100 %, que choca contra un vehículo a los 10,47 s y 203,9 m (628 pasos): medido en Node, y en el navegador el guion lo encuentra en el mismo paso. El guion la cambia en la barra (evento `change` de `#inspect-irregularity`).*
+
+  *Medido: dos corridas seguidas sobre `926226d` sin tocar dieron `medidas-1440x900.json` y `medidas-1366x768.json` idénticos byte a byte (`cmp`). Las imágenes no son idénticas byte a byte (el flujo de la red), como en los cambios anteriores.*
+- [x] 1.2 Sacar el antes en `borradores/red-al-centro/antes/` sobre el commit de partida, con su `indice.md`, también en escala de grises. Verificación: el índice lista todas las vistas y las medidas.
+
+  *Hecho: `borradores/red-al-centro/antes/` sobre `926226d`, con 44 capturas (color y gris) e `indice.md` con las 22 vistas.*
+
+  *Medido (1440×900, español):*
+  - *Inspeccionar: zonas 708 / 360 / 360; la red en la izquierda, 708×653; la escena en el centro, 325×210. Sobre la red, 14 controles en 2 renglones, 3 sin acción (Deshacer, Restablecer la red, Ver original); abajo, 8, con «Atrás» sin acción. Con dos cambios, la barra pasa a 3 renglones y la red baja a 708×625 (28 px). Con una neurona elegida no se ve la guía: ni la consigna, ni «Más sobre esta pestaña», ni los atajos. Una sola acción principal (Pausar). Sin desplazamiento en ninguna zona. Auditorías en 0.*
+  - *1366×768: zonas 634 / 360 / 360; red 634×521; escena 325×210.*
+  - *Choque: al chocar, «Pausar» sigue siendo la principal y el intento vuelve a empezar solo a los 60 cuadros.*
+  - *Laboratorio: las mismas zonas; la red 708×565. Pastillas de peso de 18 px de alto. Los experimentos son tres segmentos de 32 px bajo «Datos». «Reproducir» es la principal en Compuertas desde el principio. Sobre la red, 13 controles, 2 sin acción. Con Tu manejo a 1366, el panel se desplaza 23 px por dentro.*
+  - *Distinto de lo observado el 17 de noviembre: «Reiniciar pesos», «Red de siempre» y «Guardar como cerebro» **no** se parten hoy, ni a 1440 ni a 1366 (un renglón cada una). Con Compuertas y Puntos, «Guardar como cerebro» no está en el panel.*
 
 ## 2. Disposición: el mundo a la izquierda, la red al centro
 
