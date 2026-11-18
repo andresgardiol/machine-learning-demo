@@ -23,7 +23,7 @@ const SESSIONS = {
 const SPEC = {
   drive: { pass: null, distance: null, machine: { targets: ['machineView'] } },
   rules: { pass: { targets: ['editor'] }, passMany: { targets: ['editor'] }, traffics: { targets: ['newTraffic'] } },
-  train: { generations: null, passed: null, save: { targets: ['save'] }, fitness: { targets: ['fitness'], view: 'settings' } },
+  train: { generations: null, passed: null, save: { targets: ['save'] }, fitness: { targets: ['fitness'] } },
   compete: { tracks: { targets: ['track'] }, unseen: { targets: ['track'] }, beatBrain: { targets: ['run'] } },
   inspect: {
     follow: { targets: ['step', 'sizeOperation'] },

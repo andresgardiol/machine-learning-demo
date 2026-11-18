@@ -169,11 +169,14 @@ export const TRAFFIC_SETTINGS = Object.freeze(['lanes', 'density', 'irregularity
 export const WAITING_KEYS = Object.freeze(['population', 'mutationStrength', 'mutationCooling', 'elite', 'selection', 'mutationRate',
   'crossover', 'fitness', 'maxDuration', 'slowRule', 'trafficMode']);
 
+/** Ajustes de "Probá esto" que avisan solo en su bloque, sin marcar la pestaña de ajustes (entrenar-mesa-de-trabajo D3). */
+const TRY_THIS_ONLY = Object.freeze(['fitness']);
+
 /**
  * ¿Hay ajustes esperando a la próxima generación que marcar en la pestaña de ajustes?
  * @param {object|null} pending cambios pendientes del entrenamiento (`training.pending`)
  */
-export const settingsWaiting = (pending) => Object.keys(pending ?? {}).some((k) => WAITING_KEYS.includes(k));
+export const settingsWaiting = (pending) => Object.keys(pending ?? {}).some((k) => WAITING_KEYS.includes(k) && !TRY_THIS_ONLY.includes(k));
 
 /**
  * Ajustes que vuelve a sus valores por defecto "Restablecer ajustes": los del panel (población,

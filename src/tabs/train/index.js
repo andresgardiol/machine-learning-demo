@@ -123,7 +123,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
 
   const setText = createTextSetter(i18n);
-  const view = createStageView({ container: stage, store });
+  // Zona del escenario (entrenar-mesa-de-trabajo D2), como la de Reglas a mano: la escena arriba, que
+  // crece, y la barra de marcha debajo, siempre a la vista en cualquier vista del panel.
+  const scene = el('div', { class: 'train-scene' });
+  const stageZone = el('div', { class: 'train-stage-zone' }, scene);
+  stage.append(stageZone);
+  const view = createStageView({ container: scene, store });
   const focusStage = () => stage.focus({ preventScroll: true });
   // Descripción en texto del escenario, para lectores de pantalla (D9).
   const description = stageDescription({ stage });
@@ -372,7 +377,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     speeds.row, factor,
     el('div', { class: 'run-secondary' }, restartButton, newPopulationButton),
     toolbarConfirm.node);
-  // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
+  // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna y la misión en curso. La marcha va en la
+  // barra de abajo de la escena (entrenar-mesa-de-trabajo D2).
   // "Mostrame" (misiones-que-muestran-el-control): Guardar campeón, o la función de fitness en la vista
   // Ajustes. Solo cambia de vista del panel; no toca ningún ajuste.
   const missionReveal = createMissionReveal({
@@ -381,7 +387,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     nodes: { save: () => quickSave, fitness: () => choices.fitness.row },
     prepare: (target) => { if (target.view) views.select(target.view); },
   });
-  const card = createConsignaCard({ i18n, run, onReveal: missionReveal.reveal });
+  const card = createConsignaCard({ i18n, onReveal: missionReveal.reveal });
 
   // Misiones. Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2).
   const describeMission = (m) => ({
@@ -493,9 +499,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const basicPending = pendingNote();
   const advancedPending = pendingNote();
 
+  // "Probá esto" (entrenar-mesa-de-trabajo D3): los ajustes que más cambian cómo aprende la población, con la
+  // función de fitness primero. Es el mismo nodo que antes estaba en la vista de ajustes.
   const basic = el('section', { class: 'train-basic' },
-    el('h2', { class: 'panel-heading', i18n: 'train.basic.title' }),
-    row('population'), row('mutationStrength'), el('div', { class: 'switch-row' }, sw('mutationCooling')), basicPending);
+    el('h2', { class: 'panel-heading', i18n: 'train.basic.title', help: 'train.basic', attrs: { tabindex: '0' } }),
+    choices.fitness.row, row('population'), row('mutationStrength'), el('div', { class: 'switch-row' }, sw('mutationCooling')), basicPending);
 
   const sensorsSwitch = switchButton('train.sensors', 'train.sensors', state.settings.showSensors, () => setSetting('showSensors', !state.settings.showSensors));
   // Ver como la máquina (D13): el mismo nombre que en El problema, con una ayuda propia.
@@ -504,6 +512,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     sync();
   });
   const viewSwitches = el('div', { class: 'switch-row train-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.view.title' }, sensorsSwitch, machineSwitch);
+  // Barra de marcha (D2): el mismo nodo `run`, con su orden, y los interruptores en un renglón compacto.
+  const runBar = el('div', { class: 'train-runbar', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.runbar.label' },
+    run, el('div', { class: 'train-runbar-switches' }, viewSwitches));
+  stageZone.append(runBar);
 
   /** Bloque de la vista de ajustes (D13): un título y sus ajustes, a la vista, sin plegar. */
   const block = (key, ...children) => el('section', { class: `settings-block settings-block-${key}`, attrs: { 'aria-labelledby': `train-block-${key}` } },
@@ -511,7 +523,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
 
   const resetButton = button('train.resetSettings', 'train.resetSettings', resetSettings);
   // Vista de ajustes (D13): el aviso de cambios pendientes, la red primero y la evolución después, los
-  // dos a la vista y sin plegar, y restablecer al pie. La función de fitness encabeza la evolución.
+  // dos a la vista y sin plegar, y restablecer al pie. La función de fitness está en "Probá esto" (D3).
   const settingsView = el('div', { class: 'train-settings' },
     advancedPending,
     block('network',
@@ -519,7 +531,6 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       row('hiddenLayers'), row('neurons1'), row('neurons2'), row('neurons3'), choices.activation.row,
       networkConfirm.node),
     block('evolution',
-      choices.fitness.row,
       row('elite'), row('selection'), row('mutationRate'), el('div', { class: 'switch-row' }, sw('crossover')),
       row('maxDuration'), el('div', { class: 'switch-row' }, sw('slowRule')), choices.trafficMode.row),
     el('div', { class: 'settings-reset' }, resetButton), resetConfirm.node);
@@ -617,7 +628,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const brainsView = el('div', { class: 'train-brains' }, brainsSave, libraryZone);
 
   // Vistas del panel (D1): entrenamiento, ajustes y cerebros, con la barra fija arriba.
-  const trainingView = el('div', { class: 'train-training' }, card.node, createGuideMore(intro), viewSwitches, basic, saveBlock, missions);
+  const trainingView = el('div', { class: 'train-training' }, card.node, createGuideMore(intro), basic, saveBlock, missions);
   const views = panelViews({
     idPrefix: 'train-view',
     i18n,
@@ -707,8 +718,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
 
   // --- Sincronizar el panel con el estado ------------------------------------------------------------
   /**
-   * Acción principal de la vista (jerarquia-de-botones D3): la marcha; Elegir al líder con la selección
-   * manual sin padre elegido; Guardar como nuevo en la vista de cerebros; ninguna en la de ajustes.
+   * Acción principal (jerarquia-de-botones D3; entrenar-mesa-de-trabajo D4): la marcha, que está siempre a la
+   * vista debajo de la escena, o Elegir al líder con la selección manual sin padre elegido, en las tres
+   * vistas del panel. Guardar como nuevo es secundaria.
    */
   function syncMainAction() {
     const manualPending = manualWanted() && !state.training.parent;
@@ -825,7 +837,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const waiting = t.pending ? Object.keys(t.pending) : [];
     const othersWaiting = settingsWaiting(t.pending);
     modePending.hidden = !waiting.includes('selectionMode');
-    basicPending.hidden = !othersWaiting;
+    // La función de fitness avisa en "Probá esto" y no marca la pestaña de ajustes (D3).
+    basicPending.hidden = !(othersWaiting || waiting.includes('fitness'));
     advancedPending.hidden = !othersWaiting;
     views.setPending('settings', othersWaiting);
     const dragging = document.activeElement;

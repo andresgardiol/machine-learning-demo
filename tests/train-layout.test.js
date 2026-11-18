@@ -31,3 +31,34 @@ test('renglón de misiones: cuenta las cumplidas de las cuatro, también tras gu
   session.brainSaved();
   assert.deepEqual(missionsSummary(session.missions), { done: 1, total: 4 });
 });
+
+// entrenar-mesa-de-trabajo: la marcha debajo de la escena y la función de fitness en "Probá esto" (D2 y D3).
+const trainSource = () => readFileSync(new URL('../src/tabs/train/index.js', import.meta.url), 'utf8');
+/** Los argumentos de la llamada `el(...)` que arma `name` (el texto entre `const name = el(` y su `);`). */
+function builtWith(src, name) {
+  const start = src.indexOf(`const ${name} = el(`);
+  assert.ok(start >= 0, name);
+  return src.slice(start, src.indexOf(');\n', start));
+}
+
+test('"Probá esto" lleva la función de fitness primero; la vista de ajustes ya no la tiene', () => {
+  const src = trainSource();
+  const basic = builtWith(src, 'basic');
+  assert.match(basic, /i18n: 'train\.basic\.title'/);
+  assert.ok(basic.indexOf('choices.fitness.row') >= 0, 'fitness en "Probá esto"');
+  assert.ok(basic.indexOf('choices.fitness.row') < basic.indexOf("row('population')"), 'fitness antes que la población');
+  assert.ok(basic.indexOf("row('population')") < basic.indexOf("row('mutationStrength')"));
+  assert.ok(basic.indexOf("row('mutationStrength')") < basic.indexOf("sw('mutationCooling')"));
+  assert.doesNotMatch(builtWith(src, 'settingsView'), /choices\.fitness\.row/);
+  assert.match(builtWith(src, 'trainingView'), /basic/);
+});
+
+test('la marcha y los interruptores van en la barra de abajo de la escena, no en el panel ni en la tarjeta', () => {
+  const src = trainSource();
+  const runBar = builtWith(src, 'runBar');
+  assert.ok(runBar.indexOf('run,') >= 0 && runBar.indexOf('run,') < runBar.indexOf('viewSwitches'), 'run y después los interruptores');
+  assert.match(src, /stageZone\.append\(runBar\)/);
+  const training = builtWith(src, 'trainingView');
+  assert.doesNotMatch(training, /viewSwitches|\brun\b/);
+  assert.match(src, /createConsignaCard\(\{ i18n, onReveal/);
+});

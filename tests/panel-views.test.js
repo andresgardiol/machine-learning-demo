@@ -45,12 +45,15 @@ test('nombre accesible: la cantidad de cerebros y los cambios pendientes', () =>
     'Settings, changes waiting for the next generation');
 });
 
-test('marca de cambios pendientes: solo población, mutación, enfriamiento y evolución', () => {
+test('marca de cambios pendientes: población, mutación, enfriamiento y evolución, sin la función de fitness', () => {
   assert.equal(settingsWaiting(null), false);
   assert.equal(settingsWaiting({}), false);
   assert.equal(settingsWaiting({ selectionMode: 'manual' }), false);
   for (const k of ['population', 'mutationStrength', 'mutationCooling', 'elite', 'selection', 'mutationRate', 'crossover',
-    'fitness', 'maxDuration', 'slowRule', 'trafficMode']) assert.equal(settingsWaiting({ [k]: 1 }), true, k);
+    'maxDuration', 'slowRule', 'trafficMode']) assert.equal(settingsWaiting({ [k]: 1 }), true, k);
+  // La función de fitness está en "Probá esto": avisa en su bloque y no marca la pestaña de ajustes (entrenar-mesa-de-trabajo D3).
+  assert.equal(settingsWaiting({ fitness: 'distance' }), false);
+  assert.equal(settingsWaiting({ fitness: 'distance', elite: 5 }), true);
   // Lo de la barra de escenario rige en el momento: nunca enciende la marca.
   for (const k of ['tracks', 'lanes', 'density', 'irregularity', 'maxSpeed']) assert.equal(settingsWaiting({ [k]: 1 }), false, k);
   assert.equal(settingsWaiting({ selectionMode: 'manual', tracks: ['oval'] }), false);

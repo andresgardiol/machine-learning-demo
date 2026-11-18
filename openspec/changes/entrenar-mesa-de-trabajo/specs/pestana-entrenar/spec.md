@@ -120,7 +120,9 @@ Con la ventana en 1366×768 SHALL verse sin desplazar el panel, como mínimo, la
 tarjeta de consigna y el bloque "Probá esto". La barra de marcha, con la
 selección manual incluida, SHALL verse entera sin desplazar la zona del
 escenario en los dos tamaños, y la escena SHALL medir al menos 360 píxeles de
-alto a 1366×768.
+alto a 1366×768. Mientras se ve el aviso de que el cambio de quién elige al
+padre rige desde la próxima generación, que dura una generación, la escena
+SHALL medir al menos 340 píxeles.
 
 #### Scenario: Pantalla de 1440×900
 - **WHEN** se abre la pestaña con la ventana en 1440×900 y la guía activa
@@ -136,7 +138,11 @@ alto a 1366×768.
 
 #### Scenario: Selección manual a la vista
 - **WHEN** la selección es manual, con la ventana en 1366×768 y la guía activa
-- **THEN** el ajuste de quién elige al padre, pausar, siguiente generación, elegir al líder, deshacer y la línea de estado del padre se ven debajo de la escena sin desplazar la zona del escenario
+- **THEN** el ajuste de quién elige al padre, pausar, siguiente generación, elegir al líder, deshacer y la línea de estado del padre se ven debajo de la escena sin desplazar la zona del escenario, y la escena mide al menos 360 píxeles de alto
+
+#### Scenario: Aviso del cambio de selección
+- **WHEN** la persona pasa a la selección manual con la ventana en 1366×768 y todavía se ve el aviso de que rige desde la próxima generación
+- **THEN** la barra de marcha entera y el aviso se ven sin desplazar la zona del escenario, y la escena mide al menos 340 píxeles de alto
 
 #### Scenario: Después de guardar
 - **WHEN** la persona guarda un cerebro con la ventana en 1440×900, en español o en inglés, con el panel en 360 píxeles de ancho

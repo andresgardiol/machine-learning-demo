@@ -32,10 +32,12 @@ test('con el cartel de largada a la vista, el botón del cartel', () => {
   assert.equal(mainAction('compete', { startCardVisible: false }), 'run');
 });
 
-test('en la vista de cerebros de Entrenar, Guardar como nuevo; en la de ajustes, ninguna', () => {
-  assert.equal(mainAction('train', { panelView: 'brains' }), 'saveAsNew');
-  assert.equal(mainAction('train', { panelView: 'brains', manualPending: true }), 'saveAsNew');
-  assert.equal(mainAction('train', { panelView: 'settings' }), null);
+test('Entrenar: la marcha de abajo de la escena es la principal en las tres vistas; Guardar como nuevo, secundaria', () => {
+  for (const panelView of ['training', 'settings', 'brains']) {
+    assert.equal(mainAction('train', { panelView }), 'run', panelView);
+    assert.equal(mainAction('train', { panelView, manualPending: true }), 'chooseLeader', panelView);
+  }
+  for (const s of [{}, { manualPending: true }, { panelView: 'brains' }]) assert.notEqual(mainAction('train', s), 'saveAsNew');
 });
 
 test('con un diálogo abierto, el diálogo', () => {

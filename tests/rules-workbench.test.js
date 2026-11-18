@@ -81,5 +81,7 @@ test('barras densas del auditor: las de "Dos alturas" de jerarquia-visual, con l
   for (const s of ['.sensor-rows', '.speed-row', '.rules-runbar-second']) assert.ok(list.includes(s), s);
   // Los controles de las fichas del programa (reglas-como-fichas D8).
   assert.ok(list.includes('.rules-cards-view'));
-  assert.equal(list.length, 15);
+  // El renglón de interruptores de la barra de marcha de Entrenar (entrenar-mesa-de-trabajo D2).
+  assert.ok(list.includes('.train-runbar-switches'));
+  assert.equal(list.length, 16);
 });

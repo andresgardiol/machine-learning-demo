@@ -562,6 +562,21 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .run-manual .tool.primary { flex: 1 1 auto; }
 .run-manual[hidden], .parent-status[hidden] { display: none; }
 .parent-status { margin: calc(-1 * var(--space-1)) 0 0; font-size: var(--text-body); overflow-wrap: anywhere; }
+/* Zona del escenario de Entrenar (entrenar-mesa-de-trabajo D2), como la de Reglas a mano: la escena arriba, que
+   crece, y la barra de marcha debajo, a todo el ancho y siempre a la vista. La zona no se desplaza. */
+.train-stage-zone { position: absolute; inset: 0; display: flex; flex-direction: column; min-width: 0; }
+.train-scene { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+/* Espacios de 4 px (decisión de la parada de la tarea 2.4): con la selección manual, la escena mide 360 px o más a
+   1366×768, y 340 o más mientras se ve el aviso de quién elige al padre. */
+.train-runbar {
+  flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--space-1);
+  padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-border); background: var(--color-surface-2);
+}
+.train-runbar .train-run { gap: var(--space-1); }
+.train-runbar .run-mode { margin-bottom: 0; }
+/* Interruptores al final, en un renglón compacto (la altura de las barras densas). */
+.train-runbar-switches .switch-row { gap: var(--space-1); flex-wrap: nowrap; }
+.train-runbar-switches .switch { gap: var(--space-1); padding: 0 var(--space-1); min-height: var(--control-h-sm); font-size: var(--text-label); }
 /* Ajustes que no aplican con selección manual: atenuados, con su tooltip que explica por qué. */
 .setting.not-applicable, .switch.not-applicable { opacity: 0.5; }
 .setting.not-applicable input[type="range"], .switch.not-applicable { cursor: not-allowed; }
