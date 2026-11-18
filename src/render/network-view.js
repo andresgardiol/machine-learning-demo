@@ -231,11 +231,21 @@ export function createNetworkView({ container, i18n, doc = document }) {
     ctx.setLineDash([]);
   }
 
+  /** Rombo relleno del color del texto: la marca de lo cambiado, la misma forma que en el inspector. */
+  function diamond(p, r) {
+    ctx.beginPath();
+    ctx.moveTo(p.x + r, p.y); ctx.lineTo(p.x, p.y + r); ctx.lineTo(p.x - r, p.y); ctx.lineTo(p.x, p.y - r);
+    ctx.closePath();
+    ctx.fill();
+  }
+
   /**
    * Dibuja la red con la actividad del cálculo para `inputs` (lecturas de los sensores y velocidad).
    * No modifica la red. Con `live` (la red corre), la guarda de destellos; sin él, todo exacto.
+   * `marks` (entrenar-la-generacion-ensena D5): pesos y sesgos cambiados, con las claves del inspector
+   * ('l:j:i' y 'l:j', la capa contada desde las entradas); se marcan con un rombo, como en el inspector.
    */
-  function render(network, inputs, { live = false } = {}) {
+  function render(network, inputs, { live = false, marks = null } = {}) {
     resize();
     if (!live) guard.reset();
     const now = (win.performance ?? performance).now();
@@ -255,6 +265,22 @@ export function createNetworkView({ container, i18n, doc = document }) {
         drawNode(p, radius, g.level, biases ? biases[i] : undefined, maxWeight, g.flicker);
       });
     });
+    if (marks) {
+      // Arriba de todo: un rombo en el medio de cada conexión cambiada y otro arriba a la derecha de cada neurona
+      // con el sesgo cambiado (no depende del color).
+      ctx.fillStyle = colors.text;
+      for (const key of marks.changedWeights) {
+        const [l, j, i] = key.split(':').map(Number);
+        const a = columns[l - 1]?.nodes[i];
+        const b = columns[l]?.nodes[j];
+        if (a && b) diamond({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, 3.5);
+      }
+      for (const key of marks.changedBiases) {
+        const [l, j] = key.split(':').map(Number);
+        const p = columns[l]?.nodes[j];
+        if (p) diamond({ x: p.x + radius * 0.75, y: p.y - radius * 0.75 }, 4);
+      }
+    }
     // Rótulos
     ctx.fillStyle = colors.label;
     ctx.font = `${LAYOUT.fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;

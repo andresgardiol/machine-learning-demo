@@ -56,14 +56,16 @@ export function currentRun(history) {
  * @param {object} [layout] medidas en px (CHART_LAYOUT)
  * @returns {{empty:boolean, restarted:boolean, fitness:string|null, unit:string|null,
  *   best:{x:number,y:number,generation:number,value:number}[], average:{...}[],
- *   yMax:number, yTicks:{value:number,y:number}[], xTicks:{generation:number,x:number}[], plot:object}}
+ *   yMax:number, yTicks:{value:number,y:number}[], xTicks:{generation:number,x:number}[], plot:object,
+ *   marks:{generation:number, x:number, changes:{key:string, from:any, to:any}[]}[]}}
+ *   marks: las generaciones del historial con `changes` (los cambios de la persona que rigen desde ella).
  */
 export function chartModel(history, layout = CHART_LAYOUT) {
   const { width, height, left, right, top, bottom } = layout;
   const plot = { x0: left, x1: width - right, y0: height - bottom, y1: top };
   const run = currentRun(history);
   if (run.length === 0) {
-    return { empty: true, restarted: false, fitness: null, unit: null, best: [], average: [], yMax: 1, yTicks: [], xTicks: [], plot };
+    return { empty: true, restarted: false, fitness: null, unit: null, best: [], average: [], yMax: 1, yTicks: [], xTicks: [], marks: [], plot };
   }
   const fitness = run[0].fitness;
   const top1 = Math.max(...run.map((r) => Math.max(r.best, r.average)), 0);
@@ -91,6 +93,8 @@ export function chartModel(history, layout = CHART_LAYOUT) {
     best: run.map((r) => point(r, 'best')),
     average: run.map((r) => point(r, 'average')),
     yMax, yTicks, xTicks, plot,
+    // Generaciones en que empezó a regir un cambio de la persona (entrenar-la-generacion-ensena D6).
+    marks: run.filter((r) => r.changes?.length > 0).map((r) => ({ generation: r.generation, x: xOf(r.generation), changes: r.changes })),
   };
 }
 
@@ -113,18 +117,20 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 export const TRAIN_CHART_KEYS = Object.freeze({
   empty: 'train.chart.empty', restarted: 'train.chart.restarted', aria: 'train.chart.aria', best: 'train.chart.best',
   average: 'train.chart.average', tick: 'train.chart.tick', xAxis: 'train.chart.xAxis', yAxis: 'train.chart.yAxis',
-  readout: 'train.chart.readout', marker: null,
+  readout: 'train.chart.readout', marker: null, readoutChanges: 'train.chart.readoutChanges',
 });
 
 /**
  * Curva de fitness.
  * @param {{container: HTMLElement, i18n: object, doc?: Document, keys?: object, value?: (v:number)=>number|string,
- *   focusable?: {help:string}}} spec
+ *   focusable?: {help:string}, describeChanges?: (changes:object[]) => string}} spec
  *   keys: textos (TRAIN_CHART_KEYS); value: cómo se escribe un valor en la lectura (un decimal por
  *   defecto); focusable: el gráfico recibe el foco y las flechas señalan otro punto (pestana-laboratorio).
+ *   describeChanges: con él, las generaciones con cambios llevan una marca sobre el eje y la lectura suma los
+ *   cambios de la generación señalada (entrenar-la-generacion-ensena D6).
  * @returns {{update:(history:object[], extra?:{marker?:number|null})=>void, refresh:()=>void, dispose:()=>void, element:SVGElement}}
  */
-export function createFitnessChart({ container, i18n, doc = document, keys = TRAIN_CHART_KEYS, value = null, focusable = null }) {
+export function createFitnessChart({ container, i18n, doc = document, keys = TRAIN_CHART_KEYS, value = null, focusable = null, describeChanges = null }) {
   const K = { ...TRAIN_CHART_KEYS, ...keys };
   // Medidas vigentes: las de la zona del gráfico (se observa su tamaño).
   let L = CHART_LAYOUT;
@@ -218,7 +224,16 @@ export function createFitnessChart({ container, i18n, doc = document, keys = TRA
     const b = model.best[index];
     const a = model.average[index];
     svg.append(node('line', { class: 'chart-cursor', x1: b.x, y1: plot.y0, x2: b.x, y2: plot.y1 }));
-    readout.textContent = i18n.t(single && K.readoutSingle ? K.readoutSingle : K.readout, { generation: b.generation, best: number(b.value), average: number(a.value), unit: unitText() });
+    // Cambios de la persona: un triángulo chico parado sobre el eje x (forma, no solo color), con su tooltip. Va
+    // arriba de la línea de la generación señalada, que si no le quita el puntero.
+    if (describeChanges) {
+      for (const m of model.marks) {
+        svg.append(node('polygon', { class: 'chart-change', 'data-help': 'train.chart.change', points: `${m.x - 5},${plot.y0} ${m.x + 5},${plot.y0} ${m.x},${plot.y0 - 8}` }));
+      }
+    }
+    const values = i18n.t(single && K.readoutSingle ? K.readoutSingle : K.readout, { generation: b.generation, best: number(b.value), average: number(a.value), unit: unitText() });
+    const marked = describeChanges ? model.marks.find((m) => m.generation === b.generation) : null;
+    readout.textContent = marked ? i18n.t(K.readoutChanges, { values, changes: describeChanges(marked.changes) }) : values;
   }
 
   function legendItem(key, text) {

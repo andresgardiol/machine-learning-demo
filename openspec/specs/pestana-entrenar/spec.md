@@ -210,14 +210,29 @@ tráfico de la generación en curso.
 ### Requirement: Red del líder
 El tablero SHALL mostrar, en una tarjeta plegable y visible por defecto, el
 diagrama de la red del auto líder con su actividad en vivo, con su leyenda.
+La tarjeta de la red SHALL ser la primera tarjeta del tablero, debajo de los
+indicadores y del renglón de la última generación, y arriba de la curva de
+fitness.
 
 #### Scenario: Diagrama del líder
 - **WHEN** el entrenamiento está en marcha
 - **THEN** el diagrama muestra la red del auto que la cámara sigue y sus nodos cambian con lo que ese auto percibe y acciona
 
+#### Scenario: La red primero
+- **WHEN** se abre la pestaña por primera vez, sin configurar nada
+- **THEN** la primera tarjeta del tablero es la red del líder y la curva de fitness está debajo
+
 #### Scenario: Plegar el diagrama
 - **WHEN** la persona pliega la tarjeta
-- **THEN** el diagrama deja de verse, la curva ocupa su lugar y el entrenamiento sigue igual
+- **THEN** el diagrama deja de verse, la curva sube y ocupa su lugar y el entrenamiento sigue igual
+
+#### Scenario: Plegar la curva
+- **WHEN** la persona pliega la curva de fitness con la red desplegada
+- **THEN** la red ocupa el alto que queda en el tablero y el entrenamiento sigue igual
+
+#### Scenario: Volver a desplegar
+- **WHEN** la persona pliega la red y la vuelve a desplegar
+- **THEN** la red vuelve a ser la primera tarjeta, arriba de la curva
 
 #### Scenario: Red y curva a la vez
 - **WHEN** se abre la pestaña con la ventana en 1440×900
@@ -232,13 +247,19 @@ oculta los rayos de los sensores del auto líder.
 - **THEN** los rayos del líder dejan de dibujarse y el entrenamiento no cambia
 
 ### Requirement: Configuración básica
-La pestaña SHALL mostrar siempre a la vista tres ajustes: el tamaño de la
+La vista de entrenamiento SHALL mostrar a la vista, en un bloque "Probá esto",
+cuatro ajustes en este orden: la función de fitness, el tamaño de la
 población, la fuerza de la mutación y un interruptor para enfriar la
-mutación, encendido por defecto. Sus cambios SHALL aplicarse desde la
+mutación, encendido por defecto. El bloque SHALL ir debajo de la tarjeta de
+consigna y de "Más sobre esta pestaña", y arriba de guardar el campeón. Sus cambios SHALL aplicarse desde la
 generación siguiente, y la pestaña MUST indicar de forma visible que hay
 cambios esperando a la próxima generación. Con el enfriamiento en uso, el
 ajuste de la fuerza SHALL mostrar la fuerza con que se armará la generación
 siguiente y MUST NOT poder editarse.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña por primera vez
+- **THEN** la vista de entrenamiento muestra la función de fitness con "ventaja" elegida, 400 autos, la fuerza de mutación y el enfriamiento encendido, sin pasar a otra vista
 
 #### Scenario: Cambiar la mutación
 - **WHEN** la persona, con el enfriamiento apagado, sube la fuerza de mutación durante una generación
@@ -270,8 +291,8 @@ siguiente y MUST NOT poder editarse.
 
 ### Requirement: Configuración avanzada
 La pestaña SHALL ofrecer, en la vista de ajustes, los ajustes de evolución
-(élite, selección, probabilidad de mutación, cruce, función de fitness,
-duración máxima, eliminar a los lentos y modo de tráfico), que SHALL regir
+(élite, selección, probabilidad de mutación, cruce, duración máxima,
+eliminar a los lentos y modo de tráfico), que SHALL regir
 desde la generación siguiente, con el mismo aviso que la configuración
 básica. Los de escenario (pista, carriles, densidad, irregularidad y
 velocidad) SHALL estar en la barra de escenario y regir en el momento: la
@@ -279,7 +300,7 @@ generación en curso vuelve a empezar con la misma población.
 
 #### Scenario: Sección colapsada
 - **WHEN** se abre la pestaña
-- **THEN** el panel muestra la vista de entrenamiento y los ajustes avanzados no están a la vista
+- **THEN** el panel muestra la vista de entrenamiento y los ajustes de la vista de ajustes no están a la vista
 
 #### Scenario: Cambiar la función de fitness
 - **WHEN** la persona elige "tiempo sin chocar"
@@ -455,10 +476,39 @@ con su generación, su historial, su curva y su configuración.
 ### Requirement: Misiones
 Con la guía activa, el panel SHALL mostrar cuatro misiones con su progreso:
 llegar a la generación 5, lograr un auto que supere 5 vehículos, guardar un
-cerebro y terminar una generación con otra función de fitness. Las misiones
-MUST NOT bloquear ninguna función y una misión cumplida SHALL seguir marcada
-hasta cerrar la aplicación. Cada misión SHALL leerse en un solo renglón con el
-panel en su ancho por defecto.
+cerebro y terminar una generación con otra función de fitness. La lista
+completa SHALL ir al final de la vista de entrenamiento, dentro de un renglón
+plegable que dice cuántas misiones van cumplidas de cuántas ("Todas las
+misiones · 1 de 4"), plegado por defecto. Abrirlo o cerrarlo SHALL recordarse
+hasta cerrar la aplicación y MUST NOT cambiar el entrenamiento. El renglón
+SHALL tener un tooltip que diga qué hace y por qué importa, en español y en
+inglés. Las misiones MUST NOT bloquear ninguna función y una misión cumplida
+SHALL seguir marcada hasta cerrar la aplicación. Cada misión SHALL leerse en
+un solo renglón con el panel en su ancho por defecto.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña por primera vez con la guía activa
+- **THEN** la tarjeta de consigna muestra la misión en curso y, al final del panel, se ve el renglón "Todas las misiones · 0 de 4" plegado
+
+#### Scenario: Desplegar la lista
+- **WHEN** la persona toca el renglón de las misiones
+- **THEN** se ven las cuatro misiones con su progreso, con la misión en curso marcada también por algo que no es el color
+
+#### Scenario: Volver a plegar
+- **WHEN** la persona vuelve a tocar el renglón con la lista abierta
+- **THEN** la lista se pliega, el renglón sigue diciendo cuántas van cumplidas y el entrenamiento no cambió
+
+#### Scenario: Lista recordada
+- **WHEN** la persona despliega la lista, abre otra pestaña de la aplicación y vuelve a Entrenar
+- **THEN** la lista sigue desplegada
+
+#### Scenario: Cuenta al día con la lista plegada
+- **WHEN** la persona guarda su primer cerebro con la lista plegada
+- **THEN** el renglón pasa a decir una misión cumplida más, sin desplegarse
+
+#### Scenario: Tooltip del renglón
+- **WHEN** la persona posa el cursor sobre el renglón de las misiones
+- **THEN** un tooltip en el idioma activo dice qué hace y por qué importa
 
 #### Scenario: Progreso de una misión
 - **WHEN** el entrenamiento está en la generación 3
@@ -473,7 +523,7 @@ panel en su ancho por defecto.
 - **THEN** la misión queda marcada como cumplida
 
 #### Scenario: Misiones de un renglón
-- **WHEN** el panel mide 360 píxeles de ancho y la aplicación está en español o en inglés
+- **WHEN** el panel mide 360 píxeles de ancho, la lista está desplegada y la aplicación está en español o en inglés
 - **THEN** el nombre de cada misión y su estado se leen en el mismo renglón
 
 #### Scenario: Misión de superar vehículos
@@ -531,17 +581,20 @@ estar en español y en inglés.
 - **THEN** el tooltip explica que en 0 % los vehículos van en filas parejas, que es el caso más fácil de aprender, que subirla hace el problema más difícil y que, con tráfico nuevo, en los dos casos cambia en cada generación
 
 ### Requirement: Controles de marcha agrupados
-El panel SHALL agrupar los controles de marcha en este orden: arriba, el
+Los controles de marcha SHALL ir en una barra debajo de la escena, siempre a
+la vista en cualquier vista del panel, y agruparse en este orden: arriba, el
 ajuste de quién elige al padre; pausar y pasar a la siguiente generación en un
 mismo renglón; con selección manual, elegir al líder y deshacer en el renglón
 siguiente, con la línea de estado del padre debajo; después, las velocidades
 en un solo renglón; y debajo, con menor peso visual, reiniciar y población
-nueva. La confirmación de reiniciar o de población nueva SHALL aparecer junto
-a esos botones.
+nueva; y al final, en un renglón compacto, los interruptores de los sensores
+del líder y de ver como la máquina. La confirmación de reiniciar o de
+población nueva SHALL aparecer junto a esos botones. Mover un control MUST NOT
+cambiar lo que hace, su texto, su tooltip ni su atajo.
 
 #### Scenario: Estado por defecto
-- **WHEN** se abre la pestaña con el panel en 360 píxeles de ancho
-- **THEN** el ajuste de quién elige al padre está arriba de todo, pausar y siguiente generación comparten renglón, las cinco velocidades entran en un renglón y reiniciar y población nueva se ven más chicos, debajo
+- **WHEN** se abre la pestaña con el escenario en su ancho por defecto
+- **THEN** la barra está debajo de la escena, el ajuste de quién elige al padre está arriba de todo, pausar y siguiente generación comparten renglón, las cinco velocidades entran en un renglón y reiniciar y población nueva se ven más chicos, debajo
 
 #### Scenario: Confirmación junto al botón
 - **WHEN** la persona pide reiniciar con generaciones terminadas
@@ -552,8 +605,16 @@ a esos botones.
 - **THEN** la confirmación desaparece y los controles de marcha vuelven a verse como antes
 
 #### Scenario: Con selección manual
-- **WHEN** la selección es manual y el panel mide 360 píxeles de ancho
+- **WHEN** la selección es manual y el escenario está en su ancho por defecto
 - **THEN** elegir al líder y deshacer comparten un renglón debajo de pausar y siguiente generación, a un renglón del ajuste que los hizo aparecer, y la línea de estado del padre se lee debajo de ellos
+
+#### Scenario: Marcha en otra vista
+- **WHEN** la persona pasa el panel a la vista de ajustes o a la de cerebros con el entrenamiento en marcha
+- **THEN** pausar, siguiente generación y las velocidades siguen a la vista debajo de la escena, y funcionan igual
+
+#### Scenario: Mismos atajos
+- **WHEN** la persona usa la barra espaciadora, N y T, y con selección manual E y Z, con el foco fuera de un campo de texto
+- **THEN** pausan, pasan a la siguiente generación, cambian la velocidad, eligen al líder y deshacen la elección como antes del cambio
 
 #### Scenario: Con selección automática
 - **WHEN** la selección es automática
@@ -561,21 +622,23 @@ a esos botones.
 
 ### Requirement: Panel a la vista sin desplazarse
 Con la ventana en 1440×900 y la guía activa, la vista de entrenamiento del
-panel de Entrenar SHALL verse completa sin desplazarse, también después de
-guardar un cerebro.
-Con la ventana en 1366×768 SHALL verse sin desplazarse, como mínimo, los
-controles de marcha, el interruptor de sensores del líder y la configuración
-básica. Con selección manual, los controles de marcha con sus botones de
-elegir y deshacer y la línea de estado SHALL verse sin desplazarse en los dos
-tamaños.
+panel de Entrenar SHALL verse completa sin desplazarse, con la lista de
+misiones plegada, también después de guardar un cerebro.
+Con la ventana en 1366×768 SHALL verse sin desplazar el panel, como mínimo, la
+tarjeta de consigna y el bloque "Probá esto". La barra de marcha, con la
+selección manual incluida, SHALL verse entera sin desplazar la zona del
+escenario en los dos tamaños, y la escena SHALL medir al menos 360 píxeles de
+alto a 1366×768. Mientras se ve el aviso de que el cambio de quién elige al
+padre rige desde la próxima generación, que dura una generación, la escena
+SHALL medir al menos 340 píxeles.
 
 #### Scenario: Pantalla de 1440×900
 - **WHEN** se abre la pestaña con la ventana en 1440×900 y la guía activa
-- **THEN** el panel no tiene barra de desplazamiento y se ven la guía, los controles de marcha con el ajuste de quién elige al padre, el interruptor de sensores, la configuración básica, guardar el campeón, las misiones y las tres pestañas del panel
+- **THEN** el panel no tiene barra de desplazamiento y se ven la tarjeta de consigna con la misión en curso, "Probá esto", guardar el campeón, el renglón de las misiones y las tres pestañas del panel, y debajo de la escena, la barra de marcha entera
 
 #### Scenario: Pantalla de 1366×768
 - **WHEN** se abre la pestaña con la ventana en 1366×768 y la guía activa
-- **THEN** los controles de marcha, el interruptor de sensores del líder y la configuración básica se ven sin desplazar el panel
+- **THEN** la tarjeta de consigna y "Probá esto" se ven sin desplazar el panel, y la barra de marcha entera y una escena de al menos 360 píxeles de alto se ven sin desplazar la zona del escenario
 
 #### Scenario: Causa y efecto a la vista
 - **WHEN** la persona mueve la fuerza de mutación con la ventana en 1440×900
@@ -583,7 +646,11 @@ tamaños.
 
 #### Scenario: Selección manual a la vista
 - **WHEN** la selección es manual, con la ventana en 1366×768 y la guía activa
-- **THEN** el ajuste de quién elige al padre, pausar, siguiente generación, elegir al líder, deshacer y la línea de estado del padre se ven sin desplazar el panel
+- **THEN** el ajuste de quién elige al padre, pausar, siguiente generación, elegir al líder, deshacer y la línea de estado del padre se ven debajo de la escena sin desplazar la zona del escenario, y la escena mide al menos 360 píxeles de alto
+
+#### Scenario: Aviso del cambio de selección
+- **WHEN** la persona pasa a la selección manual con la ventana en 1366×768 y todavía se ve el aviso de que rige desde la próxima generación
+- **THEN** la barra de marcha entera y el aviso se ven sin desplazar la zona del escenario, y la escena mide al menos 340 píxeles de alto
 
 #### Scenario: Después de guardar
 - **WHEN** la persona guarda un cerebro con la ventana en 1440×900, en español o en inglés, con el panel en 360 píxeles de ancho
@@ -592,7 +659,8 @@ tamaños.
 ### Requirement: Avanzado por grupos
 En la vista de ajustes, los ajustes SHALL estar en dos bloques a la vista, sin
 plegar y cada uno con su título: primero la red (capas ocultas, neuronas y
-activación) y después la evolución, con la función de fitness primero. El
+activación) y después la evolución, con la élite primero. La función de
+fitness MUST NOT repetirse en esta vista: está en "Probá esto". El
 botón de restablecer y el aviso de cambios esperando SHALL verse en la vista.
 Cada ajuste SHALL tener su tooltip, en español y en inglés.
 
@@ -602,7 +670,7 @@ Cada ajuste SHALL tener su tooltip, en español y en inglés.
 
 #### Scenario: Abrir un grupo
 - **WHEN** la persona mira el bloque de evolución
-- **THEN** ve la función de fitness, la élite, la selección, la probabilidad de mutación, el cruce, la duración máxima, eliminar a los lentos y el modo de tráfico
+- **THEN** ve la élite, la selección, la probabilidad de mutación, el cruce, la duración máxima, eliminar a los lentos y el modo de tráfico
 
 #### Scenario: Grupo recordado
 - **WHEN** la persona deja el panel en la vista de ajustes, abre otra pestaña y vuelve
@@ -613,12 +681,12 @@ Cada ajuste SHALL tener su tooltip, en español y en inglés.
 - **THEN** la confirmación de entrenamiento nuevo aparece dentro del bloque de red, junto al ajuste que la pidió
 
 #### Scenario: Tooltip de un grupo
-- **WHEN** la persona posa el cursor sobre la función de fitness
+- **WHEN** la persona posa el cursor sobre la élite
 - **THEN** un tooltip en el idioma activo dice qué hace y por qué importa
 
 #### Scenario: A un clic
-- **WHEN** la persona quiere cambiar las capas de la red o la función de fitness desde la vista de entrenamiento
-- **THEN** le alcanza con un clic, en la pestaña de ajustes, para tenerlas a la vista
+- **WHEN** la persona quiere cambiar las capas de la red desde la vista de entrenamiento
+- **THEN** le alcanza con un clic, en la pestaña de ajustes, para tenerlas a la vista; la función de fitness ya está a la vista en la vista de entrenamiento
 
 #### Scenario: La red, sin desplazarse
 - **WHEN** la persona pasa a la vista de ajustes con la ventana en 1440×900
@@ -627,8 +695,8 @@ Cada ajuste SHALL tener su tooltip, en español y en inglés.
 ### Requirement: Quién elige al padre
 La pestaña SHALL ofrecer un ajuste con dos opciones para decidir quién elige
 al padre de la generación siguiente: la función de fitness (por defecto) o la
-persona. El ajuste SHALL encabezar los controles de marcha, antes que
-cualquier otro control del panel, con un rótulo de mayor peso que el de un
+persona. El ajuste SHALL encabezar la barra de marcha de abajo de la
+escena, antes que pausar y siguiente generación, con un rótulo de mayor peso que el de un
 ajuste común. El cambio SHALL regir desde la generación siguiente, MUST NOT
 reiniciar el entrenamiento y, mientras espera, MUST indicarse junto al ajuste.
 
@@ -638,7 +706,7 @@ reiniciar el entrenamiento y, mientras espera, MUST indicarse junto al ajuste.
 
 #### Scenario: Primero en el panel
 - **WHEN** se abre la pestaña con la guía oculta
-- **THEN** el ajuste de quién elige al padre es el primer control del panel, arriba de pausar y siguiente generación, y no está entre los ajustes de configuración
+- **THEN** el ajuste de quién elige al padre es el primer control de la barra de abajo de la escena, arriba de pausar y siguiente generación, y no está entre los ajustes del panel
 
 #### Scenario: Cambio esperando, junto al ajuste
 - **WHEN** la persona pasa de "la fitness" a "vos" durante una generación
@@ -769,8 +837,8 @@ elegida al abrir la pestaña. Las cuatro opciones MUST verse completas con el
 panel en su ancho por defecto, en español y en inglés.
 
 #### Scenario: Estado por defecto
-- **WHEN** se abre la pestaña y se pasa a la vista de ajustes
-- **THEN** la función elegida es "ventaja", la élite es 10, la irregularidad del tráfico es 0 % y el enfriamiento de la mutación está encendido
+- **WHEN** se abre la pestaña
+- **THEN** la vista de entrenamiento muestra elegida la función "ventaja"; en la vista de ajustes, la élite es 10, la irregularidad del tráfico es 0 % y el enfriamiento de la mutación está encendido
 
 #### Scenario: Cuatro opciones a la vista
 - **WHEN** el panel mide 360 píxeles de ancho y la aplicación está en español o en inglés
@@ -913,19 +981,19 @@ qué importa, en español y en inglés.
 
 ### Requirement: Vistas del panel
 El panel de Entrenar SHALL repartir su contenido en tres vistas, elegibles con
-tres pestañas siempre visibles arriba del panel: entrenamiento (guía,
-controles de marcha, interruptores de vista, configuración básica, guardar y
-misiones), ajustes (la red, la evolución y restablecer) y cerebros (guardar con
+tres pestañas siempre visibles arriba del panel: entrenamiento (tarjeta
+de consigna, guía, "Probá esto", guardar y misiones), ajustes (la red, la evolución y restablecer) y cerebros (guardar con
 nombre y la biblioteca). Al abrir SHALL verse la de entrenamiento. Cambiar de
-vista MUST NOT cambiar el entrenamiento ni ningún ajuste.
+vista MUST NOT cambiar el entrenamiento ni ningún ajuste, ni ocultar la barra
+de marcha de abajo de la escena.
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña por primera vez
-- **THEN** el panel muestra la vista de entrenamiento, con los mismos controles de marcha y la misma configuración básica que antes, y las pestañas de ajustes y de cerebros arriba
+- **THEN** el panel muestra la vista de entrenamiento, con la tarjeta de consigna y "Probá esto", la marcha está debajo de la escena, y las pestañas de ajustes y de cerebros arriba
 
 #### Scenario: Cambiar de vista
 - **WHEN** la persona pasa a la vista de ajustes con el entrenamiento en marcha
-- **THEN** el entrenamiento sigue, el escenario y el tablero siguen a la vista, y los atajos de teclado siguen funcionando
+- **THEN** el entrenamiento sigue, el escenario, la barra de marcha y el tablero siguen a la vista, y los atajos de teclado siguen funcionando
 
 #### Scenario: Volver
 - **WHEN** la persona vuelve a la vista de entrenamiento
@@ -960,11 +1028,12 @@ vista MUST NOT cambiar el entrenamiento ni ningún ajuste.
 - **THEN** un tooltip en el idioma activo dice qué reúne esa vista y por qué importa
 
 ### Requirement: Cambios pendientes a la vista
-Mientras haya ajustes esperando a la próxima generación, la pestaña de la
-vista de ajustes SHALL mostrar una marca que lo indique, se esté en la vista
-que se esté, y la marca MUST desaparecer cuando esa generación empieza. Solo
-esperan los ajustes de evolución, la población y la mutación: los de la barra
-de escenario rigen en el momento. La marca MUST NOT depender solo del color.
+Mientras haya ajustes de la vista de ajustes esperando a la próxima
+generación, la pestaña de esa vista SHALL mostrar una marca que lo indique, se esté en la vista
+que se esté, y la marca MUST desaparecer cuando esa generación empieza. Los de "Probá
+esto" (función de fitness, población y mutación) SHALL mostrar su aviso en el
+mismo bloque, como los demás ajustes de la configuración básica. Los de la
+barra de escenario rigen en el momento. La marca MUST NOT depender solo del color.
 
 #### Scenario: Cambio hecho y vista cambiada
 - **WHEN** la persona cambia la élite en la vista de ajustes y vuelve a la vista de entrenamiento durante la misma generación
@@ -999,3 +1068,155 @@ regla que la calcula. Las misiones SHALL empezar con un verbo en imperativo.
 #### Scenario: Indicador en inglés
 - **WHEN** la aplicación está en inglés
 - **THEN** el indicador de vehículos superados dice "Leader has passed", que no se puede leer como que al líder lo pasaron
+
+### Requirement: Corte de generación
+Con la guía activa y la velocidad del entrenamiento en 1× o 2×, al terminar
+cada generación la pestaña SHALL detener la simulación unos 2 segundos antes
+de que arranque la siguiente: la escena muestra quieta la generación nueva en
+la largada, con el auto del foco, que es la copia del mejor, marcado como
+élite. Como en la largada todos los autos están en el mismo lugar, la élite
+SHALL contarse en la tarjeta de generación y no distinguirse uno por uno en la
+escena. A 4× o más rápido, y con la guía
+apagada, MUST NOT haber corte. El corte MUST NOT cambiar el entrenamiento:
+con la misma semilla, el resultado de cada generación SHALL ser el mismo con
+corte que sin él. Durante el corte, pausar SHALL mantener el corte a la vista
+hasta reanudar, y pasar a la siguiente generación SHALL terminar el corte y
+arrancar la generación.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña sin configurar nada y termina la primera generación
+- **THEN** la simulación se detiene unos 2 segundos, la escena muestra la generación 2 en la largada con el auto del foco marcado como élite, y después la generación arranca sola
+
+#### Scenario: Rápido sin corte
+- **WHEN** la velocidad está en 4×, 8× o Máx. y termina una generación
+- **THEN** la siguiente arranca enseguida, como antes de este cambio
+
+#### Scenario: Guía apagada
+- **WHEN** la guía está apagada y termina una generación a 1×
+- **THEN** no hay corte
+
+#### Scenario: Pausar durante el corte
+- **WHEN** la persona pausa durante el corte
+- **THEN** el corte queda a la vista hasta que reanuda, y al reanudar arranca la generación
+
+#### Scenario: Seguir enseguida
+- **WHEN** la persona usa siguiente generación, o su atajo, durante el corte
+- **THEN** el corte termina y la generación arranca, sin terminar la que empieza
+
+#### Scenario: Mismo entrenamiento
+- **WHEN** se repite un entrenamiento de cinco generaciones con la misma semilla, a 1× con la guía activa y a Máx.
+- **THEN** el mejor fitness de cada generación es el mismo
+
+### Requirement: Tarjeta de generación
+Durante el corte, al lado de la escena y sin tapar los autos, la pestaña SHALL
+mostrar una tarjeta que dice qué pasó al pasar de generación, con los números
+del entrenamiento real: cuántos individuos pasan tal cual (la élite), de qué
+parte de la población salieron los padres de los demás (la selección) y con
+qué fuerza mutaron. La élite SHALL verse además como una fila de tantas marcas
+como individuos pasan tal cual, con la forma de la marca de élite de la escena.
+Con la selección manual SHALL decir que la población es
+hija del padre elegido; sin padre elegido, que la población salió al azar. La
+tarjeta SHALL estar en español y en inglés, anunciarse a los lectores de
+pantalla sin mover el foco y desaparecer cuando arranca la generación.
+
+#### Scenario: Por defecto
+- **WHEN** termina la primera generación con los valores por defecto
+- **THEN** la tarjeta dice que pasan tal cual los 10 mejores y que los otros 390 son hijos del 10 % mejor, con la fuerza de mutación con que se armó la generación 2 (la del enfriamiento)
+
+#### Scenario: Con selección manual
+- **WHEN** termina una generación con la selección manual y un padre elegido en la generación 5
+- **THEN** la tarjeta dice que la población es hija del padre que eligió la persona, con la fuerza de mutación del ajuste
+
+#### Scenario: Lector de pantalla
+- **WHEN** aparece la tarjeta
+- **THEN** un lector de pantalla la anuncia sin que el foco se mueva de donde estaba
+
+#### Scenario: Idioma
+- **WHEN** la aplicación está en inglés y termina una generación
+- **THEN** la tarjeta se lee en inglés
+
+### Requirement: La mutación en la red
+Durante el corte, la tarjeta de la red del líder SHALL mostrar la red de la
+muestra de la mutación, con los pesos y sesgos que cambió la mutación marcados
+por algo que no es solo el color, y un renglón que diga cuántos cambiaron de
+cuántos y cuánto cambiaron en promedio. Al arrancar la generación, la tarjeta SHALL volver a la red del líder
+en vivo. Si no hay muestra, la tarjeta SHALL seguir con la red del líder.
+
+#### Scenario: Pesos cambiados
+- **WHEN** termina la primera generación con los valores por defecto
+- **THEN** durante el corte la red muestra un hijo con sus pesos cambiados marcados, y el renglón dice cuántos cambiaron de cuántos (con la probabilidad por defecto, todos) y cuánto cambiaron en promedio
+
+#### Scenario: Vuelta a la red en vivo
+- **WHEN** termina el corte
+- **THEN** la tarjeta vuelve a mostrar la red del líder con su actividad
+
+#### Scenario: Red plegada
+- **WHEN** la tarjeta de la red está plegada y termina una generación
+- **THEN** el corte ocurre igual y la tarjeta sigue plegada
+
+### Requirement: Cambios marcados en la curva
+La curva de fitness SHALL marcar las generaciones en las que empezó a regir un
+cambio de ajustes de la persona, con una marca sobre el eje que no dependa
+solo del color. Señalar la generación SHALL mostrar, en la línea de valores de
+abajo del gráfico, qué ajustes cambiaron, con su valor anterior y el nuevo.
+Reiniciar el entrenamiento SHALL borrar las marcas junto con la curva.
+
+#### Scenario: Marca después de un cambio
+- **WHEN** la persona cambia la fuerza de mutación durante la generación 3 y termina la generación 4
+- **THEN** la curva tiene una marca en la generación 4, y al señalarla la línea de abajo dice "Fuerza de mutación: 29 % → 40 %" junto al mejor y al promedio
+
+#### Scenario: Sin cambios no hay marcas
+- **WHEN** corren diez generaciones sin que la persona toque nada
+- **THEN** la curva no tiene marcas
+
+#### Scenario: Reiniciar
+- **WHEN** la persona reinicia el entrenamiento con marcas en la curva
+- **THEN** la curva y sus marcas desaparecen
+
+#### Scenario: Idioma
+- **WHEN** la aplicación está en inglés y la persona señala una generación marcada
+- **THEN** los nombres de los ajustes y sus valores se leen en inglés
+
+### Requirement: Vista previa de la mutación
+Mientras la persona mueve el deslizador de la fuerza de mutación, y hasta
+unos 2 segundos después de soltarlo, la tarjeta de la red del líder SHALL
+mostrar un hijo de ejemplo del líder: su red mutada con la fuerza del
+deslizador y la probabilidad de mutación de los ajustes, con los pesos y
+sesgos que cambiaron marcados como en el corte de generación, y un renglón
+que diga que es un ejemplo y cuánto cambiaron en promedio. El hijo de ejemplo
+MUST NOT cambiar el entrenamiento ni consumir su azar: con la misma red, la
+misma fuerza y la misma probabilidad, SHALL ser siempre el mismo. Con el
+enfriamiento encendido, el deslizador no se edita y MUST NOT haber vista
+previa.
+
+#### Scenario: Mover la fuerza
+- **WHEN** la persona, con el enfriamiento apagado, lleva la fuerza de 10 % a 60 %
+- **THEN** la red muestra un hijo de ejemplo del líder con más pesos marcados lejos de su valor, y el renglón dice que es un ejemplo con fuerza 60 % y cuánto cambiaron en promedio
+
+#### Scenario: Fuerza cero
+- **WHEN** la persona lleva la fuerza a 0 %
+- **THEN** el hijo de ejemplo es igual al líder, no hay pesos marcados y el renglón dice que no cambió nada
+
+#### Scenario: Volver a la red en vivo
+- **WHEN** la persona suelta el deslizador y pasan unos 2 segundos sin moverlo
+- **THEN** la tarjeta vuelve a la red del líder en vivo
+
+#### Scenario: El entrenamiento no cambia
+- **WHEN** se repite un entrenamiento con la misma semilla, una vez moviendo el deslizador sin soltar un valor distinto y otra sin tocarlo
+- **THEN** el mejor fitness de cada generación es el mismo
+
+#### Scenario: Con el enfriamiento
+- **WHEN** la persona intenta mover la fuerza con el enfriamiento encendido
+- **THEN** no hay vista previa y el tooltip sigue explicando que la fuerza baja sola
+
+#### Scenario: Teclado
+- **WHEN** la persona cambia la fuerza con las flechas del teclado
+- **THEN** la vista previa aparece igual que con el mouse
+
+#### Scenario: Durante el corte
+- **WHEN** la persona mueve la fuerza durante el corte de generación
+- **THEN** la red muestra la vista previa del hijo de ejemplo, y al terminar la vista previa vuelve a lo que corresponde: la muestra del corte si sigue, o la red en vivo
+
+#### Scenario: Idioma
+- **WHEN** la aplicación está en inglés
+- **THEN** el renglón de la vista previa se lee en inglés

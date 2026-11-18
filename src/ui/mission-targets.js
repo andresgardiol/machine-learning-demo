@@ -4,7 +4,7 @@
 // Cada entrada es `null` (la misión se cumple manejando o esperando: sin botón) o
 // `{ targets: [clave…], view?, select? }`:
 //   - targets: nombres estables de control. El primero recibe el foco y es el que se trae a la vista.
-//   - view: la vista del panel que hay que abrir antes (Entrenar → 'settings').
+//   - view: la vista del panel que hay que abrir antes (hoy ninguna misión la usa).
 //   - select: lo que hay que elegir antes en Inspeccionar ('firstInput' o 'firstHidden').
 
 const fixed = (targets, extra = {}) => () => Object.freeze({ targets: Object.freeze([...targets]), ...extra });
@@ -25,7 +25,8 @@ const TABLE = Object.freeze({
     generations: none,
     passed: none,
     save: fixed(['save']),
-    fitness: fixed(['fitness'], { view: 'settings' }),
+    // La función de fitness está en "Probá esto", en la vista de entrenamiento, junto a la tarjeta (entrenar-mesa-de-trabajo D5).
+    fitness: fixed(['fitness']),
   },
   compete: {
     tracks: fixed(['track']),

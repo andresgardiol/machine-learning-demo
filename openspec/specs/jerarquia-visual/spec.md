@@ -22,7 +22,7 @@ Todo control y toda salida de la red SHALL verse con uno de cinco estilos (acci�
 
 #### Scenario: Dos alturas
 - **WHEN** se miden todos los botones visibles de las seis pestañas, salvo la acción principal y los botones de su renglón
-- **THEN** cada uno tiene la altura normal o la compacta, y la compacta solo aparece en barras densas: las de arriba y abajo de la red, las filas de la lista de competidores, el renglón de Cambiar y Apagar de la tarjeta de la neurona en Inspeccionar y en el Laboratorio, los avisos sobre la escena de Inspeccionar, las filas de la biblioteca de cerebros, la barra de arriba de la app, la cabecera de capas del diagrama de la red, las filas de la tarjeta de la neurona y la tabla de verdad del Laboratorio, las filas de percepción de Reglas a mano y el renglón de interruptores de su barra de marcha, y los controles de las fichas del programa de Reglas a mano
+- **THEN** cada uno tiene la altura normal o la compacta, y la compacta solo aparece en barras densas: las de arriba y abajo de la red, las filas de la lista de competidores, el renglón de Cambiar y Apagar de la tarjeta de la neurona en Inspeccionar y en el Laboratorio, los avisos sobre la escena de Inspeccionar, las filas de la biblioteca de cerebros, la barra de arriba de la app, la cabecera de capas del diagrama de la red, las filas de la tarjeta de la neurona y la tabla de verdad del Laboratorio, las filas de percepción de Reglas a mano y el renglón de interruptores de su barra de marcha, el renglón de interruptores de la barra de marcha de Entrenar, y los controles de las fichas del programa de Reglas a mano
 
 #### Scenario: Tres alturas
 - **WHEN** se mide la acción principal de cada pestaña y los botones de su mismo renglón
@@ -81,7 +81,7 @@ La acción principal de cada pestaña SHALL ser su control de marcha, el mismo e
 |---|---|
 | El problema | Pausar o seguir |
 | Reglas a mano | Pausar o seguir |
-| Entrenar | Pausar o seguir, en la vista de entrenamiento |
+| Entrenar | Pausar o seguir, en la barra de abajo de la escena |
 | Competir | Largar, pausar o reanudar |
 | Inspeccionar | Reproducir o pausar |
 | Laboratorio | Reproducir o pausar |
@@ -134,7 +134,7 @@ Al terminar ese estado, la marcha SHALL volver a ser la acción principal.
 - **THEN** "Compará con los ejemplos" es la única acción principal, Reiniciar y "Escribir una regla para este caso" se ven como secundarias, y al reiniciar la marcha vuelve a ser la acción principal
 
 ### Requirement: Guardar no compite con la marcha
-En la vista de cerebros de Entrenar, la acción principal SHALL ser Guardar como nuevo. "Guardar campeón", en la vista de entrenamiento, y "Agregar una capa oculta" y "Guardar como cerebro", en el Laboratorio, SHALL verse como acciones secundarias.
+En Entrenar la marcha SHALL seguir siendo la acción principal en las tres vistas del panel, porque queda siempre a la vista debajo de la escena. "Guardar como nuevo", en la vista de cerebros, "Guardar campeón", en la vista de entrenamiento, y "Agregar una capa oculta" y "Guardar como cerebro", en el Laboratorio, SHALL verse como acciones secundarias.
 
 #### Scenario: Vista de entrenamiento
 - **WHEN** en Entrenar la persona mira la vista de entrenamiento con un campeón para guardar
@@ -142,7 +142,7 @@ En la vista de cerebros de Entrenar, la acción principal SHALL ser Guardar como
 
 #### Scenario: Vista de cerebros
 - **WHEN** la persona pasa a la vista de cerebros de Entrenar
-- **THEN** "Guardar como nuevo" es la acción principal de esa vista
+- **THEN** "Guardar como nuevo" se ve como acción secundaria y la marcha de abajo de la escena sigue siendo la única acción principal
 
 ### Requirement: Opciones elegidas con un mismo aspecto
 Todo grupo de opciones (segmentos, selector de idioma, botones de cámara, fichas, interruptores y botones que quedan apretados) SHALL mostrar la opción elegida con el mismo estilo de opción elegida en toda la app. Un interruptor encendido SHALL mostrar su perilla del lado encendido y no SHALL usar el relleno pleno del color de acción.

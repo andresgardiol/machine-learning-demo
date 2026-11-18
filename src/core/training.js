@@ -24,6 +24,9 @@
 //   training.trackId | lapsOf(i) pista de la generación en curso y vueltas del individuo i (circuitos-y-paisaje D4)
 //   training.nextMutationStrength  fuerza con que se armaría la generación siguiente (enfriamiento, D9)
 //   training.onGeneration(fn)    avisa al cerrar cada generación
+//   training.mutationSample      { index, base, network } de la generación en curso, o null (entrenar-la-generacion-ensena D1)
+//   training.breeding            cómo se armó la generación en curso: { mode, elite, rest, selection, strength }, o null
+//   record.changes               ajustes de la persona que empezaron a regir con esa generación: [{ key, from, to }] (D2)
 //
 // Todo el azar sale de la semilla del entrenamiento (design.md D5).
 import { createWorld } from './world.js';
@@ -152,6 +155,7 @@ export function normalizeTrainingConfig(partial = {}) {
 }
 
 const sameValue = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const copyValue = (v) => (Array.isArray(v) ? [...v] : v);
 
 /**
  * Fuerza de mutación con que se arma la generación que sigue a la número `generation` (D9): con
@@ -222,6 +226,12 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
   let scenarios = brain ? brain.training.scenarios.map((s) => ({ ...s })) : [];
   const history = [];
   let champion = null;
+  // Muestra de la mutación y forma en que se armó la generación en curso (entrenar-la-generacion-ensena D1 y D4).
+  // Ninguna de las dos consume azar ni cambia redes: se arman con lo que ya calculó la evolución.
+  let mutationSample = null;
+  let breedingSummary = null;
+  // Cambios de la persona que rigen desde la generación en curso (D2); se copian a su registro al cerrarla.
+  let startChanges = [];
 
   // Elecciones de padre de la selección manual (design.md D2): una pila; el padre elegido es la última.
   let choices = [];
@@ -320,7 +330,7 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     const ranked = rankPopulation(values);
     const best = values[ranked[0]];
     const average = values.reduce((a, b) => a + b, 0) / values.length;
-    const record = { generation, best, average, fitness: config.fitness, reason };
+    const record = { generation, best, average, fitness: config.fitness, reason, changes: startChanges };
     history.push(record);
     champion = { network: copyNetwork(networks[ranked[0]]), fitness: best, fitnessKind: config.fitness, generation, index: ranked[0] };
     scenarios = addScenarioGenerations(scenarios, scenarioOf(config));
@@ -328,11 +338,22 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
 
     // Cambios pendientes: rigen desde la generación siguiente.
     const wasManual = config.selectionMode === 'manual';
+    const before = config;
     if (pending) {
       config = normalizeTrainingConfig({ ...config, ...pending });
       pending = null;
     }
+    // Solo lo que la persona dejó pendiente: la fuerza enfriada no está en `config` (D2). Si la persona cambió la
+    // fuerza, sus valores son los que rigen: con el enfriamiento, la que tocaba (la que mostraba el ajuste), así
+    // apagarlo y subirla se lee "29 % → 40 %" y no desde el valor guardado debajo del enfriamiento.
+    const effective = (cfg) => strengthFor(cfg, startGenerations + completed);
+    startChanges = changedKeys(before, config)
+      .map((key) => (key === 'mutationStrength'
+        ? { key, from: effective(before), to: effective(config) }
+        : { key, from: copyValue(before[key]), to: copyValue(config[key]) }))
+      .filter((c) => !sameValue(c.from, c.to));
     const breeding = randomFor(deriveSeed(seed, STREAM_BREEDING), generation);
+    let breedingInfo = null;
     if (config.selectionMode === 'manual') {
       // Al pasar de automática a manual sin elección, el padre es el campeón de la que termina.
       if (!wasManual && choices.length === 0) {
@@ -342,6 +363,9 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
       if (parent) {
         networks = childrenOf(parent.network, config, breeding);
         eliteN = 1;
+        // childrenOf: la copia del padre en 0 y los hijos mutados desde el 1 (D1).
+        mutationSample = networks.length > 1 ? { index: 1, base: parent.network } : null;
+        breedingInfo = { mode: 'manual', elite: 1, rest: networks.length - 1, selection: null, strength: config.mutationStrength };
       } else {
         // Sin padre: población al azar nueva, propia de la generación que empieza.
         const fresh = deriveSeed(deriveSeed(seed, STREAM_FRESH), generation + 1);
@@ -350,6 +374,8 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
           activation: config.activation, random: randomFor(fresh, i),
         }));
         eliteN = 0;
+        mutationSample = null;
+        breedingInfo = { mode: 'fresh', elite: 0, rest: networks.length, selection: null, strength: null };
       }
     } else {
       choices = [];
@@ -357,7 +383,10 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
       const next = nextGeneration({ networks, fitnesses: values, config: { ...config, mutationStrength: strength }, random: breeding });
       networks = next.networks;
       eliteN = next.elite.length;
+      mutationSample = next.sample;
+      breedingInfo = { mode: 'auto', elite: eliteN, rest: networks.length - eliteN, selection: config.selection, strength };
     }
+    breedingSummary = breedingInfo;
     generation += 1;
     startGeneration();
     for (const fn of [...listeners]) fn(record);
@@ -545,6 +574,9 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     get world() { return world; },
     /** Cantidad de individuos de élite de la generación en curso: son los primeros de la población. */
     get eliteCount() { return eliteN; },
+    /** Muestra de la mutación de la generación en curso: el primer hijo mutado y su red de antes de mutar (D1). */
+    get mutationSample() { return mutationSample ? { index: mutationSample.index, base: mutationSample.base, network: networks[mutationSample.index] } : null; },
+    get breeding() { return breedingSummary; },
     get scenarios() { return scenarios; },
     get fromBrain() { return brain; },
   };

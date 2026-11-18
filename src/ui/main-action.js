@@ -24,8 +24,8 @@ export function mainAction(tab, state = {}) {
       // (reglas-el-choque-ensena D1), con el reintento encendido o apagado.
       return crashed ? 'compare' : 'run';
     case 'train':
-      if (panelView === 'brains') return 'saveAsNew';
-      if (panelView === 'settings') return null;
+      // La marcha está siempre a la vista, debajo de la escena: es la principal en las tres vistas del
+      // panel, y Guardar como nuevo queda secundaria (entrenar-mesa-de-trabajo D4).
       return manualPending ? 'chooseLeader' : 'run';
     case 'compete':
       if (raceFinished) return 'another';

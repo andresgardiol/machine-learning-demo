@@ -189,8 +189,11 @@ export function cooledStrength(generation) {
  * mutación).
  * @param {{networks:object[], fitnesses:number[], config:object, random:()=>number}} spec
  *   config: configuración de evolución (se normaliza); su `population` es el tamaño de la nueva.
- * @returns {{networks:object[], elite:number[], parents:number[]}} elite: posiciones de la élite en
- *   la nueva población; parents: índices (en la anterior) de los padres seleccionados, del mejor al peor.
+ * @returns {{networks:object[], elite:number[], parents:number[], sample:{index:number, base:object}|null}}
+ *   elite: posiciones de la élite en la nueva población; parents: índices (en la anterior) de los padres
+ *   seleccionados, del mejor al peor; sample: la muestra de la mutación (entrenar-la-generacion-ensena D1), el
+ *   primer hijo no élite y la red que se pasó a mutate() (la del padre o la del cruce), o null si no hay hijos.
+ *   Guardar la muestra no consume azar: `base` ya existe en el bucle.
  */
 export function nextGeneration({ networks, fitnesses, config, random }) {
   const c = normalizeEvolution(config);
@@ -201,6 +204,7 @@ export function nextGeneration({ networks, fitnesses, config, random }) {
   const out = [];
   for (let e = 0; e < eliteN; e++) out.push(copyNetwork(networks[ranked[e]]));
   const k = parents.length;
+  let sample = null;
   while (out.length < size) {
     const a = Math.floor(random() * k);
     let base;
@@ -211,9 +215,42 @@ export function nextGeneration({ networks, fitnesses, config, random }) {
     } else {
       base = networks[parents[a]];
     }
+    if (!sample) sample = { index: out.length, base };
     out.push(mutate(base, { strength: c.mutationStrength, rate: c.mutationRate }, random));
   }
-  return { networks: out, elite: Array.from({ length: eliteN }, (_, i) => i), parents };
+  return { networks: out, elite: Array.from({ length: eliteN }, (_, i) => i), parents, sample };
+}
+
+/**
+ * Qué cambió la mutación (entrenar-la-generacion-ensena D1): los pesos y sesgos en que difieren dos redes de
+ * la misma forma, con las claves de las marcas del inspector. La capa se cuenta como en la traza: 0 son las
+ * entradas, así que la capa `k` de la red es la `k + 1`. Pesos: 'l:j:i' (neurona j, entrada i); sesgos: 'l:j'.
+ * @param {object} base la red antes de mutar
+ * @param {object} network la red mutada
+ * @returns {{changedWeights:Set<string>, changedBiases:Set<string>, total:number, meanChange:number}}
+ *   total: pesos y sesgos de la red; meanChange: el promedio de |nuevo − anterior| de los que cambiaron (0 si ninguno).
+ */
+export function mutationDiff(base, network) {
+  const changedWeights = new Set();
+  const changedBiases = new Set();
+  let total = 0;
+  let sum = 0;
+  network.layers.forEach((layer, k) => {
+    const before = base.layers[k];
+    const l = k + 1;
+    layer.weights.forEach((row, j) => {
+      row.forEach((w, i) => {
+        total += 1;
+        if (w !== before.weights[j][i]) { changedWeights.add(`${l}:${j}:${i}`); sum += Math.abs(w - before.weights[j][i]); }
+      });
+    });
+    layer.biases.forEach((b, j) => {
+      total += 1;
+      if (b !== before.biases[j]) { changedBiases.add(`${l}:${j}`); sum += Math.abs(b - before.biases[j]); }
+    });
+  });
+  const changed = changedWeights.size + changedBiases.size;
+  return { changedWeights, changedBiases, total, meanChange: changed > 0 ? sum / changed : 0 };
 }
 
 /**

@@ -12,7 +12,7 @@
 // pendiente y el panel lo indica); o con un entrenamiento nuevo, de inmediato si todavía no terminó
 // ninguna generación y con una confirmación en línea si ya terminó alguna.
 import { createTraining, NEW_TRAINING_KEYS, SELECTION_MODES } from '../../core/training.js';
-import { FITNESS_KINDS } from '../../core/evolution.js';
+import { FITNESS_KINDS, mutationDiff } from '../../core/evolution.js';
 import { ACTIVATIONS } from '../../core/network.js';
 import { TRAFFIC_MODES, copyBrain } from '../../core/brain.js';
 import { createStageView } from '../../render/view.js';
@@ -30,6 +30,7 @@ import { trainingDescription } from '../shared/stage-text.js';
 import { el } from '../../ui/dom.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { statStrip, boardCard } from '../../ui/board.js';
+import { boardOrder, missionsSummary } from './layout.js';
 import {
   button, switchButton, sliderRow, optionGroup, createTextSetter, inlineConfirm,
 } from '../../ui/controls.js';
@@ -43,6 +44,8 @@ import { setUnavailable } from '../shared/street-advanced.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
 import { createTrainSession, indicators, lastGeneration, parentStatus, leaderLabelKey } from './session.js';
 import { shortcutFor, toggleTurbo } from './shortcuts.js';
+import { createCut } from './cut.js';
+import { mutationPreview, networkCardMode, PREVIEW_MS, PREVIEW_ANNOUNCE_MS } from './preview.js';
 
 export const DEFAULT_SEED = 1;
 
@@ -122,13 +125,22 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
 
   const setText = createTextSetter(i18n);
-  const view = createStageView({ container: stage, store });
+  // Zona del escenario (entrenar-mesa-de-trabajo D2), como la de Reglas a mano: la escena arriba, que
+  // crece, y la barra de marcha debajo, siempre a la vista en cualquier vista del panel.
+  const scene = el('div', { class: 'train-scene' });
+  const stageZone = el('div', { class: 'train-stage-zone' }, scene);
+  stage.append(stageZone);
+  const view = createStageView({ container: scene, store });
   const focusStage = () => stage.focus({ preventScroll: true });
   // Descripción en texto del escenario, para lectores de pantalla (D9).
   const description = stageDescription({ stage });
 
   // --- Entrenamiento ------------------------------------------------------------------------
   let offGeneration = () => {};
+  // Corte de generación (entrenar-la-generacion-ensena D3): solo de la interfaz; mientras dura no se llama a step().
+  const cut = createCut();
+  const clock = () => (globalThis.performance ?? Date).now();
+  const guideOn = () => store?.get().guide !== false;
 
   /** Se suscribe al entrenamiento en curso: curva, misiones y autoguardado al terminar cada generación. */
   function attachTraining() {
@@ -138,6 +150,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       state.missions.generationEnded(record);
       autosave();
       view.followCar();
+      // Con la guía activa y a 1× o 2×, la generación nueva espera en la largada (D3); con la página oculta, no.
+      if (cut.enter(clock(), { guide: guideOn() && !document.hidden, speed: state.settings.speed, paused: state.paused })) showCut();
+      else hideCut();
     });
   }
 
@@ -157,6 +172,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     state.missions.restart();
     state.undo = null;
     setSaveMessage(null); // el mensaje de guardado queda hasta el próximo guardado o un entrenamiento nuevo
+    cut.end();
+    endPreview();
+    hideCut();
     attachTraining();
     chart.update(state.training.history);
     view.followCar();
@@ -216,7 +234,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         view?.followCar();
       }
     }
-    if (changes.instant.includes('speed')) loop.setSpeed(target.speed);
+    if (changes.instant.includes('speed')) {
+      loop.setSpeed(target.speed);
+      if (cut.speedChanged(target.speed)) hideCut(); // a 4× o más no hay corte
+    }
     sync();
   }
   const setSetting = (key, value, confirm) => applySettings({ ...state.settings, [key]: value }, confirm);
@@ -225,9 +246,18 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function togglePause() {
     state.paused = !state.paused;
     if (state.paused) library?.flush();
+    // En el corte, la pausa lo congela: queda a la vista hasta reanudar, y al reanudar arranca la generación (D3,
+    // escenario "Pausar durante el corte").
+    if (state.paused) cut.pause(clock());
+    else if (cut.active) { cut.next(); hideCut(); }
     sync();
   }
-  function nextGeneration() { state.training.finishGeneration(); sync(); }
+  function nextGeneration() {
+    // Durante el corte, Siguiente (o N) termina el corte y no la generación nueva (D3).
+    if (cut.active) { cut.next(); hideCut(); sync(); return; }
+    state.training.finishGeneration();
+    sync();
+  }
   /** ¿La persona eligió la selección manual? Decide si se ven y se atienden elegir y deshacer (design.md D6). */
   const manualWanted = () => state.settings.selectionMode === 'manual';
   /** Elegir al líder como padre: funciona en marcha y en pausa, sin tocar la generación en curso. */
@@ -371,7 +401,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     speeds.row, factor,
     el('div', { class: 'run-secondary' }, restartButton, newPopulationButton),
     toolbarConfirm.node);
-  // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna, la marcha y la misión en curso.
+  // Tarjeta de consigna (tarjeta-de-consigna D4): la consigna y la misión en curso. La marcha va en la
+  // barra de abajo de la escena (entrenar-mesa-de-trabajo D2).
   // "Mostrame" (misiones-que-muestran-el-control): Guardar campeón, o la función de fitness en la vista
   // Ajustes. Solo cambia de vista del panel; no toca ningún ajuste.
   const missionReveal = createMissionReveal({
@@ -380,7 +411,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     nodes: { save: () => quickSave, fitness: () => choices.fitness.row },
     prepare: (target) => { if (target.view) views.select(target.view); },
   });
-  const card = createConsignaCard({ i18n, run, onReveal: missionReveal.reveal });
+  const card = createConsignaCard({ i18n, onReveal: missionReveal.reveal });
 
   // Misiones. Cada fila y la tarjeta escriben la misión con la misma vista (tarjeta-de-consigna D2).
   const describeMission = (m) => ({
@@ -399,9 +430,21 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       el('span', { class: 'mission-bar', attrs: { 'aria-hidden': 'true' } }, fill));
     return { id: m.id, row, status, fill };
   });
-  const missions = el('section', { class: 'guide train-missions' },
-    el('h2', { class: 'panel-heading', i18n: 'train.missions.title' }),
-    el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row)));
+  // La lista completa va plegada en un renglón "Todas las misiones · N de 4" (entrenar-red-primero D2),
+  // con el patrón de "Más sobre esta pestaña": `details` y `summary` dan el estado al lector de pantalla
+  // y el manejo con el teclado. La misión en curso ya está en la tarjeta de consigna. Abrir o cerrar se
+  // recuerda en los ajustes (como las tarjetas del tablero) y no toca el entrenamiento.
+  const missionsLabel = el('span', { class: 'train-missions-label' });
+  const missionsSummaryNode = el('summary', { class: 'guide-more-summary tertiary train-missions-summary', help: 'train.missions.toggle' }, missionsLabel);
+  const missions = el('details', { class: 'guide guide-more train-missions' },
+    missionsSummaryNode,
+    el('ol', { class: 'mission-list guide-more-body' }, missionRows.map((r) => r.row)));
+  missions.open = state.settings.showMissions;
+  missionsSummaryNode.setAttribute('aria-expanded', String(missions.open));
+  missions.addEventListener('toggle', () => {
+    missionsSummaryNode.setAttribute('aria-expanded', String(missions.open));
+    if (missions.open !== state.settings.showMissions) state.settings = { ...state.settings, showMissions: missions.open };
+  });
 
   // --- Panel: configuración ----------------------------------------------------------------------
   // Una confirmación de entrenamiento nuevo en el grupo de red y otra pegada a la barra de escenario,
@@ -423,8 +466,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         if (r.input.getAttribute('aria-disabled') === 'true') { r.input.value = String(state.settings[key]); return; }
         if (deferred) setText(r.value, FORMATS[key], { value: v, kmh: Math.round(v * 3.6) });
         else setSetting(key, v, confirm);
+        // La fuerza editable (sin enfriamiento) muestra en la red un hijo de ejemplo (entrenar-mutacion-a-la-vista).
+        if (key === 'mutationStrength') startPreview(v);
       },
-      onChange: (v) => { if (deferred) setSetting(key, v, confirm); },
+      onChange: (v) => {
+        if (deferred) setSetting(key, v, confirm);
+        if (key === 'mutationStrength') announcePreview(); // al soltar, se anuncia el renglón (D4)
+      },
     });
     return { key, deferred, ...r };
   }
@@ -480,9 +528,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const basicPending = pendingNote();
   const advancedPending = pendingNote();
 
+  // "Probá esto" (entrenar-mesa-de-trabajo D3): los ajustes que más cambian cómo aprende la población, con la
+  // función de fitness primero. Es el mismo nodo que antes estaba en la vista de ajustes.
   const basic = el('section', { class: 'train-basic' },
-    el('h2', { class: 'panel-heading', i18n: 'train.basic.title' }),
-    row('population'), row('mutationStrength'), el('div', { class: 'switch-row' }, sw('mutationCooling')), basicPending);
+    el('h2', { class: 'panel-heading', i18n: 'train.basic.title', help: 'train.basic', attrs: { tabindex: '0' } }),
+    choices.fitness.row, row('population'), row('mutationStrength'), el('div', { class: 'switch-row' }, sw('mutationCooling')), basicPending);
 
   const sensorsSwitch = switchButton('train.sensors', 'train.sensors', state.settings.showSensors, () => setSetting('showSensors', !state.settings.showSensors));
   // Ver como la máquina (D13): el mismo nombre que en El problema, con una ayuda propia.
@@ -491,6 +541,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     sync();
   });
   const viewSwitches = el('div', { class: 'switch-row train-view', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.view.title' }, sensorsSwitch, machineSwitch);
+  // Barra de marcha (D2): el mismo nodo `run`, con su orden, y los interruptores en un renglón compacto.
+  const runBar = el('div', { class: 'train-runbar', attrs: { role: 'group' }, i18nAttr: 'aria-label:train.runbar.label' },
+    run, el('div', { class: 'train-runbar-switches' }, viewSwitches));
+  stageZone.append(runBar);
 
   /** Bloque de la vista de ajustes (D13): un título y sus ajustes, a la vista, sin plegar. */
   const block = (key, ...children) => el('section', { class: `settings-block settings-block-${key}`, attrs: { 'aria-labelledby': `train-block-${key}` } },
@@ -498,7 +552,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
 
   const resetButton = button('train.resetSettings', 'train.resetSettings', resetSettings);
   // Vista de ajustes (D13): el aviso de cambios pendientes, la red primero y la evolución después, los
-  // dos a la vista y sin plegar, y restablecer al pie. La función de fitness encabeza la evolución.
+  // dos a la vista y sin plegar, y restablecer al pie. La función de fitness está en "Probá esto" (D3).
   const settingsView = el('div', { class: 'train-settings' },
     advancedPending,
     block('network',
@@ -506,7 +560,6 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       row('hiddenLayers'), row('neurons1'), row('neurons2'), row('neurons3'), choices.activation.row,
       networkConfirm.node),
     block('evolution',
-      choices.fitness.row,
       row('elite'), row('selection'), row('mutationRate'), el('div', { class: 'switch-row' }, sw('crossover')),
       row('maxDuration'), el('div', { class: 'switch-row' }, sw('slowRule')), choices.trafficMode.row),
     el('div', { class: 'settings-reset' }, resetButton), resetConfirm.node);
@@ -604,7 +657,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const brainsView = el('div', { class: 'train-brains' }, brainsSave, libraryZone);
 
   // Vistas del panel (D1): entrenamiento, ajustes y cerebros, con la barra fija arriba.
-  const trainingView = el('div', { class: 'train-training' }, card.node, createGuideMore(intro), viewSwitches, basic, saveBlock, missions);
+  const trainingView = el('div', { class: 'train-training' }, card.node, createGuideMore(intro), basic, saveBlock, missions);
   const views = panelViews({
     idPrefix: 'train-view',
     i18n,
@@ -644,7 +697,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (view === 'brains') libraryView.cancelConfirms();
   }
 
-  // --- Tablero: indicadores, última generación, curva y red (design.md D8) ---------------------------
+  // --- Tablero: indicadores, última generación, red y curva (design.md D8; entrenar-red-primero D1) ----
   const strip = statStrip([
     { id: 'generation', labelKey: 'train.stats.generation' },
     { id: 'alive', labelKey: 'train.stats.alive' },
@@ -667,20 +720,83 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const networkCard = boardCard({
     id: 'train-network', titleKey: 'train.network.title', help: 'train.network', hintKey: 'train.network.hint',
     open: state.settings.showNetwork, grow: 1.3,
-    onToggle: (open) => { state.settings = { ...state.settings, showNetwork: open }; },
+    onToggle: (open) => { state.settings = { ...state.settings, showNetwork: open }; sampleDrawn = false; },
   });
   const networkZone = el('div', { class: 'network-zone' });
+  // Durante el corte, la red de un hijo con lo que cambió la mutación (D5): este renglón dice cuánto.
+  const sampleLine = el('p', { class: 'network-sample-line', attrs: { role: 'status' } });
+  sampleLine.hidden = true;
+  let sampleDrawn = false;
+  // Vista previa de la mutación (entrenar-mutacion-a-la-vista D2): la red del líder congelada al empezar, la fuerza
+  // del deslizador y hasta cuándo dura. Se recalcula en drawNetwork, como mucho una vez por cuadro.
+  let preview = null; // { base, strength, rate, until, dirty, result }
+  let announceTimer = null;
+
+  /** Empieza o sigue la vista previa con la fuerza `strength` (cada `input` del deslizador). */
+  function startPreview(strength) {
+    const t = state.training;
+    preview ??= { base: t.networks[t.leaderIndex] };
+    Object.assign(preview, { strength, rate: state.settings.mutationRate, until: clock() + PREVIEW_MS, dirty: true });
+    // Mientras se arrastra no se anuncia cada paso: el renglón se anuncia al soltar o a los 500 ms sin cambios (D4).
+    sampleLine.setAttribute('aria-live', 'off');
+    clearTimeout(announceTimer);
+    announceTimer = setTimeout(announcePreview, PREVIEW_ANNOUNCE_MS);
+  }
+  /** Anuncia el renglón: lo vuelve a escribir con la región viva encendida. */
+  function announcePreview() {
+    clearTimeout(announceTimer);
+    announceTimer = null;
+    if (!preview) return;
+    sampleLine.setAttribute('aria-live', 'polite');
+    sampleLine.textContent = '';
+    queueMicrotask(() => { if (preview?.result) writePreviewLine(); });
+  }
+  function writePreviewLine() {
+    const { diff } = preview.result;
+    const changed = diff.changedWeights.size + diff.changedBiases.size;
+    if (changed === 0) setText(sampleLine, 'train.network.preview.zero', { strength: preview.strength });
+    else setText(sampleLine, 'train.network.preview', { strength: preview.strength, changed, total: diff.total, mean: formatFixed(diff.meanChange, 2, i18n.language) });
+    sampleLine.hidden = false;
+  }
+  /** Termina la vista previa: la tarjeta vuelve a la muestra del corte, si sigue, o a la red en vivo (D3). */
+  function endPreview() {
+    if (!preview) return;
+    preview = null;
+    clearTimeout(announceTimer);
+    announceTimer = null;
+    sampleLine.setAttribute('aria-live', 'polite');
+    sampleDrawn = false;
+    if (cut.active && state.training.mutationSample) writeCutLine();
+    else sampleLine.hidden = true;
+  }
   const legend = el('ul', { class: 'network-legend' },
     el('li', {}, el('span', { class: 'legend-line', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.positive' })),
     el('li', {}, el('span', { class: 'legend-line negative', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.negative' })),
     el('li', {}, el('span', { class: 'legend-node', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.active' })),
     el('li', { class: 'network-note', i18n: 'train.network.legend.note' }));
-  networkCard.append(networkZone, legend);
+  networkCard.append(sampleLine, networkZone, legend);
 
-  board.append(strip.node, lastLine, chartCard.node, networkCard.node);
+  board.append(...boardOrder({ strip: strip.node, lastLine, chart: chartCard.node, network: networkCard.node }));
 
-  const chart = createFitnessChart({ container: chartZone, i18n });
+  const chart = createFitnessChart({ container: chartZone, i18n, describeChanges });
   const networkView = createNetworkView({ container: networkZone, i18n });
+
+  /**
+   * Cambios de una generación para la lectura de la curva (D6): "Fuerza de mutación: 29 % → 40 %", con los nombres
+   * y las unidades del panel, en el idioma activo.
+   */
+  function describeChanges(changes) {
+    const value = (key, v) => {
+      if (typeof v === 'boolean') return i18n.t(v ? 'train.chart.on' : 'train.chart.off');
+      if (key === 'fitness') return i18n.t(`train.fitness.${v}`);
+      if (key === 'trafficMode') return i18n.t(`train.trafficMode.${v}`);
+      if (key === 'selectionMode') return i18n.t(`train.selectionMode.${v}`);
+      if (typeof v === 'number' && FORMATS[key]) return i18n.t(FORMATS[key], { value: Math.round(v) });
+      return String(v);
+    };
+    return changes.map((c) => i18n.t('train.chart.change', { name: i18n.t(`train.setting.${c.key}`), from: value(c.key, c.from), to: value(c.key, c.to) }))
+      .join(i18n.t('train.chart.changeSeparator'));
+  }
 
   // --- Mensajes sobre el escenario ------------------------------------------------------------------
   const generationBadge = el('div', { class: 'stage-badge generation-badge', attrs: { role: 'status' } });
@@ -690,12 +806,56 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // generación, hasta que esa generación termina.
   const restartedBadge = el('p', { class: 'stage-badge restarted-badge', attrs: { role: 'status' } });
   // Esquina superior izquierda, en el segundo renglón (D11): generación, el aviso y los demás mensajes.
-  view.corner.append(el('div', { class: 'stage-badges' }, generationBadge, restartedBadge, pauseBadge, machineBadge));
+  // Tarjeta del corte (D4): en la columna de avisos, debajo de los demás, sin tapar el centro de la calle.
+  const cutTitle = el('p', { class: 'cut-card-title' });
+  const cutText = el('p', { class: 'cut-card-text' });
+  // La élite contada (decisión de la parada de la tarea 4.2): una fila de rombos, uno por individuo que pasa tal cual.
+  const cutElite = el('div', { class: 'cut-elite', attrs: { 'aria-hidden': 'true' } });
+  const cutCard = el('div', { class: 'cut-card', attrs: { role: 'status' } }, cutTitle, cutElite, cutText);
+  cutCard.hidden = true;
+  view.corner.append(el('div', { class: 'stage-badges' }, generationBadge, restartedBadge, pauseBadge, machineBadge, cutCard));
+
+  /** Muestra el corte: la tarjeta con los números reales y, en la red, el hijo de la muestra (D4 y D5). */
+  function showCut() {
+    const t = state.training;
+    const b = t.breeding;
+    setText(cutTitle, 'train.cut.title', { generation: t.generation });
+    if (!b || b.mode === 'fresh') setText(cutText, 'train.cut.fresh', { rest: b ? b.rest : t.population });
+    else if (b.mode === 'manual') setText(cutText, 'train.cut.manual', { rest: b.rest, strength: Math.round(b.strength) });
+    else {
+      const key = b.elite === 0 ? 'train.cut.auto.none' : b.elite === 1 ? 'train.cut.auto.one' : 'train.cut.auto';
+      setText(cutText, key, { elite: b.elite, rest: b.rest, selection: b.selection, strength: Math.round(b.strength) });
+    }
+    const elite = b ? b.elite : 0;
+    cutElite.replaceChildren(...Array.from({ length: elite }, () => el('span', { class: 'cut-elite-mark' })));
+    cutElite.hidden = elite === 0;
+    cutCard.hidden = false;
+    // Con una vista previa en curso, el renglón sigue siendo el de la vista previa (D3): el del corte se escribe al terminar.
+    if (!preview) writeCutLine();
+    sampleDrawn = false;
+  }
+  /** El renglón de la muestra del corte: cuánto cambió la mutación en el hijo de la muestra. */
+  function writeCutLine() {
+    const sample = state.training.mutationSample;
+    if (sample) {
+      const d = mutationDiff(sample.base, sample.network);
+      setText(sampleLine, 'train.network.sample', {
+        changed: d.changedWeights.size + d.changedBiases.size, total: d.total, mean: formatFixed(d.meanChange, 2, i18n.language),
+      });
+    }
+    sampleLine.hidden = !sample;
+  }
+  function hideCut() {
+    cutCard.hidden = true;
+    if (!preview) sampleLine.hidden = true;
+    sampleDrawn = false;
+  }
 
   // --- Sincronizar el panel con el estado ------------------------------------------------------------
   /**
-   * Acción principal de la vista (jerarquia-de-botones D3): la marcha; Elegir al líder con la selección
-   * manual sin padre elegido; Guardar como nuevo en la vista de cerebros; ninguna en la de ajustes.
+   * Acción principal (jerarquia-de-botones D3; entrenar-mesa-de-trabajo D4): la marcha, que está siempre a la
+   * vista debajo de la escena, o Elegir al líder con la selección manual sin padre elegido, en las tres
+   * vistas del panel. Guardar como nuevo es secundaria.
    */
   function syncMainAction() {
     const manualPending = manualWanted() && !state.training.parent;
@@ -759,6 +919,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
     card.setMission(current && !current.allDone ? { ...describeMission(current), reveal: missionReveal.has(current.id) } : current);
+    const summary = missionsSummary(missionList);
+    setText(missionsLabel, 'train.missions.summary', summary);
 
     // Selección manual (según el modo deseado): elegir y deshacer, con la línea de estado del padre.
     const manual = s.selectionMode === 'manual';
@@ -810,7 +972,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const waiting = t.pending ? Object.keys(t.pending) : [];
     const othersWaiting = settingsWaiting(t.pending);
     modePending.hidden = !waiting.includes('selectionMode');
-    basicPending.hidden = !othersWaiting;
+    // La función de fitness avisa en "Probá esto" y no marca la pestaña de ajustes (D3).
+    basicPending.hidden = !(othersWaiting || waiting.includes('fitness'));
     advancedPending.hidden = !othersWaiting;
     views.setPending('settings', othersWaiting);
     const dragging = document.activeElement;
@@ -865,6 +1028,24 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function drawNetwork() {
     if (!networkCard.open) return;
     const t = state.training;
+    // Qué muestra la tarjeta (entrenar-mutacion-a-la-vista D3): la vista previa, la muestra del corte o la red en vivo.
+    const sample = cut.active ? t.mutationSample : null;
+    const mode = networkCardMode({ preview: Boolean(preview), cut: Boolean(sample) });
+    if (mode === 'preview') {
+      // El hijo de ejemplo, sin actividad: se calcula y se dibuja solo cuando cambió la fuerza.
+      if (preview.dirty || !sampleDrawn) {
+        if (preview.dirty) preview.result = mutationPreview(preview.base, { strength: preview.strength, rate: preview.rate });
+        preview.dirty = false;
+        writePreviewLine();
+        networkView.render(preview.result.network, null, { marks: preview.result.diff });
+        sampleDrawn = true;
+      }
+      return;
+    }
+    if (mode === 'cut') {
+      if (!sampleDrawn) { networkView.render(sample.network, null, { marks: mutationDiff(sample.base, sample.network) }); sampleDrawn = true; }
+      return;
+    }
     const leader = t.world.agents[t.leaderIndex];
     // Mientras corre, con la guarda de destellos (sin-destellos-en-la-red D3); en pausa, exacta.
     networkView.render(t.networks[t.leaderIndex], [...leader.perception.sensors, leader.perception.speed], { live: !state.paused });
@@ -873,17 +1054,23 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // --- Bucle ----------------------------------------------------------------------------------------
   const loop = createLoop({
     step: () => {
-      if (state.paused) return;
+      if (state.paused || cut.active) return;
       state.training.step();
       state.missions.observe(state.training);
     },
     render: () => {
       const t = state.training;
+      if (cut.active) {
+        if (!guideOn()) cut.end(); else cut.tick(clock());
+        if (!cut.active) hideCut();
+      }
+      if (preview && clock() >= preview.until) endPreview(); // a los 2 s del último cambio (D2)
       view.render(t.world, {
         showSensors: state.settings.showSensors || state.machineView,
         machineView: state.machineView,
         focus: t.leaderIndex,
         elite: Array.from({ length: t.eliteCount }, (_, i) => i),
+        focusElite: cut.active && t.eliteCount > 0, // en la largada, el del foco es la copia del mejor (D4)
       });
       drawNetwork();
       sync();
@@ -952,6 +1139,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     get paused() { return state.paused; },
     get session() { return state.session; },
     get missions() { return state.missions; },
+    get cut() { return cut; },
     undoUpdate,
     views,
     togglePause, nextGeneration, chooseLeader, undoChoice, restart, newPopulation, setSpeed, applySettings, resetSettings, saveChampion, continueFrom,

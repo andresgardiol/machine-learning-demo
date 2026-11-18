@@ -209,6 +209,81 @@ El 18 de noviembre, `reglas-como-fichas`, hecho y archivado el mismo día. El
     y constantes en un renglón. A 1366×768 con la guía se ven 6 de 7 reglas
     con 7 sensores y 4 de 22 con 20 (antes, 1 ficha entera). Auditorías en 0.
 
+El 18 de noviembre, `entrenar-red-primero` (cambio 0 de la crítica de Entrenar),
+  hecho y archivado el mismo día. El antes y el después están en
+  `borradores/entrenar-red-primero/comparacion.md` (local). La red del líder es
+  la primera tarjeta del tablero y la lista de misiones va plegada en un
+  renglón "Todas las misiones · N de 4" al final del panel. Medido con el
+  guion: a 1440×900 el panel pasa de desbordar 126 px a 0, en español y en
+  inglés y después de guardar, sin un píxel de sobra. `npm test`: 1428, 0
+  fallas. Lo que quedó:
+  - a 1366×768 los dos lienzos miden 120 px y el panel desborda 252 px (lo
+    resuelve `entrenar-mesa-de-trabajo`);
+  - `auditSistema()` da 1 problema después de guardar: el botón Renombrar del
+    resultado mide 24 px (ya estaba antes);
+  - sin probar: lector de pantalla, Firefox y una ventana visible.
+
+El 18 de noviembre, `entrenar-mesa-de-trabajo` (cambio 1 de la crítica de
+  Entrenar), hecho y archivado el mismo día. El antes y el después están en
+  `borradores/entrenar-mesa-de-trabajo/comparacion.md` (local). La marcha
+  (quién elige al padre, Pausar, Siguiente, la selección manual, las
+  velocidades, Reiniciar, Población nueva y los interruptores) va en una barra
+  debajo de la escena y se ve en las tres vistas del panel. La vista de
+  entrenamiento tiene "Probá esto": la función de fitness, la población y la
+  mutación. En Cerebros, "Guardar como nuevo" pasó a secundaria. Claude
+  mantuvo el panel en vez de sacarlo, como proponía la crítica (D1 del
+  diseño). Medido con el guion: a 1366×768 la escena mide 458 px con
+  selección automática, 390 con la manual y 343 mientras se ve el aviso de
+  cambio de selección (pisos de 360 y 340, decididos en la parada de la tarea
+  2.4). A 1440×900 la vista de entrenamiento no se desplaza en ningún caso, y
+  la de ajustes pasa de desbordar 178 px a 83. `npm test`: 1430, 0 fallas.
+  Sin probar: lector de pantalla, Firefox, una ventana visible y un recorrido
+  real con Tab.
+
+El 18 de noviembre, `entrenar-la-generacion-ensena` (cambio 2 de la crítica de
+  Entrenar), hecho y archivado el mismo día. El antes y el después están en
+  `borradores/entrenar-la-generacion-ensena/comparacion.md` (local). Con la
+  guía activa, a 1× o 2×, cada fin de generación tiene un corte de unos 2 s:
+  la tarjeta dice con los números reales cuántos pasan tal cual (con una fila
+  de rombos), de qué parte salen los padres y con qué fuerza mutan. La escena
+  queda quieta con el auto del foco marcado como élite, y la red muestra un
+  hijo con los pesos que cambió la mutación y el cambio promedio. La curva
+  marca las generaciones en que rige un cambio de la persona ("Fuerza de
+  mutación: 29 % → 40 %"). En el núcleo, la muestra de la mutación y
+  `record.changes`, sin consumir azar: el entrenamiento da los mismos
+  resultados y las mismas redes que antes (prueba fijada con el código de
+  partida). Dos paradas decididas por Claude: la élite se cuenta en la tarjeta
+  porque en la largada los 400 autos están en el mismo punto, y el renglón de
+  la red suma el promedio porque con probabilidad 100 % cambian todos. Medido:
+  60 cuadros por segundo durante el corte y a Máx. `npm test`: 1457, 0
+  fallas. Sin probar: lector de pantalla, Firefox, una ventana visible y si
+  la explicación se entiende sin ayuda.
+- Idea anotada por la crítica y dejada afuera: el promedio móvil del mejor en
+  la curva, para que una generación con tráfico difícil no parezca un
+  retroceso.
+
+El 18 de noviembre, `entrenar-mutacion-a-la-vista` (cambio 3 y último de la
+  crítica de Entrenar), hecho y archivado el mismo día. El antes y el después
+  están en `borradores/entrenar-mutacion-a-la-vista/comparacion.md` (local).
+  Al mover la fuerza de mutación, con el enfriamiento apagado, la red del líder
+  muestra un hijo de ejemplo (semilla propia, sin el azar del entrenamiento)
+  con los pesos cambiados marcados y el renglón "Ejemplo: un hijo con fuerza N
+  %…", y a los 2 s vuelve a la red en vivo. Medido: el promedio da 0,04, 0,30
+  y 0,59 con 5 %, 40 % y 80 %; 60 cuadros por segundo arrastrando; el
+  determinismo no cambió. `npm test`: 1464, 0 fallas. Lo que quedó:
+  - con el enfriamiento encendido por defecto, la vista previa no se ve hasta
+    apagarlo (decisión de Claude; se podría mostrar al pasar el cursor);
+  - con probabilidad 100 % los rombos marcan siempre todo: lo que cambia con la
+    fuerza son los trazos y el promedio;
+  - `auditSistema()` encuentra dos problemas que ya estaban: «compact
+    Renombrar 24px» después de guardar, y la marca de cambios pendientes de la
+    pestaña Ajustes con el color de acción («action-fill view-tab-pending»);
+  - sin probar: lector de pantalla, Firefox, una ventana visible y un arrastre
+    real con el mouse.
+- Ideas de la crítica de Entrenar dejadas para más adelante: la vista previa de
+  la población en la escena y el "Vos elegís" guiado (los 4 mejores en
+  miniatura al fin de la generación).
+
 ## En curso
 
 Nada.
@@ -325,6 +400,26 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      acción principal en Reglas a mano, si Reintentar solo viene apagado,
      si el orden nuevo se lleva a todas las pestañas y qué vista se abre por
      defecto con las fichas.
+   - **Hecho (18 de noviembre de 2026): la crítica de Entrenar**, con las
+     mismas dos skills. Está en `borradores/sistema-de-diseno/critica-entrenar.md`
+     (local). Medido: a 1440×900 el panel desborda 126 px (865 en 739), en
+     contra de *Panel a la vista sin desplazarse*; la marcha desaparece al
+     pasar a Ajustes o Cerebros; a 1366×768 la red mide 120 px de alto. Por
+     pedido del dueño, Claude eligió el orden y las decisiones, que el dueño
+     puede revertir (tabla en §6 de la crítica):
+     0. ~~`entrenar-red-primero`~~ (S, hecho el 18 de noviembre): la red del líder arriba de la curva (el
+        pedido de *Entrenar, tráfico y aprendizaje*) y el arreglo del
+        desborde del panel.
+     1. ~~`entrenar-mesa-de-trabajo`~~ (M, hecho el 18 de noviembre, con el panel): sin panel, como Reglas a mano; barra
+        de transporte bajo la escena, "Probá esto" junto a la curva y "Más
+        ajustes" plegado.
+     2. ~~`entrenar-la-generacion-ensena`~~ (L, hecho el 18 de noviembre): corte de unos 2 s al fin de cada
+        generación (salteado a 4× o más), tarjeta de generación, los pesos que
+        mutaron en la red y marcas de ajuste en la curva.
+     3. ~~`entrenar-mutacion-a-la-vista`~~ (S–M, hecho el 18 de noviembre): trazo fantasma en la red al
+        mover la fuerza de mutación.
+     Sigue esperando al dueño: el artículo de jerarquía visual y la tabla de
+     "Probá esto".
    - Observado por Claude en la captura del dueño de Reglas a mano (17 de
      noviembre, hipótesis, sin medir):
      - en la columna derecha conviven unos diez botones con contorno y la

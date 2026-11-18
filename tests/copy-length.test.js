@@ -178,8 +178,9 @@ test('chicana: el tooltip del óvalo con chicana dice qué es', () => {
 });
 
 test('Entrenar: una palabra para los ajustes, "el fitness" en masculino y misiones en imperativo', () => {
-  assert.equal(text('es', 'train.basic.title'), 'Población y mutación');
-  assert.equal(text('en', 'train.basic.title'), 'Population and mutation');
+  // "Probá esto": la función de fitness, la población y la mutación (entrenar-mesa-de-trabajo D3).
+  assert.equal(text('es', 'train.basic.title'), 'Probá esto');
+  assert.equal(text('en', 'train.basic.title'), 'Try this');
   assert.equal(text('es', 'train.resetSettings'), 'Restablecer ajustes');
   assert.equal(text('en', 'train.resetSettings'), 'Reset settings');
   assert.equal(text('es', 'train.view.settings'), 'Ajustes');
