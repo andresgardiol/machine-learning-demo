@@ -1,9 +1,10 @@
 // Pestaña 5, "Inspeccionar" (pestana-inspeccionar): la red de un cerebro en grande, en vivo mientras
 // maneja, para ver qué tiene adentro lo que se entrenó.
 //
-// Disposición (D1): la zona izquierda es de la red (los controles de la vista arriba, la red, la
-// operación en curso y la barra de reproducción abajo); el tablero lleva la escena chica, la decisión
-// y la leyenda; el panel, la guía, el cerebro, la tarjeta de la neurona elegida y las misiones.
+// Disposición (red-al-centro D2): la zona izquierda es lo que la red mira (la escena del auto, con su cámara,
+// y la decisión debajo); la zona central es la red (los controles de la vista arriba, la red, la operación en
+// curso y la barra de reproducción abajo); el panel, la guía, el cerebro, la tarjeta de la neurona elegida, la
+// leyenda y las misiones.
 //
 // Lo que se ve y lo que maneja son la misma cuenta (D5): el auto maneja con createTraceController y
 // la vista dibuja traceNetwork con los mismos cambios de prueba. Con "Manejar vos"
@@ -58,6 +59,7 @@ import { createConnectionDetail, linkShare } from '../shared/connection-detail.j
 import { createResponseCurve } from '../shared/response-curve.js';
 import { OUTPUT_KEYS } from '../../render/network-view.js';
 import { roleTag } from '../../ui/role-tag.js';
+import { NET_ZONES } from '../shared/net-zones.js';
 
 /** Semilla del tráfico: la misma para todos (misma semilla, misma escena). */
 export const SEED = 1;
@@ -67,13 +69,8 @@ export const RETRY_TICKS = 60;
 export const FILTERS = Object.freeze(['all', 5, 3, 1]);
 /** Vistas de la red. */
 export const VIEWS = Object.freeze(['diagram', 'table']);
-/**
- * Anchos propios (D1): por defecto la red toma todo lo que dejan el tablero en 360 px y el panel; no
- * baja de 600 px; y su ancho se recuerda aparte del de las demás pestañas. Los límites del tablero y
- * del panel son los de siempre.
- */
-// En una ventana angosta la red cede hasta 440 px para que el tablero conserve 280 (vista-de-la-red D18).
-export const ZONES = Object.freeze({ stageMin: 600, stageFloor: 440, boardKeep: 280, stageDefault: 'rest', preference: 'inspectStageWidth' });
+/** Anchos propios (red-al-centro D2): la escena a la izquierda en 400 px, la red al centro con el resto y el panel. */
+export const ZONES = NET_ZONES;
 
 // --- Estado conservado entre montajes ------------------------------------------------------------
 let state = null;
@@ -717,16 +714,17 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'inspect-playbar-main' }, playButton, stepButton, backButton, sizeGroup),
     el('div', { class: 'inspect-playbar-pace' }, paceGroup, where));
   const netZone = el('div', { class: 'inspect-net' }, controls, area, opStrip, playbar);
-  stage.append(netZone);
-  stage.classList.add('inspect-stage');
+  board.append(netZone);
+  board.classList.add('net-board');
 
   // ==================================================================================================
-  // Tablero: escena chica, decisión y leyenda
+  // Zona izquierda: la escena con su cámara y la decisión (red-al-centro D2)
   // ==================================================================================================
   // La escena se enfoca con un clic o con "Manejar vos" (no con Tab, como el escenario: un tooltip sobre toda
-  // la escena estorbaría); con el foco en ella, las flechas toman el volante (manejar-vos D3).
+  // la escena estorbaría); con el foco en ella, las flechas toman el volante (manejar-vos D3). Usa la cámara del
+  // escenario grande con el encuadre de los rayos; la tecla V sigue siendo de la red.
   const scene = el('div', { class: 'inspect-scene', attrs: { tabindex: '-1', role: 'group' }, i18nAttr: 'aria-label:inspect.scene.label' });
-  const sceneView = createStageView({ container: scene, store, small: true });
+  const sceneView = createStageView({ container: scene, store, framing: 'rays', resetKey: false });
   const manualText = el('span', { i18n: 'inspect.manual.badge' });
   const releaseButton = el('button', { class: 'tool small inspect-release', i18n: 'inspect.manual.release', help: 'inspect.manual.release', attrs: { type: 'button' }, on: { click: () => { releaseManual({ announceIt: true }); sync(); } } });
   const manualBadge = el('div', { class: 'stage-badge inspect-manual-badge', attrs: { role: 'status' } }, manualText, releaseButton);
@@ -743,10 +741,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const driveBadge = el('div', { class: 'stage-badge inspect-drive-badge', attrs: { role: 'status' } },
     el('span', { i18n: 'inspect.drive.badge' }), giveBackButton);
   const driveButton = el('button', {
-    class: 'tool small inspect-drive', i18n: 'inspect.drive.take', help: 'inspect.drive.take', dataset: { focus: 'keep' },
+    class: 'tool inspect-drive', i18n: 'inspect.drive.take', help: 'inspect.drive.take', dataset: { focus: 'keep' },
     attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => toggleDriver() },
   });
-  scene.append(el('div', { class: 'inspect-scene-badges' }, driveBadge, manualBadge, crashBadge, pausedBadge, speedBadge), driveButton);
+  // "Manejar vos" va en el renglón de la cámara, con la altura normal; los avisos, en la esquina de la escena.
+  sceneView.controls.append(driveButton);
+  sceneView.corner.append(driveBadge, manualBadge, crashBadge, pausedBadge, speedBadge);
+  sceneView.corner.classList.add('inspect-scene-badges');
   const description = stageDescription({ stage: scene });
   const decision = actionBlock({ i18n, role: true });
   // Manejando la persona (manejar-vos D4): "Vos" y "La red" lado a lado, y cuánto coincidieron.
@@ -778,7 +779,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         mark('lg-flicker', 'inspect.legend.mark.flicker', 'flicker'))));
   const announcer = el('p', { class: 'sr-only', attrs: { role: 'status', 'aria-live': 'polite' } });
   function announce(text) { announcer.textContent = ''; announcer.textContent = text ?? ''; }
-  board.append(scene, decisionBlock, legend, announcer);
+  const leftZone = el('div', { class: 'inspect-left' }, scene, decisionBlock, announcer);
+  stage.append(leftZone);
+  stage.classList.add('net-left');
 
   // ==================================================================================================
   // Panel: guía, cerebro, tarjeta y misiones
@@ -906,7 +909,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('h2', { class: 'sr-only', i18n: 'inspect.missions.title' }),
     el('ol', { class: 'mission-list inspect-mission-list' }, missionRows.map((r) => r.row)));
   panel.append(el('h1', { class: 'sr-only', i18n: 'inspect.title' }),
-    el('div', { class: 'inspect-panel' }, consigna.node, introMore, brainSection, emptyBlock, card.node, linkDetail.node, missions));
+    el('div', { class: 'inspect-panel' }, consigna.node, introMore, brainSection, emptyBlock, card.node, linkDetail.node, legend, missions));
 
   const picker = createPicker({
     id: 'inspect-picker', anchor: changeBrain, t,
@@ -1361,7 +1364,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       inspector.dispose();
       table.dispose();
       sceneView.dispose();
-      stage.classList.remove('inspect-stage');
+      stage.classList.remove('net-left');
+      board.classList.remove('net-board');
     },
   };
 }

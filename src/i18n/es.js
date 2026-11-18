@@ -2105,4 +2105,7 @@ export default {
   'help.role.decide.why': 'Es la parte que cambia entre pestañas: vos, un programa escrito a mano o una red que aprendió. Lo que entra y lo que sale son siempre los mismos.',
   'help.role.out.what': 'Lo que sale del controlador: qué controles del auto se accionan en este momento. Son teclas que se encienden, no botones para tocar.',
   'help.role.out.why': 'Es el resultado de la decisión. Comparar lo que entra con lo que sale es la forma de entender qué hace un controlador.',
+  // red-al-centro: la escena de Inspeccionar y de Tu manejo con la cámara del escenario grande (D2)
+  'help.camera.reset.rays.what': 'Vuelve a seguir al auto con el encuadre de siempre, que muestra enteros sus rayos y lo que tocan.',
+  'help.camera.reset.rays.why': 'Si acercaste o moviste la escena para mirar algo, así recuperás lo que ve la red sin perder el auto.',
 };

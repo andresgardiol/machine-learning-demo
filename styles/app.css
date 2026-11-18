@@ -2033,3 +2033,26 @@ input[type="range"]:disabled::-moz-range-thumb, input[type="range"][aria-disable
 .card > .role-tag { position: absolute; top: var(--space-2); right: var(--space-4); }
 .card[data-open="false"] > .role-tag { display: none; }
 
+
+/* ---- La red al centro (red-al-centro D2) -----------------------------------------------------------
+   Inspeccionar y el Laboratorio: la zona izquierda es lo que la red mira (la escena con su cámara y la
+   decisión, o los datos y las curvas); la zona central, la red, de borde a borde; el panel, igual. */
+.board.net-board { position: relative; padding: 0; gap: 0; overflow: hidden; }
+.inspect-left { position: absolute; inset: 0; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); overflow: hidden; }
+.net-left .inspect-scene { flex: 1 1 auto; min-height: 180px; aspect-ratio: auto; }
+.net-left .inspect-scene .stage-canvas { position: absolute; inset: 0; }
+/* El renglón de la cámara (Paisaje, +, −, Seguir al auto) suma "Manejar vos" con la altura normal; si no entra
+   en el ancho de la escena, se parte hacia abajo, alineado a la derecha. */
+.net-left .camera-controls { left: var(--space-2); flex-wrap: wrap; justify-content: flex-end; }
+.net-left .camera-controls .inspect-drive { position: static; font-size: var(--text-body); white-space: nowrap; }
+.net-left .inspect-scene-badges { top: 48px; left: var(--space-2); right: var(--space-2); }
+.lab-left { position: absolute; inset: 0; padding: var(--space-3); overflow: hidden; height: auto; }
+.lab-left .lab-scene { flex: 1 1 auto; min-height: 200px; }
+/* Acciones del panel del Laboratorio enteras (red-al-centro D9): cada una en un renglón; si dos no entran
+   en el panel, la segunda baja entera. */
+.lab-actions-panel .tool { white-space: nowrap; }
+/* Con Tu manejo, la escena se queda con el alto que sobra y la curva de respuesta de la neurona elegida, con
+   el suyo, hasta el 45 % (si no entra, pasa a su forma chica). */
+.lab-left:has(> .lab-curve-block:not([hidden])) > .lab-data { flex: 1 1 auto; }
+.lab-left > .lab-curve-block { flex: 0 1 auto; max-height: 45%; }
+.lab-left .lab-scene { min-height: 240px; }

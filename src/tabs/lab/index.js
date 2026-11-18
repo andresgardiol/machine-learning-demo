@@ -1,9 +1,9 @@
 // Pestaña 6, "Laboratorio" (pestana-laboratorio): una red aprende de ejemplos corrigiendo sus errores.
 //
-// Disposición (D1): la de Inspeccionar, con sus mismos anchos. La zona izquierda es de la red (los
-// controles de la vista arriba, la red, la operación en curso y la barra de reproducción abajo); el
-// tablero lleva los datos (el plano de puntos o la escena), el ejemplo en curso y las curvas; el
-// panel, la red, el aprendizaje, las acciones y, con tu manejo, de quién son los ejemplos.
+// Disposición (red-al-centro D2): la de Inspeccionar, con sus mismos anchos. La zona izquierda es lo que la red
+// mira: los datos (el plano y la tabla de verdad, o la escena con su cámara), el ejemplo en curso y las curvas;
+// la zona central es la red (los controles de la vista arriba, la red, la operación en curso y la barra de
+// reproducción abajo); el panel, la red, el aprendizaje, las acciones y, con tu manejo, de quién son los ejemplos.
 //
 // Lo que se ve es la cuenta real (D2 y D3): la sesión (session.js) arma los datos y el aprendizaje
 // del núcleo (learning-cursor.js), y la vista dibuja la cuenta del ejemplo en curso. La lógica sin DOM
@@ -61,6 +61,7 @@ import { createResponseCurve } from '../shared/response-curve.js';
 import { createConnectionDetail } from '../shared/connection-detail.js';
 import { createWeightHistory } from '../shared/weight-history.js';
 import { roleTag } from '../../ui/role-tag.js';
+import { NET_ZONES } from '../shared/net-zones.js';
 import { PLANE_GRID, PLANE_FPS, mapShade, brightestRegion, PROBE, planeToPx, pxToPlane, nudgeProbe, probeLabelBox, probeAnswer } from '../../render/plane-view.js';
 
 /** Con tu manejo, el error de ahora (D11) se mide sobre una muestra fija de hasta tantos ejemplos. */
@@ -73,8 +74,8 @@ export const FILTERS = Object.freeze(['all', 5, 3, 1]);
 export const VIEWS = Object.freeze(['diagram', 'table', 'data']);
 /** Con la tabla de datos abierta y el aprendizaje corriendo, se recalcula como mucho 5 veces por segundo (D14). */
 export const DATA_TABLE_INTERVAL_MS = 200;
-/** Mismos anchos que Inspeccionar (D1): la misma preferencia, así la red mide lo mismo en las dos. */
-export const ZONES = Object.freeze({ stageMin: 600, stageDefault: 'rest', preference: 'inspectStageWidth' });
+/** Mismos anchos que Inspeccionar (red-al-centro D2): la misma preferencia, así la red mide lo mismo en las dos. */
+export const ZONES = NET_ZONES;
 /** El fondo del plano se recalcula como mucho 15 veces por segundo (plane-view.js). */
 
 // --- Estado conservado entre montajes ------------------------------------------------------------
@@ -406,8 +407,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'inspect-playbar-main' }, playButton, stepButton, sizeGroup),
     el('div', { class: 'inspect-playbar-pace' }, paceGroup, where));
   const netZone = el('div', { class: 'inspect-net' }, controls, area, opStrip, playbar);
-  stage.append(netZone);
-  stage.classList.add('inspect-stage', 'lab-stage');
+  board.append(netZone);
+  board.classList.add('net-board', 'lab-net-board');
 
   // ==================================================================================================
   // Tablero: datos, ejemplo en curso y curvas
@@ -517,12 +518,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     write(probeDesc, probeText());
   }
   const scene = el('div', { class: 'inspect-scene lab-scene' });
-  const sceneView = createStageView({ container: scene, store, small: true });
+  // Con tu manejo, la escena con la cámara del escenario grande y el encuadre de los rayos (red-al-centro D2).
+  const sceneView = createStageView({ container: scene, store, framing: 'rays', resetKey: false });
   const recordText = el('span', { class: 'lab-record-text' });
   const finishButton = el('button', { class: 'tool lab-finish', i18n: 'lab.record.finish', help: 'lab.record.finish', attrs: { type: 'button' }, on: { click: () => stopRecording() } });
   const recordBadge = el('div', { class: 'stage-badge lab-record-badge', attrs: { role: 'status' } }, recordText, finishButton);
   const crashBadge = el('div', { class: 'stage-badge crash-badge', attrs: { role: 'status' }, i18n: 'inspect.crash' });
-  scene.append(el('div', { class: 'inspect-scene-badges' }, recordBadge, crashBadge));
+  sceneView.corner.append(recordBadge, crashBadge);
+  sceneView.corner.classList.add('inspect-scene-badges');
   const sceneDescription = stageDescription({ stage: scene, id: 'lab-scene-description' });
   const dataSummary = el('p', { class: 'caption lab-summary' });
   // Tabla de verdad (D6): con compuertas, en el lugar del resumen de los datos. Una fila elegida lleva las
@@ -574,7 +577,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   });
   const curveHint = el('p', { class: 'guide caption lab-curve-hint', i18n: 'lab.curve.hint' });
   const curveBlock = el('div', { class: 'lab-curve-block' }, curve.node, curveHint);
-  board.append(el('div', { class: 'lab-board' }, dataBlock, curveBlock, exampleBlock, curves), announcer);
+  stage.append(el('div', { class: 'lab-board lab-left' }, dataBlock, curveBlock, exampleBlock, curves), announcer);
+  stage.classList.add('net-left');
   let curveFit = { key: '', full: 0 };
   /** Forma completa o chica según el lugar que deja el tablero entre la escena y las curvas (D20). */
   function fitCurve(key) {
@@ -1838,7 +1842,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       plane.dispose();
       chart.dispose();
       sceneView.dispose();
-      stage.classList.remove('inspect-stage', 'lab-stage');
+      stage.classList.remove('net-left');
+      board.classList.remove('net-board', 'lab-net-board');
     },
   };
 }

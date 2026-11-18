@@ -68,9 +68,29 @@ export function stageMinFor(spec, windowWidth, panel) {
   return Math.max(spec.stageFloor, Math.min(min, freeWidth(windowWidth) - (spec.boardKeep ?? ZONES.board.min) - panel));
 }
 
+// --- La red al centro (red-al-centro D2) --------------------------------------------------------
+// Inspeccionar y el Laboratorio declaran { stageDefault, stageKeep, stageMin, boardMin, boardFloor }: la
+// zona izquierda (lo que la red mira) mide `stageDefault`; en una ventana angosta cede primero hasta
+// `stageKeep` mientras la red conserva `boardMin`; después cede la red, hasta `boardFloor`; y al final la
+// zona izquierda, hasta `stageMin`. El panel cede antes que todos, como siempre, sin bajar de su mínimo.
+
+/** ¿La pestaña pone la red en la zona central (red-al-centro D2)? */
+export const netInCenter = (spec = {}) => Number.isFinite(spec.boardFloor);
+
+/** Límites de la zona izquierda con la red al centro, para el ancho útil `F` y el panel en `p`. */
+function netStageRange(spec, F, p) {
+  const max = Math.max(Math.min(spec.stageKeep, F - p - spec.boardFloor), F - p - spec.boardMin);
+  const min = Math.max(spec.stageMin, Math.min(spec.stageKeep, max));
+  return { min, max: Math.max(min, max) };
+}
+
 /** Límites del panel al arrastrar su borde, con el escenario en `stage`. Sin panel, 0 y 0. */
 export function panelLimits(stage, windowWidth, spec = {}) {
   if (!hasPanel(spec)) return { min: 0, max: 0 };
+  if (netInCenter(spec)) {
+    const half = Math.floor(windowWidth * ZONES.panel.maxFraction);
+    return { min: ZONES.panel.min, max: Math.max(ZONES.panel.min, Math.min(half, freeWidth(windowWidth) - spec.boardMin - stage)) };
+  }
   const half = Math.floor(windowWidth * ZONES.panel.maxFraction);
   return { min: ZONES.panel.min, max: Math.max(ZONES.panel.min, Math.min(half, freeWidth(windowWidth) - (spec.boardMin ?? ZONES.board.min) - stage)) };
 }
@@ -80,6 +100,7 @@ export function panelLimits(stage, windowWidth, spec = {}) {
  * mínimo para su zona izquierda (`spec.stageMin`, pestana-inspeccionar D1: la red no baja de 600 px).
  */
 export function stageLimits(panel, windowWidth, spec = {}) {
+  if (netInCenter(spec)) return netStageRange(spec, freeWidth(windowWidth), panel);
   const p = hasPanel(spec) ? panel : 0; // sin panel, el ancho del panel guardado no cuenta
   const min = stageMinFor(spec, windowWidth, p);
   return { min, max: Math.max(min, freeWidth(windowWidth, spec) - (spec.boardMin ?? ZONES.board.min) - p) };
@@ -101,6 +122,14 @@ export function fitZones({ stage, panel } = {}, windowWidth, spec = {}) {
     const min = spec.stageMin ?? ZONES.stage.min;
     const s = clamp(widthOr(stage, spec.stageDefault ?? ZONES.stage.default), min, F - (spec.boardMin ?? ZONES.board.min));
     return { stage: s, board: F - s, panel: 0 };
+  }
+  if (netInCenter(spec)) {
+    const F = freeWidth(windowWidth);
+    const half = Math.floor(windowWidth * ZONES.panel.maxFraction);
+    const p = clamp(widthOr(panel, ZONES.panel.default), ZONES.panel.min, Math.min(half, F - spec.boardMin - spec.stageKeep));
+    const { min, max } = netStageRange(spec, F, p);
+    const s = clamp(widthOr(stage, spec.stageDefault), min, max);
+    return { stage: s, board: F - s - p, panel: p };
   }
   // Una pestaña puede tener su propio mínimo y su propio ancho por defecto para la zona izquierda
   // (pestana-inspeccionar D1): 'rest' es todo lo que dejan el tablero en su mínimo y el panel.

@@ -2105,4 +2105,7 @@ export default {
   'help.role.decide.why': 'It is the part that changes between tabs: you, a hand-written program or a network that learned. What comes in and what goes out are always the same.',
   'help.role.out.what': 'What comes out of the controller: which car controls are being used right now. They are keys that light up, not buttons to press.',
   'help.role.out.why': 'It is the result of the decision. Comparing what comes in with what goes out is how you understand what a controller does.',
+  // red-al-centro: the scene of Inspect and Your driving with the big stage camera (D2)
+  'help.camera.reset.rays.what': 'Goes back to following the car with the usual framing, which shows its rays whole and what they touch.',
+  'help.camera.reset.rays.why': 'If you zoomed or moved the scene to look at something, this brings back what the network sees without losing the car.',
 };
