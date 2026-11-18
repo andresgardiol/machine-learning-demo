@@ -46,19 +46,19 @@ el texto largo plegado en "Más sobre esta pestaña" y Tráfico nuevo fuera de l
 tarjeta. Archivado el 17 de noviembre; lo que quedó, en *Ayudas, guía y
 accesibilidad*.
 
+El 17 de noviembre, `misiones-que-muestran-el-control` (commits 11c6034 a
+cfbd6f1). Junto a la misión en curso de la
+tarjeta, "Mostrame" lleva al control con que se cumple: cambia de vista o
+desplaza, lo marca con un anillo amarillo quieto 4 s y le pasa el foco. Medido
+sin ventana en las 18 misiones con control, a 1440×900 y 1366×768; la tarjeta
+entra entera. El dueño aceptó las cinco decisiones de la implementación y lo archivó el
+mismo día: pausar en Inspeccionar para mostrar el valor a mano, abrir la tarjeta
+del programa si está plegada, el primer peso con XOR antes de la explicación,
+el anillo como `box-shadow` y el nombre corto que se anuncia.
+
 ## En curso
 
-- `misiones-que-muestran-el-control`: hecho el 17 de noviembre (commits
-  11c6034, da0750b y 046106a, sin push). Junto a la misión en curso de la
-  tarjeta, "Mostrame" lleva al control con que se cumple: cambia de vista o
-  desplaza, lo marca con un anillo amarillo quieto 4 s y le pasa el foco. Medido
-  sin ventana en las 18 misiones con control, a 1440×900 y 1366×768; la tarjeta
-  entra entera. Falta la revisión del dueño de
-  `borradores/misiones-que-muestran-el-control/comparacion.md` y archivar. Hay
-  cinco decisiones de implementación a confirmar (en la comparación y en el
-  design): pausar en Inspeccionar para mostrar el valor a mano, abrir la tarjeta
-  del programa si está plegada, el primer peso con XOR antes de la explicación,
-  el anillo como `box-shadow` y el nombre corto que se anuncia.
+Nada.
 
 ## Para probar a mano (dueño)
 

@@ -81,7 +81,7 @@ Las misiones de Competir SHALL mostrar este control.
 - **THEN** la marcha queda marcada y con el foco, y la carrera no larga hasta que la persona la toque
 
 ### Requirement: Controles de las misiones de Inspeccionar
-Las misiones de Inspeccionar SHALL mostrar este control. Donde el control solo existe con algo elegido, "Mostrame" elige primero lo que dice la tabla.
+Las misiones de Inspeccionar SHALL mostrar este control. Donde el control solo existe con algo elegido, "Mostrame" elige primero lo que dice la tabla. Para el valor a mano, que solo existe en pausa, antes pausa.
 
 | Misión | Control |
 |---|---|
@@ -100,7 +100,7 @@ Las misiones de compuertas SHALL mostrar este control, según la compuerta elegi
 |---|---|
 | Resolvé AND a mano | El primer peso sobre la red |
 | Resolvé OR a mano | La compuerta OR, si no está elegida; si no, el primer peso |
-| Resolvé XOR con una capa oculta | La compuerta XOR, si no está elegida; si no, Agregar una capa oculta; con capa, el primer peso |
+| Resolvé XOR con una capa oculta | La compuerta XOR, si no está elegida; si no, Agregar una capa oculta (o el primer peso, mientras no aparece); con capa, el primer peso |
 
 #### Scenario: Elegir la compuerta primero
 - **WHEN** con AND resuelta y AND todavía elegida, la persona toca "Mostrame" junto a "Resolvé OR a mano"
@@ -124,7 +124,7 @@ Las misiones con puntos o con tu manejo SHALL mostrar este control.
 - **THEN** Cantidad, Ruido y las capas ocultas quedan marcados a la vez, y el foco va a Cantidad
 
 ### Requirement: Cómo se muestra un control
-Al tocar "Mostrame", la pestaña SHALL traer el control a la vista (cambiando de vista o desplazando), marcarlo con un anillo quieto que se va a los 4 segundos o al tocar otra cosa, pasarle el foco y anunciar a un lector de pantalla qué control se mostró. MUST NOT cambiar ajustes, valores ni la simulación, salvo elegir en Inspeccionar. El anillo SHALL distinguirse del foco y de la opción elegida y dar 3:1 o más. Con menos movimiento, sin transición.
+Al tocar "Mostrame", la pestaña SHALL traer el control a la vista, marcarlo con un anillo quieto que se va a los 4 segundos o al tocar otra cosa, pasarle el foco y anunciar su nombre corto. MUST NOT cambiar ajustes, valores ni la simulación, salvo en Inspeccionar (pausar y elegir) y en Reglas a mano (desplegar el programa). El anillo SHALL distinguirse del foco y de la opción elegida y dar 3:1 o más. Con menos movimiento, sin transición.
 
 #### Scenario: Anillo quieto
 - **WHEN** la persona toca "Mostrame" y se mide el brillo del anillo durante los 4 segundos
@@ -143,6 +143,10 @@ Al tocar "Mostrame", la pestaña SHALL traer el control a la vista (cambiando de
 - **THEN** queda elegida la primera neurona oculta y su botón Apagar queda marcado y con el foco, sin apagarla
 - **WHEN** la persona suelta la elección
 - **THEN** vuelve la tarjeta de consigna, con la misión en curso
+
+#### Scenario: Pausar para la entrada a mano
+- **WHEN** en Inspeccionar, reproduciendo, la persona toca "Mostrame" junto a "Cambiá una decisión a mano"
+- **THEN** la reproducción se pausa, queda elegida la primera entrada y su valor a mano queda marcado y con el foco, sin cambiar el valor
 
 #### Scenario: Lector de pantalla
 - **WHEN** un lector de pantalla está activo y la persona toca "Mostrame"
