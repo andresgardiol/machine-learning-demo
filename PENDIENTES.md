@@ -165,6 +165,50 @@ El 18 de noviembre, `reglas-el-choque-ensena`, hecho y archivado el mismo día.
 
   Sigue `reglas-como-fichas`.
 
+El 18 de noviembre, `reglas-como-fichas`, hecho y archivado el mismo día. El
+  antes y el después están en `borradores/reglas-como-fichas/comparacion.md`
+  (local). Cambio 3 de Reglas a mano, y con él se cierra la revisión de Reglas
+  a mano. La vista de fichas es la que se abre por defecto y "Texto" está a un
+  toque (se recuerda). Cada edición es un parche del texto por el deshacer del
+  editor. Se puede cambiar el dato, el comparador, el umbral (deslizador con la
+  marca del valor en vivo, o escrito) y la acción, agregar y borrar, reordenar
+  (arrastre o Alt+flechas) y mover las constantes. Lo demás (`o`, `no`,
+  paréntesis, comentarios dentro) va como ficha escrita a mano. Por decisión
+  del dueño, los ejemplos de 7 y 20 sensores ya no usan `o`: cada regla se
+  partió en una por alternativa, con la misma distancia. Pasan de 5 a 7 y de
+  9 a 22 reglas, y "casi el doble" pasa a ser "más del triple".
+
+  Medido sin ventana: fluidez con el de 20 sensores, 60 cuadros por segundo
+  (máx. 16,8 ms) en fichas y en texto. Las tres auditorías dan 0 en las 22
+  vistas, en español y en inglés. La vista de texto mide lo mismo que antes
+  (15 y 22 líneas). La cabecera sigue en un renglón. `npm test`: 1421, 0
+  fallas. Lo que quedó:
+  - a 1366×768 con la guía y el de 20 sensores, la pila mide 290 px y solo
+    entra entera la primera ficha (las 5 constantes y dos comentarios ocupan
+    el resto);
+  - "+ acción" es un botón «+» que abre el selector (como selector suelto
+    partía la regla inicial en dos renglones);
+  - la orden suelta cuenta como "regla" en el rótulo del asa;
+  - un programa recordado con el texto viejo de un ejemplo se ve como "Tu
+    programa".
+
+  Lo que no se pudo medir: con el navegador a la vista (el panel estaba
+  oculto, así que el arrastre y la fluidez son de Chrome sin ventana, con
+  eventos del protocolo); Cmd+Z con un teclado real; lectores de pantalla;
+  Firefox y Safari (`<select>` nativos, `showPicker`).
+
+  Revisión del dueño (grupo 6, mismo día):
+  - El error de `cerca = 0,24costado = 0,5`: la vista previa del arrastre
+    proyectaba las fichas desde su propio texto, y el parche usaba esas
+    columnas sobre el texto del editor. Corregido: cada lugar se ubica por
+    línea y orden del token y se comprueba antes de escribir; un parche nunca
+    lanza, y un error de una ficha no detiene la pestaña. Lo prueban 360
+    arrastres al azar y el caso exacto.
+  - Más lugar para las fichas: la franja de programas con superados en lugar
+    de los botones de ejemplos, la tabla cerrada y flotante, controles de 24 px
+    y constantes en un renglón. A 1366×768 con la guía se ven 6 de 7 reglas
+    con 7 sensores y 4 de 22 con 20 (antes, 1 ficha entera). Auditorías en 0.
+
 ## En curso
 
 Nada.

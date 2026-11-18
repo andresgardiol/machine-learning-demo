@@ -2,7 +2,8 @@
 // texto coloreado, y una columna con los números de línea.
 //
 //   createCodeEditor({ container, i18n, value, classify, labelKey, help, onChange })
-//     -> { node, value, setValue(text), insert(text), setMarks({ active, errors, crash }), focus(), dispose() }
+//     -> { node, value, setValue(text), insert(text), replaceRange(from, to, insert, cursor), undo(redo),
+//          setMarks({ active, errors, crash }), focus(), dispose() }
 //
 // El <textarea> conserva gratis el deshacer, la selección, el portapapeles, el teclado del sistema y
 // la accesibilidad. El <pre> y la columna de números siguen su desplazamiento. Los dos comparten
@@ -180,6 +181,23 @@ export function createCodeEditor({
       marks.errors = next.errors;
       marks.crash = next.crash;
       for (const n of changed) paintLine(n);
+    },
+    /**
+     * Reemplaza el texto de `from` a `to` por `insert` por el mismo camino que la paleta, así es un paso
+     * del deshacer del editor, y deja el cursor en `cursor` (reglas-como-fichas D2). Lo usan las fichas:
+     * el editor puede estar fuera de la vista, pero sigue pudiendo recibir el foco.
+     */
+    replaceRange(from, to, insert, cursor = from + insert.length) {
+      const text = input.value.slice(0, from) + insert + input.value.slice(to);
+      input.focus({ preventScroll: true });
+      applyEdit({ edit: { from, to, insert }, text, start: cursor, end: cursor });
+    },
+    /** Deshace (o rehace) el último paso del historial del editor, el mismo que Ctrl+Z en el texto. */
+    undo(redo = false) {
+      input.focus({ preventScroll: true });
+      let done = false;
+      try { done = input.ownerDocument.execCommand(redo ? 'redo' : 'undo'); } catch { done = false; }
+      return done;
     },
     focus() { input.focus({ preventScroll: true }); },
     dispose() {

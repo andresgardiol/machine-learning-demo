@@ -19,8 +19,8 @@ const TWO_MINUTES = 120 * 60; // pasos de 1/60 s
 const TABLE = {
   initial: { count: 5, range: 3, spread: 90, rules: 1, constants: 1 },
   three: { count: 3, range: 2, spread: 60, rules: 1, constants: 1 },
-  seven: { count: 7, range: 3, spread: 90, rules: 5, constants: 4 },
-  twenty: { count: 20, range: 3, spread: 120, rules: 9, constants: 5 },
+  seven: { count: 7, range: 3, spread: 90, rules: 7, constants: 4 },
+  twenty: { count: 20, range: 3, spread: 120, rules: 22, constants: 5 },
 };
 
 function parsed(dict, p) {
@@ -129,12 +129,12 @@ test('Siete sensores: supera al menos 10 vehículos antes de chocar', (t) => {
   assert.ok(r.passed >= 10, `${r.passed} superados`);
 });
 
-test('Veinte sensores: casi el doble de reglas que el de siete y recorre menos distancia que aquel', (t) => {
+test('Veinte sensores: más del triple de reglas que el de siete y recorre menos distancia que aquel', (t) => {
   const r = measured('twenty');
   report(t, 'twenty', '290 m y 4');
   const rules20 = parsed(es, byId.twenty).rules;
   const rules7 = parsed(es, byId.seven).rules;
-  assert.ok(rules20 >= rules7 * 1.6 && rules20 <= rules7 * 2, `${rules20} reglas contra ${rules7}`);
+  assert.ok(rules20 > rules7 * 3, `${rules20} reglas contra ${rules7}`);
   assert.ok(r.distance < measured('seven').distance, `${r.distance} m contra ${measured('seven').distance} m`);
 });
 

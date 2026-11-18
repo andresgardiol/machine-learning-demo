@@ -8,9 +8,11 @@
 // cifra de reglas, los sensores, los ejemplos, restablecer, exportar e importar; editor, estado, errores
 // y paleta) y las misiones. Al chocar (reglas-el-choque-ensena), la tarjeta del caso ocupa el lugar de la
 // marcha, un deslizador sobre la escena repite los últimos 3 s grabados, el cuaderno de casos va entre la
-// escena y la marcha, y la comparación con los ejemplos se abre en la tarjeta del programa. Lo que se
-// prueba sin DOM vive en program.js, session.js, examples.js, shortcuts.js, workbench.js, case.js y
-// compare.js.
+// escena y la marcha, y la comparación con los ejemplos se abre en la tarjeta del programa. El programa
+// tiene dos vistas del mismo texto (reglas-como-fichas): fichas, por defecto (cards-view.js), y texto (el
+// editor); cada edición de una ficha es un parche del texto por el deshacer del editor. Lo que se prueba
+// sin DOM vive en program.js, session.js, examples.js, shortcuts.js, workbench.js, case.js, compare.js y
+// cards.js.
 //
 // El estado vive en variables del módulo, como en Entrenar: el texto, el mundo, los ajustes, la
 // semilla, el reintento, las tarjetas y las misiones cumplidas. Al volver a la pestaña se retoma todo.
@@ -51,6 +53,8 @@ import { caseCondition, createReplayBuffer, frameOf, raysOf } from './case.js';
 import { shortcutFor } from './shortcuts.js';
 import { roleTag } from '../../ui/role-tag.js';
 import { RULES_BAR, scenarioReset, comparisonFor, insertAt } from './workbench.js';
+import { patch } from './cards.js';
+import { createCardsView } from './cards-view.js';
 
 export { DEFAULT_SEED };
 
@@ -118,6 +122,8 @@ function createState({ i18n, store, preferences }) {
     own: null, // { text, sensors: { count, range, spread } }
     casebook: { cases: [], best: 0 }, // cases: [{ distance, cause }]
     compareOpen: false,
+    // Vista del programa (reglas-como-fichas D4): fichas por defecto; la elegida se recuerda.
+    programView: preferences?.rulesView ?? 'cards',
   };
 }
 
@@ -208,6 +214,7 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     dirty = false;
     const result = program.update(editor.value);
     afterProgramChange(result);
+    if (state.programView === 'cards') guardCards(() => cardsView.render(program.text));
     // "Tu programa" sigue al texto propio que está en el editor: volver a él no pierde nada (D5).
     if (state.own && program.isOwn(KNOWN)) state.own = { text: program.text, sensors: currentSensors() };
     remember();
@@ -265,6 +272,116 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   const palette = el('div', { class: 'guide rules-palette', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.palette.label' });
   programCard.append(editor.node, status, errorList, palette);
 
+  // --- Tablero: la vista de fichas (reglas-como-fichas) ---------------------------------------------
+  // El texto es la única fuente de verdad: cada edición de una ficha es un parche del texto (D2) que pasa
+  // por el historial del editor, y las fichas se vuelven a proyectar después de cada cambio.
+  const cardsView = createCardsView({
+    i18n, sensorCount: () => state.settings.sensorCount,
+    onEdit: (edit, { focus = null } = {}) => guardCards(() => applyCardEdit(edit, focus)),
+    onPreview: (edit) => guardCards(() => previewCardEdit(edit)),
+    onEditAsText: (line) => guardCards(() => editAsText(line)),
+    onUndo: (redo, focus) => guardCards(() => undoFromCards(redo, focus)),
+  });
+
+  /**
+   * Un error en una ficha no detiene la pestaña (D7): se registra en la consola y las fichas se vuelven a
+   * dibujar desde el texto del editor, que es la fuente de verdad.
+   */
+  function guardCards(fn) {
+    try {
+      return fn();
+    } catch (err) {
+      console.error('Reglas a mano: error en una ficha', err);
+      try { cardsView.render(editor.value, { force: true }); } catch (again) { console.error(again); }
+      return undefined;
+    }
+  }
+  programCard.append(cardsView.node);
+
+  /** Escribe una edición de una ficha en el texto, como un paso del deshacer, y la pone a manejar. */
+  function applyCardEdit(edit, focus) {
+    const r = patch(editor.value, edit, i18n.language);
+    if (r.text === editor.value) {
+      // Nada que escribir (por ejemplo, el mismo número): las fichas vuelven al texto, por si hubo una vista previa.
+      if (program.text !== editor.value) commit();
+      cardsView.focusPath(focus);
+      return;
+    }
+    editor.replaceRange(r.from, r.to, r.insert, r.cursor);
+    commit();
+    cardsView.focusPath(focus);
+  }
+
+  /**
+   * Vista previa de un arrastre (D2): el auto maneja con el número nuevo sin escribirlo en el historial;
+   * al soltar se escribe un solo paso. El editor conserva el texto de antes del arrastre.
+   */
+  function previewCardEdit(edit) {
+    const r = patch(editor.value, edit, i18n.language);
+    afterProgramChange(program.update(r.text));
+    cardsView.render(r.text);
+  }
+
+  /** Deshacer o rehacer desde las fichas: el mismo historial que Ctrl+Z en el texto. */
+  function undoFromCards(redo, focus) {
+    editor.undo(redo);
+    commit();
+    cardsView.focusPath(focus);
+  }
+
+  /** "Editar como texto" de una ficha escrita a mano: a la vista de texto, con el cursor en su línea (D4). */
+  function editAsText(line) {
+    setProgramView('text');
+    const starts = [0];
+    for (let i = 0; i < editor.value.length; i += 1) if (editor.value[i] === '\n') starts.push(i + 1);
+    const at = starts[line - 1] ?? 0;
+    editor.focus();
+    editor.input.setSelectionRange(at, at);
+    // Lleva la línea a la vista: 20 px por línea (styles/app.css).
+    editor.input.scrollTop = Math.max(0, (line - 3) * 20);
+  }
+
+  /** Agrega al final una regla sin acción con `line` como texto y enfoca el selector de su acción (D4). */
+  function addCardRule(line) {
+    applyCardEdit({ type: 'addRule', text: line }, 'last-action');
+  }
+
+  // El cambio de vista: un segmento "Fichas | Texto" en la cabecera (D4). La paleta solo en la vista de texto.
+  const viewButtons = ['cards', 'text'].map((v) => el('button', {
+    class: 'segment', i18n: `rules.view.${v}`, help: `rules.view.${v}`,
+    attrs: { type: 'button', 'aria-pressed': String(state.programView === v), 'data-view': v },
+    on: { click: () => setProgramView(v) },
+  }));
+  const viewSwitch = el('div', { class: 'segments rules-view-switch', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.view.label' }, viewButtons);
+
+  /** Muestra una de las dos vistas del mismo texto y la recuerda. Cambiar de vista no toca el texto. */
+  function setProgramView(view, { remember: keep = true } = {}) {
+    if (dirty) commit();
+    state.programView = view === 'text' ? 'text' : 'cards';
+    if (keep && preferences) preferences.rulesView = state.programView;
+    layoutProgramView();
+    fitEditor();
+  }
+  function layoutProgramView() {
+    const cards = state.programView === 'cards';
+    for (const b of viewButtons) b.setAttribute('aria-pressed', String(b.dataset.view === state.programView));
+    // En la vista de fichas el editor sigue en la página, fuera de la vista y fuera del orden del tabulador:
+    // las ediciones de las fichas pasan por su historial de deshacer (D2).
+    editor.node.dataset.offstage = String(cards);
+    editor.node.setAttribute('aria-hidden', String(cards));
+    editor.input.tabIndex = cards ? -1 : 0;
+    cardsView.node.hidden = !cards;
+    palette.hidden = cards;
+    // El renglón de ayuda de la tarjeta habla de la paleta: solo en la vista de texto. Lo que explica las fichas
+    // está en la ayuda del segmento "Fichas" (D8, punto 5).
+    if (programCard.hint) programCard.hint.hidden = cards;
+    renderStatus();
+    // El estado y los errores van arriba de las fichas y debajo del editor (D1).
+    if (cards) cardsView.node.before(status, errorList);
+    else editor.node.after(status, errorList);
+    if (cards) guardCards(() => cardsView.render(program.text));
+  }
+
   /** Texto de un error del análisis, con su línea delante. */
   function errorParams(e) {
     const d = e.details;
@@ -297,6 +414,9 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     });
     errorList.replaceChildren(...items);
     errorList.hidden = items.length === 0;
+    // En la vista de fichas, "Sin errores · N reglas" no ocupa un renglón: la cuenta está en la cabecera y el
+    // estado se ve solo cuando hay un error (reglas-como-fichas D8, punto 5).
+    status.hidden = state.programView === 'cards' && errors.length === 0;
   }
 
   /** Inserta una palabra donde está el cursor, con un espacio delante si hace falta. */
@@ -364,7 +484,12 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     i18n, count: state.world.perception.sensors.length,
     names: { sensorKey: 'rules.data.sensor', speedKey: 'rules.data.speed' },
     // Con el caso a la vista, tocar una fila también detiene la cuenta regresiva (D2).
-    help: 'rules.barInsert', onInsert: (datum, value) => { holdCase(); insertComparison(datum, value); },
+    help: 'rules.barInsert', onInsert: (datum, value) => {
+      holdCase();
+      // En la vista de fichas, agrega una ficha con esa comparación y la acción por elegir (D4).
+      if (state.programView === 'cards') addCardRule(`${i18n.t('rules.word.if')} ${comparisonFor(datum, value, i18n.language)} ${i18n.t('rules.word.then')}`);
+      else insertComparison(datum, value);
+    },
   });
   const action = actionBlock({ role: true });
   ioCard.append(el('div', { class: 'rules-io' }, perception.node, action.node));
@@ -387,7 +512,8 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     nodes: {
       editor: () => {
         if (!programCard.open) { programCard.setOpen(true); state.cards.program = true; }
-        return editor.node;
+        // El programa en la vista que está a la vista: las fichas o el editor (reglas-como-fichas D4).
+        return state.programView === 'cards' ? cardsView.list : editor.node;
       },
       newTraffic: () => newTrafficButton,
     },
@@ -523,21 +649,58 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
    */
   function tryProgram(text, sensors, name) {
     message.hidden = true;
+    // Probar un programa cierra la tabla (reglas-como-fichas D8, punto 2).
+    if (state.compareOpen) closeCompare({ restore: false });
     if (isOwn()) state.own = { text: program.text, sensors: currentSensors() };
     replaceProgram(text, sensors, { message: 'rules.confirm.example', params: { name } }, null, { ask: false });
   }
 
-  // "Tu programa" (D5): primera opción de los ejemplos, solo si hay un texto propio guardado; con el estilo
-  // de opción elegida cuando es el que está en el editor.
-  const ownButton = button('rules.own', 'rules.own', () => {
+  // La franja de programas (reglas-como-fichas D8, punto 1): el único lugar de los ejemplos. Una ficha chica
+  // por programa ("Tu programa" cuando lo hay, y los tres ejemplos), con su cifra de superados en el mismo
+  // tráfico cuando la comparación ya la calculó ("…" mientras tanto); el que maneja, con el estilo de opción
+  // elegida. Un toque lo prueba.
+  function stripItem(nameKey, help, onClick) {
+    const figure = el('span', { class: 'rules-strip-figure', attrs: { 'aria-hidden': 'true' } });
+    const said = el('span', { class: 'sr-only' });
+    const b = el('button', {
+      class: 'tool rules-strip-item', help, attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: onClick },
+    }, el('span', { class: 'rules-strip-name', i18n: nameKey }), figure, said);
+    b.figure = figure;
+    b.said = said;
+    return b;
+  }
+  // "Tu programa" (D5): solo si hay un texto propio guardado.
+  const ownButton = stripItem('rules.own', 'rules.own', () => {
     if (!state.own || ownInEditor()) return;
     tryProgram(state.own.text, state.own.sensors, i18n.t('rules.own'));
   });
   ownButton.hidden = true;
   const ownInEditor = () => Boolean(state.own) && normalizeText(editor.value) === normalizeText(state.own.text);
-  const exampleButtons = EXAMPLES.map((ex) => button(ex.nameKey, `rules.example.${ex.id}`, () => {
-    tryProgram(i18n.t(ex.textKey), ex.sensors, i18n.t(ex.nameKey));
-  }));
+  const exampleButtons = EXAMPLES.map((ex) => {
+    const b = stripItem(`rules.example.${ex.id}.short`, `rules.example.${ex.id}`, () => {
+      tryProgram(i18n.t(ex.textKey), ex.sensors, i18n.t(ex.nameKey));
+    });
+    b.example = ex;
+    return b;
+  });
+  /** La cifra de superados y la opción elegida de cada ficha de la franja. Escribe solo lo que cambió. */
+  function renderStrip() {
+    const computing = compareRun !== null || compareRows === null;
+    const byId = new Map((compareRows ?? []).map((r) => [r.entry.id, r]));
+    const drivingId = programIdOf(editor.value, { es, en });
+    const same = (a) => a.count === state.settings.sensorCount && a.range === state.settings.sensorRange && a.spread === state.settings.sensorSpread;
+    const write = (b, row, pressed) => {
+      const figure = computing ? '…' : row?.ok ? String(row.passed) : '–';
+      if (b.figure.textContent !== figure) b.figure.textContent = figure;
+      if (computing) setText(b.said, 'rules.strip.computing');
+      else if (row?.ok) setText(b.said, 'rules.strip.passed', { value: row.passed });
+      else if (b.said.textContent) { b.said.textContent = ''; b.said.removeAttribute('data-i18n'); }
+      const p = String(pressed);
+      if (b.getAttribute('aria-pressed') !== p) b.setAttribute('aria-pressed', p);
+    };
+    for (const b of exampleButtons) write(b, byId.get(b.example.id), drivingId === b.example.id && same(b.example.sensors));
+    write(ownButton, byId.get(drivingId === null ? 'own' : 'saved'), ownInEditor());
+  }
   const resetButton = button('rules.reset', 'rules.reset', () => {
     message.hidden = true;
     // Restablecer borra también "Tu programa" y el cuaderno de casos (D5 y D7).
@@ -580,13 +743,12 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     }
   });
 
-  // "Comparar" (acción terciaria, D4): la comparación también se abre sin chocar. Va en el renglón de arriba
-  // de la cabecera, con las otras acciones terciarias: junto a los ejemplos partía su renglón en dos y le
-  // quitaba dos líneas al editor a 1366×768.
-  const compareButton = button('rules.compare.open', 'rules.compare.open', () => openCompare({ focus: true }), 'tool tertiary');
+  // "Tabla" (acción terciaria, en lugar de "Comparar"; reglas-como-fichas D8): abre la tabla completa sobre las
+  // fichas. Va en el renglón de arriba de la cabecera, con las otras acciones terciarias.
+  const compareButton = button('rules.compare.open', 'rules.compare.open', () => (state.compareOpen ? closeCompare() : openCompare({ focus: true })), 'tool tertiary');
   compareButton.dataset.keepsFocus = 'true';
-  const examples = el('div', { class: 'rules-examples', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.examples' },
-    el('span', { class: 'rules-examples-label', i18n: 'rules.examples' }), ownButton, exampleButtons);
+  const examples = el('div', { class: 'rules-examples rules-strip', attrs: { role: 'group' }, i18nAttr: 'aria-label:rules.strip.label' },
+    el('span', { class: 'rules-examples-label', i18n: 'rules.strip.label', help: 'rules.strip' }), ownButton, exampleButtons);
 
   // --- Tablero: la comparación con los ejemplos, entre la cabecera y el editor (D4) ---------------------
   const compareTitleId = 'rules-compare-title';
@@ -609,6 +771,14 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
       compareClose),
     compareNoteCircuit, compareNoteSpeed, compareStatus, compareTable);
   compareSection.hidden = true;
+  // Escape cierra la tabla y el foco vuelve a donde estaba (D8, punto 2).
+  compareSection.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    e.stopPropagation();
+    closeCompare();
+  });
+  let compareReturn = null; // dónde estaba el foco al abrir la tabla
   let compareRun = null; // { key, gen, frame } de la corrida en curso
   let compareKey = null; // clave de la última corrida terminada
   let compareRows = null;
@@ -634,16 +804,34 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   function openCompare({ focus = false } = {}) {
     holdCase();
     if (!programCard.open) { programCard.setOpen(true); state.cards.program = true; }
+    const active = document.activeElement;
+    if (!state.compareOpen) compareReturn = active && !compareSection.contains(active) && active !== document.body ? active : null;
     state.compareOpen = true;
     sync();
-    fitEditor();
-    if (focus) compareSection.focus({ preventScroll: false });
+    if (focus) compareSection.focus({ preventScroll: true });
   }
-  function closeCompare() {
+  /** Cierra la tabla (con "Ocultar", Escape o al probar un programa); el cálculo sigue para la franja. */
+  function closeCompare({ restore = true } = {}) {
+    const hadFocus = compareSection.contains(document.activeElement);
     state.compareOpen = false;
-    stopCompare();
     sync();
-    fitEditor();
+    if (restore && hadFocus) {
+      if (compareReturn?.isConnected) compareReturn.focus({ preventScroll: true });
+      else compareButton.focus({ preventScroll: true });
+    }
+    compareReturn = null;
+  }
+  /**
+   * La tabla flota sobre la vista del programa (las fichas o el editor), sin correrla: empieza donde empieza
+   * esa vista y llega hasta el final de la tarjeta.
+   */
+  function placeCompare() {
+    const anchor = state.programView === 'cards' ? cardsView.node : editor.node;
+    const top = anchor.offsetTop;
+    const t = `${top}px`;
+    if (compareSection.style.top !== t) compareSection.style.top = t;
+    const max = `${Math.max(160, programCard.body.clientHeight - top)}px`;
+    if (compareSection.style.maxHeight !== max) compareSection.style.maxHeight = max;
   }
   function stopCompare() {
     if (compareRun?.frame) window.cancelAnimationFrame(compareRun.frame);
@@ -664,6 +852,7 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
           compareKey = key;
           compareRows = r.value.map((row, i) => ({ ...row, entry: entries[i] }));
           renderCompare();
+          renderStrip();
         } else {
           runState.frame = window.requestAnimationFrame(pump);
         }
@@ -701,10 +890,14 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   function syncCompare() {
     compareSection.hidden = !state.compareOpen;
     compareButton.setAttribute('aria-expanded', String(state.compareOpen));
-    if (!state.compareOpen) return;
+    // La comparación se calcula sola, por tramos, al abrir la pestaña y cada vez que cambian el tráfico, la
+    // velocidad o el programa que maneja: la franja de programas muestra sus cifras (D8, punto 1).
     const entries = compareEntries();
     const key = keyOf(entries);
     if (key !== compareKey && compareRun?.key !== key) startCompare(entries, key);
+    renderStrip();
+    if (!state.compareOpen) return;
+    placeCompare();
     const computing = compareRun !== null;
     compareSection.dataset.state = computing ? 'computing' : 'done';
     compareStatus.hidden = !computing;
@@ -726,6 +919,11 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     if (!info) return;
     holdCase();
     if (!programCard.open) { programCard.setOpen(true); state.cards.program = true; }
+    // En la vista de fichas, la condición llega como una ficha con el selector de la acción enfocado (D4).
+    if (state.programView === 'cards') {
+      addCardRule(caseCondition(info.sensors, i18n.language).trimEnd());
+      return;
+    }
     const input = editor.input;
     const end = input.value.length;
     input.focus({ preventScroll: true });
@@ -802,7 +1000,7 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   const programHeading = programCard.node.querySelector('.card-heading');
   const programTop = el('div', { class: 'rules-program-top' });
   programCard.node.insertBefore(programTop, programHeading);
-  programTop.append(programHeading, roleTag('decide', { which: 'program' }), rulesCount, fileActions);
+  programTop.append(programHeading, viewSwitch, roleTag('decide', { which: 'program' }), rulesCount, fileActions);
   const programTools = el('div', { class: 'rules-program-tools' }, scenario.group('sensors'), examples);
   programCard.node.insertBefore(programTools, programCard.body);
   programCard.node.insertBefore(el('div', { class: 'rules-program-notes' }, confirm.node, message), programCard.body);
@@ -819,11 +1017,14 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   // estado y los errores quedan a la vista debajo; la paleta y las misiones, desplazando el tablero. Se
   // recalcula cuando cambia el tamaño del tablero o de lo que está arriba del editor, y con los errores.
   function fitEditor() {
-    const node = editor.node;
+    // En la vista de fichas se ajusta la pila de fichas, que se desplaza por dentro (reglas-como-fichas).
+    const cards = state.programView === 'cards';
+    const node = cards ? cardsView.node : editor.node;
+    (cards ? editor.node : cardsView.node).style.removeProperty('height');
     if (!node.isConnected || board.clientHeight === 0 || !programCard.open) { node.style.removeProperty('height'); return; }
     const b = board.getBoundingClientRect();
     const top = node.getBoundingClientRect().top - b.top + board.scrollTop;
-    const below = [status, errorList].reduce((h, x) => h + (x.hidden ? 0 : x.getBoundingClientRect().height + EDITOR_GAP), 0);
+    const below = cards ? 0 : [status, errorList].reduce((h, x) => h + (x.hidden ? 0 : x.getBoundingClientRect().height + EDITOR_GAP), 0);
     // Lo que cierra la tarjeta y el tablero: el relleno de abajo del cuerpo, el borde y el relleno del tablero.
     const px = (n, prop) => Number.parseFloat(getComputedStyle(n)[prop]) || 0;
     const closing = px(programCard.body, 'paddingBottom') + px(programCard.node, 'borderBottomWidth') + px(board, 'paddingBottom');
@@ -876,11 +1077,19 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     // el caso a la vista, las del instante del choque llevan el estado "choque" (D1); en la repetición,
     // las de ese cuadro, como "se cumple".
     const running = program.showsRunning && !dirty;
-    editor.setMarks({
+    const marks = {
       active: frame ? frame.lines : info ? [] : running ? controller.activeLines : [],
       crash: info && !frame ? info.lines : [],
       errors: dirty ? [] : program.errors.map((e) => e.line),
-    });
+    };
+    editor.setMarks(marks);
+    // Las fichas, con las mismas marcas y el valor en vivo de cada dato sobre su riel (reglas-como-fichas D3).
+    if (state.programView === 'cards') {
+      guardCards(() => {
+        cardsView.setMarks(marks);
+        cardsView.setLive(frame ? { sensors: frame.sensors, speed: frame.speed } : world.perception);
+      });
+    }
 
     sensorsSwitch.setAttribute('aria-checked', String(state.showSensors));
     machineSwitch.setAttribute('aria-checked', String(state.machineView));
@@ -900,7 +1109,6 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     syncCompare();
     // "Tu programa": a la vista si hay uno guardado; elegido si es el que está en el editor (D5).
     ownButton.hidden = !state.own;
-    ownButton.setAttribute('aria-pressed', String(ownInEditor()));
     // Acción principal (jerarquia-visual): la marcha, o "Compará con los ejemplos" con el caso a la vista.
     applyMainAction({ run: pauseButton, compare: caseCompare }, mainAction('rules', { crashed: Boolean(info) }));
     scenario.sync(state.settings);
@@ -1041,7 +1249,7 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   // Tras un clic con el mouse en un control, el foco vuelve al escenario; la paleta lo deja en el editor.
   function onClick(e) {
     if (e.detail === 0 || !e.target?.closest) return;
-    if (e.target.closest('.rules-palette, .code-editor, .sensor-row, [data-keeps-focus]')) return;
+    if (e.target.closest('.rules-palette, .code-editor, .rules-cards-view, .sensor-row, [data-keeps-focus]')) return;
     if (returnsFocusToStage(e.target)) focusStage();
   }
   window.addEventListener('keydown', onKeyDown);
@@ -1052,19 +1260,23 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
   const offLanguage = i18n.onChange(() => {
     perception.relabel();
     renderPalette();
+    if (state.programView === 'cards') guardCards(() => cardsView.render(program.text, { force: true }));
     renderCompare();
     sync();
   });
 
   renderStatus();
   renderPalette();
+  layoutProgramView();
   sync();
   fitEditor();
   loop.start();
   focusStage();
 
   return {
-    view, loop, session, editor, program, controller,
+    view, loop, session, editor, program, controller, cardsView,
+    get programView() { return state.programView; },
+    setProgramView,
     get world() { return state.world; },
     get settings() { return { ...state.settings }; },
     get seed() { return state.seed; },
@@ -1087,6 +1299,7 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
       stage.removeEventListener('click', onClick);
       bar?.removeEventListener('click', onClick);
       editor.dispose();
+      cardsView.dispose();
       description.dispose();
       scenario.dispose();
       view.dispose();

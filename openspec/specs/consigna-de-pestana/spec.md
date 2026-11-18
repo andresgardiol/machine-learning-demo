@@ -216,13 +216,13 @@ Las misiones de Reglas a mano SHALL mostrar este control.
 
 | Misión | Control |
 |---|---|
-| Superá 3 vehículos sin chocar | El editor del programa |
-| Superá 10 vehículos sin chocar | El editor del programa |
+| Superá 3 vehículos sin chocar | El programa (las fichas o el editor, según la vista) |
+| Superá 10 vehículos sin chocar | El programa (las fichas o el editor, según la vista) |
 | Superá 10 en 3 tráficos distintos | Tráfico nuevo |
 
 #### Scenario: El editor
 - **WHEN** la persona toca "Mostrame" junto a "Superá 3 vehículos sin chocar"
-- **THEN** el editor del programa queda marcado y con el foco, sin cambiar el texto ni el cursor
+- **THEN** el programa, en la vista que está a la vista, queda marcado y con el foco, sin cambiar el texto ni el cursor
 
 ### Requirement: Controles de las misiones de Entrenar
 Las misiones de Entrenar SHALL mostrar este control; "—" quiere decir sin botón.

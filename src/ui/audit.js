@@ -87,6 +87,8 @@ export const DENSE_SELECTOR = [
   // Reglas a mano (reglas-mesa-de-trabajo, escenario "Dos alturas" de jerarquia-visual): las filas de percepción
   // (los sensores y la velocidad) y el renglón de interruptores de su barra de marcha (con las cifras del intento).
   '.sensor-rows', '.speed-row', '.rules-runbar-second',
+  // Los controles de las fichas del programa (reglas-como-fichas D8): compactos, para que una regla entre en un renglón.
+  '.rules-cards-view',
 ].join(', ');
 
 /** Controles que se miden: los que se accionan con el cursor y tienen forma de control. */

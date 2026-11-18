@@ -20,7 +20,7 @@ test('Estado por defecto: con la semilla 2 devuelve cuatro filas, con sus sensor
   t.diagnostic(rows.map((r) => `${r.id}: ${r.sensors.count} sensores, ${r.rules} reglas, ${r.distance.toFixed(1)} m, ${r.passed} superados, ${r.crashed ? `choca (${r.cause}) a los ${r.seconds.toFixed(1)} s` : 'no choca en 2 min'}`).join(' · '));
   assert.deepEqual(rows.map((r) => r.id), ['initial', 'three', 'seven', 'twenty']);
   assert.deepEqual(rows.map((r) => r.sensors.count), [5, 3, 7, 20]);
-  assert.deepEqual(rows.map((r) => r.rules), [1, 1, 5, 9]);
+  assert.deepEqual(rows.map((r) => r.rules), [1, 1, 7, 22]);
   for (const r of rows) {
     assert.equal(r.ok, true);
     assert.ok(Number.isFinite(r.distance) && r.distance >= 0);
@@ -36,9 +36,9 @@ test('Determinismo: dos corridas dan las mismas cifras', () => {
   assert.deepEqual(compareNow(spec()), measured());
 });
 
-test('Más reglas no es mejor: el de 20 sensores tiene casi el doble de reglas que el de 7 y no recorre más que él', () => {
+test('Más reglas no es mejor: el de 20 sensores tiene más del triple de reglas que el de 7 y no recorre más que él', () => {
   const m = byId(measured());
-  assert.ok(m.twenty.rules >= m.seven.rules * 1.6 && m.twenty.rules <= m.seven.rules * 2, `${m.twenty.rules} contra ${m.seven.rules}`);
+  assert.ok(m.twenty.rules > m.seven.rules * 3, `${m.twenty.rules} contra ${m.seven.rules}`);
   assert.ok(m.twenty.distance <= m.seven.distance, `${m.twenty.distance} m contra ${m.seven.distance} m`);
 });
 

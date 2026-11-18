@@ -22,7 +22,7 @@ Todo control y toda salida de la red SHALL verse con uno de cinco estilos (acci�
 
 #### Scenario: Dos alturas
 - **WHEN** se miden todos los botones visibles de las seis pestañas, salvo la acción principal y los botones de su renglón
-- **THEN** cada uno tiene la altura normal o la compacta, y la compacta solo aparece en barras densas: las de arriba y abajo de la red, las filas de la lista de competidores, el renglón de Cambiar y Apagar de la tarjeta de la neurona en Inspeccionar y en el Laboratorio, los avisos sobre la escena de Inspeccionar, las filas de la biblioteca de cerebros, la barra de arriba de la app, la cabecera de capas del diagrama de la red, las filas de la tarjeta de la neurona y la tabla de verdad del Laboratorio, las filas de percepción de Reglas a mano y el renglón de interruptores de su barra de marcha
+- **THEN** cada uno tiene la altura normal o la compacta, y la compacta solo aparece en barras densas: las de arriba y abajo de la red, las filas de la lista de competidores, el renglón de Cambiar y Apagar de la tarjeta de la neurona en Inspeccionar y en el Laboratorio, los avisos sobre la escena de Inspeccionar, las filas de la biblioteca de cerebros, la barra de arriba de la app, la cabecera de capas del diagrama de la red, las filas de la tarjeta de la neurona y la tabla de verdad del Laboratorio, las filas de percepción de Reglas a mano y el renglón de interruptores de su barra de marcha, y los controles de las fichas del programa de Reglas a mano
 
 #### Scenario: Tres alturas
 - **WHEN** se mide la acción principal de cada pestaña y los botones de su mismo renglón
