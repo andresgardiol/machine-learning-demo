@@ -214,6 +214,24 @@ arreglarlos de a uno.
 
 ## Ideas para más adelante, sin orden
 
+- **Más atajos de teclado y un cheatsheet.** Pedido del dueño (17 de
+  noviembre de 2026), para después.
+  - Qué: entrar a cada pestaña con los números del 1 al 6, que ya son los
+    números que muestra la barra de pestañas; y una hoja de atajos
+    (cheatsheet) que liste todos los atajos de la pestaña y los globales.
+  - Lo que dice el código hoy (medido): ninguna tecla de número está tomada
+    como atajo en `src/`.
+  - A tener en cuenta (hipótesis, sin probar):
+    - los números son atajos de una tecla, así que entran en el interruptor
+      "Atajos" de `accesibilidad`: apagado, no tienen que dispararse;
+    - no tienen que disparar con el foco en un campo de texto, sobre todo en
+      el editor de Reglas a mano, donde se escriben números;
+    - el cheatsheet necesita cómo abrirlo (por ejemplo, con "?" o con un
+      botón en la barra de arriba), textos en español e inglés, y mostrar solo
+      lo que vale con los atajos encendidos;
+    - conviene juntarlo con lo pendiente de atajos de *Prioridad 2* y de
+      *Entrenar, tráfico y aprendizaje*, como los tooltips que nombran la
+      tecla con los atajos apagados.
 - Cerebros incluidos elegidos por el dueño.
 - Elegir con un clic qué auto seguir en el entrenamiento.
 - Entrenar en segundo plano (Web Worker).
