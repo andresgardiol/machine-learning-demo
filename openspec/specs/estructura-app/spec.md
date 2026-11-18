@@ -78,10 +78,9 @@ funcionando, sin pedir ninguna configuración, registro ni paso previo.
 ### Requirement: Disposición común
 Toda pestaña con escenario, salvo Reglas a mano, SHALL mostrar el escenario a la izquierda, el
 tablero al centro cuando la pestaña lo usa, y un panel de controles a la
-derecha. En Inspeccionar y en Laboratorio, la zona izquierda es de la red y
-es la más ancha, y lo demás va en un tablero angosto. En todas, la barra de pestañas, el selector de idioma y
+derecha. En Inspeccionar y en Laboratorio, la zona izquierda muestra lo que la red mira (la escena del auto, o el plano y la tabla de los datos), la zona central es la red y es la más ancha, y el panel queda a la derecha. En todas, la barra de pestañas, el selector de idioma y
 el interruptor de guía van siempre en el mismo lugar. El orden de lectura y
-de foco con el teclado SHALL ser zona izquierda, tablero y panel.
+de foco con el teclado SHALL ser zona izquierda, zona central y panel.
 
 #### Scenario: Disposición de la primera pestaña
 - **WHEN** se muestra la primera pestaña en una ventana de 1440 píxeles de ancho
@@ -93,11 +92,11 @@ de foco con el teclado SHALL ser zona izquierda, tablero y panel.
 
 #### Scenario: Recorrido con el teclado
 - **WHEN** la persona recorre la pestaña con la tecla Tab desde el escenario
-- **THEN** el foco pasa primero por los controles del escenario, después por el tablero y al final por el panel
+- **THEN** el foco pasa primero por los controles del escenario, después por la zona central y al final por el panel
 
 #### Scenario: Disposición de Inspeccionar
 - **WHEN** la persona pasa de Competir a Inspeccionar
-- **THEN** las tres zonas conservan su lugar, la izquierda muestra la red y pasa a ser la más ancha, y el tablero, angosto, muestra la escena del auto
+- **THEN** la escena del auto sigue a la izquierda, la red ocupa la zona central y es la más ancha, y el panel sigue a la derecha
 
 #### Scenario: Volver de Inspeccionar
 - **WHEN** la persona vuelve de Inspeccionar a Competir
@@ -105,7 +104,7 @@ de foco con el teclado SHALL ser zona izquierda, tablero y panel.
 
 #### Scenario: Disposición de Laboratorio
 - **WHEN** la persona pasa de Inspeccionar a Laboratorio
-- **THEN** las tres zonas conservan su lugar y su ancho: la izquierda muestra la red y el tablero, los datos y las curvas
+- **THEN** las tres zonas conservan su lugar y su ancho: la izquierda muestra los datos (o la escena con Tu manejo) y las curvas, y el centro la red
 
 ### Requirement: Panel ajustable
 El borde izquierdo del panel SHALL poder arrastrarse con el mouse para

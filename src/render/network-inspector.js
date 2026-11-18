@@ -467,10 +467,10 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       knobPlaceKey = '';
     }
     // Dónde van: depende solo de la geometría (no de los valores), así no saltan mientras cambian.
-    const placeKey = `${order}|${P.map((col) => col.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(';')).join('/')}|${r.toFixed(2)}`;
+    const placeKey = `${order}|${P.map((col) => col.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(';')).join('/')}|${r.toFixed(2)}|${spec.size ? `${spec.size.w}x${spec.size.h}` : ''}`;
     if (placeKey !== knobPlaceKey) {
       knobPlaceKey = placeKey;
-      knobPlaced = placeKnobs(targets, { centers: P, radius: r }).knobs;
+      knobPlaced = placeKnobs(targets, { centers: P, radius: r, size: spec.size ?? null }).knobs;
     }
     targets.forEach((t, k) => {
       const key = keys[k];
@@ -509,6 +509,7 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
       }
       if (el.dataset.help !== help) el.dataset.help = help;
       el.dataset.sign = shown < 0 ? 'negative' : 'positive';
+      el.dataset.big = String(Boolean(spec.size) && !toggle); // pastilla grande, con ▲▼ (red-al-centro D8)
       const inside = at && at.x > -at.w && at.x < viewport.width + at.w && at.y > -at.h && at.y < viewport.height + at.h && !overSquares(at.x - at.w / 2, at.x + at.w / 2);
       el.hidden = !inside;
       if (inside) el.style.transform = `translate(${Math.round(at.x)}px, ${Math.round(at.y)}px) translate(-50%, -50%)`;
@@ -874,6 +875,9 @@ export function createNetworkInspector({ container, i18n, doc = document, onSele
     }
     if (hover && hover.input === undefined && !sameTarget(hover, selected)) ring(hover, colors.text, [], 3, 1.5);
     if (hover && hover.input !== undefined) { ring({ layer: hover.layer, neuron: hover.neuron }, colors.text, [], 3, 1.2); ring({ layer: hover.layer - 1, neuron: hover.input }, colors.text, [], 3, 1.2); }
+    // La neurona que más aportó a la decisión en el caso del choque (red-al-centro D5): un aro de puntos afuera,
+    // en el color del texto; se distingue por la forma, no solo por el color.
+    if (state.culprit) ring(state.culprit, colors.text, [2, 3], 8, 2);
     if (selected && selected.input === undefined) ring(selected, colors.selected, [], 3.5);
     if (selected && selected.input !== undefined) {
       ring({ layer: selected.layer, neuron: selected.neuron }, colors.selected, [], 3.5, 1.8);

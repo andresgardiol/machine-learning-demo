@@ -361,6 +361,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
       const slot = state.selection.slotOf(key);
       const nm = nameOf(c);
       if (r.name.textContent !== nm) r.name.textContent = nm;
+      if (r.name.title !== nm) r.name.title = nm; // con puntos suspensivos, el nombre entero en el tooltip (manejo-amable D4)
       const meta = [kindText(c), whereText(c)].filter(Boolean).join(' · ');
       if (r.meta.textContent !== meta) r.meta.textContent = meta;
       r.badge.textContent = String(slot);
@@ -429,7 +430,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
     return { id: m.id, row, status, fill };
   });
   const missions = el('section', { class: 'guide compete-missions' },
-    el('h2', { class: 'panel-heading', i18n: 'compete.missions.title' }),
+    // El título, solo para el lector de pantalla, como en Inspeccionar y el Laboratorio (manejo-amable D4, consulta 4.3).
+    el('h2', { class: 'sr-only', i18n: 'compete.missions.title' }),
     el('ol', { class: 'mission-list' }, missionRows.map((r) => r.row)));
   const clearButton = button('compete.clear', 'compete.clear', () => { results.clear(); renderTable(); }, 'tool compete-clear');
 
@@ -664,7 +666,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
       });
       return el('tr', {}, el('th', { attrs: { scope: 'row' }, class: 'compete-table-who' },
         el('span', { class: 'compete-badge', dataset: { color: colorKey(key, slot) }, attrs: { 'aria-hidden': 'true' } }, String(slot)),
-        el('span', { class: 'compete-table-name' }, nameOf(c))), ...cells);
+        el('span', { class: 'compete-table-name', attrs: { title: nameOf(c) } }, nameOf(c))), ...cells);
     }).filter(Boolean);
     syncClear();
     trackTable.replaceChildren(el('caption', { class: 'sr-only', i18n: 'compete.table.title' }), el('thead', {}, head), el('tbody', {}, rows));
@@ -785,10 +787,12 @@ export function mount({ stage, board, panel, bar, i18n, store, library, preferen
       setText(strip.labels.leader, 'compete.stats.leader');
       if (w) setText(strip.values.leader, 'compete.stats.won', { name: w });
       else setText(strip.values.leader, 'compete.stats.nobody');
+      strip.values.leader.title = strip.values.leader.textContent;
     } else {
       setText(strip.labels.leader, 'compete.stats.leader');
       leaderName = nameOf(candidateOf(state.raceKeys[race.standings[0]]));
       setText(strip.values.leader, 'compete.value.name', { name: leaderName });
+      if (strip.values.leader.title !== leaderName) strip.values.leader.title = leaderName; // en un renglón: el nombre entero en el tooltip
     }
 
     // Llegó el primero: se anuncia una vez (D9).

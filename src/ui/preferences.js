@@ -2,7 +2,7 @@
 // de la pestaña Reglas a mano y su vista, y paisaje). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', hints: 'mlLab.hints', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', inspectStageWidth: 'mlLab.inspect.stageWidth', rulesStageWidth: 'mlLab.rules.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', rulesView: 'mlLab.rules.programView', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', hints: 'mlLab.hints', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', inspectStageWidth: 'mlLab.inspect.stageWidth', netLeftWidth: 'mlLab.net.leftWidth', rulesStageWidth: 'mlLab.rules.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', rulesView: 'mlLab.rules.programView', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
 
 /** Atajos de una tecla encendidos por defecto (panel-de-entrenar-por-vistas D9). */
 export const DEFAULT_SHORTCUTS = true;
@@ -82,12 +82,19 @@ export function createPreferences(getStorage = defaultStorage) {
     },
     set stageWidth(value) { write(KEYS.stageWidth, String(Math.round(value))); },
 
-    /** Ancho de la zona de la red en Inspeccionar, aparte del de las demás pestañas (pestana-inspeccionar D1). */
-    get inspectStageWidth() {
-      const v = Number.parseInt(read(KEYS.inspectStageWidth) ?? '', 10);
+    /**
+     * Ancho de la zona izquierda de Inspeccionar y del Laboratorio, aparte del de las demás pestañas
+     * (red-al-centro D2). El ancho guardado con la forma vieja (la red a la izquierda, `inspectStageWidth`)
+     * ya no corresponde a ninguna zona: se descarta la primera vez que se lee este.
+     */
+    get netLeftWidth() {
+      if (read(KEYS.inspectStageWidth) !== null) {
+        try { getStorage()?.removeItem(KEYS.inspectStageWidth); } catch { /* sin almacenamiento: nada que descartar */ }
+      }
+      const v = Number.parseInt(read(KEYS.netLeftWidth) ?? '', 10);
       return Number.isFinite(v) && v > 0 ? v : null;
     },
-    set inspectStageWidth(value) { write(KEYS.inspectStageWidth, String(Math.round(value))); },
+    set netLeftWidth(value) { write(KEYS.netLeftWidth, String(Math.round(value))); },
     /** Ancho del escenario de Reglas a mano, que no tiene panel (reglas-mesa-de-trabajo D1). */
     get rulesStageWidth() {
       const v = Number.parseInt(read(KEYS.rulesStageWidth) ?? '', 10);

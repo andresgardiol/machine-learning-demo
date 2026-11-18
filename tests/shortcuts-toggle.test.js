@@ -66,10 +66,11 @@ test('Manejar con las flechas: con los atajos apagados, las flechas manejan y W 
     const keyboard = createKeyboardController({ target: win, doc: null });
     win.press('KeyW');
     win.press('KeyA');
-    assert.deepEqual(keyboard.control(), { forward: false, reverse: false, left: false, right: false });
+    assert.deepEqual(keyboard.held(), { forward: false, reverse: false, left: false, right: false });
     win.press('ArrowUp');
     win.press('ArrowLeft');
-    assert.deepEqual(keyboard.control(), { forward: true, reverse: false, left: true, right: false });
+    // Lo apretado (held); el giro pasa por el volante suave (manejo-amable D1).
+    assert.deepEqual(keyboard.held(), { forward: true, reverse: false, left: true, right: false });
   });
   const win = fakeWindow();
   const keyboard = createKeyboardController({ target: win, doc: null });

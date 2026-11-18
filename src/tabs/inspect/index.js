@@ -1,9 +1,10 @@
 // Pestaña 5, "Inspeccionar" (pestana-inspeccionar): la red de un cerebro en grande, en vivo mientras
 // maneja, para ver qué tiene adentro lo que se entrenó.
 //
-// Disposición (D1): la zona izquierda es de la red (los controles de la vista arriba, la red, la
-// operación en curso y la barra de reproducción abajo); el tablero lleva la escena chica, la decisión
-// y la leyenda; el panel, la guía, el cerebro, la tarjeta de la neurona elegida y las misiones.
+// Disposición (red-al-centro D2): la zona izquierda es lo que la red mira (la escena del auto, con su cámara,
+// y la decisión debajo); la zona central es la red (los controles de la vista arriba, la red, la operación en
+// curso y la barra de reproducción abajo); el panel, la guía, el cerebro, la tarjeta de la neurona elegida, la
+// leyenda y las misiones.
 //
 // Lo que se ve y lo que maneja son la misma cuenta (D5): el auto maneja con createTraceController y
 // la vista dibuja traceNetwork con los mismos cambios de prueba. Con "Manejar vos"
@@ -35,7 +36,7 @@ import { el, setData } from '../../ui/dom.js';
 import { mainAction, applyMainAction } from '../../ui/main-action.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
 import { createTextSetter } from '../../ui/controls.js';
-import { formatValue } from '../../ui/i18n.js';
+import { formatValue, formatFixed } from '../../ui/i18n.js';
 import { createPicker } from '../../ui/picker.js';
 import { stageDescription } from '../../ui/stage-description.js';
 import { scenarioBar } from '../shared/scenario-bar.js';
@@ -58,22 +59,20 @@ import { createConnectionDetail, linkShare } from '../shared/connection-detail.j
 import { createResponseCurve } from '../shared/response-curve.js';
 import { OUTPUT_KEYS } from '../../render/network-view.js';
 import { roleTag } from '../../ui/role-tag.js';
+import { NET_ZONES } from '../shared/net-zones.js';
+import { createReplayBuffer } from '../shared/replay-buffer.js';
+import { netBar } from '../shared/net-bar.js';
+import { createChangesStrip } from '../shared/changes-strip.js';
+import { caseOf, CASE_FRAMES, CASE_START } from './crash-case.js';
 
 /** Semilla del tráfico: la misma para todos (misma semilla, misma escena). */
 export const SEED = 1;
-/** Cuadros (a 60 por segundo, mientras se reproduce) que se ve el choque antes de volver a salir. */
-export const RETRY_TICKS = 60;
 /** Filtros de conexiones (D6b). */
 export const FILTERS = Object.freeze(['all', 5, 3, 1]);
 /** Vistas de la red. */
 export const VIEWS = Object.freeze(['diagram', 'table']);
-/**
- * Anchos propios (D1): por defecto la red toma todo lo que dejan el tablero en 360 px y el panel; no
- * baja de 600 px; y su ancho se recuerda aparte del de las demás pestañas. Los límites del tablero y
- * del panel son los de siempre.
- */
-// En una ventana angosta la red cede hasta 440 px para que el tablero conserve 280 (vista-de-la-red D18).
-export const ZONES = Object.freeze({ stageMin: 600, stageFloor: 440, boardKeep: 280, stageDefault: 'rest', preference: 'inspectStageWidth' });
+/** Anchos propios (red-al-centro D2): la escena a la izquierda en 400 px, la red al centro con el resto y el panel. */
+export const ZONES = NET_ZONES;
 
 // --- Estado conservado entre montajes ------------------------------------------------------------
 let state = null;
@@ -124,8 +123,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   let cursor = null;
   let controller = null; // controlador con observador: la red observa; maneja la red o el teclado
   let animation = null;
-  let crashTicks = 0;
-  let lastStep = null; // { size, last } del último paso, para la operación en curso
+  let lastStep = null;
+  // Memoria de cuadros (red-al-centro D5 y D6): los últimos 3 s, cada uno con el estado del mundo y la red con que
+  // se calculó (su «época»: se reemplaza en cada cambio de prueba). La usan el caso del choque y "Atrás".
+  let memory = null;
+  let epoch = null;
+  // Caso del choque a la vista: { offset (cuadros desde el del choque, ≤ 0), wasPlaying, meters, cause, circuit }.
+  let crash = null; // { size, last } del último paso, para la operación en curso
   let notice = null; // aviso del panel (cerebro actualizado)
 
   const candidateOf = (key) => candidates.find((c) => c.key === key) ?? null;
@@ -187,20 +191,88 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     cursor = createPassCursor(net);
     cursor.complete();
     animation = null;
-    crashTicks = 0;
     lastStep = null;
+    crash = null;
+    epoch = { list: changes.list() };
+    memory = createReplayBuffer({ capacity: CASE_FRAMES });
+    remember();
     state.missions.newFrame();
     resetCompare();
     keepLive();
   }
 
-  /** Lo que se conserva al salir: el mundo en el cuadro en que quedó, el cursor y los cambios (D13). */
+  /** Lo que se conserva al salir: el mundo en el cuadro en que quedó, el cursor, los cambios y la memoria (D13). */
   function keepLive() {
-    state.live = { signature: state.choice.signature, brain, net, changes, world, cursor, controller };
+    state.live = { signature: state.choice.signature, brain, net, changes, world, cursor, controller, memory, epoch, crash };
   }
   /** Al volver con el mismo cerebro y los mismos ajustes: todo como quedó. */
   function restoreLive() {
-    ({ brain, net, changes, world, cursor, controller } = state.live);
+    ({ brain, net, changes, world, cursor, controller, memory, epoch, crash } = state.live);
+  }
+
+  // --- Memoria de cuadros y caso del choque (red-al-centro D5 y D6) -----------------------------------
+  /** Guarda el cuadro actual: el estado del mundo y la red con que se calcula. */
+  function remember() { memory.push({ state: world.capture(), epoch }); }
+  /** Los cambios de una época: los vigentes, o los de entonces (se arman una vez). */
+  const changesOf = (e) => (e === epoch ? changes : (e.changes ??= createChanges(net, e.list)));
+  /** Cuadro de la memoria que se ve en el caso. */
+  const caseFrame = () => (crash ? memory.at(crash.offset) : null);
+  /** Con el caso a la vista, ¿la red cambió después del cuadro que se ve? (la repetición muestra la de entonces) */
+  const caseChanged = () => Boolean(crash) && caseFrame().epoch !== epoch;
+  /** Al chocar: la reproducción se congela y se ve el caso, 1 s antes del choque (o el principio, si duró menos). */
+  function openCase() {
+    crash = {
+      offset: -Math.min(CASE_START, memory.length - 1), wasPlaying: playback.playing,
+      meters: world.progress, cause: world.crashCause, circuit: Boolean(world.track.closed),
+    };
+    keepLive();
+    playback.pause();
+    animation = null;
+    lastStep = null;
+    showCaseFrame();
+    announce(t('inspect.announce.crash', { value: Math.round(crash.meters), seconds: secondsText(crash.offset) }));
+    sync();
+  }
+  const secondsText = (offset) => formatFixed(-offset / 60, 1, i18n.language);
+  /** Vuelve el mundo al cuadro que muestra el deslizador, con la cuenta completa. */
+  function showCaseFrame() {
+    world.restore(caseFrame().state);
+    if (state.manual) releaseManual({ announceIt: false });
+    cursor.complete();
+    displayed.trace = null;
+    relabel();
+  }
+  function setCaseOffset(offset) {
+    if (!crash) return;
+    const next = Math.max(-(memory.length - 1), Math.min(0, Math.round(offset)));
+    if (next === crash.offset) { sync(); return; }
+    crash.offset = next;
+    showCaseFrame();
+    sync();
+  }
+  /** Deja el caso desde el cuadro que se ve: los cuadros de después se descartan (la memoria es una línea). */
+  function leaveCase() {
+    if (!crash) return null;
+    for (let k = crash.offset; k < 0; k++) memory.pop();
+    const was = crash;
+    crash = null;
+    keepLive();
+    if (driving()) resetCompare(); // manejando la persona, la coincidencia vuelve a cero
+    return was;
+  }
+  /** "Reintentar desde acá": sigue desde el cuadro del deslizador con la red de ahora (D5). */
+  function retry() {
+    const was = leaveCase();
+    if (!was) return;
+    announce(t('inspect.announce.retry', { seconds: secondsText(was.offset) }));
+    play();
+  }
+  /** "Elegir esta neurona": elige la que más aportó a la decisión del cuadro que se ve. */
+  function pickContributor() {
+    const c = crash ? caseOf(traceNow()).contributor : null;
+    if (!c) return;
+    const target = { layer: c.layer, neuron: c.neuron };
+    if (!sameTarget(target, picked())) select(target);
   }
 
   // --- Cuenta ------------------------------------------------------------------------------------
@@ -210,26 +282,29 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (!state.manual) return real;
     return real.map((v, i) => (state.manual[i] ?? v));
   }
-  const traceNow = () => traceNetwork(net, currentInputs(), originalHeld ? null : changes);
+  // Con el caso a la vista, la cuenta es la de la red con que se calculó ese cuadro (red-al-centro D5).
+  const traceNow = () => traceNetwork(net, currentInputs(), originalHeld ? null : crash ? changesOf(caseFrame().epoch) : changes);
   /** "Ver original" (D13): mientras se mantiene apretado, la vista muestra la red sin los cambios. */
   let originalHeld = false;
   const NO_CHANGES = Object.freeze({ has: () => false, count: 0, list: () => [] });
 
-  /** Un paso del mundo; manejando la persona, guarda si las cuatro acciones coincidieron con las de la red (D4). */
+  /**
+   * Un paso del mundo; manejando la persona, guarda si las cuatro acciones coincidieron con las de la red (D4).
+   * Avanzar desde un cuadro del caso es reintentar desde ahí. Guarda el cuadro y, si choca, abre el caso.
+   */
   function worldStep() {
+    if (crash) leaveCase();
     world.step();
+    remember();
     if (driving() && controller.driven) matchWindow.push(sameControls(controller.driven, controller.observed));
+    if (world.crashed) openCase();
   }
 
-  /** Un cuadro del mundo: percibir, calcular la red y mover el auto. Suelta las entradas a mano. */
+  /** Un cuadro del mundo: percibir, calcular la red y mover el auto. Suelta las entradas a mano. Chocado, no avanza. */
   function stepWorld() {
     if (state.manual) releaseManual({ announceIt: true });
-    if (world.crashed) {
-      crashTicks += 1;
-      if (crashTicks >= RETRY_TICKS) { world.reset(); crashTicks = 0; }
-    } else {
-      worldStep();
-    }
+    if (world.crashed) { if (!crash) openCase(); return; }
+    worldStep();
     state.missions.newFrame();
   }
 
@@ -271,6 +346,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
 
   // --- Reproducción --------------------------------------------------------------------------------
   function play() {
+    if (crash) { retry(); return; } // con el caso a la vista, reproducir es reintentar desde el cuadro que se ve
     if (state.manual) releaseManual({ announceIt: true });
     playback.play();
     sync();
@@ -294,12 +370,33 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     setText(backButton, `inspect.back${plain}`);
   }
 
-  /** Vuelve un paso del tamaño elegido dentro del cuadro, sin animación; reproduciendo, pausa primero (D7). */
+  /**
+   * Vuelve un paso del tamaño elegido dentro del cuadro, sin animación; reproduciendo, pausa primero (D7). Al
+   * principio de un cuadro vuelve al cuadro anterior de la memoria, con el auto donde estaba (red-al-centro D6);
+   * con el caso a la vista, la repetición retrocede un cuadro.
+   */
   function stepBack() {
     if (playback.playing) pause();
     animation = null;
-    const r = cursor.back(playback.size);
-    if (!r.moved) { sync(); return; }
+    // De a cuadros, un paso mueve el auto un cuadro con su cuenta completa: "Atrás" vuelve un cuadro entero, igual.
+    const wholeFrame = playback.size === 'frame' && cursor.done && (crash ? crash.offset > -(memory.length - 1) : memory.length > 1);
+    const r = wholeFrame ? { moved: false } : cursor.back(playback.size);
+    if (!r.moved) {
+      if (crash) { setCaseOffset(crash.offset - 1); return; }
+      if (memory.length > 1) {
+        memory.pop();
+        world.restore(memory.at(0).state);
+        if (state.manual) releaseManual({ announceIt: false });
+        cursor.complete();
+        lastStep = null;
+        state.missions.newFrame();
+        displayed.trace = null;
+        relabel();
+        announce(t('inspect.announce.backFrame', { frame: world.steps }));
+      }
+      sync();
+      return;
+    }
     const last = cursor.position;
     lastStep = last ? { size: playback.size, last } : null;
     if (last && (playback.size === 'neuron' || playback.size === 'operation')) { state.selected = { layer: last.layer, neuron: last.neuron }; state.connection = null; }
@@ -310,12 +407,19 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
 
   function restart() {
+    const was = crash;
+    crash = null;
     world.reset();
+    memory.clear();
+    remember();
+    keepLive();
     cursor.complete();
     animation = null;
-    crashTicks = 0;
     lastStep = null;
     if (state.manual) releaseManual({ announceIt: false });
+    if (driving()) resetCompare();
+    // Con el caso a la vista, la reproducción sigue como estaba antes del choque.
+    if (was?.wasPlaying) playback.play();
     sync();
   }
   function setSize(size) {
@@ -356,6 +460,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
 
   // --- Cambios de prueba ------------------------------------------------------------------------
   function changed() {
+    epoch = { list: changes.list() }; // los cuadros que vengan se calculan con esta red
+    keepLive();
     keepChanges();
     displayed.trace = null; // la cuenta cambió: los nombres accesibles se recalculan con la nueva
     relabel();
@@ -367,8 +473,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const selectedNeuron = () => traceNow().layers[state.selected.layer].neurons[state.selected.neuron];
   function toggleNeuron() {
     const { layer, neuron } = state.selected;
-    setChange({ kind: 'neuronOff', layer, neuron, value: !selectedNeuron().off });
-    announce(t(selectedNeuron().off ? 'inspect.announce.off' : 'inspect.announce.on', { name: placeName(t, net.sizes, layer, neuron) }));
+    // Con el caso a la vista la cuenta es la de entonces: el estado se lee de los cambios vigentes.
+    const off = !changes.valueOf({ kind: 'neuronOff', layer, neuron });
+    setChange({ kind: 'neuronOff', layer, neuron, value: off });
+    announce(t(off ? 'inspect.announce.off' : 'inspect.announce.on', { name: placeName(t, net.sizes, layer, neuron) }));
   }
   function toggleConnection(input) {
     const { layer, neuron } = state.selected;
@@ -452,11 +560,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     attrs: { type: 'button', 'aria-pressed': 'false' }, dataset: { filter: String(f) },
     on: { click: () => { state.filter = f; sync(); } },
   }));
-  const filterGroup = el('div', { class: 'inspect-filter', attrs: { role: 'group', 'aria-labelledby': 'inspect-filter-label' } },
-    el('span', { class: 'inspect-label', i18n: 'inspect.filter.label', help: 'inspect.filter', attrs: { id: 'inspect-filter-label' } }),
-    el('div', { class: 'segments' }, filterButtons));
+  const filterGroup = el('div', { class: 'segments inspect-filter' }, filterButtons);
   const collapseAll = el('button', { class: 'tool small inspect-collapse-all', attrs: { type: 'button' }, on: { click: () => toggleAll() } });
-  const changesCount = el('span', { class: 'inspect-changes', attrs: { role: 'status' } });
+  const changesCount = el('span', { class: 'inspect-changes net-changes-count', attrs: { role: 'status' } });
   const undoButton = el('button', { class: 'tool small inspect-undo', i18n: 'inspect.undo', attrs: { type: 'button' }, on: { click: () => undo() } });
   const resetButton = el('button', { class: 'tool small inspect-reset', i18n: 'inspect.resetNetwork', attrs: { type: 'button' }, on: { click: () => resetNetwork() } });
   // "Ver original": un botón de resorte (D13). Vale mientras se mantiene apretado, con el mouse o con la
@@ -494,18 +600,24 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     attrs: { type: 'button', role: 'switch', 'aria-checked': String(flowOn) },
     on: { click: () => { flowOn = !flowOn; setAttr(flowSwitch, 'aria-checked', String(flowOn)); draw(); } },
   }, el('span', { class: 'switch-track', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'inspect.flow' }));
-  const topRow = el('div', { class: 'inspect-row' }, netTitle, viewGroup, flowSwitch, filterGroup);
-  const editsRow = el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetButton, originalButton), zoomGroup);
-  const controls = el('div', { class: 'inspect-controls' }, topRow, editsRow);
-  // Ventana angosta (D18): con la red por debajo de 600 px, los botones de acercar pasan detrás del
-  // filtro de conexiones, así los dos grupos comparten renglón cuando la barra se parte. Desde 600 px,
-  // vuelven al segundo renglón (la barra en dos renglones, como siempre).
+  // La barra de arriba de la red en tres grupos rotulados (red-al-centro D3): Vista, Conexiones y Acercar.
+  const netBarParts = netBar({
+    title: netTitle, idPrefix: 'inspect',
+    groups: [
+      { id: 'view', labelKey: 'net.bar.view', children: [viewGroup, flowSwitch] },
+      { id: 'links', labelKey: 'net.bar.links', help: 'inspect.filter', children: [filterGroup, collapseAll] },
+      { id: 'zoom', labelKey: 'net.bar.zoom', children: [zoomGroup] },
+    ],
+  });
+  const controls = netBarParts.node;
+  // Los cambios de prueba, en una franja aparte que aparece solo con cambios (red-al-centro D3).
+  const changesStrip = createChangesStrip({ text: changesCount, buttons: [undoButton, resetButton, originalButton], label: 'inspect.changes.label' });
+  let pillDragging = false; // un arrastre de la pastilla sobre la red: la franja no aparece hasta soltar
+  // Con la red por debajo de 600 px, la barra de reproducción usa los nombres sin atajo (consulta 5.1).
   const NARROW_BAR = 600;
   let narrowBar = false;
   const placeZoom = () => {
     const narrow = controls.clientWidth > 0 && controls.getBoundingClientRect().width < NARROW_BAR;
-    const parent = narrow ? topRow : editsRow;
-    if (zoomGroup.parentElement !== parent) parent.append(zoomGroup);
     setData(controls, 'narrow', String(narrow));
     // Con la red angosta, la barra de reproducción usa los nombres sin atajo (operacion-por-operacion
     // D7, consulta 5.1); el atajo sigue en el tooltip.
@@ -529,8 +641,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     onViewChange: () => { layoutKey = ''; },
     // Pastilla sobre la conexión elegida (D8): el mismo cambio que el deslizador del detalle.
     onPill: {
-      change: (value) => { if (state.selected && state.connection !== null && !originalHeld) setWeight(state.connection, value); },
-      end: () => {},
+      change: (value) => { pillDragging = true; if (state.selected && state.connection !== null && !originalHeld) setWeight(state.connection, value); },
+      end: () => { pillDragging = false; sync(); },
     },
   });
   // Encabezados de capa sobre el diagrama (D6): botones de verdad que siguen a su columna.
@@ -691,8 +803,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       m.state === 'done' ? el('span', { class: 'op-tick' }, '✓') : null, el('span', {}, m.label))));
   }
   const playButton = el('button', { class: 'tool small inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
-  // Acción principal (jerarquia-de-botones D3): en esta pestaña es siempre la marcha.
-  applyMainAction({ run: playButton }, mainAction('inspect'));
+  // Acción principal (jerarquia-de-botones D3): la marcha; con el caso del choque, "Reintentar desde acá" (sync).
   const stepButton = el('button', { class: 'tool small inspect-step', i18n: 'inspect.step', help: 'inspect.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
   // Paso atrás (operacion-por-operacion D7): deshace dentro del cuadro; al principio no tiene efecto.
   const backButton = el('button', { class: 'tool small inspect-back', i18n: 'inspect.back', help: 'inspect.back', attrs: { type: 'button', 'aria-disabled': 'false' }, on: { click: () => stepBack() } });
@@ -717,16 +828,18 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'inspect-playbar-main' }, playButton, stepButton, backButton, sizeGroup),
     el('div', { class: 'inspect-playbar-pace' }, paceGroup, where));
   const netZone = el('div', { class: 'inspect-net' }, controls, area, opStrip, playbar);
-  stage.append(netZone);
-  stage.classList.add('inspect-stage');
+  controls.append(changesStrip.node); // la franja va dentro de la barra de arriba de la red, debajo de los grupos
+  board.append(netZone);
+  board.classList.add('net-board');
 
   // ==================================================================================================
-  // Tablero: escena chica, decisión y leyenda
+  // Zona izquierda: la escena con su cámara y la decisión (red-al-centro D2)
   // ==================================================================================================
   // La escena se enfoca con un clic o con "Manejar vos" (no con Tab, como el escenario: un tooltip sobre toda
-  // la escena estorbaría); con el foco en ella, las flechas toman el volante (manejar-vos D3).
+  // la escena estorbaría); con el foco en ella, las flechas toman el volante (manejar-vos D3). Usa la cámara del
+  // escenario grande con el encuadre de los rayos; la tecla V sigue siendo de la red.
   const scene = el('div', { class: 'inspect-scene', attrs: { tabindex: '-1', role: 'group' }, i18nAttr: 'aria-label:inspect.scene.label' });
-  const sceneView = createStageView({ container: scene, store, small: true });
+  const sceneView = createStageView({ container: scene, store, framing: 'rays', resetKey: false });
   const manualText = el('span', { i18n: 'inspect.manual.badge' });
   const releaseButton = el('button', { class: 'tool small inspect-release', i18n: 'inspect.manual.release', help: 'inspect.manual.release', attrs: { type: 'button' }, on: { click: () => { releaseManual({ announceIt: true }); sync(); } } });
   const manualBadge = el('div', { class: 'stage-badge inspect-manual-badge', attrs: { role: 'status' } }, manualText, releaseButton);
@@ -743,10 +856,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const driveBadge = el('div', { class: 'stage-badge inspect-drive-badge', attrs: { role: 'status' } },
     el('span', { i18n: 'inspect.drive.badge' }), giveBackButton);
   const driveButton = el('button', {
-    class: 'tool small inspect-drive', i18n: 'inspect.drive.take', help: 'inspect.drive.take', dataset: { focus: 'keep' },
+    class: 'tool inspect-drive', i18n: 'inspect.drive.take', help: 'inspect.drive.take', dataset: { focus: 'keep' },
     attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => toggleDriver() },
   });
-  scene.append(el('div', { class: 'inspect-scene-badges' }, driveBadge, manualBadge, crashBadge, pausedBadge, speedBadge), driveButton);
+  // "Manejar vos" va en el renglón de la cámara, con la altura normal; los avisos, en la esquina de la escena.
+  sceneView.controls.append(driveButton);
+  sceneView.corner.append(driveBadge, manualBadge, crashBadge, pausedBadge, speedBadge);
+  sceneView.corner.classList.add('inspect-scene-badges');
   const description = stageDescription({ stage: scene });
   const decision = actionBlock({ i18n, role: true });
   // Manejando la persona (manejar-vos D4): "Vos" y "La red" lado a lado, y cuánto coincidieron.
@@ -760,6 +876,32 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const decisionTitle = el('h2', { class: 'panel-heading', i18n: 'inspect.decision.title', help: 'inspect.decision', attrs: { id: 'inspect-decision-title', tabindex: '0' } });
   const decisionBlock = el('section', { class: 'inspect-decision', attrs: { 'aria-labelledby': 'inspect-decision-title' } },
     decisionTitle, decision.node, compare.node, decisionNote, compareAnnouncer);
+  // Caso del choque (red-al-centro D5): la tarjeta debajo de la decisión y la repetición sobre la escena.
+  const caseTitle = el('h2', { class: 'inspect-case-title', attrs: { id: 'inspect-case-title' } });
+  const caseWhen = el('p', { class: 'inspect-case-when' });
+  const caseDecision = el('p', { class: 'inspect-case-line' });
+  const caseNeuron = el('p', { class: 'inspect-case-line inspect-case-neuron' });
+  const pickButton = el('button', { class: 'tool inspect-case-pick', i18n: 'inspect.case.pick', help: 'inspect.case.pick', dataset: { focus: 'keep' }, attrs: { type: 'button' }, on: { click: () => pickContributor() } });
+  const caseNote = el('p', { class: 'caption inspect-case-note' });
+  const retryButton = el('button', { class: 'tool inspect-case-retry', i18n: 'inspect.case.retry', help: 'inspect.case.retry', attrs: { type: 'button' }, on: { click: () => retry() } });
+  const caseRestart = el('button', { class: 'tool inspect-case-restart', i18n: 'inspect.case.restart', help: 'inspect.case.restart', attrs: { type: 'button' }, on: { click: () => restart() } });
+  const caseCard = el('section', { class: 'inspect-case', attrs: { 'aria-labelledby': 'inspect-case-title' }, dataset: { state: 'crash' } },
+    caseTitle, caseWhen, caseDecision, el('div', { class: 'inspect-case-row' }, caseNeuron, pickButton), caseNote,
+    el('div', { class: 'inspect-case-actions' }, retryButton, caseRestart));
+  caseCard.hidden = true;
+  const replayInput = el('input', {
+    class: 'inspect-replay-input', help: 'inspect.replay', i18nAttr: 'aria-label:inspect.replay.label', dataset: { focus: 'keep' },
+    attrs: { type: 'range', min: String(-(CASE_FRAMES - 1)), max: '0', step: '1', value: String(-CASE_START) },
+    on: { input: () => setCaseOffset(Number(replayInput.value)) },
+  });
+  replayInput.dataset.keepsFocus = 'true';
+  // Las flechas mueven la repetición y no llegan a ningún atajo de la ventana: no toman el volante.
+  replayInput.addEventListener('keydown', (e) => { if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) e.stopPropagation(); });
+  const replayValue = el('span', { class: 'inspect-replay-value', attrs: { 'aria-hidden': 'true' } });
+  const replay = el('div', { class: 'inspect-replay' },
+    el('span', { class: 'inspect-replay-label', i18n: 'inspect.replay.label', attrs: { 'aria-hidden': 'true' } }), replayInput, replayValue);
+  replay.hidden = true;
+  scene.append(replay);
   // Leyenda de cinco renglones (D11): signo; grosor; brillo y relleno; sesgo; y las marcas.
   const swatches = (...classes) => el('span', { class: 'inspect-legend-swatches', attrs: { 'aria-hidden': 'true' } }, classes.map((c) => el('span', { class: c })));
   const legendItem = (sw, key) => el('li', { class: 'inspect-legend-item' }, sw, el('span', { i18n: key }));
@@ -778,7 +920,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         mark('lg-flicker', 'inspect.legend.mark.flicker', 'flicker'))));
   const announcer = el('p', { class: 'sr-only', attrs: { role: 'status', 'aria-live': 'polite' } });
   function announce(text) { announcer.textContent = ''; announcer.textContent = text ?? ''; }
-  board.append(scene, decisionBlock, legend, announcer);
+  const leftZone = el('div', { class: 'inspect-left' }, scene, decisionBlock, caseCard, announcer);
+  stage.append(leftZone);
+  stage.classList.add('net-left');
 
   // ==================================================================================================
   // Panel: guía, cerebro, tarjeta y misiones
@@ -902,11 +1046,28 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const row = el('li', { class: 'mission inspect-mission' }, el('span', { class: 'mission-name', i18n: `inspect.mission.${m.id}` }), status);
     return { id: m.id, row, status };
   });
+  // Línea de guía (red-al-centro D4): siempre arriba del detalle, cambia según lo que se mira.
+  const guideLine = el('p', { class: 'guide inspect-guide-line' });
+  // "Soltar" junto al nombre de la neurona o de la conexión elegida: vuelve al panel sin nada elegido.
+  const releaseButtons = [card.node, linkDetail.node].map((n) => {
+    const b = el('button', {
+      class: 'tool small inspect-release-selection', i18n: 'inspect.release', help: 'inspect.release', dataset: { focus: 'keep' },
+      attrs: { type: 'button' }, on: { click: () => releaseSelection() },
+    });
+    n.querySelector('.inspect-card-head')?.append(b);
+    return b;
+  });
+  function releaseSelection() {
+    const hadFocus = releaseButtons.some((b) => b.contains(document.activeElement));
+    select(null);
+    draw(); // los atajos se muestran en el dibujo: tienen que estar a la vista para recibir el foco
+    if (hadFocus) (shortcutButtons.find((b) => !b.parentElement.hidden) ?? changeBrain).focus({ preventScroll: true });
+  }
   const missions = el('section', { class: 'guide inspect-missions' },
     el('h2', { class: 'sr-only', i18n: 'inspect.missions.title' }),
     el('ol', { class: 'mission-list inspect-mission-list' }, missionRows.map((r) => r.row)));
   panel.append(el('h1', { class: 'sr-only', i18n: 'inspect.title' }),
-    el('div', { class: 'inspect-panel' }, consigna.node, introMore, brainSection, emptyBlock, card.node, linkDetail.node, missions));
+    el('div', { class: 'inspect-panel' }, consigna.node, introMore, brainSection, guideLine, emptyBlock, card.node, linkDetail.node, legend, missions));
 
   const picker = createPicker({
     id: 'inspect-picker', anchor: changeBrain, t,
@@ -979,16 +1140,18 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const all = state.collapsed.every(Boolean);
     setText(collapseAll, all ? 'inspect.openAll' : 'inspect.collapseAll');
     setData(collapseAll, 'help', all ? 'inspect.openAll' : 'inspect.collapseAll');
-    // Deshacer y restablecer: siempre a la vista; sin cambios, en su tope y con su explicación (D12).
+    // Deshacer, restablecer y "Ver original": en la franja, que se ve solo con cambios (red-al-centro D3).
     const count = changes.count;
-    setText(changesCount, count === 0 ? 'inspect.changes.none' : 'inspect.changes.count', { value: count });
+    setText(changesCount, count === 1 ? 'inspect.changes.strip.one' : 'inspect.changes.strip', { value: count });
     setData(changesCount, 'changed', String(count > 0));
+    const inSession = count > 0 || [...state.changesBy.values()].some((list) => list.length > 0);
+    if (changesStrip.sync({ count, dragging: pillDragging, reserve: inSession })) layoutKey = '';
     for (const [b, key] of [[undoButton, 'inspect.undo'], [resetButton, 'inspect.resetNetwork'], [originalButton, 'inspect.original.view']]) {
       setAttr(b, 'aria-disabled', String(count === 0));
       setData(b, 'help', count === 0 ? `${key}.none` : key);
     }
     if (count === 0 && originalHeld) holdOriginal(false);
-    zoomGroup.hidden = state.view !== 'diagram';
+    netBarParts.groups.zoom.hidden = state.view !== 'diagram'; // con la tabla de pesos, acercar no tiene efecto
     diagram.hidden = state.view !== 'diagram';
     tableZone.hidden = state.view !== 'table';
     // Reproducción
@@ -1015,11 +1178,56 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Con una neurona o una conexión elegida, la tarjeta cede su lugar, como el texto largo, para que la
     // cuenta entre sin desplazar; al soltar vuelve, al día (decisión del dueño, grupo 5).
     show(consigna.node, !state.selected);
+    // Caso del choque (red-al-centro D5): la tarjeta, la repetición y la acción principal.
+    syncCase();
+    applyMainAction({ run: playButton, retry: retryButton }, mainAction('inspect', { crashed: Boolean(crash) }));
+    // Línea de guía: el choque, la persona manejando, una conexión, una neurona o nada elegido (D4).
+    setText(guideLine, crash ? 'inspect.guideLine.crash' : driving() ? 'inspect.guideLine.driving'
+      : state.selected && state.connection !== null ? 'inspect.guideLine.link' : state.selected ? 'inspect.guideLine.neuron' : 'inspect.guideLine.none');
     // Quién maneja
     setAttr(driveButton, 'aria-pressed', String(driving()));
     show(driveBadge, driving());
     setData(scene, 'driver', state.driver);
     scenario.sync({ ...state.settings });
+  }
+
+  /** La tarjeta del caso y el deslizador de la repetición: el título y el lugar del cuadro (el resto, en draw). */
+  function syncCase() {
+    show(caseCard, Boolean(crash));
+    show(replay, Boolean(crash) && memory.length > 1);
+    if (!crash) return;
+    const titleKey = crash.cause === 'vehicle' ? 'inspect.case.title.vehicle' : crash.circuit ? 'inspect.case.title.edge.circuit' : 'inspect.case.title.edge';
+    setText(caseTitle, titleKey, { value: Math.round(crash.meters) });
+    const min = String(-(memory.length - 1));
+    if (replayInput.min !== min) replayInput.min = min;
+    if (Number(replayInput.value) !== crash.offset) replayInput.value = String(crash.offset);
+    const at = crash.offset === 0 ? t('inspect.replay.now') : t('inspect.replay.at', { value: secondsText(crash.offset) });
+    write(replayValue, at);
+    setAttr(replayInput, 'aria-valuetext', at);
+    // Desde el cuadro del choque (o muy cerca), reintentar vuelve a chocar enseguida: la tarjeta lo dice.
+    setText(caseWhen, crash.offset === 0 ? 'inspect.case.when.crash' : crash.offset > -20 ? 'inspect.case.when.near' : 'inspect.case.when.at', { value: secondsText(crash.offset) });
+    show(caseNote, caseChanged());
+    if (caseChanged()) setText(caseNote, 'inspect.case.changed');
+  }
+  /** Decisión y neurona que más aportó en el cuadro que se ve (la cuenta de ese cuadro). */
+  function drawCase(trace) {
+    if (!crash) return null;
+    const c = caseOf(trace);
+    const action = (j) => t(`network.output.${OUTPUT_KEYS[j] ?? 'forward'}`);
+    if (!c.decision) {
+      setText(caseDecision, 'inspect.case.decision.none');
+      show(caseNeuron.parentElement, false);
+      return null;
+    }
+    setText(caseDecision, 'inspect.case.decision', { action: action(c.decision.index) });
+    show(caseNeuron.parentElement, true);
+    if (c.contributor) {
+      setText(caseNeuron, 'inspect.case.neuron', { name: capitalize(placeName(t, net.sizes, c.contributor.layer, c.contributor.neuron)), value: `+${fmt(c.contributor.product)}`, action: action(c.decision.index) });
+    } else {
+      setText(caseNeuron, 'inspect.case.neuron.none', { action: action(c.decision.index) });
+    }
+    show(pickButton, Boolean(c.contributor));
+    return c.contributor;
   }
 
   /** Lo que cambia en cada cuadro: la red, la tarjeta, la escena y la decisión. */
@@ -1038,6 +1246,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     displayed.trace = trace;
     const top = topConnections(net, changes, state.filter);
     const marks = originalHeld ? { changedWeights: new Set(), changedBiases: new Set() } : marksOf();
+    const culprit = drawCase(trace);
     const common = {
       sizes: net.sizes, trace, cursor: shownCursor, selected: picked(), collapsed: state.collapsed, top, marks, filter: state.filter,
       manual: state.manual ? state.manual.map((v) => v !== null) : null,
@@ -1054,7 +1263,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // La red corre de corrido (sin-destellos-en-la-red D3): lo que titubea se ve quieto; en pausa o paso a
     // paso, todo exacto.
     const live = playback.playing && playback.size === 'frame';
-    inspector.render({ ...common, pill, flow, live, animation: anim, stepSize: playback.size, visible: state.view === 'diagram', headerRows, banner: originalHeld ? t('inspect.original.banner') : null });
+    inspector.render({ ...common, pill, flow, live, animation: anim, stepSize: playback.size, visible: state.view === 'diagram', headerRows, culprit, banner: originalHeld ? t('inspect.original.banner') : null });
     table.render({ ...common, live, visible: state.view === 'table', changesVersion: changes.version, filter: state.filter, stepSize: playback.size });
     placeOverlay();
     // Nombres accesibles de las neuronas (capa, nombre, valor y estado): dos veces por segundo.
@@ -1064,8 +1273,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     show(opStrip, !realTime);
     if (!realTime) writeStrip(trace);
     write(where, whereText({ t, frame: world.steps, sizes: net.sizes, cursor: shownCursor ?? cursor, realTimePlaying: realTime }));
-    // "Atrás" sin efecto al principio del cuadro (o reproduciendo en tiempo real, que no tiene pasos).
-    const canBack = cursor.started && !realTime;
+    // "Atrás" sin efecto al principio del primer cuadro guardado (o reproduciendo en tiempo real, que no tiene pasos).
+    const canBack = !realTime && (cursor.started || (crash ? crash.offset > -(memory.length - 1) : memory.length > 1));
     setAttr(backButton, 'aria-disabled', String(!canBack));
     setData(backButton, 'help', canBack ? 'inspect.back' : 'inspect.back.none');
 
@@ -1094,8 +1303,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       },
     });
     show(manualBadge, Boolean(state.manual));
-    show(crashBadge, world.crashed);
-    show(pausedBadge, !playback.playing);
+    show(crashBadge, Boolean(crash));
+    show(pausedBadge, !playback.playing && !crash);
 
     // Decisión: las cuatro acciones; sin decidir mientras la cuenta no llegó a las salidas.
     const outLayer = net.sizes.length - 1;
@@ -1113,7 +1322,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       setText(decisionNote, decided ? (state.manual ? 'inspect.decision.manual' : 'inspect.decision.live') : 'inspect.decision.undecided');
     } else {
       // La fila "La red" pasa por la misma guarda de destellos que la decisión de una fila (D4).
-      const mine = keyboard.control();
+      const mine = keyboard.held(); // lo que la persona aprieta, sin avanzar el volante suave
       compare.update(mine, theirs, { live: liveKeys, now, decided });
       // Cuánto coincidieron: se reescribe como mucho cuatro veces por segundo, para poder leerlo.
       if (now - shareAt >= 250) { shareAt = now; const p = matchWindow.percent(); setText(decisionNote, p === null ? 'inspect.compare.empty' : 'inspect.compare.share', p === null ? undefined : { value: p }); }
@@ -1243,8 +1452,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function tick() {
     const n = playback.tick();
     for (let k = 0; k < n; k++) {
+      if (!playback.playing) break; // el choque congela la reproducción (red-al-centro D5)
       if (playback.size === 'frame') {
-        if (world.crashed) { crashTicks += 1; if (crashTicks >= RETRY_TICKS) { world.reset(); crashTicks = 0; } } else worldStep();
+        if (world.crashed) { if (!crash) openCase(); break; }
+        worldStep();
         cursor.complete();
         state.missions.newFrame();
       } else {
@@ -1252,8 +1463,6 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       }
     }
     if (playback.playing) {
-      // Con la reproducción en marcha y un choque, el intento vuelve a empezar solo (aunque el ritmo sea lento).
-      if (world.crashed && playback.size !== 'frame' && n === 0) { crashTicks += 1; if (crashTicks >= RETRY_TICKS) { world.reset(); crashTicks = 0; cursor.complete(); } }
       const anyOff = changes.list().some((c) => c.kind === 'neuronOff');
       const was = state.missions.isDone('off');
       state.missions.played(1, anyOff);
@@ -1330,6 +1539,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     draw, sync,
     /** Avanza `frames` cuadros como lo haría el bucle reproduciendo (verificación desde la consola). */
     advance(frames) { for (let k = 0; k < frames; k++) tick(); draw(); },
+    /** Memoria de cuadros y caso del choque (verificación desde la consola). */
+    get memory() { return memory; },
+    get crash() { return crash ? { ...crash } : null; },
+    setCaseOffset, retry, pickContributor,
     get world() { return world; },
     get cursor() { return cursor; },
     /** Animación del paso en curso, o null (verificación desde la consola). */
@@ -1361,7 +1574,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       inspector.dispose();
       table.dispose();
       sceneView.dispose();
-      stage.classList.remove('inspect-stage');
+      stage.classList.remove('net-left');
+      board.classList.remove('net-board');
     },
   };
 }

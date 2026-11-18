@@ -269,8 +269,11 @@ function hitsCircle(b, c, r) {
  * @param {{centers:{x:number,y:number}[][], radius:number, bounds?:{left:number, top:number, right:number, bottom:number}}} geo
  *   centers: el centro de cada neurona en pantalla, por capa
  */
-export function placeKnobs(targets, { centers, radius, bounds = null }) {
-  const { w, h, inputW, gap, labelRoom } = KNOBS;
+export function placeKnobs(targets, { centers, radius, bounds = null, size = null }) {
+  // `size` (red-al-centro D8): pastillas de peso y sesgo más grandes (las de compuertas); las entradas no cambian.
+  const { inputW, gap, labelRoom } = KNOBS;
+  const w = size?.w ?? KNOBS.w;
+  const h = size?.h ?? KNOBS.h;
   const margin = 2;
   const placed = [];
   const circles = centers.flat();
@@ -280,7 +283,7 @@ export function placeKnobs(targets, { centers, radius, bounds = null }) {
   for (const t of targets.filter((x) => x.kind !== 'weight')) {
     const c = centers[t.layer][t.neuron];
     if (t.kind === 'input') {
-      placed.push({ ...t, x: c.x - radius - labelRoom - inputW / 2, y: c.y, w: inputW, h });
+      placed.push({ ...t, x: c.x - radius - labelRoom - inputW / 2, y: c.y, w: inputW, h: KNOBS.h });
       continue;
     }
     const below = { ...t, x: c.x, y: c.y + radius + gap + h / 2, w, h };

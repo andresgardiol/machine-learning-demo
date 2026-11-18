@@ -316,6 +316,54 @@ export function createWorld(spec = {}) {
         perception: { sensors: [...first.perception.sensors], speed: first.perception.speed },
       };
     },
+    /**
+     * Estado para volver atrás (red-al-centro D5): el reloj, el tráfico vigente y, de cada agente, el auto
+     * (pose, velocidad, choque, tope y sensores), el tramo, el progreso, las vueltas, el choque y la protección,
+     * más lo que percibió en ese instante (rayos, percepción y vehículos cercanos). El tráfico es una función pura
+     * del tiempo: alcanza con guardar cuál es. Lo percibido se guarda por referencia: el mundo lo reemplaza en cada
+     * paso, no lo modifica.
+     */
+    capture() {
+      return {
+        time, steps, paused, traffic, trafficConfig,
+        agents: agents.map((a) => ({
+          car: { position: { ...a.car.position }, angle: a.car.angle, speed: a.car.speed, crashed: a.car.crashed, maxSpeed: a.car.maxSpeed, sensors: a.car.sensors },
+          segmentIndex: a.segmentIndex, progress: a.progress, laps: a.laps, lapDistance: a.lapDistance,
+          crashCause: a.crashCause, protecting: a.protecting, protectedUntil: a.protectedUntil,
+          passThrough: a.passThrough ? new Set(a.passThrough) : null, crashVehicle: a.crashVehicle,
+          nearby: a.nearby, rays: a.rays, perception: a.perception,
+        })),
+      };
+    },
+    /**
+     * Vuelve el mundo a un estado de `capture()` (red-al-centro D5). Desde ahí, con los mismos controladores, la
+     * simulación da los mismos cuadros que la original. Los controladores no se tocan.
+     */
+    restore(state) {
+      if (!state || state.agents?.length !== agents.length) return false;
+      time = state.time;
+      steps = state.steps;
+      paused = state.paused;
+      traffic = state.traffic;
+      trafficConfig = state.trafficConfig;
+      state.agents.forEach((s, i) => {
+        const a = agents[i];
+        Object.assign(a.car, { position: { ...s.car.position }, angle: s.car.angle, speed: s.car.speed, crashed: s.car.crashed, maxSpeed: s.car.maxSpeed, sensors: s.car.sensors });
+        a.segmentIndex = s.segmentIndex;
+        a.progress = s.progress;
+        a.laps = s.laps;
+        a.lapDistance = s.lapDistance;
+        a.crashCause = s.crashCause;
+        a.protecting = s.protecting;
+        a.protectedUntil = s.protectedUntil;
+        a.passThrough = s.passThrough ? new Set(s.passThrough) : null;
+        a.crashVehicle = s.crashVehicle;
+        a.nearby = s.nearby;
+        a.rays = s.rays;
+        a.perception = s.perception;
+      });
+      return true;
+    },
     /** Copia plana del estado de todos los autos, en orden. */
     agentsSnapshot() { return agents.map(agentSnapshot); },
     /** Agentes del mundo: { car, controller, progress, rays, perception, crashed, crashCause }. */

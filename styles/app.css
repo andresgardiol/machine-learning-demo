@@ -2033,3 +2033,142 @@ input[type="range"]:disabled::-moz-range-thumb, input[type="range"][aria-disable
 .card > .role-tag { position: absolute; top: var(--space-2); right: var(--space-4); }
 .card[data-open="false"] > .role-tag { display: none; }
 
+
+/* ---- La red al centro (red-al-centro D2) -----------------------------------------------------------
+   Inspeccionar y el Laboratorio: la zona izquierda es lo que la red mira (la escena con su cámara y la
+   decisión, o los datos y las curvas); la zona central, la red, de borde a borde; el panel, igual. */
+.board.net-board { position: relative; padding: 0; gap: 0; overflow: hidden; }
+.inspect-left { position: absolute; inset: 0; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); overflow: hidden; }
+.net-left .inspect-scene { flex: 1 1 auto; min-height: 180px; aspect-ratio: auto; }
+.net-left .inspect-scene .stage-canvas { position: absolute; inset: 0; }
+/* El renglón de la cámara (Paisaje, +, −, Seguir al auto) suma "Manejar vos" con la altura normal; si no entra
+   en el ancho de la escena, se parte hacia abajo, alineado a la derecha. */
+.net-left .camera-controls { left: var(--space-2); flex-wrap: wrap; justify-content: flex-end; }
+.net-left .camera-controls .inspect-drive { position: static; font-size: var(--text-body); white-space: nowrap; }
+.net-left .inspect-scene-badges { top: 48px; left: var(--space-2); right: var(--space-2); }
+.lab-left { position: absolute; inset: 0; padding: var(--space-3); overflow: hidden; height: auto; }
+.lab-left .lab-scene { flex: 1 1 auto; min-height: 200px; }
+/* Acciones del panel del Laboratorio enteras (red-al-centro D9): cada una en un renglón; si dos no entran
+   en el panel, la segunda baja entera. */
+.lab-actions-panel .tool { white-space: nowrap; }
+/* Con Tu manejo, la escena se queda con el alto que sobra y la curva de respuesta de la neurona elegida, con
+   el suyo, hasta el 45 % (si no entra, pasa a su forma chica). */
+.lab-left:has(> .lab-curve-block:not([hidden])) > .lab-data { flex: 1 1 auto; }
+.lab-left > .lab-curve-block { flex: 0 1 auto; max-height: 45%; }
+.lab-left .lab-scene { min-height: 240px; }
+/* Caso del choque de Inspeccionar (red-al-centro D5): la tarjeta debajo de la decisión, con el rayado del estado
+   "choque" del sistema de diseño, y la repetición superpuesta abajo de la escena, como en Reglas a mano. */
+.inspect-case[hidden], .inspect-replay[hidden], .inspect-case [hidden] { display: none; }
+.inspect-case { flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--space-1); margin: 0; padding: var(--space-2); }
+.inspect-case[data-state="crash"] { padding-top: calc(var(--space-3) + var(--space-1)); }
+.inspect-case-title { margin: 0; font-size: var(--text-body); font-weight: var(--weight-bold); line-height: 20px; }
+.inspect-case-when, .inspect-case-line { margin: 0; font-size: var(--text-body); line-height: 18px; }
+.inspect-case-when { color: var(--color-text-muted); font-size: var(--text-label); }
+.inspect-case-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.inspect-case-row .tool { flex: 0 0 auto; white-space: nowrap; }
+.inspect-case-note { margin: 0; }
+.inspect-case-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
+.inspect-case-actions .tool { white-space: nowrap; }
+.inspect-replay {
+  position: absolute; left: var(--space-2); right: var(--space-2); bottom: var(--space-2); display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-1) var(--space-2); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card);
+  font-size: var(--text-label); box-shadow: 0 4px 12px rgb(0 0 0 / 0.35); z-index: 1;
+}
+.inspect-replay-label { font-weight: var(--weight-bold); }
+.inspect-replay-input { flex: 1 1 auto; min-width: 0; accent-color: var(--color-accent); }
+.inspect-replay-value { flex: 0 0 auto; min-width: 9ch; text-align: right; font-variant-numeric: tabular-nums; }
+/* La barra de la red en tres grupos rotulados (red-al-centro D3): el nombre arriba y los grupos en un renglón,
+   con el rótulo de cada grupo arriba, como en la barra de escenario. Si no entran, el último baja entero. */
+.net-bar { gap: 2px; }
+.net-bar-head { display: flex; align-items: center; min-width: 0; }
+.net-bar-head .inspect-net-title { flex: 1 1 auto; }
+.net-bar-groups { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-1) var(--space-4); min-width: 0; }
+.net-bar-group { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.net-bar-group[hidden] { display: none; }
+.net-bar-group-label { font-size: var(--text-label); line-height: 14px; font-weight: var(--weight-bold); letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-muted); white-space: nowrap; align-self: flex-start; }
+.net-bar-group-body { display: flex; align-items: center; gap: var(--space-1); }
+.net-bar-group-zoom { margin-left: auto; }
+.net-bar .inspect-zoom-group { margin-left: 0; }
+/* La franja de los cambios (red-al-centro D3): debajo de la barra, solo con cambios. Reservada, guarda su alto sin verse. */
+.net-changes { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); margin: var(--space-1) calc(-1 * var(--space-2)) calc(-1 * var(--space-1)); padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-border); background: var(--color-surface-2); }
+.net-changes[hidden] { display: none; }
+.net-changes[data-state="reserved"] { visibility: hidden; }
+.net-changes-buttons { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.net-changes-buttons .tool { white-space: nowrap; }
+/* Línea de guía (red-al-centro D4): arriba del detalle; con la guía encendida, reemplaza el texto del bloque vacío. */
+.inspect-guide-line { margin: 0; font-size: var(--text-body); color: var(--color-text-muted); }
+.app[data-guide="on"] .inspect-empty-text { display: none; }
+.inspect-release-selection { flex: 0 0 auto; white-space: nowrap; }
+/* Los tres experimentos del Laboratorio (red-al-centro D7): opciones grandes (44 px), numeradas en un círculo como
+   las pestañas, con su nombre y para qué son. La elegida, con el estilo de opción elegida. */
+.lab-experiments { display: flex; gap: var(--space-1); }
+.lab-experiment {
+  display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; column-gap: var(--space-2); align-items: center;
+  min-height: var(--control-h-lg, 44px); padding: 2px var(--space-2); text-align: left; cursor: pointer; color: var(--color-text);
+  background: var(--color-surface); border: 1px solid var(--color-control-border); border-radius: var(--radius-control); font: inherit;
+}
+.lab-experiment::before {
+  content: attr(data-step); grid-row: 1 / 3; display: inline-grid; place-items: center; width: 22px; height: 22px;
+  border-radius: var(--radius-round); border: 1px solid currentColor; font-size: var(--text-label);
+}
+.lab-experiment-name { font-size: var(--text-body); font-weight: var(--weight-bold); line-height: 18px; white-space: nowrap; }
+.lab-experiment-line { font-size: var(--text-label); line-height: 14px; color: var(--color-text-muted); white-space: nowrap; }
+.lab-experiment:hover { border-color: var(--color-accent); }
+.lab-experiment[aria-checked="true"] { background: var(--color-surface-2); border-color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+.lab-experiment:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+/* Compuertas, a mano primero (red-al-centro D8): pastillas de peso y sesgo de 26 px, con ▲▼ a la izquierda y el
+   cursor de arrastre vertical; y la marca "Arrastrá un peso" junto a la primera. */
+.inspector-knob[data-big="true"] { height: 26px; min-height: 26px; min-width: 56px; padding: 0 var(--space-2) 0 var(--space-1); gap: var(--space-1); font-size: var(--text-body); cursor: ns-resize; }
+.inspector-knob[data-big="true"]::before { content: "▲\A▼"; white-space: pre; font-size: var(--text-label); line-height: 10px; transform: scale(0.75); font-weight: var(--weight-regular); color: var(--color-text-muted); }
+.lab-drag-hint {
+  position: absolute; top: 0; left: 0; margin: 0; pointer-events: none; z-index: 2; white-space: nowrap;
+  padding: var(--space-1) var(--space-2); border: 1px solid var(--color-accent); border-radius: var(--radius-card);
+  background: var(--color-surface); color: var(--color-text); font-size: var(--text-body); font-weight: var(--weight-bold);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+}
+.lab-drag-hint::after { content: " ▶"; color: var(--color-accent); }
+.lab-drag-hint[hidden] { display: none; }
+
+/* ---- El problema: el volante suave, la cinta y el cartel (manejo-amable-y-competir-sin-cortes) ---------------
+   Izquierda y derecha se llenan de abajo hacia arriba con el nivel del volante y lo dicen en por ciento. */
+.action-key[data-steer="true"][data-on="true"]:not([data-full="true"]) {
+  background: linear-gradient(to top, var(--color-output-on) calc(var(--steer-level, 0) * 100%), var(--color-surface-2) calc(var(--steer-level, 0) * 100%));
+  color: var(--color-text);
+}
+.action-level { font-size: var(--text-label); line-height: 1.2; min-height: 1.2em; font-variant-numeric: tabular-nums; }
+.action-key[data-steer="true"]:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+/* La cinta ocupa el alto que deja la acción, con un mínimo de 80 px. */
+.card[data-card="drive-tape"] > .card-body { display: flex; flex-direction: column; gap: var(--space-1); }
+.drive-tape { position: relative; flex: 1 1 auto; min-height: 80px; }
+.drive-tape-canvas { position: absolute; inset: 0; display: block; }
+/* El cartel de primer manejo, como el de largada de Competir; no se toca: se va con la primera tecla. */
+.drive-howto-layer { z-index: 1; }
+.drive-howto { pointer-events: none; text-align: center; }
+/* La acción toma el alto de su contenido (sin el mínimo de 160 px de las tarjetas): lo que sobra es de la cinta. */
+.card[data-card="drive-action"][data-open="true"] { flex: 0 0 auto; }
+.card[data-card="drive-action"] > .card-body { min-height: 0; }
+.card[data-card="drive-tape"][data-open="true"] { flex-basis: 0; }
+.card[data-card="drive-tape"] > .card-body { min-height: 0; }
+
+/* ---- Competir sin cortes (manejo-amable-y-competir-sin-cortes D4) ----------------------------------------------
+   Marcador: cada columna de cifras con su ancho; los encabezados no se parten ni se salen de su caja. */
+.compete-score thead th { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.compete-score thead th:nth-child(3) { width: 5.6em; }
+.compete-score thead th:nth-child(4) { width: 5.8em; }
+.compete-score thead th:last-child { width: 7em; }
+/* El nombre del competidor en la tabla por pista y en "Primero": en un renglón, con puntos suspensivos y el nombre
+   entero en el tooltip (title). */
+.compete-table-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
+.board-stat[data-stat="leader"] .board-stat-value { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+/* Un renglón por competidor: el nombre y el tipo en la misma línea, el tipo en gris. La lista se desplaza por dentro
+   cuando no entra (con seis), así el panel no se desplaza. */
+.compete-item { min-height: 30px; padding: 0 var(--space-2); }
+.compete-item .compete-who { flex-direction: row; align-items: baseline; gap: var(--space-2); }
+.compete-item .compete-name { flex: 0 1 auto; }
+.compete-item .compete-meta { flex: 1 1 0; min-width: 2.5em; }
+.panel:has(> .compete-panel) { overflow-y: auto; }
+.compete-panel { flex: 1 1 auto; min-height: 0; }
+.compete-panel > .compete-list-block { flex: 0 1 auto; min-height: calc(3 * 31px + 40px); }
+.compete-list-block .compete-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+/* A 1366×768 el panel de Competir entra con tres competidores: menos espacio entre bloques (D4). */
+.compete-panel { gap: var(--space-1); }

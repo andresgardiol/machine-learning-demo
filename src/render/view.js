@@ -126,9 +126,18 @@ const isTypingTarget = (t) => Boolean(t) && (t.isContentEditable
  *   small: escena chica (pestana-inspeccionar D10), para una pestaña donde el auto no es lo principal:
  *   sigue al auto, encuadra lo que alcanzan sus sensores y no muestra controles de cámara ni responde
  *   a sus gestos (ni a la tecla V). El paisaje sigue la preferencia de la app.
+ *   framing: 'rays' (red-al-centro D2), la escena de Inspeccionar y de Tu manejo: los controles de cámara del
+ *   escenario grande, pero el encuadre por defecto es el de la escena chica (el auto en el centro y sus rayos
+ *   enteros). Acercar, alejar o arrastrar lo dejan; "Seguir al auto" vuelve a él. Las manijas de los rayos
+ *   siguen andando: un arrastre que empieza sobre una manija mueve el rayo; uno que empieza en otro lado, la cámara.
+ *   resetKey: false para que la tecla V no restablezca la escena (en esas pestañas, V es de la red); el botón
+ *   dice "Seguir al auto", sin el atajo.
  */
-export function createStageView({ container, camera: givenCamera = null, doc = document, store = null, small = false }) {
-  const camera = givenCamera ?? createCamera(small ? { minZoom: 0.2, maxZoom: 400 } : {});
+export function createStageView({ container, camera: givenCamera = null, doc = document, store = null, small = false, framing = null, resetKey = true }) {
+  const rays = framing === 'rays' && !small;
+  const camera = givenCamera ?? createCamera(small ? { minZoom: 0.2, maxZoom: 400 } : rays ? { minZoom: 0.5, maxZoom: 80 } : {});
+  // Con el encuadre de los rayos: ¿la cámara está en ese encuadre (nadie la acercó ni la movió)?
+  let fitted = true;
   const win = doc.defaultView;
   const canvas = doc.createElement('canvas');
   canvas.className = 'stage-canvas';
@@ -147,7 +156,9 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
   };
   const zoomInButton = button('camera.zoomIn', 'camera.zoomIn', 'camera.zoomIn.label', () => zoomBy(camera.limits.step));
   const zoomOutButton = button('camera.zoomOut', 'camera.zoomOut', 'camera.zoomOut.label', () => zoomBy(1 / camera.limits.step));
-  const resetButton = button('camera.reset', 'camera.reset', 'camera.reset.label', () => resetView());
+  const resetButton = resetKey
+    ? button('camera.reset', 'camera.reset', 'camera.reset.label', () => resetView())
+    : button('camera.reset.plain', 'camera.reset.rays', 'camera.reset.label', () => resetView());
   const controls = doc.createElement('div');
   controls.className = 'camera-controls';
   // Interruptor del paisaje (circuitos-y-paisaje D9): un botón con estado, igual en todas las pestañas.
@@ -202,16 +213,18 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
 
   function zoomBy(factor) {
     camera.zoomBy(factor, viewport, lastTarget);
+    fitted = false;
     syncFollowIndicator();
   }
 
   function resetView() {
     camera.reset();
+    fitted = true;
     syncFollowIndicator();
   }
 
   function syncFollowIndicator() {
-    const active = camera.following ? 'false' : 'true';
+    const active = camera.following && (!rays || fitted) ? 'false' : 'true';
     if (resetButton.dataset.active !== active) resetButton.dataset.active = active;
   }
 
@@ -221,6 +234,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     const pixels = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * viewport.height : e.deltaY;
     const factor = Math.exp(-Math.max(-200, Math.min(200, pixels)) * 0.0015);
     camera.zoomAt({ x: e.offsetX, y: e.offsetY }, factor, viewport, lastTarget);
+    fitted = false;
     syncFollowIndicator();
   }
 
@@ -228,7 +242,8 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
   // el arrastre empieza recién al superar PAN_THRESHOLD píxeles, así la cámara sigue al auto.
   let drag = null;
   function onPointerDown(e) {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || grabbed) return; // sobre una manija, el arrastre es del rayo
+
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, panning: false };
     canvas.setPointerCapture(e.pointerId);
   }
@@ -237,6 +252,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     if (!drag.panning) {
       if (!panStarts(e.clientX - drag.startX, e.clientY - drag.startY)) return;
       drag.panning = true;
+      fitted = false;
       canvas.classList.add('dragging');
     }
     const dx = e.clientX - drag.x;
@@ -290,7 +306,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     grabbed = null;
     canvas.classList.remove('dragging');
   }
-  if (small) {
+  if (small || rays) {
     canvas.addEventListener('pointerdown', onHandleDown);
     canvas.addEventListener('pointermove', onHandleMove);
     canvas.addEventListener('pointerup', onHandleUp);
@@ -302,7 +318,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     canvas.addEventListener('pointermove', onPointerMove);
     canvas.addEventListener('pointerup', onPointerUp);
     canvas.addEventListener('pointercancel', onPointerUp);
-    win.addEventListener('keydown', onKeyDown);
+    if (resetKey) win.addEventListener('keydown', onKeyDown);
   }
   syncFollowIndicator();
 
@@ -815,9 +831,9 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     const car = population ? world.agents[focus].car : world.car;
     const target = population ? focusTarget(world, focus) : car.position;
     lastTarget = target;
-    const orientation = small ? { ...orientationFor(world.track), anchor: SMALL_FIT.anchor } : orientationFor(world.track);
+    const orientation = small || rays ? { ...orientationFor(world.track), anchor: SMALL_FIT.anchor } : orientationFor(world.track);
     camera.setOrientation(orientation);
-    if (small) {
+    if (small || (rays && fitted)) {
       // Escena chica: el auto en el centro y el alcance de sus sensores a la vista, siempre igual.
       const z = smallZoom(car.sensors, viewport);
       if (Math.abs(camera.zoom - z) > 1e-9) camera.zoomBy(z / camera.zoom, viewport, target);
@@ -826,7 +842,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     // Zoom mínimo de un circuito: lo necesario para verlo entero en este escenario (D7). Se recalcula
     // solo si cambia la pista o el tamaño del escenario.
     const fitKey = `${viewport.width}x${viewport.height}`;
-    if (!small && (world.track !== fitTrackRef || fitKey !== fitViewport)) {
+    if (!small && !rays && (world.track !== fitTrackRef || fitKey !== fitViewport)) {
       fitTrackRef = world.track;
       fitViewport = fitKey;
       camera.setFit(world.track.closed ? fitTrack(world.track, viewport, orientation.rotation) : null);
@@ -950,6 +966,12 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     resetView,
     /** Vuelve a seguir al auto (al reiniciar la simulación); un cambio de foco pendiente se completa de inmediato. */
     followCar() { camera.follow(); blend = NO_BLEND; syncFollowIndicator(); },
+    /** Renglón de los controles de cámara (para sumarle un botón de la pestaña, como "Manejar vos"). */
+    controls,
+    /** Manijas de los rayos del último dibujo, en píxeles de la escena (verificación desde la consola). */
+    get handlePoints() { return handleState ? handleState.rays.map((r) => ({ ...r.h })) : []; },
+    /** ¿La cámara está en el encuadre de los rayos? (con `framing: 'rays'`) */
+    get fitted() { return rays && fitted && camera.following; },
     refreshColors() { colors = readColors(doc); },
     get viewport() { return { ...viewport }; },
     /** Esquina superior izquierda, en el segundo renglón: los mensajes del escenario van acá. */
@@ -960,6 +982,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
       unsubscribeScenery();
       canvas.removeEventListener('wheel', onWheel);
       canvas.removeEventListener('pointerdown', onHandleDown);
+      canvas.removeEventListener('pointerdown', onPointerDown);
       win.removeEventListener('keydown', onKeyDown);
       canvas.remove();
       controls.remove();

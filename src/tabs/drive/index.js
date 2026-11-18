@@ -9,7 +9,7 @@
 // barras de percepción, los cuatro controles y la barra de escenario son piezas compartidas con la
 // pestaña Reglas a mano (tabs/shared/, design.md D5).
 import { createWorld } from '../../core/world.js';
-import { createKeyboardController } from '../../input/keyboard.js';
+import { createKeyboardController, KEY_BINDINGS, keyAllowed, isTypingTarget } from '../../input/keyboard.js';
 import { createStageView } from '../../render/view.js';
 import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
@@ -32,6 +32,7 @@ import {
   DEFAULT_SETTINGS, needsRestart, normalizeSettings, worldSpec, onCircuit, lapsShown,
 } from './settings.js';
 import { shortcutFor } from './shortcuts.js';
+import { createTape, tapeColumns, tapeRows, TAPE_ACTIONS } from './tape.js';
 
 export const DEFAULT_SEED = 1;
 
@@ -41,7 +42,7 @@ const completedMissions = new Set();
 // aplicación (barra-escenario, "Valores de cada pestaña"). La velocidad es la de toda la app.
 let keptSettings = null;
 // Tarjetas del tablero desplegadas: se conservan al salir de la pestaña y volver.
-const cards = { perception: true, action: true };
+const cards = { perception: true, action: true, tape: true };
 
 export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   // La velocidad máxima del auto es una sola para toda la app: vive en el almacén de la app.
@@ -69,6 +70,9 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
     } else {
       world.reset();
     }
+    tape.clear(); // reiniciar vacía la cinta (manejo-amable D2)
+    tapeStarted = false;
+    tapeVersion += 1;
     session.restart({ countAttempt });
     view.followCar();
     sync();
@@ -163,15 +167,105 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   });
   perceptionCard.append(perception.node);
 
-  // Acción: los cuatro controles accionados
-  const action = actionBlock({ role: true });
+  // Acción: los cuatro controles accionados; izquierda y derecha, con el nivel del volante suave (manejo-amable D1).
+  const action = actionBlock({ role: true, steer: true, i18n });
   const actionCard = boardCard({
     id: 'drive-action', titleKey: 'drive.action.title', help: 'drive.action', hintKey: 'drive.action.hint',
-    open: cards.action, grow: 1, onToggle: (open) => { cards.action = open; },
+    open: cards.action, grow: 0, onToggle: (open) => { cards.action = open; },
   });
   actionCard.append(action.node);
 
-  board.append(strip.node, perceptionCard.node, actionCard.node);
+  // La cinta del manejo (manejo-amable D2): los últimos 10 s de lo que percibía el auto y de lo que se accionó, un
+  // cuadro por columna. Se queda con el alto que deja la acción. La línea que dice qué es, con la guía.
+  const tape = createTape();
+  let tapeVersion = 0;
+  let tapeStarted = false; // la cinta empieza con la primera tecla de manejo del intento: antes, el auto espera quieto
+  const tapeCanvas = el('canvas', { class: 'drive-tape-canvas', attrs: { role: 'img' }, i18nAttr: 'aria-label:drive.tape.label' });
+  const tapeBox = el('div', { class: 'drive-tape' }, tapeCanvas);
+  const tapeCard = boardCard({
+    id: 'drive-tape', titleKey: 'drive.tape.title', help: 'drive.tape', hintKey: 'drive.tape.guide',
+    open: cards.tape, grow: 4, onToggle: (open) => { cards.tape = open; tapeDrawn = ''; },
+  });
+  tapeCard.append(tapeBox);
+  const tapeCtx = tapeCanvas.getContext('2d');
+  let tapeDrawn = '';
+  const tapeObserver = new ResizeObserver(() => { tapeDrawn = ''; });
+  tapeObserver.observe(tapeBox);
+  const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  /** Dibuja la cinta si cambió (un cuadro nuevo, otro tamaño u otro idioma). */
+  function drawTape() {
+    if (!tapeCard.open) return;
+    const w = tapeBox.clientWidth;
+    const h = tapeBox.clientHeight;
+    if (w < 2 || h < 2) return;
+    const key = `${tapeVersion}|${w}x${h}|${i18n.language}`;
+    if (key === tapeDrawn) return;
+    tapeDrawn = key;
+    const dpr = window.devicePixelRatio || 1;
+    if (tapeCanvas.width !== Math.round(w * dpr) || tapeCanvas.height !== Math.round(h * dpr)) {
+      tapeCanvas.width = Math.round(w * dpr);
+      tapeCanvas.height = Math.round(h * dpr);
+      tapeCanvas.style.width = `${w}px`;
+      tapeCanvas.style.height = `${h}px`;
+    }
+    const ctx = tapeCtx;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const sensorsCount = world.perception.sensors.length;
+    const { rows, named } = tapeRows(sensorsCount, h);
+    const labelW = 36;
+    const plotW = w - labelW;
+    const { columns } = tapeColumns(tape.frames, plotW, tape.capacity);
+    const slots = Math.min(tape.capacity, Math.floor(plotW));
+    const colW = plotW / slots;
+    const inColor = cssVar('--color-role-in');
+    const outColor = cssVar('--color-role-out');
+    const bg = cssVar('--color-surface-2');
+    const muted = cssVar('--color-text-muted');
+    // Fondo de cada fila y nombres.
+    ctx.font = `12px ${cssVar('--font') || 'sans-serif'}`;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'right';
+    for (const r of rows) {
+      if (r.kind === 'gap') continue;
+      ctx.fillStyle = bg;
+      ctx.fillRect(labelW, r.y + 0.5, plotW, Math.max(1, r.h - 1));
+      const label = r.kind === 'sensor' ? (named ? i18n.t('drive.tape.sensor', { n: r.index + 1 }) : '')
+        : r.kind === 'speed' ? i18n.t('drive.tape.speed') : i18n.t(`drive.action.${r.action}.key`);
+      if (label && r.h >= 9) { ctx.fillStyle = muted; ctx.fillText(label, labelW - 6, r.y + r.h / 2); }
+    }
+    // Columnas: la percepción con la intensidad de la lectura; las acciones, llenas en los cuadros en "sí".
+    const n = columns.length;
+    columns.forEach((c, i) => {
+      const x = labelW + plotW - (n - i) * colW;
+      for (const r of rows) {
+        if (r.kind === 'sensor' || r.kind === 'speed') {
+          const v = r.kind === 'speed' ? Math.abs(c.speed) : c.sensors[r.index];
+          if (v <= 0.01) continue;
+          ctx.globalAlpha = Math.min(1, v);
+          ctx.fillStyle = inColor;
+          ctx.fillRect(x, r.y + 0.5, colW + 0.5, Math.max(1, r.h - 1));
+        } else if (r.kind === 'action' && c.controls[TAPE_ACTIONS[r.index]]) {
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = outColor;
+          ctx.fillRect(x, r.y + 1, colW + 0.5, Math.max(1, r.h - 2));
+        }
+      }
+    });
+    ctx.globalAlpha = 1;
+    // Choque: una marca en la última columna.
+    if (tape.frozen && n > 0) {
+      const x = labelW + plotW - colW;
+      ctx.fillStyle = cssVar('--color-state-crash');
+      ctx.fillRect(x - 1, 0, Math.max(2, colW + 1), h);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'top';
+      ctx.font = `bold 12px ${cssVar('--font') || 'sans-serif'}`;
+      ctx.fillText(i18n.t('drive.tape.crash'), x - 4, 2);
+    }
+  }
+
+  board.append(strip.node, perceptionCard.node, actionCard.node, tapeCard.node);
 
   // Barra de escenario (D11): velocidad, densidad e irregularidad se aplican en marcha; la pista y los
   // carriles reinician el intento. Un arrastre de deslizador cuenta un solo intento.
@@ -216,6 +310,17 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
     crashHowto,
     crashRestart);
   const badges = el('div', { class: 'stage-badges' }, pauseBadge, machineBadge);
+  // Cartel de primer manejo (manejo-amable D3): con la guía, al entrar a la pestaña, hasta la primera tecla de manejo.
+  // Sin botón y sin tomar el foco; con el estilo del cartel de largada de Competir.
+  const howto = el('div', { class: 'guide start-layer drive-howto-layer' },
+    el('div', { class: 'start-card drive-howto', attrs: { role: 'note' } }, el('p', { class: 'start-card-text', i18n: 'drive.howto' })));
+  stage.append(howto);
+  function onDrivingKey(e) {
+    if (howto.hidden || !KEY_BINDINGS[e.code] || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!keyAllowed(e.code) || isTypingTarget(e.target)) return;
+    howto.hidden = true;
+  }
+  window.addEventListener('keydown', onDrivingKey);
   const crashLayer = el('div', { class: 'crash-layer' }, crashBox);
   view.corner.append(badges);
   stage.append(crashLayer);
@@ -252,7 +357,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
 
     // Percepción: barras y, con hasta 12 sensores, su lectura con dos decimales en el idioma activo.
     perception.update(world.perception);
-    action.update(keyboard.control());
+    action.update(keyboard.display()); // sin avanzar el volante: el nivel de cada costado, de 0 a 1
     sensorsSwitch.setAttribute('aria-checked', String(options.showSensors));
     machineSwitch.setAttribute('aria-checked', String(options.machineView));
 
@@ -283,7 +388,19 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   // --- Bucle ----------------------------------------------------------------------
   const loop = createLoop({
     step: () => {
+      // La cinta guarda lo que se percibía antes del paso y lo que el controlador devolvió en él (manejo-amable D2).
+      const before = world.steps;
+      const perception = world.perception;
       world.step();
+      if (world.steps !== before) {
+        const c = keyboard.last;
+        if (!tapeStarted && (c.forward || c.reverse || c.left || c.right || world.car.speed !== 0)) tapeStarted = true;
+      }
+      if (world.steps !== before && tapeStarted) {
+        tape.push({ sensors: perception.sensors, speed: perception.speed, controls: keyboard.last });
+        if (world.crashed) tape.freeze();
+        tapeVersion += 1;
+      }
       session.observe(world, { machineView: options.machineView && !world.crashed, missions: !world.track.closed });
     },
     render: () => {
@@ -292,6 +409,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
         machineView: options.machineView && !world.crashed,
       });
       sync();
+      drawTape();
     },
     onError: reportError,
   });
@@ -337,7 +455,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   focusStage();
 
   return {
-    view, options, loop, session,
+    view, options, loop, session, tape,
     get world() { return world; },
     get settings() { return { ...settings }; },
     get seed() { return seed; },
@@ -347,6 +465,8 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
       offLanguage();
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('keydown', onDrivingKey);
+      tapeObserver.disconnect();
       panel.removeEventListener('click', onClick);
       board.removeEventListener('click', onClick);
       stage.removeEventListener('click', onClick);

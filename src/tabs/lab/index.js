@@ -1,9 +1,9 @@
 // Pestaña 6, "Laboratorio" (pestana-laboratorio): una red aprende de ejemplos corrigiendo sus errores.
 //
-// Disposición (D1): la de Inspeccionar, con sus mismos anchos. La zona izquierda es de la red (los
-// controles de la vista arriba, la red, la operación en curso y la barra de reproducción abajo); el
-// tablero lleva los datos (el plano de puntos o la escena), el ejemplo en curso y las curvas; el
-// panel, la red, el aprendizaje, las acciones y, con tu manejo, de quién son los ejemplos.
+// Disposición (red-al-centro D2): la de Inspeccionar, con sus mismos anchos. La zona izquierda es lo que la red
+// mira: los datos (el plano y la tabla de verdad, o la escena con su cámara), el ejemplo en curso y las curvas;
+// la zona central es la red (los controles de la vista arriba, la red, la operación en curso y la barra de
+// reproducción abajo); el panel, la red, el aprendizaje, las acciones y, con tu manejo, de quién son los ejemplos.
 //
 // Lo que se ve es la cuenta real (D2 y D3): la sesión (session.js) arma los datos y el aprendizaje
 // del núcleo (learning-cursor.js), y la vista dibuja la cuenta del ejemplo en curso. La lógica sin DOM
@@ -61,6 +61,10 @@ import { createResponseCurve } from '../shared/response-curve.js';
 import { createConnectionDetail } from '../shared/connection-detail.js';
 import { createWeightHistory } from '../shared/weight-history.js';
 import { roleTag } from '../../ui/role-tag.js';
+import { NET_ZONES } from '../shared/net-zones.js';
+import { netBar } from '../shared/net-bar.js';
+import { createChangesStrip } from '../shared/changes-strip.js';
+import { createHandFirst, handFirstNow } from './hand-first.js';
 import { PLANE_GRID, PLANE_FPS, mapShade, brightestRegion, PROBE, planeToPx, pxToPlane, nudgeProbe, probeLabelBox, probeAnswer } from '../../render/plane-view.js';
 
 /** Con tu manejo, el error de ahora (D11) se mide sobre una muestra fija de hasta tantos ejemplos. */
@@ -73,8 +77,10 @@ export const FILTERS = Object.freeze(['all', 5, 3, 1]);
 export const VIEWS = Object.freeze(['diagram', 'table', 'data']);
 /** Con la tabla de datos abierta y el aprendizaje corriendo, se recalcula como mucho 5 veces por segundo (D14). */
 export const DATA_TABLE_INTERVAL_MS = 200;
-/** Mismos anchos que Inspeccionar (D1): la misma preferencia, así la red mide lo mismo en las dos. */
-export const ZONES = Object.freeze({ stageMin: 600, stageDefault: 'rest', preference: 'inspectStageWidth' });
+/** Mismos anchos que Inspeccionar (red-al-centro D2): la misma preferencia, así la red mide lo mismo en las dos. */
+export const ZONES = NET_ZONES;
+/** Pastillas de peso y de sesgo con compuertas (red-al-centro D8): por lo menos 24 px de alto, con ▲▼ a la izquierda. */
+export const GATE_KNOB = Object.freeze({ w: 56, h: 26 });
 /** El fondo del plano se recalcula como mucho 15 veces por segundo (plane-view.js). */
 
 // --- Estado conservado entre montajes ------------------------------------------------------------
@@ -115,8 +121,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       lastPoints: null,
       dataFilter: { failing: false, group: 'all' },
       selectedRow: null,
+      handFirst: createHandFirst(), // a mano primero en Compuertas (red-al-centro D8)
     };
   }
+  state.handFirst ??= createHandFirst();
   const session = state.session;
   if (!state.playback) state.playback = createLabPlayback(kindPlayback(session.kind));
   const playback = state.playback;
@@ -189,21 +197,29 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     attrs: { type: 'button', 'aria-pressed': 'false' }, dataset: { filter: String(f) },
     on: { click: () => { state.filter = f; sync(); } },
   }));
-  const filterGroup = el('div', { class: 'inspect-filter', attrs: { role: 'group', 'aria-labelledby': 'lab-filter-label' } },
-    el('span', { class: 'inspect-label', i18n: 'inspect.filter.label', help: 'inspect.filter', attrs: { id: 'lab-filter-label' } }),
-    el('div', { class: 'segments' }, filterButtons));
+  const filterGroup = el('div', { class: 'segments inspect-filter' }, filterButtons);
   const collapseAll = el('button', { class: 'tool small inspect-collapse-all', attrs: { type: 'button' }, on: { click: () => toggleAll() } });
   // Cambios a mano (D15 y D16): el contador, "Deshacer" y "Restablecer la red", en el lugar de Inspeccionar.
-  const changesCount = el('span', { class: 'inspect-changes', attrs: { role: 'status' } });
+  const changesCount = el('span', { class: 'inspect-changes net-changes-count', attrs: { role: 'status' } });
   const undoButton = el('button', { class: 'tool small inspect-undo', i18n: 'inspect.undo', attrs: { type: 'button' }, on: { click: () => undoManual() } });
   const resetChangesButton = el('button', { class: 'tool small inspect-reset', i18n: 'inspect.resetNetwork', attrs: { type: 'button' }, on: { click: () => resetManual() } });
   const zoomOut = el('button', { class: 'tool small inspect-zoom', i18n: 'camera.zoomOut', help: 'inspect.zoomOut', i18nAttr: 'aria-label:camera.zoomOut.label', attrs: { type: 'button' }, on: { click: () => inspector.zoomOut() } });
   const zoomIn = el('button', { class: 'tool small inspect-zoom', i18n: 'camera.zoomIn', help: 'inspect.zoomIn', i18nAttr: 'aria-label:camera.zoomIn.label', attrs: { type: 'button' }, on: { click: () => inspector.zoomIn() } });
   const zoomReset = el('button', { class: 'tool small inspect-zoom-reset', i18n: 'inspect.zoomReset', help: 'inspect.zoomReset', attrs: { type: 'button' }, on: { click: () => inspector.resetView() } });
   const zoomGroup = el('div', { class: 'inspect-zoom-group', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.zoom.label' }, zoomOut, zoomIn, zoomReset);
-  const controls = el('div', { class: 'inspect-controls' },
-    el('div', { class: 'inspect-row' }, netTitle, viewGroup, filterGroup),
-    el('div', { class: 'inspect-row' }, collapseAll, el('span', { class: 'inspect-edits' }, changesCount, undoButton, resetChangesButton), zoomGroup));
+  // La barra de arriba de la red en tres grupos, como en Inspeccionar (red-al-centro D3); la Vista suma Datos.
+  const netBarParts = netBar({
+    title: netTitle, idPrefix: 'lab',
+    groups: [
+      { id: 'view', labelKey: 'net.bar.view', children: [viewGroup] },
+      { id: 'links', labelKey: 'net.bar.links', help: 'inspect.filter', children: [filterGroup, collapseAll] },
+      { id: 'zoom', labelKey: 'net.bar.zoom', children: [zoomGroup] },
+    ],
+  });
+  const controls = netBarParts.node;
+  // Los cambios a mano, en la franja que aparece solo con cambios, en el lugar que tiene en Inspeccionar.
+  const changesStrip = createChangesStrip({ text: changesCount, buttons: [undoButton, resetChangesButton], label: 'lab.changes.label' });
+  let netDragging = false; // un arrastre de una pastilla sobre la red: la franja no aparece hasta soltar
 
   const area = el('div', {
     class: 'inspect-area', attrs: { role: 'group', 'aria-labelledby': 'lab-net-title' },
@@ -228,15 +244,17 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       change: (value, info) => {
         const sel = state.selected;
         if (!sel || sel.input === undefined) return;
+        netDragging = Boolean(info.gesture);
         manualChange(() => run().setWeight(sel.layer, sel.neuron, sel.input, value), info.gesture);
       },
-      end: () => session.manual.end(),
+      end: () => { session.manual.end(); netDragging = false; sync(); },
     },
     // Perillas sobre la red (laboratorio-empieza-por-compuertas D5): cada peso o sesgo es un cambio a mano
     // (un arrastre, uno solo); las entradas mueven el punto de prueba y no cambian la red.
     onKnob: {
       change: (target, value, info) => {
         liveGesture = Boolean(info.gesture);
+        netDragging = liveGesture;
         manualChange(() => (target.bias ? run().setBias(target.layer, target.neuron, value) : run().setWeight(target.layer, target.neuron, target.input, value)), info.gesture, target);
       },
       input: (i, value) => {
@@ -245,14 +263,33 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       },
       end: () => {
         session.manual.end();
+        netDragging = false;
+        sync();
         if (liveGesture) { liveGesture = false; planeForce = true; }
         if (errorCompare) announce(errorCompareText());
       },
     },
   });
+  // "Arrastrá un peso ↕" (red-al-centro D8): con compuertas y la guía, junto a la primera pastilla de peso, hasta
+  // el primer cambio a mano. Es una marca visual: la consigna dice lo mismo para el lector de pantalla.
+  const dragHint = el('p', { class: 'guide lab-drag-hint', i18n: 'lab.dragHint', attrs: { 'aria-hidden': 'true' } });
+  dragHint.hidden = true;
+  let dragHintKey = '';
+  /** Pone la marca junto a la primera pastilla de peso (en las coordenadas de la capa de la red). */
+  function placeDragHint() {
+    const knob = isGates() && !state.handFirst.touched && state.view === 'diagram' && !recording
+      ? diagram.querySelector('.inspector-knob[data-knob-kind="weight"]:not([hidden])') : null;
+    const m = knob ? /translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(knob.style.transform) : null;
+    if (dragHint.hidden !== !m) dragHint.hidden = !m;
+    if (!m) { dragHintKey = ''; return; }
+    if (m[0] === dragHintKey) return;
+    dragHintKey = m[0];
+    // A la izquierda de la pastilla, sobre su línea: del lado de las entradas hay lugar y no tapa la salida.
+    dragHint.style.transform = `translate(${Math.round(Number(m[1]) - GATE_KNOB.w / 2 - 8)}px, ${Math.round(Number(m[2]))}px) translate(-100%, -50%)`;
+  }
   const headerLayer = el('div', { class: 'inspect-headers' });
   const neuronLayer = el('div', { class: 'inspect-neurons', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.neurons.label', on: { keydown: (e) => onNeuronKey(e) } });
-  inspector.overlay.append(headerLayer, neuronLayer);
+  inspector.overlay.append(headerLayer, neuronLayer, dragHint);
   let headerButtons = [];
   // Rótulo "Entra" de las entradas del diagrama (sistema-de-diseno-base 5.2): debajo de la cabecera de la capa 0.
   // "Decide", debajo de la cabecera de la primera capa que calcula (la oculta, o la de salida si no hay).
@@ -383,7 +420,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const opStrip = el('div', { class: 'lab-op' }, opBody, legend);
   const playButton = el('button', { class: 'tool small inspect-play', attrs: { type: 'button', 'aria-pressed': 'false' }, on: { click: () => togglePlay() } });
   // Acción principal (jerarquia-de-botones D3): en esta pestaña es siempre la marcha.
-  applyMainAction({ run: playButton }, mainAction('lab'));
+  // La acción principal se aplica en sync: en Compuertas, mientras se resuelve a mano, no hay (red-al-centro D8).
   const stepButton = el('button', { class: 'tool small inspect-step', i18n: 'inspect.step', help: 'lab.step', attrs: { type: 'button' }, on: { click: () => stepOnce() } });
   const sizeButtons = LEARNING_STEP_SIZES.map((s) => el('button', {
     class: 'segment', i18n: `lab.size.${s}`, help: `lab.size.${s}`,
@@ -406,8 +443,9 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     el('div', { class: 'inspect-playbar-main' }, playButton, stepButton, sizeGroup),
     el('div', { class: 'inspect-playbar-pace' }, paceGroup, where));
   const netZone = el('div', { class: 'inspect-net' }, controls, area, opStrip, playbar);
-  stage.append(netZone);
-  stage.classList.add('inspect-stage', 'lab-stage');
+  controls.append(changesStrip.node); // la franja va dentro de la barra de arriba de la red, debajo de los grupos
+  board.append(netZone);
+  board.classList.add('net-board', 'lab-net-board');
 
   // ==================================================================================================
   // Tablero: datos, ejemplo en curso y curvas
@@ -517,12 +555,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     write(probeDesc, probeText());
   }
   const scene = el('div', { class: 'inspect-scene lab-scene' });
-  const sceneView = createStageView({ container: scene, store, small: true });
+  // Con tu manejo, la escena con la cámara del escenario grande y el encuadre de los rayos (red-al-centro D2).
+  const sceneView = createStageView({ container: scene, store, framing: 'rays', resetKey: false });
   const recordText = el('span', { class: 'lab-record-text' });
   const finishButton = el('button', { class: 'tool lab-finish', i18n: 'lab.record.finish', help: 'lab.record.finish', attrs: { type: 'button' }, on: { click: () => stopRecording() } });
   const recordBadge = el('div', { class: 'stage-badge lab-record-badge', attrs: { role: 'status' } }, recordText, finishButton);
   const crashBadge = el('div', { class: 'stage-badge crash-badge', attrs: { role: 'status' }, i18n: 'inspect.crash' });
-  scene.append(el('div', { class: 'inspect-scene-badges' }, recordBadge, crashBadge));
+  sceneView.corner.append(recordBadge, crashBadge);
+  sceneView.corner.classList.add('inspect-scene-badges');
   const sceneDescription = stageDescription({ stage: scene, id: 'lab-scene-description' });
   const dataSummary = el('p', { class: 'caption lab-summary' });
   // Tabla de verdad (D6): con compuertas, en el lugar del resumen de los datos. Una fila elegida lleva las
@@ -574,7 +614,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   });
   const curveHint = el('p', { class: 'guide caption lab-curve-hint', i18n: 'lab.curve.hint' });
   const curveBlock = el('div', { class: 'lab-curve-block' }, curve.node, curveHint);
-  board.append(el('div', { class: 'lab-board' }, dataBlock, curveBlock, exampleBlock, curves), announcer);
+  stage.append(el('div', { class: 'lab-board lab-left' }, dataBlock, curveBlock, exampleBlock, curves), announcer);
+  stage.classList.add('net-left');
   let curveFit = { key: '', full: 0 };
   /** Forma completa o chica según el lugar que deja el tablero entre la escena y las curvas (D20). */
   function fitCurve(key) {
@@ -792,13 +833,26 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // Barra: los datos (D5)
   // ==================================================================================================
   let scenario = null;
-  const kindButtons = DATA_KINDS.map((k) => el('button', {
-    class: 'segment', i18n: `lab.kind.${k}`, help: `lab.kind.${k}`,
-    attrs: { type: 'button', role: 'radio', 'aria-checked': 'false' }, dataset: { kind: k },
+  // Los tres experimentos (red-al-centro D7): opciones grandes y numeradas, con su nombre y para qué son. Con las
+  // flechas el foco pasa de uno a otro; Enter o espacio lo elige.
+  const kindButtons = DATA_KINDS.map((k, n) => el('button', {
+    class: 'lab-experiment', help: `lab.kind.${k}`,
+    attrs: { type: 'button', role: 'radio', 'aria-checked': 'false' }, dataset: { kind: k, step: String(n + 1) },
     on: { click: () => setKind(k) },
-  }));
-  const kindGroup = barGroupNode({ id: 'lab-kind', labelKey: 'lab.bar.data', labelId: 'lab-kind-label', help: 'lab.bar.data' },
-    el('div', { class: 'segments', attrs: { role: 'radiogroup', 'aria-labelledby': 'lab-kind-label' } }, kindButtons));
+  }, el('span', { class: 'lab-experiment-name', i18n: `lab.kind.${k}` }), el('span', { class: 'lab-experiment-line', i18n: `lab.kind.${k}.line` })));
+  function onKindKey(e) {
+    const i = kindButtons.indexOf(document.activeElement);
+    if (i < 0) return;
+    const n = kindButtons.length;
+    const to = { ArrowRight: (i + 1) % n, ArrowDown: (i + 1) % n, ArrowLeft: (i - 1 + n) % n, ArrowUp: (i - 1 + n) % n, Home: 0, End: n - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    e.stopPropagation();
+    kindButtons.forEach((b, k) => b.setAttribute('tabindex', k === to ? '0' : '-1'));
+    kindButtons[to].focus();
+  }
+  const kindGroup = barGroupNode({ id: 'lab-kind', labelKey: 'lab.bar.experiment', labelId: 'lab-kind-label', help: 'lab.bar.data' },
+    el('div', { class: 'lab-experiments', attrs: { role: 'radiogroup', 'aria-labelledby': 'lab-kind-label' }, on: { keydown: onKindKey } }, kindButtons));
   const shapeOptions = POINT_SHAPES.map((shape) => el('button', {
     class: 'bar-track lab-shape', help: `lab.shape.${shape}`, i18nAttr: `aria-label:lab.shape.${shape}`,
     attrs: { type: 'button', role: 'radio', 'aria-checked': 'false', tabindex: '-1' }, dataset: { shape },
@@ -835,7 +889,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   // El rótulo lleva el término (pestana-laboratorio, "Términos con su nombre"): qué es una compuerta.
   const gateGroup = barGroupNode({ id: 'lab-gate', labelKey: 'lab.bar.gate', labelId: 'lab-gate-label', help: 'lab.term.gate' },
     el('div', { class: 'bar-tracks', attrs: { role: 'radiogroup', 'aria-labelledby': 'lab-gate-label' }, on: { keydown: onGateKey } }, gateOptions));
-  const gatesReset = el('button', { class: 'tool bar-reset', i18n: 'bar.reset', help: 'lab.bar.resetGates', attrs: { type: 'button' }, on: { click: () => { if (session.resetGates()) restarted(); } } });
+  const gatesReset = el('button', {
+    class: 'tool bar-reset', i18n: 'bar.reset', help: 'lab.bar.resetGates', attrs: { type: 'button' },
+    // Restablecer los datos vuelve a empezar a mano: AND, Reproducir secundaria y la marca (red-al-centro D8).
+    on: { click: () => { state.handFirst.reset(); if (session.resetGates()) restarted(); else sync(); } },
+  });
   const gatesBar = el('div', { class: 'scenario-bar lab-bar', i18nAttr: 'aria-label:bar.title', attrs: { role: 'group' } },
     gateGroup, el('div', { class: 'bar-group bar-group-reset' }, gatesReset));
 
@@ -947,6 +1005,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     const wasMid = Boolean(run().active && !run().active.done && run().active.cursor.started);
     if (!apply()) return;
     session.recordManual(snap, { gesture });
+    if (isGates()) state.handFirst.change({ gesture, solved: session.score.correct === session.split.practice.length });
     // Error de antes y de ahora (D11): "antes" es el de antes de empezar a mover la perilla. Un arrastre es
     // una comparación; con las flechas, las teclas seguidas sobre la misma perilla también. Otra perilla,
     // otro arrastre o un paso del aprendizaje empiezan otra.
@@ -1013,8 +1072,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       manualChange(() => run().setBias(k + 1, j, layer.biases[j]), gesture);
     }));
     session.manual.end();
+    state.handFirst.showSolution();
     errorCompare = null;
     afterGateChange();
+    sync();
     announce(t('lab.solution.done', { correct: session.score.correct }));
   }
   /** Después de un cambio con compuertas: la misión que se cumplió, si alguna (D10). */
@@ -1104,8 +1165,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   };
   const recordingController = {
     control(perception) {
+      // Lo grabado es lo que devolvió el controlador, con el volante suave (manejo-amable D1): lo que movió al auto.
       const c = keyboard.control();
-      if (!recordStarted && (c.forward || c.left || c.right || c.reverse)) recordStarted = true;
+      const h = keyboard.held();
+      if (!recordStarted && (h.forward || h.left || h.right || h.reverse)) recordStarted = true;
       if (recordStarted) state.recorder.add(perception, c);
       return c;
     },
@@ -1136,8 +1199,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       return;
     }
     if (recording && !recordStarted) {
-      // El auto espera la primera tecla: el mundo no avanza, así no se graba una espera.
-      const c = keyboard.control();
+      // El auto espera la primera tecla: el mundo no avanza, así no se graba una espera. Sin avanzar el volante.
+      const c = keyboard.held();
       if (!(c.forward || c.left || c.right || c.reverse)) return;
     }
     world.step();
@@ -1226,7 +1289,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     setText(collapseAll, all ? 'inspect.openAll' : 'inspect.collapseAll');
     setData(collapseAll, 'help', all ? 'inspect.openAll' : 'inspect.collapseAll');
     // En la tabla de datos no sirven el filtro de conexiones, acercar ni resumir: no se muestran (D14).
-    zoomGroup.hidden = state.view !== 'diagram';
+    netBarParts.groups.zoom.hidden = state.view !== 'diagram'; // con la tabla o los datos, acercar no tiene efecto
     filterGroup.hidden = state.view === 'data';
     collapseAll.hidden = state.view === 'data';
     diagram.hidden = state.view !== 'diagram';
@@ -1234,8 +1297,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     dataZone.hidden = state.view !== 'data';
     // Cambios a mano: siempre a la vista; sin cambios, sin acción y con su explicación (D16).
     const count = session.manual.count;
-    setText(changesCount, count === 0 ? 'inspect.changes.none' : 'inspect.changes.count', { value: count });
+    setText(changesCount, count === 1 ? 'lab.changes.strip.one' : 'lab.changes.strip', { value: count });
     setData(changesCount, 'changed', String(count > 0));
+    // La franja de los cambios a mano: solo con cambios; no aparece en medio de un arrastre (red-al-centro D3).
+    if (changesStrip.sync({ count, dragging: netDragging, reserve: false })) layoutKey = '';
     setAttr(undoButton, 'aria-disabled', String(!session.manual.canUndo));
     setData(undoButton, 'help', session.manual.canUndo ? 'lab.undo' : 'lab.undo.none');
     setAttr(resetChangesButton, 'aria-disabled', String(count === 0));
@@ -1329,7 +1394,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     for (const m of shown) {
       writeMissionRow(missionRows.find((x) => x.id === m.id), describeMission(m), m.id === current?.id, setText);
     }
-    consigna.setConsigna(`consigna.lab.${session.kind}`);
+    // A mano primero (red-al-centro D8): la consigna cambia cuando Reproducir pasa a ser la principal.
+    const hand = state.handFirst;
+    consigna.setConsigna(isGates() && hand.done ? (hand.reason === 'tries' ? 'consigna.lab.gates.tries' : 'consigna.lab.gates.learn') : `consigna.lab.${session.kind}`);
+    applyMainAction({ run: playButton }, mainAction('lab', { handFirst: handFirstNow(session.kind, hand) }));
     consigna.setMission(current && !current.allDone ? { ...describeMission(current), reveal: missionReveal.has(current.id) } : current);
     // Con algo elegido la tarjeta cede su lugar, como en Inspeccionar (grupo 5).
     show(consigna.node, !state.selected);
@@ -1460,6 +1528,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // (sin-destellos-en-la-red D3); de a fases, capas o neuronas, o en pausa, todo exacto.
     const live = running;
     inspector.render({ ...common, live, pill, knobs: knobSpec(), maps: mapsFn, animation: forwardAnim, stepSize: playback.size, visible: state.view === 'diagram', headerRows });
+    placeDragHint();
     table.render({ ...common, live, visible: state.view === 'table', changesVersion: `${changesVersion}|${anim ? now : ''}`, filter: state.filter });
     placeOverlay();
     if (++labelTick % 30 === 0 || labelTick === 1) neuronButtons.forEach((row, l) => row.forEach((b, j) => labelNeuron(b, l, j)));
@@ -1573,6 +1642,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         input: (i) => t(isGates() ? 'lab.knob.switch.label' : 'lab.knob.input.label', { name: nameOf(0, i) }),
       },
       help: { weight: 'lab.knob.weight', bias: 'lab.knob.bias', input: isGates() ? 'lab.knob.switch' : 'lab.knob.input' },
+      // Con compuertas, las pastillas de peso y sesgo crecen y muestran que se arrastran (red-al-centro D8).
+      size: isGates() ? GATE_KNOB : null,
     };
   }
 
@@ -1838,7 +1909,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       plane.dispose();
       chart.dispose();
       sceneView.dispose();
-      stage.classList.remove('inspect-stage', 'lab-stage');
+      stage.classList.remove('net-left');
+      board.classList.remove('net-board', 'lab-net-board');
     },
   };
 }

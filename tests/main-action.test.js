@@ -14,8 +14,11 @@ test('con un choque, Reiniciar en El problema y "Compará con los ejemplos" en R
   // reglas-el-choque-ensena D1: con el reintento encendido o apagado, el caso del choque lleva a comparar.
   assert.equal(mainAction('rules', { crashed: true }), 'compare');
   assert.equal(mainAction('rules', { crashed: false }), 'run', 'al reiniciar, la marcha vuelve a ser la principal');
-  // El choque solo cambia esas dos pestañas.
-  assert.equal(mainAction('inspect', { crashed: true }), 'run');
+  // red-al-centro D5: en Inspeccionar, con el caso del choque a la vista, "Reintentar desde acá"; al reiniciar o
+  // reintentar, la marcha vuelve a ser la principal.
+  assert.equal(mainAction('inspect', { crashed: true }), 'retry');
+  assert.equal(mainAction('inspect', { crashed: false }), 'run');
+  assert.equal(mainAction('lab', { crashed: true }), 'run');
 });
 
 test('con la selección manual pendiente, Elegir al líder', () => {

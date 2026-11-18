@@ -8,12 +8,12 @@ export const TABS_WITH_RUN = Object.freeze(['drive', 'rules', 'train', 'compete'
 /**
  * @param {string} tab Pestaña: 'drive', 'rules', 'train', 'compete', 'inspect' o 'lab'.
  * @param {{crashed?: boolean, manualPending?: boolean, raceFinished?: boolean,
- *   startCardVisible?: boolean, panelView?: string, dialogOpen?: boolean}} [state]
- * @returns {'run'|'restart'|'compare'|'chooseLeader'|'another'|'startCard'|'saveAsNew'|'dialog'|null}
+ *   startCardVisible?: boolean, panelView?: string, dialogOpen?: boolean, handFirst?: boolean}} [state]
+ * @returns {'run'|'restart'|'compare'|'retry'|'chooseLeader'|'another'|'startCard'|'saveAsNew'|'dialog'|null}
  */
 export function mainAction(tab, state = {}) {
   const { crashed = false, manualPending = false, raceFinished = false, startCardVisible = false,
-    panelView = null, dialogOpen = false } = state;
+    panelView = null, dialogOpen = false, handFirst = false } = state;
   // Un diálogo abierto tiene su propia acción principal, por encima de la pestaña.
   if (dialogOpen) return 'dialog';
   switch (tab) {
@@ -32,8 +32,11 @@ export function mainAction(tab, state = {}) {
       if (startCardVisible) return 'startCard';
       return 'run';
     case 'inspect':
+      // Con el caso del choque a la vista, "Reintentar desde acá" (red-al-centro D5).
+      return crashed ? 'retry' : 'run';
     case 'lab':
-      return 'run';
+      // En Compuertas, mientras se resuelve a mano, ninguna (red-al-centro D8): la pantalla pide mover los pesos.
+      return handFirst ? null : 'run';
     default:
       return null;
   }
