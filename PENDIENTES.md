@@ -240,6 +240,28 @@ El 18 de noviembre, `entrenar-mesa-de-trabajo` (cambio 1 de la crítica de
   Sin probar: lector de pantalla, Firefox, una ventana visible y un recorrido
   real con Tab.
 
+El 18 de noviembre, `entrenar-la-generacion-ensena` (cambio 2 de la crítica de
+  Entrenar), hecho y archivado el mismo día. El antes y el después están en
+  `borradores/entrenar-la-generacion-ensena/comparacion.md` (local). Con la
+  guía activa, a 1× o 2×, cada fin de generación tiene un corte de unos 2 s:
+  la tarjeta dice con los números reales cuántos pasan tal cual (con una fila
+  de rombos), de qué parte salen los padres y con qué fuerza mutan. La escena
+  queda quieta con el auto del foco marcado como élite, y la red muestra un
+  hijo con los pesos que cambió la mutación y el cambio promedio. La curva
+  marca las generaciones en que rige un cambio de la persona ("Fuerza de
+  mutación: 29 % → 40 %"). En el núcleo, la muestra de la mutación y
+  `record.changes`, sin consumir azar: el entrenamiento da los mismos
+  resultados y las mismas redes que antes (prueba fijada con el código de
+  partida). Dos paradas decididas por Claude: la élite se cuenta en la tarjeta
+  porque en la largada los 400 autos están en el mismo punto, y el renglón de
+  la red suma el promedio porque con probabilidad 100 % cambian todos. Medido:
+  60 cuadros por segundo durante el corte y a Máx. `npm test`: 1457, 0
+  fallas. Sin probar: lector de pantalla, Firefox, una ventana visible y si
+  la explicación se entiende sin ayuda.
+- Idea anotada por la crítica y dejada afuera: el promedio móvil del mejor en
+  la curva, para que una generación con tráfico difícil no parezca un
+  retroceso.
+
 ## En curso
 
 Nada.
@@ -369,7 +391,7 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      1. ~~`entrenar-mesa-de-trabajo`~~ (M, hecho el 18 de noviembre, con el panel): sin panel, como Reglas a mano; barra
         de transporte bajo la escena, "Probá esto" junto a la curva y "Más
         ajustes" plegado.
-     2. `entrenar-la-generacion-ensena` (L): corte de unos 2 s al fin de cada
+     2. ~~`entrenar-la-generacion-ensena`~~ (L, hecho el 18 de noviembre): corte de unos 2 s al fin de cada
         generación (salteado a 4× o más), tarjeta de generación, los pesos que
         mutaron en la red y marcas de ajuste en la curva.
      3. `entrenar-mutacion-a-la-vista` (S–M): trazo fantasma en la red al
