@@ -256,6 +256,8 @@ export default {
   'train.cut.auto.none': 'None pass on unchanged: all {rest} are children of the best {selection}%, mutated with strength {strength}%.',
   'train.cut.manual': 'A copy of the parent you chose passes on unchanged. The other {rest} are its children, mutated with strength {strength}%.',
   'train.cut.fresh': 'You chose no parent: the {rest} cars came out at random.',
+  'train.network.preview': 'Example: one child with strength {strength}% · {changed} of {total} changed, by {mean} on average',
+  'train.network.preview.zero': 'Example: with strength {strength}% the child is the same as the leader',
   'train.network.sample': 'One child: mutation changed {changed} of {total} weights and biases, by {mean} on average',
   'train.chart.aria': 'Curve of the best and average fitness per generation',
   'train.chart.hint.new': 'Each generation faces different traffic: watch where the line is heading, not each point.',

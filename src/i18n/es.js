@@ -256,6 +256,8 @@ export default {
   'train.cut.auto.none': 'Ninguno pasa tal cual: los {rest} son hijos del {selection} % mejor, con mutación de fuerza {strength} %.',
   'train.cut.manual': 'Una copia del padre que elegiste pasa tal cual. Los otros {rest} son sus hijos, con mutación de fuerza {strength} %.',
   'train.cut.fresh': 'No elegiste padre: los {rest} autos salieron al azar.',
+  'train.network.preview': 'Ejemplo: un hijo con fuerza {strength} % · cambió {changed} de {total}, en promedio {mean}',
+  'train.network.preview.zero': 'Ejemplo: con fuerza {strength} % el hijo es igual al líder',
   'train.network.sample': 'Un hijo: la mutación cambió {changed} de {total} pesos y sesgos, en promedio {mean}',
   'train.chart.aria': 'Curva del mejor fitness y del fitness promedio por generación',
   'train.chart.hint.new': 'Cada generación enfrenta un tráfico distinto: mirá hacia dónde va la línea, no cada punto.',

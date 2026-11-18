@@ -45,6 +45,7 @@ import { scenarioBar } from '../shared/scenario-bar.js';
 import { createTrainSession, indicators, lastGeneration, parentStatus, leaderLabelKey } from './session.js';
 import { shortcutFor, toggleTurbo } from './shortcuts.js';
 import { createCut } from './cut.js';
+import { mutationPreview, networkCardMode, PREVIEW_MS, PREVIEW_ANNOUNCE_MS } from './preview.js';
 
 export const DEFAULT_SEED = 1;
 
@@ -172,6 +173,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     state.undo = null;
     setSaveMessage(null); // el mensaje de guardado queda hasta el próximo guardado o un entrenamiento nuevo
     cut.end();
+    endPreview();
     hideCut();
     attachTraining();
     chart.update(state.training.history);
@@ -464,8 +466,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         if (r.input.getAttribute('aria-disabled') === 'true') { r.input.value = String(state.settings[key]); return; }
         if (deferred) setText(r.value, FORMATS[key], { value: v, kmh: Math.round(v * 3.6) });
         else setSetting(key, v, confirm);
+        // La fuerza editable (sin enfriamiento) muestra en la red un hijo de ejemplo (entrenar-mutacion-a-la-vista).
+        if (key === 'mutationStrength') startPreview(v);
       },
-      onChange: (v) => { if (deferred) setSetting(key, v, confirm); },
+      onChange: (v) => {
+        if (deferred) setSetting(key, v, confirm);
+        if (key === 'mutationStrength') announcePreview(); // al soltar, se anuncia el renglón (D4)
+      },
     });
     return { key, deferred, ...r };
   }
@@ -720,6 +727,48 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const sampleLine = el('p', { class: 'network-sample-line', attrs: { role: 'status' } });
   sampleLine.hidden = true;
   let sampleDrawn = false;
+  // Vista previa de la mutación (entrenar-mutacion-a-la-vista D2): la red del líder congelada al empezar, la fuerza
+  // del deslizador y hasta cuándo dura. Se recalcula en drawNetwork, como mucho una vez por cuadro.
+  let preview = null; // { base, strength, rate, until, dirty, result }
+  let announceTimer = null;
+
+  /** Empieza o sigue la vista previa con la fuerza `strength` (cada `input` del deslizador). */
+  function startPreview(strength) {
+    const t = state.training;
+    preview ??= { base: t.networks[t.leaderIndex] };
+    Object.assign(preview, { strength, rate: state.settings.mutationRate, until: clock() + PREVIEW_MS, dirty: true });
+    // Mientras se arrastra no se anuncia cada paso: el renglón se anuncia al soltar o a los 500 ms sin cambios (D4).
+    sampleLine.setAttribute('aria-live', 'off');
+    clearTimeout(announceTimer);
+    announceTimer = setTimeout(announcePreview, PREVIEW_ANNOUNCE_MS);
+  }
+  /** Anuncia el renglón: lo vuelve a escribir con la región viva encendida. */
+  function announcePreview() {
+    clearTimeout(announceTimer);
+    announceTimer = null;
+    if (!preview) return;
+    sampleLine.setAttribute('aria-live', 'polite');
+    sampleLine.textContent = '';
+    queueMicrotask(() => { if (preview?.result) writePreviewLine(); });
+  }
+  function writePreviewLine() {
+    const { diff } = preview.result;
+    const changed = diff.changedWeights.size + diff.changedBiases.size;
+    if (changed === 0) setText(sampleLine, 'train.network.preview.zero', { strength: preview.strength });
+    else setText(sampleLine, 'train.network.preview', { strength: preview.strength, changed, total: diff.total, mean: formatFixed(diff.meanChange, 2, i18n.language) });
+    sampleLine.hidden = false;
+  }
+  /** Termina la vista previa: la tarjeta vuelve a la muestra del corte, si sigue, o a la red en vivo (D3). */
+  function endPreview() {
+    if (!preview) return;
+    preview = null;
+    clearTimeout(announceTimer);
+    announceTimer = null;
+    sampleLine.setAttribute('aria-live', 'polite');
+    sampleDrawn = false;
+    if (cut.active && state.training.mutationSample) writeCutLine();
+    else sampleLine.hidden = true;
+  }
   const legend = el('ul', { class: 'network-legend' },
     el('li', {}, el('span', { class: 'legend-line', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.positive' })),
     el('li', {}, el('span', { class: 'legend-line negative', attrs: { 'aria-hidden': 'true' } }), el('span', { i18n: 'train.network.legend.negative' })),
@@ -781,7 +830,13 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     cutElite.replaceChildren(...Array.from({ length: elite }, () => el('span', { class: 'cut-elite-mark' })));
     cutElite.hidden = elite === 0;
     cutCard.hidden = false;
-    const sample = t.mutationSample;
+    // Con una vista previa en curso, el renglón sigue siendo el de la vista previa (D3): el del corte se escribe al terminar.
+    if (!preview) writeCutLine();
+    sampleDrawn = false;
+  }
+  /** El renglón de la muestra del corte: cuánto cambió la mutación en el hijo de la muestra. */
+  function writeCutLine() {
+    const sample = state.training.mutationSample;
     if (sample) {
       const d = mutationDiff(sample.base, sample.network);
       setText(sampleLine, 'train.network.sample', {
@@ -789,11 +844,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       });
     }
     sampleLine.hidden = !sample;
-    sampleDrawn = false;
   }
   function hideCut() {
     cutCard.hidden = true;
-    sampleLine.hidden = true;
+    if (!preview) sampleLine.hidden = true;
     sampleDrawn = false;
   }
 
@@ -974,9 +1028,21 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function drawNetwork() {
     if (!networkCard.open) return;
     const t = state.training;
-    // Durante el corte, el hijo de la muestra con lo que cambió la mutación, sin actividad: se dibuja una vez (D5).
+    // Qué muestra la tarjeta (entrenar-mutacion-a-la-vista D3): la vista previa, la muestra del corte o la red en vivo.
     const sample = cut.active ? t.mutationSample : null;
-    if (sample) {
+    const mode = networkCardMode({ preview: Boolean(preview), cut: Boolean(sample) });
+    if (mode === 'preview') {
+      // El hijo de ejemplo, sin actividad: se calcula y se dibuja solo cuando cambió la fuerza.
+      if (preview.dirty || !sampleDrawn) {
+        if (preview.dirty) preview.result = mutationPreview(preview.base, { strength: preview.strength, rate: preview.rate });
+        preview.dirty = false;
+        writePreviewLine();
+        networkView.render(preview.result.network, null, { marks: preview.result.diff });
+        sampleDrawn = true;
+      }
+      return;
+    }
+    if (mode === 'cut') {
       if (!sampleDrawn) { networkView.render(sample.network, null, { marks: mutationDiff(sample.base, sample.network) }); sampleDrawn = true; }
       return;
     }
@@ -998,6 +1064,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
         if (!guideOn()) cut.end(); else cut.tick(clock());
         if (!cut.active) hideCut();
       }
+      if (preview && clock() >= preview.until) endPreview(); // a los 2 s del último cambio (D2)
       view.render(t.world, {
         showSensors: state.settings.showSensors || state.machineView,
         machineView: state.machineView,
