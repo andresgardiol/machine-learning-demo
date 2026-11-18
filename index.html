@@ -28,15 +28,20 @@
   <link rel="stylesheet" href="styles/app.css">
 </head>
 <body>
-  <!-- Mensaje de respaldo: el arranque (src/main.js) lo elimina. Si los módulos no cargan
-       (por ejemplo al abrir este archivo con doble clic), queda a la vista. -->
-  <div id="fallback" class="fallback" role="alert">
+  <!-- Mensaje de respaldo, oculto de entrada para que no destelle mientras cargan los módulos (por
+       ejemplo en GitHub Pages). Se muestra solo si la página se abrió como archivo (doble clic) o si el
+       módulo de arranque no carga; si la app arranca, src/main.js lo elimina. -->
+  <div id="fallback" class="fallback" role="alert" hidden>
     <p><strong>Esta aplicación necesita un servidor local.</strong>
        Abrila con <code>npm start</code> y visitá <code>http://localhost:8000</code>.</p>
     <p><strong>This app needs a local server.</strong>
        Run <code>npm start</code> and visit <code>http://localhost:8000</code>.</p>
   </div>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('fallback').hidden = false;
+  </script>
   <div id="app"></div>
-  <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/main.js"
+          onerror="var f = document.getElementById('fallback'); if (f) f.hidden = false;"></script>
 </body>
 </html>
