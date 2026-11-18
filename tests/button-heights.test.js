@@ -1,5 +1,5 @@
-// Dos alturas de botón (tarjeta-de-consigna D8): la acción principal mide lo mismo que los botones de su
-// renglón; se distingue por el relleno y la negrita, no por el tamaño.
+// Tres alturas de control (sistema-de-diseno-base, spec "Tres alturas de control"): la grande para la acción
+// principal y los botones de su renglón, la normal para todo lo demás y la compacta en las barras densas.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -19,22 +19,23 @@ function declarations(selector) {
   }
   return found;
 }
-const px = (v) => (v && /^\d+(\.\d+)?px$/.test(v) ? parseFloat(v) : null);
 
-test('la acción principal no fija un alto ni una letra mayores que .tool', () => {
+test('tres alturas: la normal en .tool, la grande en la principal y la compacta en .tool.small', () => {
   const tool = declarations('.tool');
   const primary = declarations('.tool.primary');
-  assert.equal(px(tool['min-height']), 36, '.tool mide 36 px como mínimo');
-  assert.equal(px(tool['font-size']), 14);
-  if (primary['min-height']) assert.ok(px(primary['min-height']) <= px(tool['min-height']), `alto ${primary['min-height']}`);
-  if (primary['font-size']) assert.ok(px(primary['font-size']) <= px(tool['font-size']), `letra ${primary['font-size']}`);
+  assert.equal(tool['min-height'], 'var(--control-h)');
+  assert.equal(tool['font-size'], 'var(--text-body)');
+  assert.equal(primary['min-height'], 'var(--control-h-lg)');
   assert.equal(primary['white-space'], 'nowrap', 'no se parte en dos renglones');
+  assert.equal(declarations('.tool.small')['min-height'], 'var(--control-h-sm)');
+  assert.equal(declarations('.tool.small.primary')['min-height'], 'var(--control-h-sm)', 'en una barra densa la principal es compacta, como sus vecinos');
 });
 
-test('la compacta: 24 px, y la principal compacta no es más grande que .tool.small', () => {
-  const small = declarations('.tool.small');
-  const smallPrimary = declarations('.tool.small.primary');
-  assert.equal(px(small['min-height']), 24);
-  assert.ok(px(smallPrimary['min-height']) <= px(small['min-height']));
-  assert.ok(px(smallPrimary['font-size']) <= px(small['font-size']));
+test('los botones del renglón de la acción principal tienen su misma altura (spec "Misma altura en el renglón")', () => {
+  for (const selector of ['.run-main .tool', '.run-manual .tool']) {
+    assert.equal(declarations(selector)['min-height'], 'var(--control-h-lg)', selector);
+  }
+  const anyRow = css.match(/:has\(> \.tool\.primary:not\(\.small\)\) > \.tool:not\(\.small\)[^{]*\{([^}]*)\}/);
+  assert.ok(anyRow, 'cualquier renglón con la principal');
+  assert.match(anyRow[1], /min-height:\s*var\(--control-h-lg\)/);
 });

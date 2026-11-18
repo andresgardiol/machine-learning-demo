@@ -111,6 +111,7 @@ const COLOR_VARS = {
   positive: '--color-weight-positive',
   negative: '--color-weight-negative',
   active: '--color-neuron-active',
+  input: '--color-network-input', // entra: contorno de las entradas (sistema-de-diseno-base D1, B)
   node: '--color-neuron',
   label: '--color-text-muted',
   background: '--color-surface',
@@ -216,7 +217,7 @@ export function createNetworkView({ container, i18n, doc = document }) {
     const pattern = flicker ? stripePattern() : null;
     if (pattern) { ctx.fillStyle = pattern; ctx.fill(); }
     if (bias === undefined) {
-      ctx.strokeStyle = colors.node;
+      ctx.strokeStyle = colors.input;
       ctx.lineWidth = 1;
       ctx.setLineDash([]);
     } else {

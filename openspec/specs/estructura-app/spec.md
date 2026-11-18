@@ -25,7 +25,7 @@ disponible MUST verse como no disponible y no poder abrirse.
 
 #### Scenario: Abrir Reglas a mano
 - **WHEN** la persona elige la pestaña Reglas a mano
-- **THEN** Reglas a mano pasa a ser la pestaña activa y muestra su escenario, su tablero con el editor y su panel
+- **THEN** Reglas a mano pasa a ser la pestaña activa y muestra su barra de escenario, su escenario con la marcha y lo que percibe el auto, y su tablero con la consigna, el programa y las misiones, sin panel
 
 #### Scenario: Pestaña no disponible
 - **WHEN** la persona intenta abrir una pestaña no disponible
@@ -76,7 +76,7 @@ funcionando, sin pedir ninguna configuración, registro ni paso previo.
 - **THEN** ve la primera pestaña con su escenario listo para usar
 
 ### Requirement: Disposición común
-Toda pestaña con escenario SHALL mostrar el escenario a la izquierda, el
+Toda pestaña con escenario, salvo Reglas a mano, SHALL mostrar el escenario a la izquierda, el
 tablero al centro cuando la pestaña lo usa, y un panel de controles a la
 derecha. En Inspeccionar y en Laboratorio, la zona izquierda es de la red y
 es la más ancha, y lo demás va en un tablero angosto. En todas, la barra de pestañas, el selector de idioma y
@@ -372,3 +372,26 @@ y en inglés, que aparece también con las ayudas apagadas.
 #### Scenario: Ventana de 1032 píxeles
 - **WHEN** la ventana mide 1032 píxeles de ancho, en español o en inglés
 - **THEN** la barra de pestañas no queda más cortada que antes de existir "Ayudas"
+
+### Requirement: Disposición de Reglas a mano
+Reglas a mano SHALL tener dos zonas y ningún panel: a la izquierda el escenario, con lo que percibe el auto al costado de la escena y la marcha debajo, y a la derecha el tablero, que ocupa también el lugar del panel. El borde del panel MUST NOT mostrarse en esta pestaña, y el ancho del panel elegido en las demás SHALL conservarse. Las dos zonas SHALL quedar lado a lado mientras la ventana mida 600 píxeles o más.
+
+#### Scenario: Estado por defecto
+- **WHEN** la persona abre Reglas a mano en una ventana de 1440×900 sin configurar nada
+- **THEN** ve el escenario a la izquierda y el tablero a la derecha, sin panel ni borde de panel, y el editor muestra al menos 12 líneas sin desplazar el tablero
+
+#### Scenario: Volver a otra pestaña
+- **WHEN** la persona agrandó el panel en Entrenar, pasa por Reglas a mano y vuelve a Entrenar
+- **THEN** en Entrenar el panel tiene el ancho que había elegido
+
+#### Scenario: Ventana mediana
+- **WHEN** la ventana mide 800 píxeles de ancho
+- **THEN** el escenario y el tablero siguen lado a lado, sin el aviso de pantalla angosta
+
+#### Scenario: Recorrido con el teclado
+- **WHEN** la persona recorre Reglas a mano con la tecla Tab desde el escenario
+- **THEN** el foco pasa por los controles del escenario, después por la marcha y lo que percibe el auto, y al final por el tablero
+
+#### Scenario: La escena conserva su alto
+- **WHEN** la ventana mide 1366×768
+- **THEN** la escena mide al menos 360 píxeles de alto, y la marcha y lo que percibe el auto se ven sin desplazar la zona del escenario

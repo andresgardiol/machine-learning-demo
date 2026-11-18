@@ -32,6 +32,22 @@ export function knownTexts(dictionaries) {
   return out;
 }
 
+/** Texto normalizado para comparar: saltos de línea de Unix y sin espacios ni líneas vacías al final. */
+export const normalizeText = (text) => String(text ?? '').replace(/\r\n?/g, '\n').trimEnd();
+
+/**
+ * Programa conocido (el inicial o un ejemplo) cuyo texto, en cualquier idioma, es `text`; null si el
+ * texto es propio (reglas-el-choque-ensena D5).
+ * @returns {'initial'|'three'|'seven'|'twenty'|null}
+ */
+export function programIdOf(text, dictionaries) {
+  const mine = normalizeText(text);
+  for (const dict of Object.values(dictionaries)) {
+    for (const p of PROGRAMS) if (typeof dict[p.textKey] === 'string' && normalizeText(dict[p.textKey]) === mine) return p.id;
+  }
+  return null;
+}
+
 /** Ajustes de sensores de un programa, con las claves de los ajustes de la calle. */
 export const sensorSettings = (p) => ({ sensorCount: p.sensors.count, sensorRange: p.sensors.range, sensorSpread: p.sensors.spread });
 

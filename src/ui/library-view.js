@@ -105,7 +105,7 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
   const notice = el('p', { class: 'library-notice', attrs: { role: 'status' } });
   const message = el('p', { class: 'library-message', attrs: { role: 'alert' } });
   const fileInput = el('input', { class: 'library-file', help: 'library.import', attrs: { type: 'file', accept: '.json,application/json', tabindex: '-1', 'aria-hidden': 'true' } });
-  const importButton = button('library.import', 'library.import', () => fileInput.click());
+  const importButton = button('library.import', 'library.import', () => fileInput.click(), 'tool tertiary'); // terciaria (sistema-de-diseno-base D5)
   const empty = el('p', { class: 'library-empty muted', i18n: 'library.empty' });
   const list = el('ul', { class: 'library-list' });
   container.append(el('div', { class: 'library-tools' }, importButton, fileInput), notice, message, empty, list);
@@ -118,6 +118,8 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
   function showMessage(key, params) {
     message.hidden = !key;
     if (key) setText(message, key, params); else message.textContent = '';
+    // Estado "error" del sistema de diseño (sistema-de-diseno-base D6) para los avisos de error.
+    if (key && key.startsWith('library.error.')) message.dataset.state = 'error'; else delete message.dataset.state;
   }
 
   /** Mensaje en lenguaje llano para un código de error de importación. */
@@ -191,7 +193,7 @@ export function createLibraryView({ container, library, i18n, onContinue, doc = 
     const continueButton = button('library.continue', 'library.continue', () => onContinue(entry, confirm), 'tool small');
     const exportButton = button('library.export', 'library.export', () => {
       downloadText({ fileName: exportFileName(s.name), text: library.exportText(s.id), doc });
-    }, 'tool small');
+    }, 'tool small tertiary'); // terciaria y compacta: va en una fila de la biblioteca, que es una barra densa
     const actions = [continueButton, exportButton];
     // Todo cerebro se puede eliminar, también los autoguardados (panel-de-entrenar-por-vistas D14); los
     // autoguardados no se renombran: se conservan guardándolos con nombre.

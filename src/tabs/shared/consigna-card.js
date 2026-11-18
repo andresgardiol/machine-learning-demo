@@ -35,7 +35,7 @@ export function createConsignaCard({ i18n, run = null, onReveal = null }) {
   const missionFill = el('span', { class: 'mission-fill' });
   const missionBar = el('span', { class: 'mission-bar', attrs: { 'aria-hidden': 'true' } }, missionFill);
   const revealButton = el('button', {
-    class: 'tool small consigna-reveal', i18n: 'mission.reveal', help: 'mission.reveal',
+    class: 'tool tertiary consigna-reveal', i18n: 'mission.reveal', help: 'mission.reveal',
     // data-focus="keep": el foco va al control mostrado, no vuelve al escenario tras el clic.
     attrs: { type: 'button', 'data-focus': 'keep' },
     on: { click: () => onReveal?.(revealButton) },

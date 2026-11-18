@@ -118,7 +118,7 @@ test('"Mostrame" (misiones-que-muestran-el-control D4): compacto, de la guía, c
     assert.ok(mission.children.includes(button));
     assert.equal(mission.className, 'guide consigna-mission');
     assert.equal(button.tagName, 'BUTTON');
-    assert.equal(button.className, 'tool small consigna-reveal');
+    assert.equal(button.className, 'tool tertiary consigna-reveal', 'acción terciaria (sistema-de-diseno-base D5)');
     assert.equal(button.getAttribute('data-help'), 'mission.reveal');
     assert.equal(button.getAttribute('data-i18n'), 'mission.reveal');
     const base = { nameKey: 'train.mission.fitness', statusKey: 'train.mission.pending' };

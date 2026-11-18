@@ -9,7 +9,7 @@ export const TABS_WITH_RUN = Object.freeze(['drive', 'rules', 'train', 'compete'
  * @param {string} tab Pestaña: 'drive', 'rules', 'train', 'compete', 'inspect' o 'lab'.
  * @param {{crashed?: boolean, manualPending?: boolean, raceFinished?: boolean,
  *   startCardVisible?: boolean, panelView?: string, dialogOpen?: boolean}} [state]
- * @returns {'run'|'restart'|'chooseLeader'|'another'|'startCard'|'saveAsNew'|'dialog'|null}
+ * @returns {'run'|'restart'|'compare'|'chooseLeader'|'another'|'startCard'|'saveAsNew'|'dialog'|null}
  */
 export function mainAction(tab, state = {}) {
   const { crashed = false, manualPending = false, raceFinished = false, startCardVisible = false,
@@ -18,8 +18,11 @@ export function mainAction(tab, state = {}) {
   if (dialogOpen) return 'dialog';
   switch (tab) {
     case 'drive':
-    case 'rules':
       return crashed ? 'restart' : 'run';
+    case 'rules':
+      // Con el caso del choque a la vista, la acción principal lleva a comparar con los ejemplos
+      // (reglas-el-choque-ensena D1), con el reintento encendido o apagado.
+      return crashed ? 'compare' : 'run';
     case 'train':
       if (panelView === 'brains') return 'saveAsNew';
       if (panelView === 'settings') return null;

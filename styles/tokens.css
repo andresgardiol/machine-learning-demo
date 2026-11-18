@@ -1,57 +1,124 @@
-/* Única fuente de la paleta y las medidas. El dibujo en canvas lee estas variables. */
+/* Única fuente de la paleta y las medidas. El dibujo en canvas lee estas variables.
+   Tres capas (sistema-de-diseno-base D2):
+   1. Primitivos: la paleta y las escalas, sin significado (--p-*).
+   2. Semánticos: lo que significa cada cosa (--color-*, --text-*, --weight-*, --control-h*, --space-*,
+      --radius-*). styles/app.css solo usa esta capa.
+   3. Componente: la mínima que hace falta (--color-action, --color-selected-*, --color-output-*).
+   Los colores semánticos repiten el valor del primitivo en #rrggbb (no var()), para que las pruebas y el
+   lienzo los lean como siempre; el comentario dice de qué primitivo salen. */
 :root {
-  --color-bg: #12161c;
-  --color-surface: #1b212a;
-  --color-surface-2: #242c37;
-  --color-text: #eef1f5;
-  --color-text-muted: #aab3c0;
-  --color-border: #3a4554; /* líneas que solo separan zonas: divisores, tarjetas y secciones */
+  /* ---- 1. Primitivos ---------------------------------------------------------------------------- */
+  --p-ink-950: #0b0e12;
+  --p-ink-900: #12161c;
+  --p-ink-850: #1b212a;
+  --p-ink-800: #242c37;
+  --p-ink-750: #2c3542;
+  --p-ink-700: #3a4554;
+  --p-ink-500: #74808f;
+  --p-ink-300: #aab3c0;
+  --p-ink-100: #eef1f5;
+  --p-white: #f5f7fa;
+  --p-blue-400: #4ea1ff;
+  --p-sky-200: #a5e4ff;
+  --p-red-400: #ff5a5a;
+  --p-yellow-300: #f4e04d;
+  --p-cyan-400: #2fd5f0;
+  --p-teal-400: #36d6c3;
+  --p-pink-600: #e0489a;
+
+  /* ---- 2. Semánticos ------------------------------------------------------------------------------ */
+  /* Superficies con nombre (spec "Superficies con nombre"): fondo, panel y tarjeta; la escena es aparte. */
+  --color-bg: #12161c; /* --p-ink-900: fondo */
+  --color-surface: #1b212a; /* --p-ink-850: panel */
+  --color-surface-2: #242c37; /* --p-ink-800: controles y rieles sobre el panel */
+  --color-text: #eef1f5; /* --p-ink-100 */
+  --color-text-muted: #aab3c0; /* --p-ink-300 */
+  --color-border: #3a4554; /* --p-ink-700: líneas que solo separan zonas: divisores, tarjetas y secciones */
   /* Borde o contorno que permite reconocer un control (campos, grupos de opciones, interruptores y
      botones con contorno): 3:1 o más sobre el fondo, el panel y las tarjetas (panel-de-entrenar-por-vistas D9). */
-  --color-control-border: #74808f;
+  --color-control-border: #74808f; /* --p-ink-500 */
   /* Tarjeta de consigna (tarjeta-de-consigna D9): un fondo más claro que --color-surface-2 y una barra
-     lateral neutra, no del color de la acción. #2e3846 dejaba el contorno de los controles en 2,95:1;
-     #2c3542 lo deja en 3,08:1. */
-  --color-card-bg: #2c3542;
+     lateral neutra, no del color de la acción. #2c3542 deja el contorno de los controles en 3,08:1. */
+  --color-card-bg: #2c3542; /* --p-ink-750: tarjeta */
   --color-card-bar: #aab3c0; /* el de --color-text-muted: se ve también en escala de grises */
-  --color-accent: #4ea1ff; /* foco, pestaña elegida y enlaces; ya no rellena controles (jerarquia-de-botones D1) */
-  /* Anillo de "Mostrame" (misiones-que-muestran-el-control D3): el amarillo de "en curso" de la red, que ya
-     significa "esto es lo que toca ahora". Distinto del foco y de la opción elegida (--color-accent) y con
-     3:1 o más sobre el fondo, el panel y las tarjetas (tests/control-contrast.test.js). */
-  --color-reveal: #f4e04d;
-  --color-tooltip-bg: #0b0e12;
+  --color-tooltip-bg: #0b0e12; /* --p-ink-950 */
 
-  /* Jerarquía de los controles (jerarquia-de-botones D1): cada estilo significa una sola cosa. */
-  --color-action: #4ea1ff; /* relleno de la acción principal: lo único relleno de este color */
-  --color-on-action: #12161c; /* texto sobre la acción principal (6,8:1) */
-  --color-selected-bg: #2c435f; /* fondo de una opción elegida: el acento al 20 % sobre --color-surface-2 */
-  --color-selected-border: #4ea1ff; /* contorno de una opción elegida y perilla de un interruptor encendido */
-  /* Salida de la red encendida: el blanco de la neurona activa al 35 % sobre --color-surface-2, con contorno
-     blanco de 2 px y negrita. Es la alternativa de Risks: el blanco pleno (#f5f7fa, 15:1 sobre el panel)
-     llamaba más la atención que la acción principal (5,3:1). */
-  --color-output-on: #6d737b; /* relleno de una salida encendida (2,9:1 contra una apagada) */
-  --color-output-on-border: #f5f7fa; /* contorno de una salida encendida: el blanco de --color-neuron-active */
-  --color-on-output: #ffffff; /* texto sobre una salida encendida (4,8:1) */
+  /* Los cuatro roles del contrato de controlador (sistema-de-diseno-base D1, B): un color y una forma cada uno.
+     Vos: lo que tocás (acción, opción elegida, foco). Entra: lo que percibe (sensores y entradas de la red).
+     Decide: el programa o la red (línea que se cumple, neurona activa, barras de lo que logró).
+     Sale: lo que acciona (teclas de salida: gris con contorno blanco, nunca botón). */
+  --color-role-you: #4ea1ff; /* --p-blue-400 */
+  --color-role-in: #a5e4ff; /* --p-sky-200: ΔE 10,0 de los pesos positivos con deuteranopia (D1) */
+  --color-role-decide: #f5f7fa; /* --p-white: el de la neurona activa */
+  --color-role-out: #6d737b; /* relleno de una tecla de salida encendida (= --color-output-on) */
 
-  /* Significado constante en toda la app */
+  --color-accent: #4ea1ff; /* vos: foco, pestaña elegida y enlaces; no rellena controles (jerarquia-de-botones D1) */
+  /* Anillo de "Mostrame" (misiones-que-muestran-el-control D3): el color de "vos", porque señala lo que hay
+     que tocar (decisión del dueño, 18 de noviembre de 2026). Ni de un competidor ni de la red (spec "Un
+     color, un significado"). Se distingue del foco por la forma: anillo doble con un hueco, de 4 px, contra
+     el contorno de foco de 2 px. */
+  --color-reveal: #4ea1ff; /* --p-blue-400: = --color-role-you */
+
+  /* Estados (D6), con una forma propia además del color: se cumple (barra lateral), error (✕ y ondulado)
+     y choque (rayado e ícono de impacto). El rojo significa "salió mal"; la forma dice cuál de los dos. */
+  --color-state-holds: #f5f7fa; /* decide: barra lateral de lo que se cumple */
+  --color-state-holds-bg: #2d3137; /* --color-state-holds al 12 % sobre --color-bg (el editor) */
+  --color-state-error: #ff5a5a; /* --p-red-400 */
+  --color-state-crash: #ff5a5a; /* --p-red-400: el del auto chocado */
+  --color-progress: #f5f7fa; /* barras de progreso de las misiones: decide (lo que logró el controlador) */
+
+  /* Tipografía (spec "Escala tipográfica acotada"): cinco tamaños con un uso fijo, dos pesos y el del código. */
+  --text-label: 12px; /* rótulos, leyendas, lecturas chicas */
+  --text-body: 14px; /* texto corriente y controles */
+  --text-heading: 16px; /* títulos de sección y de tarjeta, consigna */
+  --text-figure: 20px; /* cifras del tablero, títulos de aviso */
+  --text-figure-lg: 28px; /* cifra destacada */
+  --text-code: 13px; /* el editor y las palabras de código (monoespaciada) */
+  --weight-regular: 400;
+  --weight-bold: 700;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-code: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Tres alturas de control (spec "Tres alturas de control"). */
+  --control-h-lg: 44px; /* la acción principal y los botones de su renglón */
+  --control-h: 32px; /* todo lo demás */
+  --control-h-sm: 24px; /* solo en las barras densas de jerarquia-visual */
+
+  /* Espaciado en pasos (D2: suma 12 y 32 a los de antes). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Tres radios. */
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --radius-round: 999px; /* perillas, marcas y barras finas */
+
+  --panel-width: 360px;
+
+  /* Significado constante en toda la app (también los lee el lienzo) */
   --color-road: #2b323d;
   --color-road-edge: #f2f4f7;
   --color-lane-line: #8b95a5;
   --color-car: #3ddc84;
-  --color-car-crashed: #ff5a5a;
+  --color-car-crashed: #ff5a5a; /* = --color-state-crash */
   --color-elite: #c792ff; /* marca de la élite: los autos que pasaron sin cambios de la generación anterior */
   --color-traffic: #ffb020;
-  --color-sensor: #4ea1ff;
+  --color-sensor: #a5e4ff; /* entra (= --color-role-in): rayos de la escena, barras de percepción y palabras de sensor */
   --color-sensor-hit: #ff5a5a;
   /* Diagrama de la red: distintos de auto, tráfico y sensores (el signo también se ve en el trazo) */
-  --color-weight-positive: #36d6c3; /* pesos y sesgos positivos: línea continua */
-  --color-weight-negative: #e0489a; /* pesos y sesgos negativos: línea punteada. Más profundo que el verde agua para separarlos con daltonismo (vista-de-la-red D11: ΔE 14,3 con deuteranopia, 4,3:1 sobre la superficie) */
-  --color-neuron-active: #f5f7fa; /* relleno de una neurona activa */
-  --color-neuron: #5b6677; /* contorno de una neurona sin sesgo (entradas) */
+  --color-weight-positive: #36d6c3; /* --p-teal-400: pesos y sesgos positivos: línea continua */
+  --color-weight-negative: #e0489a; /* --p-pink-600: pesos y sesgos negativos: línea punteada. Más profundo que el verde agua para separarlos con daltonismo (vista-de-la-red D11: ΔE 14,3 con deuteranopia, 4,3:1 sobre la superficie) */
+  --color-neuron-active: #f5f7fa; /* decide: relleno de una neurona activa */
+  --color-neuron: #5b6677; /* contorno de una neurona oculta o de salida sin sesgo */
+  --color-network-input: #a5e4ff; /* entra: contorno de las neuronas de entrada (spec "Entradas de la red") */
   /* Inspector de la red (pestana-inspeccionar D6): la neurona que se calcula en el paso a paso, lo
      cambiado a mano y las entradas a mano. Todos van además con una forma propia (anillo punteado,
      rombo, marca cuadrada), no solo con el color. */
-  --color-network-current: #f4e04d;
+  --color-network-current: #f4e04d; /* --p-yellow-300 */
   /* Laboratorio (pestana-laboratorio D7 y D10): las dos clases de puntos (además con forma: círculo y
      cuadrado) y la culpa de la vuelta (además con rombos y anillo propio). */
   --color-class-a: #ffb347; /* clase 1 (círculos) */
@@ -75,19 +142,24 @@
   --color-crosswalk: #6c7480;
   /* Competidores de una carrera (pestana-competir D11): contraste de 3:1 o más contra la calle,
      distintos entre sí, del verde de "Vos", del naranja del tráfico y del rojo del choque. El número
-     es la identificación principal; el color, la secundaria. */
-  --color-competitor-1: #2fd5f0;
+     es la identificación principal; el color, la secundaria. El 1 sigue cian: con deuteranopia queda
+     a ΔE 8,7 del celeste de "entra" (sistema-de-diseno-base 4.1c: cambia solo por debajo de 8). */
+  --color-competitor-1: #2fd5f0; /* --p-cyan-400 */
   --color-competitor-2: #ff7ac8;
   --color-competitor-3: #f4e04d;
   --color-competitor-4: #b49cff;
   --color-competitor-5: #eef1f5;
   --color-competitor-6: #d9b38c;
 
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 16px;
-  --space-4: 24px;
-  --radius: 8px;
-  --panel-width: 360px;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* ---- 3. Componente ------------------------------------------------------------------------------ */
+  /* Jerarquía de los controles (jerarquia-de-botones D1): cada estilo significa una sola cosa. */
+  --color-action: #4ea1ff; /* vos: relleno de la acción principal, lo único relleno de este color */
+  --color-on-action: #12161c; /* texto sobre la acción principal (6,8:1) */
+  --color-selected-bg: #2c435f; /* vos: fondo de una opción elegida: el acento al 20 % sobre --color-surface-2 */
+  --color-selected-border: #4ea1ff; /* vos: contorno de una opción elegida y perilla de un interruptor encendido */
+  /* Sale: tecla de salida encendida: el blanco de la neurona activa al 35 % sobre --color-surface-2, con
+     contorno blanco de 2 px y negrita. */
+  --color-output-on: #6d737b; /* relleno de una salida encendida (2,9:1 contra una apagada) */
+  --color-output-on-border: #f5f7fa; /* contorno de una salida encendida: el blanco de --color-neuron-active */
+  --color-on-output: #ffffff; /* texto sobre una salida encendida (4,8:1) */
 }

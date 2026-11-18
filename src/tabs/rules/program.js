@@ -22,6 +22,8 @@ export function createProgramState({ text = '', sensors }) {
   let count = sensors;
   let result = parseProgram(current, { sensors: count });
   let valid = result.ok ? result.program : null;
+  // Texto del programa que maneja (reglas-el-choque-ensena D4: la comparación lo corre).
+  let validText = valid ? current : null;
 
   /**
    * Analiza `next`. Si es válido pasa a ser el programa que maneja; si no, el anterior sigue.
@@ -33,6 +35,7 @@ export function createProgramState({ text = '', sensors }) {
     current = String(next ?? '');
     result = parseProgram(current, { sensors: count });
     if (!result.ok) return { ok: false, validChanged: false, behaviorChanged: false };
+    validText = current;
     return replaceValid(result.program);
   }
 
@@ -51,6 +54,7 @@ export function createProgramState({ text = '', sensors }) {
   function setSensors(n) {
     count = n;
     result = parseProgram(current, { sensors: count });
+    validText = result.ok ? current : null;
     return replaceValid(result.ok ? result.program : null);
   }
 
@@ -61,6 +65,8 @@ export function createProgramState({ text = '', sensors }) {
     get sensors() { return count; },
     /** Último programa válido (el que maneja), o null. */
     get valid() { return valid; },
+    /** Texto del programa que maneja, o null. */
+    get validText() { return validText; },
     /** Errores del texto a la vista ([] si es válido). */
     get errors() { return result.ok ? [] : result.errors; },
     /** Reglas del programa que maneja. */

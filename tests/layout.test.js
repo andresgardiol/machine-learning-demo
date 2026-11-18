@@ -82,3 +82,42 @@ test('límites del escenario: en 1440 con el panel en 360, de 260 a 708 (tablero
   assert.deepEqual(stageLimits(360, 1440), { min: 260, max: 708 });
   assert.equal(1440 - 2 * ZONES.splitter - 708 - 360, 360);
 });
+
+// --- Dos zonas sin panel (reglas-mesa-de-trabajo D1) -------------------------------------------
+const RULES_SPEC = Object.freeze({ panel: false, stageDefault: 520, stageMin: 300, boardMin: 520 });
+
+test('sin panel: en 1440, con stageDefault 520, el escenario mide 520 y el tablero el resto', () => {
+  assert.deepEqual(fitZones({}, 1440, RULES_SPEC), { stage: 520, board: 1440 - ZONES.splitter - 520, panel: 0 });
+  assert.deepEqual(fitZones({ stage: null, panel: 360 }, 1366, RULES_SPEC), { stage: 520, board: 840, panel: 0 });
+});
+
+test('sin panel: en 800 las dos zonas siguen lado a lado y respetan sus mínimos', () => {
+  assert.equal(layoutMode(800, true, RULES_SPEC), 'wide');
+  assert.equal(layoutMode(600, true, RULES_SPEC), 'wide');
+  const z = fitZones({ stage: 520, panel: 360 }, 800, RULES_SPEC);
+  assert.equal(z.panel, 0);
+  assert.equal(z.stage, 300); // el escenario cede hasta su mínimo
+  assert.equal(z.stage + z.board, 800 - ZONES.splitter);
+  assert.ok(z.board >= 300, `tablero de ${z.board}`);
+  // Con una ventana de 600, el tablero cede por debajo de su mínimo propio, hasta unos 300 px.
+  const chico = fitZones({}, 600, RULES_SPEC);
+  assert.deepEqual(chico, { stage: 300, board: 294, panel: 0 });
+});
+
+test('sin panel: el ancho del panel guardado no cambia ni cuenta', () => {
+  const chosen = { stage: 500, panel: 512 };
+  const antes = { ...chosen };
+  assert.deepEqual(fitZones(chosen, 1440, RULES_SPEC), fitZones({ stage: 500, panel: 300 }, 1440, RULES_SPEC));
+  assert.deepEqual(chosen, antes);
+  // Al volver a una pestaña con panel, el panel recupera el ancho elegido.
+  assert.equal(fitZones(chosen, 1440).panel, 512);
+  assert.deepEqual(panelLimits(520, 1440, RULES_SPEC), { min: 0, max: 0 });
+  assert.deepEqual(stageLimits(512, 1440, RULES_SPEC), stageLimits(0, 1440, RULES_SPEC));
+  assert.deepEqual(stageLimits(360, 1440, RULES_SPEC), { min: 300, max: 1440 - ZONES.splitter - 520 });
+});
+
+test('sin panel: mismas entradas, mismo resultado; un ancho fuera de los límites se ajusta', () => {
+  assert.deepEqual(fitZones({ stage: 612.4 }, 1366, RULES_SPEC), fitZones({ stage: 612.4 }, 1366, RULES_SPEC));
+  assert.deepEqual(fitZones({ stage: 100 }, 1440, RULES_SPEC).stage, 300);
+  assert.deepEqual(fitZones({ stage: 5000 }, 1440, RULES_SPEC), { stage: 1440 - ZONES.splitter - 520, board: 520, panel: 0 });
+});

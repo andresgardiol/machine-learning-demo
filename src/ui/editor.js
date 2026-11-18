@@ -2,7 +2,8 @@
 // texto coloreado, y una columna con los números de línea.
 //
 //   createCodeEditor({ container, i18n, value, classify, labelKey, help, onChange })
-//     -> { node, value, setValue(text), insert(text), setMarks({ active, errors }), focus(), dispose() }
+//     -> { node, value, setValue(text), insert(text), replaceRange(from, to, insert, cursor), undo(redo),
+//          setMarks({ active, errors, crash }), focus(), dispose() }
 //
 // El <textarea> conserva gratis el deshacer, la selección, el portapapeles, el teclado del sistema y
 // la accesibilidad. El <pre> y la columna de números siguen su desplazamiento. Los dos comparten
@@ -45,18 +46,26 @@ export function createCodeEditor({
 
   let gutterLines = [];
   let codeLines = [];
-  const marks = { active: new Set(), errors: new Set() };
+  const marks = { active: new Set(), errors: new Set(), crash: new Set() };
 
-  /** Marca de una línea: data-active / data-error en su número y en su renglón coloreado. */
+  /**
+   * Marca de una línea: data-mark (active, crash, error o none) en su número y en su renglón coloreado.
+   * El error gana; después, la línea que se cumplía al chocar (reglas-el-choque-ensena D1), y después la
+   * que se cumple.
+   */
   function paintLine(lineNo) {
     const g = gutterLines[lineNo - 1];
     const c = codeLines[lineNo - 1];
     if (!g || !c) return;
     const error = marks.errors.has(lineNo);
-    const active = !error && marks.active.has(lineNo);
-    const state = error ? 'error' : active ? 'active' : 'none';
+    const crash = !error && marks.crash.has(lineNo);
+    const active = !error && !crash && marks.active.has(lineNo);
+    const state = error ? 'error' : crash ? 'crash' : active ? 'active' : 'none';
     if (g.dataset.mark !== state) g.dataset.mark = state;
     if (c.dataset.mark !== state) c.dataset.mark = state;
+    // Estados del sistema de diseño (sistema-de-diseno-base D6): "se cumple" y "choque".
+    const look = crash ? 'crash' : active ? 'holds' : null;
+    if (look) { if (c.dataset.state !== look) c.dataset.state = look; } else if (c.dataset.state) delete c.dataset.state;
   }
 
   /** Vuelve a dibujar el texto coloreado y, si cambió la cantidad de líneas, la columna de números. */
@@ -157,20 +166,38 @@ export function createCodeEditor({
       applyEdit(insertText(stateOf(), text));
     },
     /**
-     * Marca las líneas que se cumplen (`active`) y las que tienen un error (`errors`), conjuntos de
-     * números de línea. Solo toca las líneas que cambiaron de estado.
+     * Marca las líneas que se cumplen (`active`), las que se cumplían al chocar (`crash`) y las que
+     * tienen un error (`errors`), conjuntos de números de línea. Solo toca las líneas que cambiaron.
      */
-    setMarks({ active = [], errors = [] } = {}) {
-      const next = { active: new Set(active), errors: new Set(errors) };
+    setMarks({ active = [], errors = [], crash = [] } = {}) {
+      const next = { active: new Set(active), errors: new Set(errors), crash: new Set(crash) };
       const changed = new Set();
-      for (const kind of ['active', 'errors']) {
+      for (const kind of ['active', 'errors', 'crash']) {
         for (const n of marks[kind]) if (!next[kind].has(n)) changed.add(n);
         for (const n of next[kind]) if (!marks[kind].has(n)) changed.add(n);
       }
       if (changed.size === 0) return;
       marks.active = next.active;
       marks.errors = next.errors;
+      marks.crash = next.crash;
       for (const n of changed) paintLine(n);
+    },
+    /**
+     * Reemplaza el texto de `from` a `to` por `insert` por el mismo camino que la paleta, así es un paso
+     * del deshacer del editor, y deja el cursor en `cursor` (reglas-como-fichas D2). Lo usan las fichas:
+     * el editor puede estar fuera de la vista, pero sigue pudiendo recibir el foco.
+     */
+    replaceRange(from, to, insert, cursor = from + insert.length) {
+      const text = input.value.slice(0, from) + insert + input.value.slice(to);
+      input.focus({ preventScroll: true });
+      applyEdit({ edit: { from, to, insert }, text, start: cursor, end: cursor });
+    },
+    /** Deshace (o rehace) el último paso del historial del editor, el mismo que Ctrl+Z en el texto. */
+    undo(redo = false) {
+      input.focus({ preventScroll: true });
+      let done = false;
+      try { done = input.ownerDocument.execCommand(redo ? 'redo' : 'undo'); } catch { done = false; }
+      return done;
     },
     focus() { input.focus({ preventScroll: true }); },
     dispose() {

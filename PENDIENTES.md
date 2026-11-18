@@ -56,6 +56,159 @@ mismo día: pausar en Inspeccionar para mostrar el valor a mano, abrir la tarjet
 del programa si está plegada, el primer peso con XOR antes de la explicación,
 el anillo como `box-shadow` y el nombre corto que se anuncia.
 
+El 18 de noviembre, `sistema-de-diseno-base` (cambio 0 de la revisión del sistema de diseño,
+  punto 2 de la *Prioridad 1*): hecho y archivado el 18 de noviembre de 2026.
+  El antes y el después están en `borradores/sistema-de-diseno/comparacion.md`
+  (local). Es la propuesta B (Roles del contrato), con:
+  - el celeste `#a5e4ff` para "entra";
+  - tokens en tres capas;
+  - cuatro tamaños de letra a la vista (12, 14, 16 y 20, más 13 de código);
+  - tres alturas (24, 32 y 44);
+  - espaciado de 4 a 32 px y tres radios;
+  - los estados *se cumple*, *error* y *choque*, cada uno con su forma;
+  - la acción terciaria y los deslizadores de la app;
+  - rótulos de rol que se apagan con la guía;
+  - `mlLab.auditSistema()`.
+
+  Medido sin ventana: `mlLab.auditSistema()` da 0 problemas en las ocho vistas
+  de D3, a 1440×900 y a 1366×768. Lo que quedó:
+  - a 1366×768, el tablero de Reglas a mano desborda 71 px (37 en el commit de
+    partida), por las alturas y la letra nuevas;
+  - las acciones terciarias (Exportar, Importar, "Mostrame", "Más sobre esta
+    pestaña") se ven como texto suelto y no anuncian que se tocan hasta pasar
+    el cursor (observado, sin medir);
+  - en la "Red del líder" de Entrenar, el contorno celeste de las entradas casi
+    no se ve: las tapa el relleno del valor (observado).
+
+  Lo que no se pudo medir:
+  - Firefox (no está instalado);
+  - el uso con un lector de pantalla;
+  - el clic real con el mouse (se probó con clics programáticos y con el
+    teclado por el protocolo de Chrome).
+
+  Sigue `reglas-mesa-de-trabajo`, que ya puede usar la acción terciaria, las
+  tres alturas, los estados y los rótulos.
+
+El 18 de noviembre, `reglas-mesa-de-trabajo` hecho y archivado el 18 de noviembre de 2026.
+  El antes y el después están en `borradores/reglas-mesa-de-trabajo/comparacion.md`
+  (local).
+  Cambio 1 de Reglas a mano. Dos zonas solo en esta pestaña (sin panel): el
+  escenario, de 520 px, con la escena, la columna de percepción al costado
+  (una fila por sensor que escribe su comparación en el editor al tocarla) y
+  la marcha debajo; y el tablero, con la consigna, el programa (el grupo de
+  sensores y los ejemplos en su cabecera; el editor ocupa el alto que queda) y
+  las misiones. La paleta, sin sensores ni `velocidad`. Hubo una parada en la
+  tarea 3.4: con la percepción debajo de la escena, la escena medía 229 px a
+  1366×768; el dueño eligió la columna al costado.
+
+  Medido sin ventana (`capturar.mjs`): a 1366×768, escena de 547 px de alto
+  (unos 300 de ancho) y 15 líneas del editor (antes 8); a 1440×900, 679 px y
+  22 líneas. `auditSistema()` y `auditHierarchy()`: 0 problemas en las 12
+  vistas de 1440 y 1366. Lo que quedó:
+  - **800×600 no funciona bien:** las zonas siguen lado a lado, pero el
+    escenario mide 300 px y la columna 220, así que la escena queda en unos
+    80 px de ancho, los controles de cámara se salen y la marcha se parte en
+    renglones (5 problemas de altura de `auditSistema()`). Hace falta otra
+    disposición de la zona para escenarios angostos (por ejemplo, la columna
+    debajo de la escena por debajo de cierto ancho).
+  - Retoques de la revisión del dueño (grupo 7): la ayuda de Sensores ya no
+    habla del tablero, las filas que insertan llevan un "+" tenue y la delta
+    de `jerarquia-visual` suma las filas de percepción y el renglón de
+    interruptores a las barras densas, igual que el auditor.
+  - `help.mission.reveal.why` dice "sin buscar por todo el panel", y Reglas a
+    mano no tiene panel (se dejó: la ayuda es de las seis pestañas).
+  - El aviso de choque queda apretado en una escena de 300 px; lo rediseña
+    `reglas-el-choque-ensena`.
+
+  Lo que no se pudo medir: con el navegador a la vista (el panel estaba
+  oculto; todo se probó en Chrome sin ventana, con clics programáticos y
+  teclas por el protocolo de Chrome); "Mostrame" de "Superá 10 en 3 tráficos
+  distintos"; lectores de pantalla; Firefox.
+
+  Sigue `reglas-el-choque-ensena`.
+
+El 18 de noviembre, `reglas-el-choque-ensena`, hecho y archivado el mismo día.
+  El antes y el después están en `borradores/reglas-el-choque-ensena/comparacion.md`
+  (local).
+  Cambio 2 de Reglas a mano. Al chocar, la columna queda congelada, el editor
+  marca con el estado "choque" (rayado y ✸) las líneas que se cumplían, y una
+  tarjeta del caso ocupa el lugar de la marcha. La tarjeta tiene la cuenta
+  regresiva de 5 s, "Compará con los ejemplos" (acción principal), "Escribir
+  una regla para este caso" y Reiniciar. Además: la repetición de 3 s grabada
+  mientras el auto anda; la comparación en el mismo tráfico, por tramos, en la
+  tarjeta del programa; los ejemplos sin confirmación, con "Tu programa"; y el
+  cuaderno de casos (con la guía).
+
+  Medido sin ventana (`capturar.mjs` y sondas): a 1366×768 la escena mide
+  479 px con el caso y el cuaderno (antes 547; el mínimo era 450) y el editor
+  sigue en 15 líneas. Fluidez mientras se calcula la comparación
+  (`medir-fluidez.mjs`, Chrome sin ventana en tiempo real): 60 cuadros por
+  segundo, ningún cuadro de más de 16,8 ms, 350 ms en total. Comparación con
+  la semilla 2: inicial 82 m (1 regla), 3 sensores 1224 m sin chocar, 7
+  sensores 1041 m (5 reglas), 20 sensores 290 m (9 reglas).
+  `auditTooltips()`, `auditSistema()` y `auditHierarchy()`: 0 problemas, en
+  español y en inglés. `npm test`: 0 fallas. Lo que quedó:
+  - "Comparar" quedó en el renglón de arriba de la cabecera y no junto a los
+    ejemplos (D4): ahí partía el renglón y le quitaba 2 líneas al editor.
+  - Con la comparación abierta a 1366×768 el editor baja a su mínimo y el
+    tablero se desplaza.
+  - Con el caso a la vista no se ven Reintentar solo ni los interruptores de
+    vista (la tarjeta reemplaza a la marcha, D1).
+  - La regla para el caso sin sensores por encima de 0,3 puede escribir
+    `sensor1 > 0,00`.
+
+  Lo que no se pudo medir: con el navegador a la vista (el panel estaba
+  oculto), así que la fluidez es de Chrome sin ventana; un choque antes de
+  los 3 s; "Ninguna regla se cumplía" en la pestaña; Ctrl+Z con el teclado
+  real; borrar el cuaderno al cambiar de pista desde la barra; lectores de
+  pantalla.
+
+  Sigue `reglas-como-fichas`.
+
+El 18 de noviembre, `reglas-como-fichas`, hecho y archivado el mismo día. El
+  antes y el después están en `borradores/reglas-como-fichas/comparacion.md`
+  (local). Cambio 3 de Reglas a mano, y con él se cierra la revisión de Reglas
+  a mano. La vista de fichas es la que se abre por defecto y "Texto" está a un
+  toque (se recuerda). Cada edición es un parche del texto por el deshacer del
+  editor. Se puede cambiar el dato, el comparador, el umbral (deslizador con la
+  marca del valor en vivo, o escrito) y la acción, agregar y borrar, reordenar
+  (arrastre o Alt+flechas) y mover las constantes. Lo demás (`o`, `no`,
+  paréntesis, comentarios dentro) va como ficha escrita a mano. Por decisión
+  del dueño, los ejemplos de 7 y 20 sensores ya no usan `o`: cada regla se
+  partió en una por alternativa, con la misma distancia. Pasan de 5 a 7 y de
+  9 a 22 reglas, y "casi el doble" pasa a ser "más del triple".
+
+  Medido sin ventana: fluidez con el de 20 sensores, 60 cuadros por segundo
+  (máx. 16,8 ms) en fichas y en texto. Las tres auditorías dan 0 en las 22
+  vistas, en español y en inglés. La vista de texto mide lo mismo que antes
+  (15 y 22 líneas). La cabecera sigue en un renglón. `npm test`: 1421, 0
+  fallas. Lo que quedó:
+  - a 1366×768 con la guía y el de 20 sensores, la pila mide 290 px y solo
+    entra entera la primera ficha (las 5 constantes y dos comentarios ocupan
+    el resto);
+  - "+ acción" es un botón «+» que abre el selector (como selector suelto
+    partía la regla inicial en dos renglones);
+  - la orden suelta cuenta como "regla" en el rótulo del asa;
+  - un programa recordado con el texto viejo de un ejemplo se ve como "Tu
+    programa".
+
+  Lo que no se pudo medir: con el navegador a la vista (el panel estaba
+  oculto, así que el arrastre y la fluidez son de Chrome sin ventana, con
+  eventos del protocolo); Cmd+Z con un teclado real; lectores de pantalla;
+  Firefox y Safari (`<select>` nativos, `showPicker`).
+
+  Revisión del dueño (grupo 6, mismo día):
+  - El error de `cerca = 0,24costado = 0,5`: la vista previa del arrastre
+    proyectaba las fichas desde su propio texto, y el parche usaba esas
+    columnas sobre el texto del editor. Corregido: cada lugar se ubica por
+    línea y orden del token y se comprueba antes de escribir; un parche nunca
+    lanza, y un error de una ficha no detiene la pestaña. Lo prueban 360
+    arrastres al azar y el caso exacto.
+  - Más lugar para las fichas: la franja de programas con superados en lugar
+    de los botones de ejemplos, la tabla cerrada y flotante, controles de 24 px
+    y constantes en un renglón. A 1366×768 con la guía se ven 6 de 7 reglas
+    con 7 sensores y 4 de 22 con 20 (antes, 1 ficha entera). Auditorías en 0.
+
 ## En curso
 
 Nada.
@@ -143,6 +296,35 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      estados) separado de lo propuesto para Reglas a mano, y de ahí propuestas
      de OpenSpec. Lo que ya fijan `jerarquia-visual` y `consigna-de-pestana`
      es punto de partida, no límite.
+   - **Hecho (17 de noviembre de 2026): la crítica de Reglas a mano**, con
+     las dos skills. Está en `borradores/sistema-de-diseno/critica-reglas-a-mano.md`
+     (local) y trae tres propuestas para la pestaña. Al dueño le gustaron las
+     tres y se acordó hacerlas en secuencia, cada una con su OpenSpec y sus
+     capturas del antes y del después:
+     0. `sistema-de-diseno-base` (M, transversal): tipografía, alturas de
+        control, botón terciario, un color con un solo significado,
+        superficies y los estados *se cumple*, *error* y *choque*. Su diseño
+        trae tres propuestas de sistema, a pedido del dueño.
+     1. `reglas-mesa-de-trabajo` (M): dos zonas (el auto y el programa), la
+        percepción pegada a la escena, Rayos en la cabecera del editor y un
+        clic en una barra que inserta el sensor con su valor.
+     2. `reglas-el-choque-ensena` (L): el choque se congela, con repetición,
+        una tarjeta del caso, "Escribir una regla para este caso" y un
+        cuaderno de casos contra reglas.
+     3. `reglas-como-fichas` (L+): un editor de fichas como segunda vista del
+        mismo programa; el texto sigue siendo la fuente de verdad.
+     4. `modo-proyector` (L, después de `reglas-mesa-de-trabajo`): la
+        propuesta C de `sistema-de-diseno-base`, con una escala para proyectar
+        en un aula y un interruptor para el mentor. Se descartó del cambio 0
+        porque a 1280×720 rompía la disposición en las ocho vistas medidas
+        (`borradores/sistema-de-diseno/muestras/comparacion.md`). Necesita
+        decidir qué se pliega en modo proyector.
+     Para el cambio 0, el dueño eligió la propuesta B (Roles del contrato) con
+     el celeste `#a5e4ff` para "entra" (17 de noviembre de 2026).
+     Decisiones pendientes, una por cambio: si la marcha sigue siendo la
+     acción principal en Reglas a mano, si Reintentar solo viene apagado,
+     si el orden nuevo se lleva a todas las pestañas y qué vista se abre por
+     defecto con las fichas.
    - Observado por Claude en la captura del dueño de Reglas a mano (17 de
      noviembre, hipótesis, sin medir):
      - en la columna derecha conviven unos diez botones con contorno y la
@@ -232,10 +414,55 @@ arreglarlos de a uno.
     - conviene juntarlo con lo pendiente de atajos de *Prioridad 2* y de
       *Entrenar, tráfico y aprendizaje*, como los tooltips que nombran la
       tecla con los atajos apagados.
+- **Lavado de cara con dirección de arte.** Pedido del dueño (18 de noviembre
+  de 2026), dejado para después de los cambios de Reglas a mano: "esperaba un
+  cambio más notable [...] mi idea original era ver si con las skills de UX y
+  diseño lográbamos un lavado de cara interesante".
+  - Por qué `sistema-de-diseno-base` no lo dio (análisis de Claude): ordenó lo
+    que había, sin cambiar el esqueleto. La escena ocupa una columna de 400 px
+    y el resto son unos 60 controles en cajas con contorno. Las tres muestras
+    solo variaban el color, y las skills que se usaron son de usabilidad, no
+    de dirección de arte.
+  - Propuesta (hipótesis, sin probar): primero ver, después especificar. Tres
+    maquetas de una pestaña entera con `assets/og-image.png` como referencia
+    y los tokens nuevos, con la skill `frontend-design`. Con la que elija el
+    dueño, un OpenSpec de dirección de arte:
+    - la escena como protagonista, más grande, con los paneles más angostos
+      o flotando;
+    - el dibujo con volumen y brillo (ver el ítem del auto, abajo);
+    - menos controles a la vista, junto con `barra-de-escenario-plegable` y
+      `ajustes-por-niveles`;
+    - agrupar con superficies y espacio en vez de contornos. Choca con el
+      contorno de 3:1 que pide `accesibilidad` para reconocer un control.
+  - Va antes o junto con los cambios que tocan la disposición.
+- **Un auto que se parezca al de la vista previa.** Pedido del dueño (18 de
+  noviembre de 2026): "Me encantó la imagen para las previews del link. Me
+  gustaría que el auto se asemeje más al de la imagen". La imagen es
+  `assets/og-image.png` (la que muestran los enlaces compartidos).
+  - Lo que se ve en la imagen (observado en una captura que mandó el dueño):
+    un auto verde de líneas redondeadas, con volumen (luces y sombras sobre la
+    carrocería), parabrisas y luneta oscuros, y un halo de luz en la trompa de
+    donde salen los rayos de los sensores, que también brillan.
+  - A tener en cuenta (hipótesis, sin probar):
+    - es solo el dibujo: el tamaño y la forma de choque del auto en la
+      simulación no cambian (Art. 7: lo que se ve tiene que seguir siendo lo
+      que se calcula);
+    - el auto se dibuja muchas veces por cuadro en Entrenar (toda la
+      población), así que el dibujo nuevo tiene que medirse contra la fluidez
+      (Art. 10). Quizás conviene un dibujo rico para el auto que se sigue y uno
+      simple para el resto;
+    - los colores siguen siendo los de `tokens.css` (el verde del auto, el rojo
+      del choque, el violeta de la élite y el celeste de "entra" para los
+      rayos, de `sistema-de-diseno-base`). El brillo no puede pasar el límite
+      de destellos de `accesibilidad`;
+    - el auto chocado, la élite y los competidores numerados de Competir
+      tienen que seguir distinguiéndose sin depender del color.
 - Cerebros incluidos elegidos por el dueño.
 - Elegir con un clic qué auto seguir en el entrenamiento.
 - Entrenar en segundo plano (Web Worker).
-- Más variedad en el tráfico con densidad alta, y otros tipos de vehículos.
+- **Tráfico menos regular y con variedad de vehículos** (importante para el
+  dueño, 18 de noviembre de 2026). Detalle en *Entrenar, tráfico y
+  aprendizaje*, "Tráfico menos regular".
 - Lo que quedó fuera de alcance en cada cambio (Competir, circuitos,
   operación por operación, punto de prueba, vista de la red, Inspeccionar,
   Laboratorio, compuertas, panel de entrenar). Está al final de cada nota de
@@ -324,6 +551,27 @@ arreglarlos de a uno.
     navegador a la vista (medida en Chrome sin ventana).
 
 ## Inspeccionar y vista de la red
+
+- **Zoom en la escena chica de Inspeccionar y del Laboratorio.** Pedido del
+  dueño (18 de noviembre de 2026), con una captura de Inspeccionar: "la
+  preview tanto de la tab 5 como la 6 deberían poder hacer zoom in y out".
+  - Choca con la spec: `pestana-inspeccionar`, requisito "Escena del auto en
+    segundo plano", dice que la escena se encuadra para que se vean los rayos
+    y lo que tocan, "sin controles de cámara". Hay que modificar ese
+    requisito, y su equivalente en el Laboratorio si lo hay (a revisar en
+    `pestana-laboratorio`).
+  - A tener en cuenta (hipótesis, sin probar):
+    - usar los mismos controles de cámara que el resto (+, − y restablecer la
+      vista, con la rueda del mouse), por el Art. 9 y por `vista-escenario`;
+    - la escena es chica: los botones tienen que entrar sin tapar el auto ni
+      "Manejar vos", y respetar los 24 px de `accesibilidad`;
+    - el zoom por defecto tiene que seguir mostrando enteros los rayos (el
+      escenario "Encuadre"), y restablecer la vista vuelve a ese encuadre;
+    - la rueda del mouse sobre la escena no tiene que mover la página ni la
+      red de al lado.
+  - Observado de paso en la misma captura: en la tarjeta de consigna de
+    Inspeccionar, la misión "Seguí la cuenta de una neurona" se parte en tres
+    renglones junto a "Pendiente" y "Mostrame", porque el tablero es angosto.
 
 - **Vista de la red: lo que quedó sin medir, sin probar o fuera de alcance.**
   Del cambio `vista-de-la-red` (16 de noviembre de 2026):
@@ -449,6 +697,25 @@ arreglarlos de a uno.
 
 ## Entrenar, tráfico y aprendizaje
 
+- **La red del líder, arriba de la curva de fitness.** Pedido del dueño (18 de
+  noviembre de 2026), con una captura de Entrenar: "la red debería estar
+  arriba de la curva fitness, es lo más interesante de la tab. Y queda
+  actualmente en un lugar menos importante de lo que debería".
+  - Observado en la captura: al abrir la pestaña, la primera tarjeta del
+    tablero es la curva de fitness, y está vacía ("La curva aparece cuando
+    termina la primera generación"). La red del líder, que ya se mueve, queda
+    debajo y se ve cortada.
+  - Lo que dicen las specs hoy (`pestana-entrenar`): "Red del líder" pide una
+    tarjeta plegable, visible por defecto, y el escenario "Red y curva a la
+    vez" pide que, a 1440×900, las dos se vean completas a la vez. Ninguna
+    spec fija el orden, así que invertirlo no contradice nada. Conviene sumar
+    un escenario que fije la red primero.
+  - A tener en cuenta (hipótesis, sin probar): al plegar la red, la curva
+    ocupa su lugar ("Plegar el diagrama"). Con el orden invertido, la curva
+    tiene que subir. También conviene medir a 1366×768 cuál de las dos queda
+    cortada.
+  - Es un cambio chico (S). Puede ir solo o junto con el lavado de cara.
+
 - **Manejar sin chocar con tráfico irregular.** El cambio
   `fitness-que-premia-superar` hizo que, con los valores por defecto (ventaja
   sobre el tráfico, élite 10, mutación que se enfría e irregularidad 0 %), la
@@ -542,28 +809,65 @@ arreglarlos de a uno.
   a costa de duplicar el estado para dibujarlo y de cuidar la
   reproducibilidad.
 
-- **Más variedad en el tráfico con densidad alta.** Con 4 carriles y densidad
-  e irregularidad al máximo, el tráfico se ve monótono: los grupos quedan a
-  distancias muy parecidas y casi siempre con 3 vehículos.
-  - Causa: a densidad máxima, la separación promedio entre grupos (24 m) casi
-    coincide con el mínimo permitido (unos 21 m con el escalonado), así que el
-    sorteo solo puede variar unos 3 m. Además, la cantidad de vehículos por
-    grupo depende solo de la densidad y al 100 % es siempre `carriles - 1`, y
-    el escalonado queda acotado a menos de 1 m.
-  - Direcciones posibles: que la densidad suba también variando la cantidad de
-    vehículos por grupo y dejando tramos más cargados y otros más vacíos (en
-    vez de achicar siempre la separación); permitir grupos vacíos o de un solo
-    vehículo aun con densidad alta; o dejar de pensar en grupos y ubicar cada
-    vehículo por su cuenta, con una regla que garantice el camino libre.
-  - Siempre con las dos garantías: el tráfico no se choca entre sí y nunca
-    cierra todos los carriles al auto principal.
-
-- **Otros tipos de vehículos.** Camiones y motos, además de autos, para tener
-  variedad de tamaños (largo y ancho). Cada tipo con su contorno de choque, y
-  el dibujo siempre dentro de ese contorno. Implica revisar el hueco mínimo
-  entre grupos y el carril libre según el tamaño (un camión largo ocupa más),
-  que el tráfico siga sin chocarse y que siempre quede un camino libre para el
-  auto principal. Va de la mano de la idea anterior.
+- **Tráfico menos regular y con variedad de vehículos.** Pedido del dueño
+  (18 de noviembre de 2026), con una captura de Entrenar en la generación 61:
+  "El tráfico es demasiado regular, la densidad solo cambia cuántos van de
+  costado, pero todos aparecen a la misma distancia vertical [...] no ayuda
+  al auto a aprender más generalizadamente. La irregularidad solo los mueve
+  unos píxeles de su carril, arriba y abajo. Además me gustaría variedad:
+  camiones grandes, motos pequeñas, camionetas medianas, para que sea más
+  diverso y menos aburrido". Junta y reemplaza las dos notas anteriores
+  ("Más variedad en el tráfico con densidad alta" y "Otros tipos de
+  vehículos").
+  - Lo que dice el código hoy (leído en `src/core/traffic.js` y
+    `constants.js`, sin correr):
+    - el tráfico se arma en **grupos**: filas de vehículos a la misma distancia,
+      uno por carril ocupado. La densidad cambia la separación entre grupos
+      (de 80 m a 24 m, centro a centro) y cuántos carriles ocupa cada grupo
+      (de 1 a `carriles - 1`);
+    - la irregularidad mueve cada vehículo dentro de su grupo, como mucho
+      `TRAFFIC_MAX_STAGGER` = 4 m (un largo de auto) hacia adelante o atrás,
+      acotado además a (separación − 20 m) / 6. Con los valores por defecto
+      (densidad 50 % e irregularidad 50 %) da unos ±2 m: medio auto. También
+      lo corre de costado dentro del carril, y reparte un poco más desparejas
+      las separaciones entre grupos;
+    - todos los vehículos van a la misma velocidad (`TRAFFIC_SPEED` = 10 m/s)
+      y miden lo mismo (4 × 2 m), así que el tráfico se mueve como un bloque
+      rígido;
+    - a densidad máxima, la separación promedio (24 m) casi coincide con el
+      mínimo permitido (unos 21 m), así que el sorteo solo varía unos 3 m.
+  - Por qué importa para el ADN (análisis de Claude): la etapa "¿generaliza?"
+    necesita que el auto vea casos variados. Con filas a distancias parejas,
+    la red puede aprender un ritmo ("cada tanto aparece una fila") en vez de
+    mirar los sensores. Sirve, pero enseña menos de lo que podría.
+  - Direcciones posibles (hipótesis, sin probar):
+    - dejar de pensar en grupos y ubicar cada vehículo por su cuenta, con una
+      regla que garantice que nunca se cierran todos los carriles al auto
+      principal; o mantener los grupos pero dejar que la irregularidad los
+      desarme de verdad (adelantos de varios largos, tramos cargados y tramos
+      vacíos);
+    - velocidades distintas por tipo o por vehículo, para que el tráfico no se
+      mueva como un bloque (exige revisar que no se choquen entre sí);
+    - **tipos de vehículo**: motos (angostas y cortas), autos, camionetas
+      (medianas) y camiones (largos y anchos), cada uno con su contorno de
+      choque y su dibujo siempre dentro de ese contorno (Art. 7). Revisar el
+      hueco mínimo y el carril libre según el largo: un camión largo ocupa más;
+    - un ajuste de "variedad de vehículos" en la barra de escenario, o que la
+      irregularidad también la controle (a definir con el dueño).
+  - A tener en cuenta:
+    - determinismo (Art. 8): misma semilla, mismo tráfico. Pero cambiar cómo se
+      genera cambia el tráfico de todas las semillas;
+    - los cerebros guardados y los de ejemplo se entrenaron con el tráfico de
+      hoy: hay que medir cuánto empeoran, y quizás volver a entrenar los de
+      ejemplo;
+    - varias specs dependen del tráfico actual: los escenarios de los
+      programas de ejemplo de Reglas a mano ("Siete sensores supera al menos
+      10"), las misiones y las medidas de aprendizaje de
+      `fitness-que-premia-superar`. Hay que revisarlas con el tráfico nuevo;
+    - fluidez (Art. 10): más formas para dibujar y más contornos para probar
+      choques por cuadro, con toda la población de Entrenar en pantalla;
+    - el sensor tiene que leer bien un vehículo angosto (moto) con pocos rayos:
+      puede pasar entre dos rayos sin que lo vea, y eso también enseña algo.
 
 ## Competir y circuitos
 

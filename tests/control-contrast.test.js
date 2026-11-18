@@ -67,16 +67,18 @@ test('lo usan los campos de texto, los grupos de opciones, los interruptores y l
   }
 });
 
-test('anillo de "Mostrame" (misiones-que-muestran-el-control D3): 3:1 o más y distinto del foco', () => {
+test('anillo de "Mostrame" (misiones-que-muestran-el-control D3; sistema-de-diseno-base 4.7): 3:1 o más, color de "vos" y más grueso que el foco', () => {
   const reveal = token('color-reveal');
   for (const surface of ['color-bg', 'color-surface', 'color-surface-2', 'color-card-bg']) {
     const c = contrast(reveal, token(surface));
     assert.ok(c >= 3, `--color-reveal sobre --${surface}: ${c.toFixed(2)}:1`);
   }
-  assert.notEqual(reveal.toLowerCase(), token('color-accent').toLowerCase());
-  assert.notEqual(reveal.toLowerCase(), token('color-selected-border').toLowerCase());
-  // Se distingue del foco también por la luminosidad, no solo por el tono.
-  assert.ok(contrast(reveal, token('color-accent')) >= 1.5, `contra el foco: ${contrast(reveal, token('color-accent')).toFixed(2)}:1`);
+  // Es el color de "vos" (decisión del dueño, 18 de noviembre de 2026): se distingue del foco por la forma.
+  assert.equal(reveal.toLowerCase(), token('color-role-you').toLowerCase());
+  const ring = app.match(/\[data-revealed="true"\][^{]*\{[^}]*box-shadow:\s*0 0 0 (\d+)px var\(--color-bg\), 0 0 0 (\d+)px var\(--color-reveal\)/);
+  assert.ok(ring, 'anillo doble con un hueco');
+  const focus = app.match(/button:focus-visible[^{]*\{[^}]*outline:\s*(\d+)px solid var\(--color-accent\)/);
+  assert.ok(Number(ring[2]) - Number(ring[1]) > Number(focus[1]), `anillo de ${ring[2] - ring[1]} px contra foco de ${focus[1]} px`);
   // El anillo usa el token en styles/app.css.
   assert.match(app, /\[data-revealed="true"\][^{]*\{[^}]*var\(--color-reveal\)/);
 });

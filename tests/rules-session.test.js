@@ -1,5 +1,5 @@
 // Lógica sin DOM de la pestaña Reglas a mano (design.md D9, tarea 5.2): indicadores, reintento
-// automático a los 90 pasos y misiones.
+// automático a los 300 pasos (reglas-el-choque-ensena D2), su retención y misiones.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import es from '../src/i18n/es.js';
@@ -38,7 +38,7 @@ const missions = (session) => Object.fromEntries(session.missions.map((m) => [m.
 
 test('misiones de la pestaña: superar 3 y 10 vehículos, y 10 vehículos en 3 tráficos', () => {
   assert.deepEqual(MISSIONS.map((m) => [m.id, m.goal]), [['pass', 3], ['passMany', 10], ['traffics', 3]]);
-  assert.equal(RETRY_STEPS, 90);
+  assert.equal(RETRY_STEPS, 300); // 5 s a 60 pasos por segundo (reglas-el-choque-ensena D2)
 });
 
 test('Progreso: con dos vehículos superados, la primera misión muestra 2 de 3 y la segunda 2 de 10', () => {
@@ -127,7 +127,7 @@ test('las misiones cuentan vehículos superados sin chocar: después del choque 
   assert.equal(missions(session).pass, '2/3');
 });
 
-test('Reintento encendido: a los 90 pasos de simulación desde el choque pide reiniciar, no antes', () => {
+test('Reintento encendido: a los 300 pasos de simulación desde el choque pide reiniciar, no antes', () => {
   const session = createRulesSession();
   const world = fakeWorld();
   world.progress = 40;
@@ -140,6 +140,52 @@ test('Reintento encendido: a los 90 pasos de simulación desde el choque pide re
   session.restart();
   assert.equal(session.sinceCrash, 0);
   assert.equal(session.distance, 0);
+});
+
+test('Cuenta regresiva: retryIn baja de 300 a 0 mientras el caso está a la vista', () => {
+  const session = createRulesSession();
+  const world = fakeWorld();
+  world.crashed = true;
+  assert.equal(session.retryIn, 300);
+  for (let i = 0; i < 60; i += 1) session.step(world, { seed: 2 });
+  assert.equal(session.retryIn, 240); // "Vuelve a salir en 4 s"
+});
+
+test('Quedarse en el caso: retenido, el intento no se reinicia solo, ni pasado el tiempo', () => {
+  const session = createRulesSession();
+  const world = fakeWorld();
+  world.crashed = true;
+  for (let i = 0; i < 100; i += 1) session.step(world, { seed: 2 });
+  session.hold();
+  assert.equal(session.held, true);
+  for (let i = 0; i < RETRY_STEPS * 3; i += 1) assert.equal(session.step(world, { seed: 2 }), null);
+  assert.equal(session.sinceCrash, 100, 'la cuenta queda detenida donde estaba');
+});
+
+test('Reiniciar a mano o probar otro programa sale de la retención (los dos reinician el intento)', () => {
+  const session = createRulesSession();
+  const world = fakeWorld();
+  world.crashed = true;
+  session.hold();
+  session.restart(); // Reiniciar (R) y probar un programa pasan por acá
+  assert.equal(session.held, false);
+  assert.equal(session.retryIn, RETRY_STEPS);
+  let steps = 0;
+  let answer = null;
+  while (!answer && steps < RETRY_STEPS * 2) { answer = session.step(world, { seed: 2 }); steps += 1; }
+  assert.equal(answer, 'retry');
+  assert.equal(steps, RETRY_STEPS);
+});
+
+test('Retenido y en pausa: al reanudar sigue sin reiniciarse', () => {
+  const session = createRulesSession();
+  const world = fakeWorld();
+  world.crashed = true;
+  session.hold();
+  world.paused = true;
+  for (let i = 0; i < RETRY_STEPS; i += 1) assert.equal(session.step(world, { seed: 2 }), null);
+  world.paused = false;
+  for (let i = 0; i < RETRY_STEPS * 2; i += 1) assert.equal(session.step(world, { seed: 2 }), null);
 });
 
 test('Reintento apagado: el choque espera a que se reinicie a mano', () => {

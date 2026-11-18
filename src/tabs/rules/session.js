@@ -5,8 +5,12 @@
 // pasos de simulación desde el choque, no tiempo: en pausa o con la página oculta no avanza.
 import { createAttempt } from '../shared/attempt.js';
 
-/** Pasos de simulación (1/60 s) entre el choque y el reintento automático: un segundo y medio. */
-export const RETRY_STEPS = 90;
+/**
+ * Pasos de simulación (1/60 s) entre el choque y el reintento automático: cinco segundos, para que el
+ * caso del choque se vea (reglas-el-choque-ensena D2). En tiempo de simulación: es determinista y la
+ * pausa lo detiene.
+ */
+export const RETRY_STEPS = 300;
 
 /** Misiones de la pestaña, en orden. Las tres miden vehículos superados, no distancia. */
 export const MISSIONS = Object.freeze([
@@ -26,6 +30,9 @@ export const TRAFFIC_PASSED = 10;
 export function createRulesSession({ completed = new Set(), traffics = new Set() } = {}) {
   const attempt = createAttempt();
   let sinceCrash = 0;
+  // Retenido (D2): la persona tocó un control del caso del choque; el intento no se reinicia solo hasta
+  // reiniciar a mano o probar otro programa (los dos pasan por `restart`).
+  let held = false;
   // El programa cambió durante este intento: lo superado hasta acá fue con otro programa, así que
   // el intento ya no cuenta para la misión de tráficos (el próximo sí).
   let mixedProgram = false;
@@ -43,7 +50,8 @@ export function createRulesSession({ completed = new Set(), traffics = new Set()
    * Observa el mundo después de un paso de simulación.
    * @param {{progress:number, crashed:boolean, paused:boolean, vehiclesIn:Function}} world
    * @param {{seed:number, autoRetry?:boolean}} options
-   * @returns {'retry'|null} 'retry' cuando pasaron 90 pasos desde el choque con el reintento encendido
+   * @returns {'retry'|null} 'retry' cuando pasaron RETRY_STEPS pasos desde el choque con el reintento
+   *   encendido y la sesión no está retenida
    */
   function step(world, { seed, autoRetry = true }) {
     if (world.paused) return null;
@@ -54,6 +62,7 @@ export function createRulesSession({ completed = new Set(), traffics = new Set()
       sinceCrash = 0;
       return null;
     }
+    if (held) return null;
     sinceCrash += 1;
     return sinceCrash >= RETRY_STEPS ? 'retry' : null;
   }
@@ -63,7 +72,11 @@ export function createRulesSession({ completed = new Set(), traffics = new Set()
     attempt.restart({ countAttempt });
     sinceCrash = 0;
     mixedProgram = false;
+    held = false;
   }
+
+  /** La persona tocó un control del caso del choque: la cuenta se detiene hasta el próximo intento (D2). */
+  function hold() { held = true; }
 
   /** El programa que maneja cambió: los tráficos recorridos ya no valen para la misión de tráficos. */
   function programChanged() {
@@ -74,6 +87,7 @@ export function createRulesSession({ completed = new Set(), traffics = new Set()
   return {
     step,
     restart,
+    hold,
     programChanged,
     get distance() { return attempt.distance; },
     get passed() { return attempt.passed; },
@@ -83,6 +97,10 @@ export function createRulesSession({ completed = new Set(), traffics = new Set()
     get ended() { return attempt.ended; },
     /** Pasos de simulación desde el choque (con el reintento encendido). */
     get sinceCrash() { return sinceCrash; },
+    /** Pasos que faltan para el reintento automático (con el reintento encendido y sin retener). */
+    get retryIn() { return Math.max(0, RETRY_STEPS - sinceCrash); },
+    /** ¿La persona retuvo el caso del choque? */
+    get held() { return held; },
     /** Misiones con su progreso (acotado a la meta) y si están cumplidas. */
     get missions() {
       return MISSIONS.map((m) => ({ ...m, progress: Math.min(progressOf(m), m.goal), done: completed.has(m.id) }));

@@ -56,7 +56,7 @@ test('una salida encendida se distingue de una apagada sin depender del color', 
   assert.ok(c >= 2, `--color-output-on contra --color-surface-2: ${c.toFixed(2)}:1`);
   assert.equal(token('color-output-on-border'), token('color-neuron-active'), 'el contorno es el blanco de la neurona activa');
   const rule = app.slice(app.indexOf('.action-key[data-on="true"] {'));
-  assert.match(rule.slice(0, rule.indexOf('}')), /font-weight:\s*700/);
+  assert.match(rule.slice(0, rule.indexOf("}")), /font-weight:\s*var\(--weight-bold\)/, "negrita (sistema-de-diseno-base: el peso sale de la escala)");
 });
 
 /** Reglas de app.css como [selectores, cuerpo], sin comentarios. Las reglas de @media quedan aplanadas. */

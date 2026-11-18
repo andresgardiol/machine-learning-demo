@@ -165,3 +165,17 @@ test('ayudas: encendidas por defecto, se recuerdan y, sin valor guardado, toman 
   assert.equal(before.hints, false);
   assert.equal(createPreferences(failingStorage).hints, true, 'sin almacenamiento, encendidas');
 });
+
+test('vista del programa de Reglas a mano (reglas-como-fichas D4): fichas por defecto, texto recordado, fichas sin almacenamiento', () => {
+  const storage = memoryStorage();
+  assert.equal(createPreferences(() => storage).rulesView, 'cards');
+  createPreferences(() => storage).rulesView = 'text';
+  assert.equal(createPreferences(() => storage).rulesView, 'text', 'la vista de texto queda recordada');
+  createPreferences(() => storage).rulesView = 'cards';
+  assert.equal(createPreferences(() => storage).rulesView, 'cards');
+  storage.setItem('mlLab.rules.programView', 'otra');
+  assert.equal(createPreferences(() => storage).rulesView, 'cards');
+  const failing = createPreferences(failingStorage);
+  assert.doesNotThrow(() => { failing.rulesView = 'text'; });
+  assert.equal(failing.rulesView, 'cards');
+});
