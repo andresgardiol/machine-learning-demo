@@ -286,7 +286,22 @@ El 18 de noviembre, `entrenar-mutacion-a-la-vista` (cambio 3 y último de la
 
 ## En curso
 
-Nada.
+Revisión de diseño de las cuatro pestañas que faltaban (18 de noviembre de
+2026), en dos cambios, uno tras otro, sobre la rama `feat/cuatro-pestanas`:
+
+1. `red-al-centro` (L): Inspeccionar y Laboratorio con el mundo a la
+   izquierda y la red al centro; la barra de la red en tres grupos y los
+   cambios de prueba solo con cambios; la guía que no desaparece; el choque
+   que enseña (caso, repetición de 3 s, la neurona que decidió y "Reintentar
+   desde acá"); "Atrás" entre cuadros; tres experimentos a la vista y "a mano
+   primero" en Compuertas. Absorbe el pedido de zoom en la escena chica.
+2. `manejo-amable-y-competir-sin-cortes` (M): volante suave en el teclado
+   (sin tocar la física ni el contrato), la cinta del manejo en el centro de
+   El problema, el cartel de primer manejo y los cortes de Competir.
+
+Al final, `borradores/cuatro-pestanas-antes-y-despues.md` con todo el antes y
+el después en orden. Las decisiones, con sus opciones, están en el
+`design.md` de cada cambio; las eligió Claude y el dueño puede revertirlas.
 
 ## Para probar a mano (dueño)
 
