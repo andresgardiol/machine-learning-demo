@@ -107,7 +107,7 @@ Lo que necesita al dueño antes de la fase 3 [Propuesta]:
 | 78 | `controladores` | Controlador de reglas | todas | Núcleo compartido | igual | contrato único reutilizado |
 | 79 | `controladores` | Programa que no corresponde al auto | todas | Núcleo compartido | igual | contrato único reutilizado |
 | 80 | `controladores` | Controlador con observador | todas | Núcleo compartido | igual | contrato único reutilizado |
-| 81 | `controladores` | Volante suave | todas | Núcleo compartido | igual | quitada de las specs; decisión del dueño: queda el volante actual (tarea 6.2) |
+| 81 | `controladores` | Volante suave | todas | Núcleo compartido | igual | quitada de las specs; decisión del dueño: queda el volante actual (tarea 6.2); confirmada por el dueño el 19-11-2026 |
 | 82 | `cuenta-de-la-red` | Cuenta desglosada | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
 | 83 | `cuenta-de-la-red` | Recorrido paso a paso | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
 | 84 | `cuenta-de-la-red` | Cambios de prueba | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
@@ -125,7 +125,7 @@ Lo que necesita al dueño antes de la fase 3 [Propuesta]:
 | 96 | `estructura-app` | Pestañas del recorrido | todas | Armazón · navegación de cinco etapas | rediseñado | seis pestañas → cinco etapas con su pregunta (informe 1.4) |
 | 97 | `estructura-app` | Lista para usar al abrir | todas | Armazón | igual | misma regla en el armazón nuevo |
 | 98 | `estructura-app` | Disposición común | todas | Disposición de la propuesta elegida | rediseñado | la disposición sale de la fase 2 (D4, eje 1) |
-| 99 | `estructura-app` | Panel ajustable | todas | — | propuesto quitar | decisión del dueño: eligió D (tarea 6.1), que fija las zonas; lo reemplaza plegar el cuaderno |
+| 99 | `estructura-app` | Panel ajustable | todas | — | propuesto quitar | decisión del dueño: eligió D (tarea 6.1), que fija las zonas; lo reemplaza plegar el cuaderno; confirmada por el dueño el 19-11-2026 |
 | 100 | `estructura-app` | Preferencias recordadas | todas | Armazón · preferencias `mlLab.v2.*` | rediseñado | claves propias (D6) |
 | 101 | `estructura-app` | Créditos | todas | Armazón | igual | misma regla en el armazón nuevo |
 | 102 | `estructura-app` | Aviso en pantallas angostas | todas | Armazón | igual | misma regla en el armazón nuevo |
@@ -957,11 +957,11 @@ Filas ya hechas en la V2, con dónde quedaron. [Medido] en el navegador una por 
 - **78 · Controlador de reglas** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
 - **79 · Programa que no corresponde al auto** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
 - **80 · Controlador con observador** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
-- **81 · Volante suave** (grupo 16): quitada: el volante suave salió de las specs; decisión del dueño: el volante es el actual (`volante-directo`, tarea 6.2).
+- **81 · Volante suave** (grupo 16): quitada: el volante suave salió de las specs; decisión del dueño: el volante es el actual (`volante-directo`, tarea 6.2). Confirmada por el dueño el 19 de noviembre de 2026 ("Sí, decididas").
 - **96 · Pestañas del recorrido** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
 - **97 · Lista para usar al abrir** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
 - **98 · Disposición común** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
-- **99 · Panel ajustable** (grupo 16): decisión del dueño: eligió la maqueta D (tarea 6.1), que fija las zonas; plegar el cuaderno reemplaza al panel ajustable.
+- **99 · Panel ajustable** (grupo 16): decisión del dueño: eligió la maqueta D (tarea 6.1), que fija las zonas; plegar el cuaderno reemplaza al panel ajustable. Confirmada por el dueño el 19 de noviembre de 2026 ("Sí, decididas").
 - **100 · Preferencias recordadas** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
 - **101 · Créditos** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
 - **102 · Aviso en pantallas angostas** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
