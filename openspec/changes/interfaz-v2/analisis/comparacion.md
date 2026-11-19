@@ -280,7 +280,7 @@ En las 16 capturas: una sola acción principal, o ninguna donde se destaca la ma
 | KD1 | En Reglas a mano, la escena quedaba en el 13,7 % de la ventana, como en la V1: la percepción ocupaba la columna de la escena. | Principio 2; cambio notable | **corregido**: la percepción pasa compacta arriba del programa, y la escena tiene toda la altura (24,8 % visible). |
 | KD2 | Los botones "5", "3" y "1" del filtro de conexiones medían menos de 24 px de ancho. | WCAG 2.5.8 | **corregido**: 28 px. |
 | KD3 | El aviso "Restableciste el programa · Deshacer" tapaba la marcha de Reglas. | H8 | **corregido**: va en el cuaderno, junto a "Restablecer programa", que es lo que lo dispara. |
-| KD4 | En Entrenar, "Avanzado" está abierto pero queda debajo del pliegue del cuaderno; es justo lo que el dueño no veía en C. | H6; queja del dueño | **corregido en parte**: "Mostrame" y la vista `#avanzado` llevan al lugar. **Queda** que el cuaderno de Entrenar es largo (2419 px). En la fase 3, "Avanzado" podría dividirse en sus tres grupos (Evolución, Generación, Red y sensores) con un índice arriba. |
+| KD4 | En Entrenar, "Avanzado" está abierto pero queda debajo del pliegue del cuaderno; es justo lo que el dueño no veía en C. | H6; queja del dueño | **corregido** con las hojas (ver abajo). Antes: **corregido en parte**: "Mostrame" y la vista `#avanzado` llevan al lugar. **Queda** que el cuaderno de Entrenar es largo (2419 px). En la fase 3, "Avanzado" podría dividirse en sus tres grupos (Evolución, Generación, Red y sensores) con un índice arriba. |
 | KD5 | Los botones de cámara salían en columna (el indicio de ayuda pisaba el `display`). | Visual | **corregido**. |
 | KD6 | En Entrenar, la red del líder y la curva al costado dejaban la escena angosta y tapada por la pregunta. | Principio 2 | **corregido**: van en una franja debajo de la escena. **Queda** que la pregunta y el corte de generación tapan parte de la escena (31,9 % visible). |
 | KD7 | El rótulo "de esta etapa" salía en letra de título dentro del cuaderno. | Visual | **corregido**. |
@@ -301,3 +301,27 @@ En las 16 capturas: una sola acción principal, o ninguna donde se destaca la ma
 2. otro tono para la élite (KD9);
 3. medir la fluidez del brillo antes de adoptarlo (KD10), y si no alcanza, el dibujo plano de los pintores de la V1 con los tokens de D;
 4. el modo plegado como base del `modo-proyector` pendiente.
+
+### El cuaderno de D en hojas (revisión del dueño, 19 de noviembre de 2026)
+
+**Lo que dijo el dueño:** no le gusta tener que desplazar tanto para ver todos los ajustes. La V1 lo resuelve bien con sus tres subpestañas (Entrenamiento, Ajustes, Cerebros). Pidió inspirarse en eso, sin copiarlo, y ordenarlo mejor si se puede.
+
+**Lo que cambió en D** [Propuesta]: el cuaderno pasa a tener **hojas por tema**, con una regla común. La primera hoja es la etapa (misión y "Probá esto"), después vienen las hojas del tema y, al final, el escenario cuando es compartido. Adentro, los ajustes van en una grilla de dos o tres columnas, y lo que no aplica se oculta en lugar de quedar deshabilitado: las neuronas de la capa 2 y 3 aparecen solo al sumar capas, como en la V1.
+
+| Etapa | Hojas | Qué hay en cada una |
+|---|---|---|
+| El problema | Manejar · Escenario | La misión, densidad, irregularidad, ver como la máquina, sensores, tráfico nuevo y la cinta · pista, carriles, velocidad |
+| Reglas a mano | Programar · Escenario | La misión, ejemplos, reintentar solo, los tres ajustes de sensores, comparar, exportar, importar y restablecer con Deshacer · el escenario compartido |
+| Aprender | Entrenamiento · Evolución · Red y pista · Cerebros | Misión, fitness, población, fuerza y la marcha extra · quién pasa (padre, élite, selección, cruce), cómo cambian (probabilidad, enfriar), cada generación (duración, lentos, tráfico) · la red (capas, neuronas, activación), los sensores, dónde entrena (pistas y escenario de esta etapa) · la biblioteca |
+| Evaluar | Carrera · Competidores · Escenario | Misión, meta, tráfico de la carrera, penalización · competidores · el escenario compartido |
+| Entender | Neurona · Etapa · Escenario | La tarjeta de la neurona · misión, cambiar cerebro · el escenario compartido |
+
+Frente a la V1: Aprender ordena sus ajustes por la pregunta que responden ("quién pasa", "cómo cambian", "cada generación") en lugar de por "básico" y "avanzado". La red y los sensores, que en la V1 estaban en la barra de arriba y en Ajustes, quedan juntos en una sola hoja con la pista donde entrena.
+
+**Medido:**
+- Ninguna de las 14 hojas desplaza, en español ni en inglés, a 1366×768 ni a 1440×900. Antes, en Entrenar el cuaderno pedía desplazar 2419 px de contenido en 673 visibles.
+- La primera versión de la hoja Entrenamiento se pasaba por 41 px a 1366×768. Se corrigió pasando "Quién elige al padre" a la hoja Evolución, que es su tema.
+- La paridad sigue en 248 de 248 (`paridad-d.mjs`).
+- Las 18 capturas de D (`indice-d.md`, con `#evolucion` agregada) dan 0 problemas en las auditorías.
+
+**Para decidir con la elección** [Propuesta]: la spec *Ajustes en tres niveles* pide "Probá esto", "Más" y "Avanzado" plegados. Con hojas, "Probá esto" sigue siendo la primera hoja, pero "Más" y "Avanzado" se reemplazan por hojas con nombre de tema. Si el dueño elige D, `/opsx:update` tendría que cambiar ese requisito (tarea 6.2). KD4 queda resuelto con esto.
