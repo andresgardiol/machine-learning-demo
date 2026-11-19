@@ -325,3 +325,5 @@ Frente a la V1: Aprender ordena sus ajustes por la pregunta que responden ("qui�
 - Las 18 capturas de D (`indice-d.md`, con `#evolucion` agregada) dan 0 problemas en las auditorías.
 
 **Para decidir con la elección** [Propuesta]: la spec *Ajustes en tres niveles* pide "Probá esto", "Más" y "Avanzado" plegados. Con hojas, "Probá esto" sigue siendo la primera hoja, pero "Más" y "Avanzado" se reemplazan por hojas con nombre de tema. Si el dueño elige D, `/opsx:update` tendría que cambiar ese requisito (tarea 6.2). KD4 queda resuelto con esto.
+
+**Respuesta del dueño (19 de noviembre de 2026):** aprobó el orden de las hojas de Aprender ("Sí, así"). Todavía no es la elección de una propuesta (tarea 6.1).
