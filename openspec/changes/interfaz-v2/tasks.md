@@ -211,12 +211,13 @@ La disposición es la de la maqueta D (design.md *D-elegida*). `borradores/inter
 
 ## 15. Fase 3: Aprender, por gradiente (Laboratorio)
 
-- [ ] 15.1 Maquetar en `borradores/interfaz-v2/maquetas/d/`, como `#gradiente`, la pantalla que D no tiene (KD12), con la misma regla de hojas:
+- [x] 15.1 Maquetar en `borradores/interfaz-v2/maquetas/d/`, como `#gradiente`, la pantalla que D no tiene (KD12), con la misma regla de hojas:
   - el plano o la tabla de verdad y la red, en la zona de la escena;
   - la reproducción del aprendizaje, en la banda;
   - en el cuaderno, la hoja de la etapa y una hoja por tema: Datos, Red y Aprendizaje.
 
   Medir la paridad con `paridad-d.mjs` y sacar capturas a dos tamaños. **Detenerse y consultar** con las capturas, antes de implementar. Verificación: 0 faltantes de la pestaña Laboratorio de la V1, y la aprobación del dueño anotada en `analisis/comparacion.md`.
+  *Hecho: maqueta `#gradiente` en D con sus textos y tooltips en los dos idiomas; el inventario del Laboratorio de la V1 medido en el navegador y sumado a `paridad-d.mjs`. Medido: 89 de 89 controles, 0 faltantes; ninguna hoja desplaza a 1440×900 ni a 1366×768 (`maquetas/capturas/gradiente.html`). Aprobada por el dueño el 19 de noviembre de 2026 (anotado en `analisis/comparacion.md` §9).*
 - [ ] 15.2 Componer la etapa como la aprobó el dueño, con sus tres experimentos a la vista (compuertas, puntos y tu manejo). Las perillas que se arrastran son la acción destacada. La etapa trae la tabla de verdad, el plano, el punto de prueba, la reproducción y su operación en curso, las curvas, los apartados y el sobreajuste, armar la red, la tasa, grabar tu manejo, imitar y guardar como cerebro, la tabla de datos, la historia de un peso y "Ver una solución". Verificación: las filas de `pestana-laboratorio`, `datos-de-ejemplo` y `retropropagacion` en la matriz quedan "hechas", y el escenario *Manipulación directa destacada*.
 - [ ] 15.3 Textos y tooltips en los dos idiomas, con la escalera de vocabulario (época, tasa de aprendizaje, apartados, sesgo y peso). Capturas de la V1 y la V2 de los tres experimentos a dos tamaños. Verificación: auditorías en 0, *Hojas sin desplazar*, y el índice.
 

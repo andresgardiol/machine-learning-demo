@@ -333,3 +333,15 @@ Frente a la V1: Aprender ordena sus ajustes por la pregunta que responden ("qui�
 **19 de noviembre de 2026.** El dueño eligió la **maqueta D · Cabina con cuaderno**, con el cuaderno en hojas por tema que ya había aprobado ese mismo día. Lo eligió con estas palabras, respondiendo a "¿Elegís D, con el cuaderno en hojas, para la V2?": "Sí, D".
 
 Lo que queda abierto de la crítica de D pasa a la fase 3 como tareas: KD9 (el tono de la élite), KD10 (el brillo del dibujo y la fluidez) y KD12 (la pantalla del Laboratorio). El detalle está en `design.md`, en *D-elegida*.
+
+## 9. La pantalla del Laboratorio (tarea 15.1, KD12)
+
+**19 de noviembre de 2026.** Maqueta `#gradiente` de D (`borradores/interfaz-v2/maquetas/d/index.html#gradiente`, capturas en `maquetas/capturas/gradiente.html`):
+- en la zona de la escena, el experimento (el plano con el punto de prueba; la escena de "Tu manejo" y la tabla de verdad de las compuertas) y la red con las perillas como acción destacada, y la curva del error debajo;
+- en la placa, los tres experimentos a la vista;
+- en la banda, la reproducción del aprendizaje;
+- en el cuaderno, las hojas Etapa, Datos, Red y Aprendizaje.
+
+[Medido] 89 de 89 controles del Laboratorio de la V1 en la maqueta (`paridad-d.mjs`, con el inventario medido en el navegador); ninguna hoja desplaza a 1440×900 ni a 1366×768.
+
+**Aprobación del dueño (19 de noviembre de 2026):** "Approve, implement". Se implementa en las tareas 15.2 y 15.3.
