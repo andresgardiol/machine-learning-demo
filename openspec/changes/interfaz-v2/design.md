@@ -99,6 +99,8 @@ Cada afirmación lleva **[Medido]**, **[Observado]**, **[Hipótesis]** o **[Prop
 
 ### D4. Maquetas: tres direcciones de verdad distintas
 
+*Cumplida.* Después de revisar A, B y C, el dueño pidió una cuarta maqueta, D (grupo 5b), y la eligió. Lo que vale ahora es *D-elegida*.
+
 **Ejes en que tienen que diferir.** Cada propuesta toma una postura distinta en al menos tres de estos cuatro ejes:
 1. disposición: escena a pantalla completa con paneles flotantes, mesa de trabajo de dos zonas, o lectura narrativa con escenas incrustadas;
 2. navegación del recorrido: riel lateral de etapas, línea de tiempo arriba, o capítulos;
@@ -205,6 +207,66 @@ Es el camino (a) de la propuesta 5.7 del informe, con una excepción explícita.
 
 Es el mismo enfoque que `src/ui/audit.js`, en un módulo propio, porque las clases y los componentes son otros.
 
+### D-elegida. Maqueta D · Cabina con cuaderno (elegida por el dueño el 19 de noviembre de 2026)
+
+La maqueta de referencia está en `borradores/interfaz-v2/maquetas/d/`. La comparación, la crítica y la elección están en `analisis/comparacion.md`, §7 y §8. Este apartado manda sobre D4 y completa D5 a D8.
+
+**Disposición.** Las mismas cuatro zonas fijas en todas las etapas:
+
+```
+┌──────┬───────────────────────────────────────────┬──────────────────┐
+│ riel │  pregunta y acción principal (vidrio)       │  cuaderno         │
+│ 72px │                                            │  400 px           │
+│      │          escena (o red) protagonista       │  pestañas de hojas│
+│ 1 ●  │                                            │  ──────────────── │
+│ 2 ○  │                                            │  hoja en curso,   │
+│ 3 ○  │                                            │  en grilla, sin   │
+│ 4 ○  ├───────────────────────────────────────────┤  desplazar        │
+│ 5 ○  │ banda: percibe · acciona · cifras · marcha │                  │
+└──────┴───────────────────────────────────────────┴──────────────────┘
+```
+
+- **Riel vertical de etapas, a la izquierda.** Las cinco etapas, con su número y la marca de la etapa en curso; al posar el cursor o enfocar, aparece la pregunta. Aprender tiene dos sub-pasos: "Por evolución" (Entrenar) y "Por gradiente" (el Laboratorio). Es la decisión de la tarea 1.4.
+- **Escena protagonista.** Encima, solo la pregunta de la etapa y la acción principal, en una placa de vidrio. Nada más la tapa.
+- **Banda debajo de la escena, de unos 76 px.** El contrato *entra → decide → sale*: lo que percibe, lo que acciona como estado (no como botón), las cifras y la marcha.
+- **Cuaderno a la derecha, de 400 px.** Se pliega a una lengüeta de 40 px con "Plegar cuaderno" y deja la escena en un 70 % de la ventana [Medido en D]. Es la base del `modo-proyector` pendiente, que sigue fuera de alcance. La V2 recuerda si el cuaderno quedó plegado.
+
+**Hojas del cuaderno** (aprobadas por el dueño, "Sí, así"). La regla común:
+- la primera hoja es la de la etapa: la misión, "Mostrame" y "Probá esto", con a lo sumo tres ajustes;
+- después vienen las hojas del tema;
+- al final, el escenario compartido.
+
+Dentro de cada hoja, los ajustes van en una grilla de dos o tres columnas, y **ninguna hoja desplaza a 1366×768 ni a 1440×900**, en ninguno de los dos idiomas. Lo que no aplica se oculta, no se deshabilita.
+
+| Etapa | Hojas |
+|---|---|
+| El problema | Manejar · Escenario |
+| Reglas a mano | Programar · Escenario. El editor y la percepción compacta van en la zona de la escena, junto a ella (KD1). |
+| Aprender, por evolución | Entrenamiento · Evolución (quién pasa, cómo cambian, cada generación) · Red y pista (capas, neuronas, activación, sensores y pistas) · Cerebros |
+| Aprender, por gradiente | Por diseñar en la tarea 15.1 con la misma regla (KD12). |
+| Evaluar | Carrera (meta, tráfico, penalización) · Competidores · Escenario |
+| Entender | Neurona · Etapa · Escenario |
+
+El reparto exacto, control por control, está en la tabla de la §7 de la comparación y en `borradores/interfaz-v2/paridad-d.mjs`, que asocia cada control de la V1 a su lugar en D. Ese guion se vuelve una prueba de la fase 3 (tarea 16.1).
+
+**Dirección de arte.**
+- La noche de `og-image.png`: fondo verde petróleo, texto niebla, y el amarillo de señal reservado para la acción principal.
+- El cuaderno, de B en oscuro: cuadrícula tenue, línea de margen rosa y resaltador para los términos definidos.
+- Tipos del sistema, sin dependencias: DIN Alternate para las cifras, Avenir Next para el texto e Iowan Old Style para los títulos del cuaderno, cada uno con su respaldo genérico.
+
+**Tokens.** `styles/v2/tokens.css` parte de `borradores/interfaz-v2/maquetas/d/tokens.css`, con sus tres capas y las 41 variables que leen los pintores de canvas. Dos decisiones abiertas de la crítica se cierran en la fase 3:
+- **KD9:** la élite pasa a otro tono, no al amarillo de la acción. Se propone en la tarea 8.4 y la verifica el principio "un color, un significado".
+- **KD10:** el brillo de rayos y faros se prueba en `src/v2/render/` y se mide contra la fluidez (tarea 8.5). Si no alcanza los 30 cuadros por segundo con 500 autos, la V2 usa los pintores planos de la V1 con los tokens de D. El brillo nunca pasa el límite de destellos.
+
+**Componentes** (los 24 de D, más las hojas):
+- armazón: riel de etapas, placa de pregunta y acción, banda del contrato, y cuaderno con pestañas de hojas, pliegue y lengüeta;
+- dentro de las hojas: grilla de ajustes, nota de misión con "Mostrame", término definido al margen y rótulo "de esta etapa";
+- generales: aviso con "Deshacer", botón en cuatro niveles, deslizador, grupo de segmentos, interruptor y tooltip con indicio constante (un punto en la esquina, como en A);
+- de Aprender: corte y tarjeta de generación, curva y red del líder en una franja bajo la escena (KD6);
+- de Entender y Evaluar: tarjeta de la neurona, marcador y tabla por pista.
+
+**Qué cambia en los requisitos.** "Probá esto", "Más" y "Avanzado" plegados se reemplazan por hojas con nombre de tema (spec *Ajustes en hojas por tema*). Se agregan las specs *Disposición de la V2* y *Cuaderno plegable*.
+
 ## Risks / Trade-offs
 
 - **[Riesgo] El alcance es enorme: más de 400 requisitos y seis experiencias.** → La parada del dueño en D1, una etapa por vez en D9 y la matriz de paridad. La V2 se puede comparar con la primera etapa terminada. Si el dueño elige la V1 a mitad de camino, se archiva lo hecho sin tocar la V1.
@@ -225,6 +287,10 @@ Es el mismo enfoque que `src/ui/audit.js`, en un módulo propio, porque las clas
 
 ## Open Questions
 
-Las que se responden en la fase 1 sin cambiar los grupos de tareas:
-- Cómo se reparten las seis experiencias en las cinco etapas. ¿El Laboratorio va en "aprender", junto a Entrenar, como el otro modo de aprender (gradiente en lugar de evolución), o en "entender", junto a Inspeccionar? La hipótesis inicial es "aprender".
-- Si el modo proyector entra en alguna propuesta. Si entra, se anota en la comparación y la decisión pasa al dueño junto con la elección.
+Resueltas:
+- **El Laboratorio va en Aprender**, como "Por gradiente", junto a Entrenar ("Por evolución"). Lo decidió la tarea 1.4 (`analisis/informe.md`).
+- **El modo proyector:** el cuaderno plegado de D es su base, pero el modo en sí queda fuera de este cambio.
+
+Abiertas, que se responden en la fase 3 sin cambiar los grupos de tareas:
+- El tono de la élite (KD9), en la tarea 8.4.
+- Si el brillo del dibujo se queda (KD10), en la tarea 8.5, según la medición.

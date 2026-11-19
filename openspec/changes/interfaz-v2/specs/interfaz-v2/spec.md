@@ -75,7 +75,7 @@ Cada requisito de las capacidades de la V1 SHALL tener un lugar en la V2, o una 
 - **THEN** la matriz trae el motivo y la fecha de la aprobación del dueño
 
 ### Requirement: El recorrido como cadena de preguntas
-La V2 SHALL presentar las seis experiencias de la V1 (El problema, Reglas a mano, Entrenar, Competir, Inspeccionar y Laboratorio) dentro de las cinco etapas de la constitución: problema, reglas a mano, aprender, evaluar y entender. Cada etapa SHALL abrir con la pregunta que responde y cerrar ofreciendo la que sigue. La posición en el recorrido SHALL estar siempre a la vista.
+La V2 SHALL presentar las seis experiencias de la V1 dentro de las cinco etapas de la constitución: problema (El problema), reglas a mano (Reglas a mano), aprender (Entrenar y el Laboratorio), evaluar (Competir) y entender (Inspeccionar). Cada etapa SHALL abrir con la pregunta que responde y cerrar ofreciendo la que sigue. La posición en el recorrido SHALL estar siempre a la vista.
 
 #### Scenario: Pregunta de la etapa
 - **WHEN** la persona entra a una etapa
@@ -114,20 +114,72 @@ En las etapas con auto, la escena SHALL ser la zona más grande de la pantalla, 
 - **WHEN** se abre El problema a 1366×768
 - **THEN** la escena ocupa más área que cualquier otra zona de la pantalla
 
-### Requirement: Ajustes en tres niveles
-Los ajustes de cada etapa SHALL ordenarse en tres niveles: "Probá esto" (a lo sumo tres, a la vista, los que mejor muestran el concepto), "Más" y "Avanzado" (plegado). Un mismo ajuste SHALL estar en un solo lugar de la etapa. La V2 SHALL recordar si "Avanzado" quedó abierto.
+### Requirement: Disposición de la V2
+Todas las etapas de la V2 SHALL compartir cuatro zonas, siempre en el mismo lugar:
+- a la izquierda, el riel vertical de etapas;
+- al centro, la escena (o la red), con solo la pregunta y la acción principal encima;
+- debajo de la escena, una banda con lo que percibe, lo que acciona, las cifras y la marcha;
+- a la derecha, el cuaderno de ajustes.
+
+Lo que acciona SHALL verse como estado, no como botón.
+
+#### Scenario: Mismas zonas en todas las etapas
+- **WHEN** la persona pasa de El problema a Evaluar y después a Entender
+- **THEN** el riel, la banda y el cuaderno quedan en el mismo lugar, y solo cambia lo que hay adentro
+
+#### Scenario: Nada tapa la escena
+- **WHEN** se audita la escena de cualquier etapa
+- **THEN** sobre ella solo están la pregunta y la acción principal, y en El problema, a 1366×768, la escena visible ocupa al menos el 45 % de la ventana
+
+### Requirement: Riel de etapas
+El riel SHALL mostrar las cinco etapas en orden, con su número, la marca de la etapa en curso y su pregunta al posar el cursor o enfocarla. Aprender SHALL tener dos sub-pasos: "Por evolución" (Entrenar) y "Por gradiente" (el Laboratorio). Cada etapa y cada sub-paso SHALL tener tooltip y textos en español e inglés.
+
+#### Scenario: Ver hacia dónde sigue el recorrido
+- **WHEN** la persona está en El problema
+- **THEN** el riel muestra las cinco etapas, con la primera marcada como en curso
+
+#### Scenario: Pregunta en el riel
+- **WHEN** la persona llega con el teclado a la etapa 4 del riel
+- **THEN** ve su pregunta, "¿Funciona en lo que no vio?", sin abrir la etapa
+
+### Requirement: Cuaderno plegable
+El cuaderno SHALL plegarse a una lengüeta con "Plegar cuaderno" y volver a abrirse desde ella, sin detener lo que está en marcha. Plegado, la escena SHALL ocupar el espacio libre. La V2 SHALL recordar si quedó plegado. Los dos controles SHALL tener tooltip y textos en los dos idiomas.
+
+#### Scenario: Plegar para mostrar
+- **WHEN** el mentor pliega el cuaderno durante un entrenamiento
+- **THEN** la escena se agranda y el entrenamiento sigue sin reiniciarse
+
+#### Scenario: Volver a abrir
+- **WHEN** la persona usa la lengüeta
+- **THEN** el cuaderno vuelve con la misma hoja que tenía abierta
+
+### Requirement: Ajustes en hojas por tema
+El cuaderno de cada etapa SHALL ordenar sus ajustes en hojas:
+- la primera hoja es la de la etapa, con la misión y "Probá esto" (a lo sumo tres ajustes, los que mejor muestran el concepto);
+- después vienen las hojas del tema, cada una con un nombre que dice qué agrupa;
+- al final va la del escenario, cuando es compartido.
+
+Un mismo ajuste SHALL estar en una sola hoja. Ninguna hoja SHALL desplazarse a 1366×768. Lo que no aplica SHALL ocultarse, no deshabilitarse.
 
 #### Scenario: Pocos ajustes a la vista
 - **WHEN** se abre una etapa con la configuración por defecto
-- **THEN** a la vista hay a lo sumo tres ajustes, y "Más" y "Avanzado" están plegados
+- **THEN** se ve la hoja de la etapa, con a lo sumo tres ajustes en "Probá esto"
 
-#### Scenario: El mentor abre Avanzado
-- **WHEN** el mentor abre "Avanzado" en Entrenar y vuelve a la etapa más tarde
-- **THEN** "Avanzado" sigue abierto
+#### Scenario: Hojas sin desplazar
+- **WHEN** se abre cada hoja de cada etapa a 1366×768, en español y en inglés
+- **THEN** ninguna pide desplazar
 
-#### Scenario: Misión que pide un ajuste plegado
-- **WHEN** la persona usa "Mostrame" en una misión cuyo ajuste está en "Avanzado"
-- **THEN** la V2 abre "Avanzado", lleva la vista al ajuste, lo marca y le pasa el foco
+#### Scenario: El mentor vuelve a su hoja
+- **WHEN** el mentor abre la hoja "Red y pista" en Aprender y vuelve a la etapa más tarde
+- **THEN** el cuaderno abre en "Red y pista"
+
+#### Scenario: Misión que pide un ajuste de otra hoja
+- **WHEN** la persona usa "Mostrame" en una misión cuyo ajuste está en otra hoja, o con el cuaderno plegado
+- **THEN** la V2 abre el cuaderno en esa hoja, marca el ajuste y le pasa el foco
+
+#### Scenario: Lo que no aplica, oculto
+- **WHEN** la red de Aprender tiene una sola capa oculta
+- **THEN** los ajustes de neuronas de las capas 2 y 3 no se ven, y aparecen al sumar capas
 
 ### Requirement: El escenario se comparte entre etapas
 La pista, los carriles, el tráfico y la velocidad máxima del auto SHALL ser los mismos en todas las etapas con auto, salvo los valores que una etapa fije para su concepto, que SHALL mostrarse como "de esta etapa". Un ejemplo que cambie los sensores o el escenario SHALL avisarlo en el momento.

@@ -327,3 +327,9 @@ Frente a la V1: Aprender ordena sus ajustes por la pregunta que responden ("qui�
 **Para decidir con la elección** [Propuesta]: la spec *Ajustes en tres niveles* pide "Probá esto", "Más" y "Avanzado" plegados. Con hojas, "Probá esto" sigue siendo la primera hoja, pero "Más" y "Avanzado" se reemplazan por hojas con nombre de tema. Si el dueño elige D, `/opsx:update` tendría que cambiar ese requisito (tarea 6.2). KD4 queda resuelto con esto.
 
 **Respuesta del dueño (19 de noviembre de 2026):** aprobó el orden de las hojas de Aprender ("Sí, así"). Todavía no es la elección de una propuesta (tarea 6.1).
+
+## 8. Elección del dueño (tarea 6.1)
+
+**19 de noviembre de 2026.** El dueño eligió la **maqueta D · Cabina con cuaderno**, con el cuaderno en hojas por tema que ya había aprobado ese mismo día. Lo eligió con estas palabras, respondiendo a "¿Elegís D, con el cuaderno en hojas, para la V2?": "Sí, D".
+
+Lo que queda abierto de la crítica de D pasa a la fase 3 como tareas: KD9 (el tono de la élite), KD10 (el brillo del dibujo y la fluidez) y KD12 (la pantalla del Laboratorio). El detalle está en `design.md`, en *D-elegida*.

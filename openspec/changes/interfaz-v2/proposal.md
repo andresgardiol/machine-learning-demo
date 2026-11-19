@@ -91,7 +91,7 @@ La V2 no suma features: las rediseña. El filtro se responde para lo que es nuev
 | Feature visible | 1. ¿Qué concepto hace visible? | 2. ¿Se entiende sola? | 3. ¿El mentor la ignora u oculta? | 4. ¿Uso indebido y vuelta atrás? |
 |---|---|---|---|---|
 | La V2 como recorrido de cinco preguntas | Que cada técnica nace de la limitación de la anterior: manejar, programar, aprender, evaluar, entender. | Sí, si cada etapa abre con su pregunta y cierra con la que sigue. Se verifica en las maquetas. | Sí. Puede saltar a cualquier etapa en cualquier momento, sin bloqueos ni orden obligado. | No hay forma de romperla: cada etapa arranca sola y se reinicia. El enlace "Volver a la V1" siempre está. |
-| Ajustes en niveles ("Probá esto", "Más", "Avanzado") | Qué perilla importa para el concepto de la etapa. | Sí: arriba, a lo sumo tres ajustes, con su efecto a la vista. | Sí. Puede abrir "Avanzado", y la V2 recuerda que lo tiene abierto. | Cada nivel tiene "Restablecer" con su alcance escrito, y "Deshacer" si se pierde trabajo. |
+| Cuaderno de ajustes en hojas por tema (elegido en la maqueta D) | Qué perilla importa para el concepto de la etapa y a qué pregunta responde cada grupo. | Sí: la primera hoja trae la misión y a lo sumo tres ajustes, y ninguna hoja desplaza. | Sí. Abre cualquier hoja, la V2 recuerda cuál, y pliega el cuaderno para mostrar la escena. | Cada hoja tiene "Restablecer" con su alcance escrito, y "Deshacer" si se pierde trabajo. |
 | Enlace entre versiones | Ninguno: es para comparar. | Sí, es un enlace con su nombre. | Sí: es chico y está en la barra superior. | Ninguno de los dos enlaces pierde lo que se aprendió, porque los cerebros se comparten. |
 
 ## Públicos
