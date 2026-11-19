@@ -324,8 +324,8 @@ seguro y ningún muro dura más de 7 s (medido con mil semillas). Restablecer vu
 abierto, esperando al dueño:
 - los programas de ejemplo de Reglas no cumplen sus escenarios con el tráfico nuevo (tarea 10.1; no se cambiaron);
 - volver a entrenar los cerebros de ejemplo (tarea 10.3), que hoy chocan en 10 de 10 tráficos nuevos;
-- la fluidez de "Todos en carrera" baja un 18 % por la carga de los rayos (tarea 11.2), y no se midió con el
-  navegador a la vista;
+- la fluidez de "Todos en carrera" baja un 18 % por la carga de los rayos (tarea 11.2, aceptado por el dueño:
+  sigue muy por encima de 20x); falta medirla con el navegador a la vista (en *Para probar a mano*);
 - verificar que la población aprende con el tráfico nuevo (no se entrenó para verificar).
 
 Lo medido está en `openspec/changes/trafico-vivo/tasks.md` y en `borradores/trafico-vivo/` (encierros, después y
@@ -337,7 +337,8 @@ queda (otro cambio). Lo que quedó, en *V2 de la interfaz*, abajo.
 
 ## Para probar a mano (dueño)
 
-- `trafico-vivo`: con el navegador a la vista, Entrenar con 500 autos y El problema con densidad 100 % (fluidez);
+- `trafico-vivo`: con el navegador a la vista, Entrenar con 500 autos y El problema con densidad 100 % (fluidez:
+  cuadros por segundo; sin ventana, "Todos en carrera" bajó un 18 %, de unos 130x a unos 106x, aceptado);
   si se entiende sin explicación que los carriles van a distinto ritmo; y que la población aprende con el tráfico
   nuevo (con la configuración por defecto y con irregularidad 50 %).
 - **Cerebros guardados con el tráfico viejo:** siguen cargando, porque la red no cambia, pero se entrenaron con filas
