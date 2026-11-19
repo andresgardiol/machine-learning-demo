@@ -65,6 +65,7 @@ Ninguna.
   - vehículos superados contados por vehículo;
   - el estado por defecto del entrenamiento, que hoy habla de filas alineadas.
 - `pestana-conducir`: los vehículos superados se cuentan con el largo de cada vehículo.
+- `pestana-entrenar` (sumado al cerrar, con el dueño): "Seguir al tráfico no la cumple" vale siguiendo al carril más lento; con carriles a distinto ritmo, seguir a uno rápido supera a los de los carriles lentos.
 - `pestana-reglas` (sumado durante la implementación, con el dueño): con carriles a distinto ritmo, el ejemplo de tres sensores supera a los de los carriles lentos; cambian "Tres sensores cortos" y los dos "Frenar no alcanza", y la pestaña pasa a la semilla 516.
 
 ## Impact

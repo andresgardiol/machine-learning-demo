@@ -531,7 +531,7 @@ un solo renglón con el panel en su ancho por defecto.
 - **THEN** la misión de superar vehículos muestra 3 de 5
 
 #### Scenario: Seguir al tráfico no la cumple
-- **WHEN** un auto recorre 600 metros detrás del primer vehículo del tráfico
+- **WHEN** un auto recorre 600 metros detrás del primer vehículo del carril más lento del tráfico
 - **THEN** la misión de superar vehículos sigue en 0 de 5
 
 ### Requirement: Controles de la pestaña explicados

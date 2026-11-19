@@ -122,3 +122,7 @@ Quién hace qué: todo este cambio lo implementa una sub-sesión Opus 5.5 medium
 ## Workflow follow-up
 
 - La sub-sesión no hace push ni archiva. El dueño revisa, prueba el aprendizaje con el tráfico nuevo y decide cuándo archivar.
+
+## Después de archivar
+
+- Decisiones del dueño (vía la sesión principal, 2026-11-19) sobre los tres puntos de spec, aplicadas en las deltas de este archivo y en las specs principales: "Auto detrás del tráfico" pasa a "a menos de 6 m/s" (`neuroevolucion`); "Se choca con la medida real" pasa a "a más de un largo y medio de auto de su centro" (`trafico`); "Seguir al tráfico no la cumple" aclara "del carril más lento" (`pestana-entrenar`, delta MODIFIED nueva). El cambio ya estaba archivado cuando llegaron, así que se corrigieron las dos copias.

@@ -65,7 +65,7 @@ SHALL ser el logrado hasta ese momento. Con la regla apagada, ningún auto sale
 de carrera por lento.
 
 #### Scenario: Auto detrás del tráfico
-- **WHEN** con la regla encendida un auto avanza a 6 m/s o menos durante 5 segundos simulados
+- **WHEN** con la regla encendida un auto avanza a menos de 6 m/s durante 5 segundos simulados
 - **THEN** queda fuera de carrera con el motivo "demasiado lento" y deja de contarse entre los autos en carrera
 
 #### Scenario: Esperar el hueco no elimina

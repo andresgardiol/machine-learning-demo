@@ -35,7 +35,7 @@ El tráfico SHALL mezclar cuatro tipos de vehículo: moto, auto, camioneta y cam
 - **THEN** el camión es más largo y más ancho que el auto, y la moto, más corta y más angosta
 
 #### Scenario: Se choca con la medida real
-- **WHEN** el auto toca el extremo trasero de un camión, a más de dos largos de auto de su centro
+- **WHEN** el auto toca el extremo trasero de un camión, a más de un largo y medio de auto de su centro
 - **THEN** el choque cuenta
 
 #### Scenario: Los sensores ven la medida real
