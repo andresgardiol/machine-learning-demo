@@ -6,6 +6,7 @@ import { createLibrary } from '../ui/library.js';
 import { createV2Preferences } from './preferences.js';
 import { installTooltips } from './components/tooltip.js';
 import { createShell } from './shell/shell.js';
+import * as audit from './audit.js';
 
 document.getElementById('fallback')?.remove();
 
@@ -39,4 +40,8 @@ const tooltips = installTooltips({ doc: document, i18n, hintsOn: () => prefs.hin
 const stageModules = {};
 shell = createShell({ root: document.getElementById('app'), i18n, prefs, stageModules, services: { library, tooltips } });
 
-window.mlLab = { v2: { shell, i18n, prefs, library, tooltips, dictionaries, stageModules } };
+window.mlLab = { v2: {
+  shell, i18n, prefs, library, tooltips, dictionaries, stageModules,
+  auditTooltips: audit.auditTooltips, auditPrimary: audit.auditPrimary, auditTargets: audit.auditTargets,
+  auditOverflow: audit.auditOverflow, auditSheets: audit.auditSheets, auditTexts: audit.auditTexts, auditAll: audit.auditAll,
+} };

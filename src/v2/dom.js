@@ -30,3 +30,14 @@ export function setAttr(node, name, value) {
   const v = String(value);
   if (node.getAttribute(name) !== v) node.setAttribute(name, v);
 }
+
+/**
+ * Texto traducido que cambia en vivo: deja la clave y los parámetros en data-i18n (así un cambio de
+ * idioma lo vuelve a traducir) y escribe el texto solo si cambió.
+ */
+export function tr(node, i18n, key, params = null) {
+  setAttr(node, 'data-i18n', key);
+  if (params) setAttr(node, 'data-i18n-params', JSON.stringify(params)); else node.removeAttribute('data-i18n-params');
+  const text = i18n.t(key, params ?? undefined);
+  if (node.textContent !== text) node.textContent = text;
+}

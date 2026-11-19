@@ -5,7 +5,7 @@
   /* 1. Referencia */
   --a-petroleo-950: #0b1416; --a-petroleo-900: #0f1c1f; --a-petroleo-850: #13262a; --a-petroleo-800: #1a3236;
   --a-petroleo-700: #24454a; --a-niebla-300: #9fb6b9; --a-niebla-100: #e9f1f2;
-  --a-senal-400: #f4d23c; --a-senal-200: #fbe98f; --a-celeste-300: #8fd3ff;
+  --a-senal-400: #f4d23c; --a-senal-200: #fbe98f; --a-celeste-300: #8fd3ff; --a-lavanda-300: #c9a7ff;
   --a-verde-400: #43d17a; --a-agua-400: #36d6c3; --a-rosa-500: #ff5c8a; --a-rojo-400: #ff5a6a;
   --a-pasto-900: #0e2422; --a-pasto-800: #12302c; --a-asfalto: #1d2629; --a-tiza: #dfe7e8;
   --a-fuente-num: "DIN Alternate", "DIN Condensed", "Bahnschrift", "Arial Narrow", sans-serif;
@@ -31,9 +31,11 @@
   --color-sidewalk: #172427; --color-crosswalk: var(--a-tiza); --color-kerb-a: #c8d3d4; --color-kerb-b: #8e2b36; --color-stand: #20393d;
   --color-car: var(--a-verde-400); --color-car-crashed: var(--a-rojo-400); --color-car-glass: #10302a;
   --color-headlight: #fff3b0; --color-taillight: #ff4d5e; --color-traffic: #9db2b7;
-  --color-sensor: var(--a-celeste-300); --color-sensor-hit: var(--a-rojo-400); --color-elite: var(--a-senal-400);
+  --color-sensor: var(--a-celeste-300); --color-sensor-hit: var(--a-rojo-400);
+  /* KD9: la élite tiene su tono, distinto del amarillo de la acción (un color, un significado). */
+  --color-elite: var(--a-lavanda-300);
   --color-competitor-1: #43d17a; --color-competitor-2: #ff7ab6; --color-competitor-3: #ffd23f;
-  --color-competitor-4: #7cc4ff; --color-competitor-5: #c79bff; --color-competitor-6: #ff9d4d;
+  --color-competitor-4: #7cc4ff; --color-competitor-5: #b8f27c; --color-competitor-6: #ff9d4d;
   /* red */
   --color-neuron: var(--a-petroleo-850); --color-neuron-active: #f3fbff;
   --color-weight-positive: var(--a-agua-400); --color-weight-negative: var(--a-rosa-500);
