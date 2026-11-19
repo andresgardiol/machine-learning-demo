@@ -316,12 +316,32 @@ archivado el mismo día, con las specs sincronizadas; lo que quedó, en *V2 de l
 
 ## En curso
 
-Ningún cambio abierto. Lo que sigue es una decisión del dueño: revisar la V2, probarla con el guion de cinco tareas
+`trafico-vivo` (19 de noviembre de 2026), implementado por una sub-sesión, sin archivar. El tráfico de la calle
+dejó las filas: cada carril va a su velocidad (de 6 a 10 m/s, el dueño decidió quedarse con velocidades distintas
+después de ver la medición de encierros), hay motos, autos, camionetas y camiones, y la irregularidad hace
+zigzaguear a cada vehículo dentro de su carril. Garantía nueva, "nunca te encierran": seguir al de tu carril es
+seguro y ningún muro dura más de 7 s (medido con mil semillas). Restablecer vuelve al tráfico de la semilla. Queda
+abierto, esperando al dueño:
+- los programas de ejemplo de Reglas no cumplen sus escenarios con el tráfico nuevo (tarea 10.1; no se cambiaron);
+- volver a entrenar los cerebros de ejemplo (tarea 10.3), que hoy chocan en 10 de 10 tráficos nuevos;
+- la fluidez de "Todos en carrera" baja un 18 % por la carga de los rayos (tarea 11.2), y no se midió con el
+  navegador a la vista;
+- verificar que la población aprende con el tráfico nuevo (no se entrenó para verificar).
+
+Lo medido está en `openspec/changes/trafico-vivo/tasks.md` y en `borradores/trafico-vivo/` (encierros, después y
+comparación con capturas).
+
+Lo que sigue después es una decisión del dueño: revisar la V2, probarla con el guion de cinco tareas
 (`openspec/changes/archive/2026-11-19-interfaz-v2/analisis/guion-cinco-tareas.md`) y decidir con cuál versión se
 queda (otro cambio). Lo que quedó, en *V2 de la interfaz*, abajo.
 
 ## Para probar a mano (dueño)
 
+- `trafico-vivo`: con el navegador a la vista, Entrenar con 500 autos y El problema con densidad 100 % (fluidez);
+  si se entiende sin explicación que los carriles van a distinto ritmo; y que la población aprende con el tráfico
+  nuevo (con la configuración por defecto y con irregularidad 50 %).
+- **Cerebros guardados con el tráfico viejo:** siguen cargando, porque la red no cambia, pero se entrenaron con filas
+  a 10 m/s y manejan peor en la calle nueva. No se migran. Los de ejemplo, igual, hasta la tarea 10.3.
 - V2 (`interfaz-v2`): la fluidez a la vista de los cinco casos de `borradores/interfaz-v2/comparacion/fluidez.md`
   (sin ventana todo dio el tope de 60 c/s); el corte de generación de Aprender por evolución con la página a la
   vista; arrastrar las perillas y el punto de prueba de Por gradiente y las fichas de Reglas con el mouse.
@@ -568,7 +588,13 @@ arreglarlos de a uno.
     - agrupar con superficies y espacio en vez de contornos. Choca con el
       contorno de 3:1 que pide `accesibilidad` para reconocer un control.
   - Va antes o junto con los cambios que tocan la disposición.
-- **Un auto que se parezca al de la vista previa.** Pedido del dueño (18 de
+- **Un auto que se parezca al de la vista previa, y el tráfico con la misma estética** (lo próximo después de
+  `trafico-vivo`). Cambio de diseño visual con una sub-sesión Fable 5.2 medium, con la estética de
+  `assets/og-image.png` y capas que se puedan recolorear, para el auto propio y los cuatro tipos del tráfico.
+  Parte de las medidas que fijó `trafico-vivo` (D3): moto 2,2 × 0,9 m, auto 4 × 2, camioneta 5,2 × 2,2 y camión
+  10 × 2,5 (ninguno más largo que 10 m sin cambiar la cota de los muros). El dibujo de hoy es provisorio: la
+  silueta del auto escalada, la moto con un faro y el camión con la cabina marcada (`drawVehicle` en
+  `src/render/view.js`). Pedido original del dueño (18 de
   noviembre de 2026): "Me encantó la imagen para las previews del link. Me
   gustaría que el auto se asemeje más al de la imagen". La imagen es
   `assets/og-image.png` (la que muestran los enlaces compartidos).
@@ -593,9 +619,8 @@ arreglarlos de a uno.
 - Cerebros incluidos elegidos por el dueño.
 - Elegir con un clic qué auto seguir en el entrenamiento.
 - Entrenar en segundo plano (Web Worker).
-- **Tráfico menos regular y con variedad de vehículos** (importante para el
-  dueño, 18 de noviembre de 2026). Detalle en *Entrenar, tráfico y
-  aprendizaje*, "Tráfico menos regular".
+- **Tráfico menos regular y con variedad de vehículos**: implementado en
+  `trafico-vivo`, sin archivar (ver *En curso*).
 - Lo que quedó fuera de alcance en cada cambio (Competir, circuitos,
   operación por operación, punto de prueba, vista de la red, Inspeccionar,
   Laboratorio, compuertas, panel de entrenar). Está al final de cada nota de
@@ -945,65 +970,17 @@ arreglarlos de a uno.
   a costa de duplicar el estado para dibujarlo y de cuidar la
   reproducibilidad.
 
-- **Tráfico menos regular y con variedad de vehículos.** Pedido del dueño
-  (18 de noviembre de 2026), con una captura de Entrenar en la generación 61:
-  "El tráfico es demasiado regular, la densidad solo cambia cuántos van de
-  costado, pero todos aparecen a la misma distancia vertical [...] no ayuda
-  al auto a aprender más generalizadamente. La irregularidad solo los mueve
-  unos píxeles de su carril, arriba y abajo. Además me gustaría variedad:
-  camiones grandes, motos pequeñas, camionetas medianas, para que sea más
-  diverso y menos aburrido". Junta y reemplaza las dos notas anteriores
-  ("Más variedad en el tráfico con densidad alta" y "Otros tipos de
-  vehículos").
-  - Lo que dice el código hoy (leído en `src/core/traffic.js` y
-    `constants.js`, sin correr):
-    - el tráfico se arma en **grupos**: filas de vehículos a la misma distancia,
-      uno por carril ocupado. La densidad cambia la separación entre grupos
-      (de 80 m a 24 m, centro a centro) y cuántos carriles ocupa cada grupo
-      (de 1 a `carriles - 1`);
-    - la irregularidad mueve cada vehículo dentro de su grupo, como mucho
-      `TRAFFIC_MAX_STAGGER` = 4 m (un largo de auto) hacia adelante o atrás,
-      acotado además a (separación − 20 m) / 6. Con los valores por defecto
-      (densidad 50 % e irregularidad 50 %) da unos ±2 m: medio auto. También
-      lo corre de costado dentro del carril, y reparte un poco más desparejas
-      las separaciones entre grupos;
-    - todos los vehículos van a la misma velocidad (`TRAFFIC_SPEED` = 10 m/s)
-      y miden lo mismo (4 × 2 m), así que el tráfico se mueve como un bloque
-      rígido;
-    - a densidad máxima, la separación promedio (24 m) casi coincide con el
-      mínimo permitido (unos 21 m), así que el sorteo solo varía unos 3 m.
-  - Por qué importa para el ADN (análisis de Claude): la etapa "¿generaliza?"
-    necesita que el auto vea casos variados. Con filas a distancias parejas,
-    la red puede aprender un ritmo ("cada tanto aparece una fila") en vez de
-    mirar los sensores. Sirve, pero enseña menos de lo que podría.
-  - Direcciones posibles (hipótesis, sin probar):
-    - dejar de pensar en grupos y ubicar cada vehículo por su cuenta, con una
-      regla que garantice que nunca se cierran todos los carriles al auto
-      principal; o mantener los grupos pero dejar que la irregularidad los
-      desarme de verdad (adelantos de varios largos, tramos cargados y tramos
-      vacíos);
-    - velocidades distintas por tipo o por vehículo, para que el tráfico no se
-      mueva como un bloque (exige revisar que no se choquen entre sí);
-    - **tipos de vehículo**: motos (angostas y cortas), autos, camionetas
-      (medianas) y camiones (largos y anchos), cada uno con su contorno de
-      choque y su dibujo siempre dentro de ese contorno (Art. 7). Revisar el
-      hueco mínimo y el carril libre según el largo: un camión largo ocupa más;
-    - un ajuste de "variedad de vehículos" en la barra de escenario, o que la
-      irregularidad también la controle (a definir con el dueño).
-  - A tener en cuenta:
-    - determinismo (Art. 8): misma semilla, mismo tráfico. Pero cambiar cómo se
-      genera cambia el tráfico de todas las semillas;
-    - los cerebros guardados y los de ejemplo se entrenaron con el tráfico de
-      hoy: hay que medir cuánto empeoran, y quizás volver a entrenar los de
-      ejemplo;
-    - varias specs dependen del tráfico actual: los escenarios de los
-      programas de ejemplo de Reglas a mano ("Siete sensores supera al menos
-      10"), las misiones y las medidas de aprendizaje de
-      `fitness-que-premia-superar`. Hay que revisarlas con el tráfico nuevo;
-    - fluidez (Art. 10): más formas para dibujar y más contornos para probar
-      choques por cuadro, con toda la población de Entrenar en pantalla;
-    - el sensor tiene que leer bien un vehículo angosto (moto) con pocos rayos:
-      puede pasar entre dos rayos sin que lo vea, y eso también enseña algo.
+- **Tráfico menos regular y con variedad de vehículos: hecho en `trafico-vivo`** (19 de noviembre de 2026, sin
+  archivar). Pedido del dueño del 18 de noviembre, con una captura de Entrenar en la generación 61. Quedó:
+  - una corriente por carril, cada una a su velocidad (6, 8 y 10 m/s con tres carriles, sorteadas por la semilla),
+    con huecos de al menos cuatro largos de auto y arranque escalonado;
+  - cuatro tipos con su contorno de choque; los sensores y los choques usan la medida real;
+  - la irregularidad: zigzag lento dentro del carril (sin salir nunca) y huecos desparejos;
+  - "nunca te encierran" en lugar de "siempre superable": a veces hay que esperar el hueco. Con la calle por
+    defecto, un auto derecho a 20 m/s se cruza un muro cada 4,8 km; con 2 carriles y la calle llena, uno cada
+    215 m. Con irregularidad 100 %, los muros pueden encadenarse junto a un camión lento hasta 25 s, con un hueco
+    de 16 m en el carril rápido entre uno y otro;
+  - lo abierto, en *En curso*, arriba.
 
 ## Competir y circuitos
 

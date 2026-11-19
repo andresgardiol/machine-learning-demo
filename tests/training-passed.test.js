@@ -28,10 +28,10 @@ const brainOf = (network) => createBrain({
 
 /**
  * El individuo 0 va siempre derecho a fondo; los otros 29 son redes al azar (fuerza 100), así la
- * generación sigue cuando el 0 choca. Con la semilla 4 supera los primeros de los otros dos carriles
+ * generación sigue cuando el 0 choca. Con la semilla 11 supera los primeros de los otros dos carriles
  * y choca con el primero del suyo.
  */
-const straightRunner = ({ seed = 4, ...config } = {}) => createTraining({
+const straightRunner = ({ seed = 11, ...config } = {}) => createTraining({
   seed,
   config: { population: 30, mutationStrength: 100, mutationCooling: false, irregularity: 0, slowRule: false, maxSpeed: 20, ...config },
   brain: brainOf(fixedNetwork([1, 0, 0, 0])),

@@ -27,7 +27,9 @@ export const ALLOWED_LANES = [2, 3, 4];
 export const TRAFFIC_SPEEDS = Object.freeze({ min: 6, max: 10 });
 export const MIN_LANE_GAP_CAR_LENGTHS = 4; // hueco mínimo dentro de un carril, de paragolpes a paragolpes, en largos de auto
 export const TRAFFIC_FIRST_VEHICLE = 35; // distancia (m) desde la que empieza cada carril: visible al abrir con la calle vertical
-export const TRAFFIC_LANE_PHASE = 60; // cada carril empieza hasta esta distancia más adelante (m), al azar: sin filas al abrir
+// Los carriles arrancan escalonados de a esta distancia (m), en un orden sorteado: al abrir no hay fila
+// ni muro (dos camiones tapan juntos a lo sumo 14 m) y el primer vehículo queda a la vista.
+export const TRAFFIC_LANE_STAGGER = 15;
 // Separación entre grupos de hoy (centro a centro) con que se calcula la casilla media de un carril (D4).
 export const TRAFFIC_MIN_SPACING = 24; // a densidad máxima (m)
 export const TRAFFIC_SPACING_RANGE = 56; // se suma a la anterior cuando la densidad tiende a 0 (m)

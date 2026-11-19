@@ -19,7 +19,7 @@
 import { fromAngle, leftOf, add, scale, rectCorners } from './geometry.js';
 import { deriveSeed, randomFor, createRandom } from './random.js';
 import {
-  CAR_LENGTH, MIN_LANE_GAP_CAR_LENGTHS, TRAFFIC_BLOCK_VEHICLES, TRAFFIC_FIRST_VEHICLE, TRAFFIC_LANE_PHASE,
+  CAR_LENGTH, MIN_LANE_GAP_CAR_LENGTHS, TRAFFIC_BLOCK_VEHICLES, TRAFFIC_FIRST_VEHICLE, TRAFFIC_LANE_STAGGER,
   TRAFFIC_MIN_SPACING, TRAFFIC_SPACING_RANGE, TRAFFIC_SPEEDS, VEHICLE_TYPES, ZIGZAG_MARGIN,
   ZIGZAG_MAX_TURN, ZIGZAG_PERIOD,
 } from './constants.js';
@@ -107,8 +107,11 @@ export function createTraffic({ seed, track, density = DEFAULT_TRAFFIC.density, 
   const laneSpeeds = Object.freeze(laneSpeedsFor(seed, lanes));
   const fastestSpeed = Math.max(...laneSpeeds);
   const slowestSpeed = Math.min(...laneSpeeds);
+  // Orden sorteado en que arrancan los carriles, escalonados de a TRAFFIC_LANE_STAGGER.
   const phaseRnd = createRandom(deriveSeed(seed, PHASE_STREAM + lanes));
-  const laneStart = laneSpeeds.map(() => TRAFFIC_FIRST_VEHICLE + phaseRnd() * Math.min(TRAFFIC_LANE_PHASE, Number.isFinite(slot) ? slot : 0));
+  const order = laneSpeeds.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(phaseRnd() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  const laneStart = order.map((k) => TRAFFIC_FIRST_VEHICLE + k * TRAFFIC_LANE_STAGGER);
   const laneSeeds = laneSpeeds.map((_, i) => deriveSeed(seed, LANE_STREAM + i));
   const amplitudes = new Map(VEHICLE_TYPES.map((t) => [t.type, r * zigzagAmplitude(track.laneWidth, t.length, t.width)]));
 
