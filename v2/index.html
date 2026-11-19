@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laboratorio de machine learning · V2</title>
+  <meta name="description" content="La segunda versión de la interfaz del laboratorio de machine learning, para compararla con la primera.">
+  <meta name="theme-color" content="#0b1416">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/favicon.png" type="image/png" sizes="32x32">
+  <link rel="stylesheet" href="../styles/v2/tokens.css">
+  <link rel="stylesheet" href="../styles/v2/app.css">
+</head>
+<body>
+  <!-- Aviso de respaldo, oculto de entrada para que no destelle mientras cargan los módulos. Se muestra si la
+       página se abrió como archivo (doble clic) o si el módulo de arranque no carga; si la V2 arranca, main.js lo elimina. -->
+  <div id="fallback" class="fallback" role="alert" hidden>
+    <p><strong>Esta aplicación necesita un servidor local.</strong>
+       Abrila con <code>npm start</code> y visitá <code>http://localhost:8000/v2/</code>.</p>
+    <p><strong>This app needs a local server.</strong>
+       Run <code>npm start</code> and visit <code>http://localhost:8000/v2/</code>.</p>
+  </div>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('fallback').hidden = false;
+  </script>
+  <div id="app"></div>
+  <script type="module" src="../src/v2/main.js"
+          onerror="var f = document.getElementById('fallback'); if (f) f.hidden = false;"></script>
+</body>
+</html>

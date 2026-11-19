@@ -141,6 +141,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .topbar .lang-option { padding: 0 var(--space-2); font-size: var(--text-body); min-height: var(--control-h-sm); }
 .topbar .tool { padding: 2px var(--space-2); font-size: var(--text-label); min-height: 24px; } /* barra densa: la altura compacta (D8) */
 .credits-icon { display: none; }
+/* Enlace a la V2 (interfaz-v2): por debajo de 1240 px se acorta a "V2", como Créditos. */
+.v2-link-short { display: none; }
+@media (max-width: 1239.98px) { .v2-link-label { display: none; } .v2-link-short { display: inline; } }
 @media (max-width: 1239.98px) {
   .credits-label { display: none; }
   .credits-icon { display: inline-grid; place-items: center; width: 16px; height: 16px; border: 1px solid currentColor; border-radius: var(--radius-round); font-size: var(--text-label); font-weight: var(--weight-bold); font-style: italic; }

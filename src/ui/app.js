@@ -119,10 +119,20 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     on: { click: () => openCredits() },
   }, el('span', { class: 'credits-label', i18n: 'app.credits', attrs: { 'aria-hidden': 'true' } }), el('span', { class: 'credits-icon', attrs: { 'aria-hidden': 'true' } }, 'i'));
 
+  // "Probar la V2" (interfaz-v2): enlace terciario a la nueva versión, en otra pestaña para no detener lo que
+  // está en marcha acá, y en el idioma activo. Los cerebros guardados se comparten entre las dos.
+  // Por debajo de 1240 px se acorta a "V2", como "Créditos" (el nombre accesible sigue completo).
+  const v2Link = el('a', { class: 'link-button v2-link', help: 'v2link', i18nAttr: 'aria-label:app.tryV2', attrs: { target: '_blank', rel: 'noopener' } },
+    el('span', { class: 'v2-link-label', i18n: 'app.tryV2', attrs: { 'aria-hidden': 'true' } }),
+    el('span', { class: 'v2-link-short', attrs: { 'aria-hidden': 'true' } }, 'V2'));
+  const updateV2Link = () => v2Link.setAttribute('href', `v2/?lang=${i18n.language}`);
+  updateV2Link();
+  i18n.onChange(updateV2Link);
+
   const header = el('header', { class: 'topbar' },
     el('div', { class: 'brand', i18n: 'app.title' }),
     tabBar,
-    el('div', { class: 'tools' }, guideSwitch, hintsSwitch, shortcutsSwitch, languageGroup, creditsButton));
+    el('div', { class: 'tools' }, guideSwitch, hintsSwitch, shortcutsSwitch, languageGroup, v2Link, creditsButton));
 
   // --- Disposición común: escenario, tablero y panel (en ese orden de foco) ----
   const stage = el('section', { class: 'stage', i18nAttr: 'aria-label:app.stage', attrs: { tabindex: '-1' } });

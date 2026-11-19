@@ -1,0 +1,60 @@
+/* V2 · tokens en tres capas (design.md D-elegida), a partir de borradores/interfaz-v2/maquetas/d/tokens.css.
+   1) referencia: valores crudos; 2) semántica: significados, incluidas las variables que leen los
+   pintores de canvas de la V1 (COLOR_VARS de src/render/*.js y plane-view.js); 3) componente. */
+:root {
+  /* 1. Referencia */
+  --a-petroleo-950: #0b1416; --a-petroleo-900: #0f1c1f; --a-petroleo-850: #13262a; --a-petroleo-800: #1a3236;
+  --a-petroleo-700: #24454a; --a-niebla-300: #9fb6b9; --a-niebla-100: #e9f1f2;
+  --a-senal-400: #f4d23c; --a-senal-200: #fbe98f; --a-celeste-300: #8fd3ff;
+  --a-verde-400: #43d17a; --a-agua-400: #36d6c3; --a-rosa-500: #ff5c8a; --a-rojo-400: #ff5a6a;
+  --a-pasto-900: #0e2422; --a-pasto-800: #12302c; --a-asfalto: #1d2629; --a-tiza: #dfe7e8;
+  --a-fuente-num: "DIN Alternate", "DIN Condensed", "Bahnschrift", "Arial Narrow", sans-serif;
+  --a-fuente-texto: "Avenir Next", "Avenir", "Segoe UI", sans-serif;
+
+  /* 2. Semántica */
+  --color-bg: var(--a-petroleo-950);
+  --color-surface: var(--a-petroleo-900);
+  --color-surface-2: var(--a-petroleo-850);
+  --color-vidrio: rgba(15, 28, 31, 0.86);
+  --color-border: var(--a-petroleo-700);
+  --color-text: var(--a-niebla-100);
+  --color-text-muted: var(--a-niebla-300);
+  --color-accent: var(--a-senal-400);
+  --color-accion: var(--a-senal-400);
+  --color-accion-texto: #1b1a0c;
+  --color-foco: var(--a-senal-200);
+  --color-elegido: var(--a-celeste-300);
+  --color-state-crash: var(--a-rojo-400);
+  /* escena */
+  --color-grass: var(--a-pasto-900); --color-tree: var(--a-pasto-800); --color-tree-dark: #091a18;
+  --color-road: var(--a-asfalto); --color-road-edge: var(--a-tiza); --color-lane-line: #c9b44a;
+  --color-sidewalk: #172427; --color-crosswalk: var(--a-tiza); --color-kerb-a: #c8d3d4; --color-kerb-b: #8e2b36; --color-stand: #20393d;
+  --color-car: var(--a-verde-400); --color-car-crashed: var(--a-rojo-400); --color-car-glass: #10302a;
+  --color-headlight: #fff3b0; --color-taillight: #ff4d5e; --color-traffic: #9db2b7;
+  --color-sensor: var(--a-celeste-300); --color-sensor-hit: var(--a-rojo-400); --color-elite: var(--a-senal-400);
+  --color-competitor-1: #43d17a; --color-competitor-2: #ff7ab6; --color-competitor-3: #ffd23f;
+  --color-competitor-4: #7cc4ff; --color-competitor-5: #c79bff; --color-competitor-6: #ff9d4d;
+  /* red */
+  --color-neuron: var(--a-petroleo-850); --color-neuron-active: #f3fbff;
+  --color-weight-positive: var(--a-agua-400); --color-weight-negative: var(--a-rosa-500);
+  --color-network-input: var(--a-celeste-300); --color-network-current: var(--a-senal-400); --color-network-blame: #ff9d4d;
+  --color-class-a: #7cc4ff; --color-class-b: #ffb347;
+
+  /* 3. Componente */
+  --boton-principal-fondo: var(--color-accion); --boton-principal-texto: var(--color-accion-texto);
+  --boton-secundario-borde: var(--a-niebla-300); --boton-alto: 40px; --boton-alto-chico: 28px;
+  --instrumento-fondo: var(--color-vidrio); --instrumento-borde: rgba(159, 182, 185, 0.22); --instrumento-radio: 14px;
+  --riel-ancho: 72px; --cajon-ancho: 380px; --barra-alto: 48px;
+  --tip-fondo: #f3fbff; --tip-texto: #0b1416;
+  --texto-base: 15px; --texto-chico: 13px; --texto-pregunta: 30px; --texto-numero: 26px;
+}
+
+:root {
+  /* 1. Referencia: el cuaderno oscuro */
+  --d-hoja: #0f1a1d; --d-cuadricula: rgba(159, 182, 185, 0.07); --d-margen: #ff7a8a; --d-resaltador: rgba(244, 210, 60, 0.18);
+  --d-fuente-cuaderno: "Iowan Old Style", "Charter", "Georgia", serif;
+  /* 2. Semántica */
+  --color-cuaderno: var(--d-hoja); --color-cuaderno-linea: var(--d-margen); --color-termino: var(--d-resaltador);
+  /* 3. Componente */
+  --cuaderno-ancho: 400px; --cuaderno-plegado: 40px; --banda-alto: 76px;
+}

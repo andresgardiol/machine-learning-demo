@@ -1,0 +1,42 @@
+// Arranque de la V2 (interfaz-v2). Elimina el aviso de respaldo cuando los módulos cargan.
+import es from './i18n/es.js';
+import en from './i18n/en.js';
+import { createI18n, pickInitialLanguage } from '../ui/i18n.js';
+import { createLibrary } from '../ui/library.js';
+import { createV2Preferences } from './preferences.js';
+import { installTooltips } from './components/tooltip.js';
+import { createShell } from './shell/shell.js';
+
+document.getElementById('fallback')?.remove();
+
+/** Almacenamiento del navegador, o null si no está disponible (el acceso mismo puede fallar). */
+function browserStorage() {
+  try { return window.localStorage ?? null; } catch { return null; }
+}
+let idCounter = 0;
+function newId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  idCounter += 1;
+  return `brain-${Date.now().toString(36)}-${idCounter}`;
+}
+
+const dictionaries = { es, en };
+const prefs = createV2Preferences(browserStorage);
+const asked = new URLSearchParams(location.search).get('lang');
+const i18n = createI18n({
+  dictionaries,
+  language: asked === 'es' || asked === 'en' ? asked : pickInitialLanguage({ stored: prefs.language, browserLanguages: navigator.languages ?? [navigator.language] }),
+});
+// El idioma se comparte con la V1 (design.md D6): al volver, la V1 abre en el mismo.
+prefs.language = i18n.language;
+i18n.onChange((lang) => { prefs.language = lang; });
+
+// La misma biblioteca de cerebros que la V1 (spec *Cerebros compartidos entre versiones*).
+const library = createLibrary({ storage: browserStorage(), clock: () => Date.now(), newId });
+
+let shell = null;
+const tooltips = installTooltips({ doc: document, i18n, hintsOn: () => prefs.hints });
+const stageModules = {};
+shell = createShell({ root: document.getElementById('app'), i18n, prefs, stageModules, services: { library, tooltips } });
+
+window.mlLab = { v2: { shell, i18n, prefs, library, tooltips, dictionaries, stageModules } };

@@ -19,6 +19,17 @@ npm start
 
 Después abrí <http://localhost:8000>. Otro puerto: `PORT=3000 npm start`.
 
+## La V2 de la interfaz
+
+La segunda versión de la interfaz (cambio `interfaz-v2`) convive con la primera para poder compararlas:
+
+- **V1:** <http://localhost:8000/> (la de siempre).
+- **V2:** <http://localhost:8000/v2/>. Cada etapa tiene su dirección: `/v2/#problema`, `#reglas`, `#evolucion`, `#gradiente`, `#evaluar` y `#entender`.
+
+Para pasar de una a la otra: "Probar la V2" en la barra de la V1 (se abre en otra pestaña, así lo que está en marcha sigue) y "Volver a la V1" en la de la V2. Las dos comparten el idioma y la biblioteca de cerebros; las demás preferencias de la V2 usan claves propias (`mlLab.v2.*`). Mientras una etapa no esté en la V2, muestra su pregunta y un enlace a la V1.
+
+Regla de dependencias (la verifica `tests/architecture.test.js`): nada fuera de `src/v2/` importa de `src/v2/`; la V2 importa de `src/core`, `src/data`, `src/render` y `src/input`, y de `src/ui` y `src/tabs` solo módulos sin DOM (salvo `src/ui/loop.js`, que recibe el documento como parámetro).
+
 ## Cómo probar
 
 ```bash
