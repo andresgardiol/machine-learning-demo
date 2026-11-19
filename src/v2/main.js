@@ -7,6 +7,7 @@ import { createV2Preferences } from './preferences.js';
 import { installTooltips } from './components/tooltip.js';
 import { createShell } from './shell/shell.js';
 import * as audit from './audit.js';
+import { createScenario, parseScenario } from './scenario.js';
 
 document.getElementById('fallback')?.remove();
 
@@ -34,14 +35,16 @@ i18n.onChange((lang) => { prefs.language = lang; });
 
 // La misma biblioteca de cerebros que la V1 (spec *Cerebros compartidos entre versiones*).
 const library = createLibrary({ storage: browserStorage(), clock: () => Date.now(), newId });
+// El escenario compartido entre etapas (design.md D7), recordado con clave propia.
+const scenario = createScenario({ initial: parseScenario(prefs.scenario), save: (json) => { prefs.scenario = json; } });
 
 let shell = null;
 const tooltips = installTooltips({ doc: document, i18n, hintsOn: () => prefs.hints });
 const stageModules = {};
-shell = createShell({ root: document.getElementById('app'), i18n, prefs, stageModules, services: { library, tooltips } });
+shell = createShell({ root: document.getElementById('app'), i18n, prefs, stageModules, services: { library, tooltips, scenario } });
 
 window.mlLab = { v2: {
-  shell, i18n, prefs, library, tooltips, dictionaries, stageModules,
+  shell, i18n, prefs, library, tooltips, dictionaries, stageModules, scenario,
   auditTooltips: audit.auditTooltips, auditPrimary: audit.auditPrimary, auditTargets: audit.auditTargets,
   auditOverflow: audit.auditOverflow, auditSheets: audit.auditSheets, auditTexts: audit.auditTexts, auditAll: audit.auditAll,
 } };

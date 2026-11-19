@@ -39,8 +39,12 @@ export function auditTargets(root = document) {
 }
 export function auditOverflow(root = document) {
   const problems = [];
-  for (const e of root.querySelectorAll('.v2-plate, .v2-band, .v2-notebook-head, .v2-sheets, .v2-bar, .v2-rail')) {
+  for (const e of root.querySelectorAll('.v2-plate, .v2-band, .v2-notebook-head, .v2-sheets, .v2-bar')) {
     if (visible(e) && overflows(e)) problems.push({ reason: 'zona que desborda', element: e, detail: e.className });
+  }
+  // El riel solo cuenta por el alto: la pregunta que aparece a su lado al posar el cursor sale a propósito.
+  for (const e of root.querySelectorAll('.v2-rail')) {
+    if (visible(e) && overflows({ scrollHeight: e.scrollHeight, clientHeight: e.clientHeight })) problems.push({ reason: 'zona que desborda', element: e, detail: e.className });
   }
   for (const e of root.querySelectorAll('body *')) {
     if (!visible(e) || !e.childNodes.length) continue;
