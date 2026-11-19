@@ -261,7 +261,7 @@ El reparto exacto, control por control, está en la tabla de la §7 de la compar
 **Componentes** (los 24 de D, más las hojas):
 - armazón: riel de etapas, placa de pregunta y acción, banda del contrato, y cuaderno con pestañas de hojas, pliegue y lengüeta;
 - dentro de las hojas: grilla de ajustes, nota de misión con "Mostrame", término definido al margen y rótulo "de esta etapa";
-- generales: aviso con "Deshacer", botón en cuatro niveles, deslizador, grupo de segmentos, interruptor y tooltip con indicio constante (un punto en la esquina, como en A);
+- generales: aviso con "Deshacer", botón en cuatro niveles, deslizador, grupo de segmentos, interruptor y tooltip. El aviso de que hay tooltips es un mensaje la primera vez, más un subrayado punteado tenue en los nombres de los ajustes. El punto en la esquina de cada control, que venía de A, se quitó el 19 de noviembre de 2026 por pedido del dueño ("quedan muy mal");
 - de Aprender: corte y tarjeta de generación, curva y red del líder en una franja bajo la escena (KD6);
 - de Entender y Evaluar: tarjeta de la neurona, marcador y tabla por pista.
 

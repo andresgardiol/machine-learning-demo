@@ -240,6 +240,14 @@ La disposición es la de la maqueta D (design.md *D-elegida*). `borradores/inter
 - [x] 16.7 Dejarle al dueño un guion de cinco tareas para probar la V2 con una persona que llega sola (design.md D2), y actualizar `PENDIENTES.md` con lo que quedó. Verificación: el guion está en `analisis/` y `PENDIENTES.md` nombra el cambio.
   *Hecho: `analisis/guion-cinco-tareas.md` (cinco tareas con lo que cumple cada una y qué mirar) y `PENDIENTES.md` nombra `interfaz-v2` en *En curso*, en *Para probar a mano* y en una sección *V2 de la interfaz* con lo que quedó.*
 
+## 17. Revisión del dueño sobre la V2
+
+- [ ] 17.1 Quitar el punto de ayuda de la esquina de cada control (el dueño, el 19 de noviembre de 2026: "No entiendo qué son estos puntos en cada cosa, quedan muy mal"). En su lugar va lo que pide la spec *Ayudas con nombre claro*:
+  - un aviso la primera vez, que se cierra y se recuerda en `mlLab.v2.*`, con textos en los dos idiomas y tooltip en su botón de cerrar;
+  - un subrayado punteado tenue en los nombres de los ajustes.
+
+  Actualizar la auditoría de `src/v2/audit.js` y sus pruebas, y sacar capturas de antes y después de Reglas a mano y de Aprender a 1440×900. Verificación: escenarios *Aviso de las ayudas* y *Sin marcas sobre los controles*, `npm test`, y la auditoría de tooltips sigue en 0.
+
 ## Workflow follow-up
 
 - El dueño compara la V1 y la V2 y decide con cuál se queda. Hacer de la V2 la versión por defecto, o quitar la V1, es otro cambio.

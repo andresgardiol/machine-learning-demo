@@ -204,7 +204,7 @@ La V2 SHALL usar "Reiniciar" para volver a empezar una corrida y "Restablecer" p
 - **THEN** el auto vuelve a la salida y los ajustes del escenario no cambian
 
 ### Requirement: Ayudas con nombre claro
-La V2 SHALL ofrecer un único control con nombre claro para ocultar lo que guía al principiante (consignas largas, misiones y explicaciones), con nombre accesible y tooltip. Los tooltips SHALL seguir disponibles con la guía oculta. Los controles con ayuda SHALL mostrar un indicio visual constante de que la tienen.
+La V2 SHALL ofrecer un único control con nombre claro para ocultar lo que guía al principiante (consignas largas, misiones y explicaciones), con nombre accesible y tooltip. Los tooltips SHALL seguir disponibles con la guía oculta.
 
 #### Scenario: Ocultar la guía
 - **WHEN** el mentor oculta la guía
@@ -214,9 +214,16 @@ La V2 SHALL ofrecer un único control con nombre claro para ocultar lo que guía
 - **WHEN** el mentor vuelve a mostrarla
 - **THEN** todo lo oculto reaparece en el mismo lugar
 
-#### Scenario: Indicio de tooltip
-- **WHEN** la persona mira un control con tooltip
-- **THEN** ve un indicio de que tiene ayuda sin pasar el cursor por encima
+### Requirement: Aviso de que hay ayuda
+Que los controles tienen ayuda SHALL anunciarse sin marcas sobre cada control. La primera vez que se abre la V2, un aviso breve que se puede cerrar SHALL decir que todo control explica qué hace al posar el cursor o al llegar con el teclado. Los nombres de los ajustes (los textos que nombran un concepto) SHALL llevar un subrayado punteado tenue. El aviso SHALL estar en los dos idiomas, y su botón de cerrar, tener tooltip.
+
+#### Scenario: Aviso de las ayudas
+- **WHEN** la persona abre la V2 por primera vez
+- **THEN** ve un aviso breve que dice que todo control explica qué hace al posar el cursor; al cerrarlo, no vuelve a aparecer
+
+#### Scenario: Sin marcas sobre los controles
+- **WHEN** la persona mira cualquier pantalla de la V2
+- **THEN** ningún botón, interruptor ni zona lleva un punto, ícono u otra marca de ayuda, y solo los nombres de los ajustes llevan el subrayado punteado
 
 ### Requirement: Tooltip en todo control de la V2
 Todo control de la V2 SHALL tener un tooltip con "qué hace" y "por qué importa", en lenguaje llano y en el idioma activo, que aparece al posar el cursor y al llegar con el teclado. Los botones de solo ícono SHALL tener nombre accesible y tooltip.
