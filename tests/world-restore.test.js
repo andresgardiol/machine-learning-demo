@@ -40,12 +40,18 @@ for (const [where, key, settings] of [
 }
 
 test('volver a un cuadro anterior al choque: el auto vuelve a chocar en el mismo paso y el mismo lugar', () => {
-  const world = worldFor('example:street-new', { track: 'straight', lanes: 3, density: 50, irregularity: 100 });
-  const states = [];
-  while (!world.crashed && world.steps < 60 * 30) { states.push(world.capture()); world.step(); }
-  assert.ok(world.crashed, 'el caso de prueba choca');
+  // Primera semilla en la que el cerebro de ejemplo choca entre el segundo 2 y el 30 (con el tráfico de
+  // trafico-vivo dejó de valer el caso fijo de las capturas: semilla 1, paso 628).
+  let world;
+  let states;
+  for (let seed = 1; seed <= 40; seed++) {
+    world = worldFor('example:street-new', { seed, track: 'straight', lanes: 3, density: 50, irregularity: 100 });
+    states = [];
+    while (!world.crashed && world.steps < 60 * 30) { states.push(world.capture()); world.step(); }
+    if (world.crashed && world.steps > 120) break;
+  }
+  assert.ok(world.crashed && world.steps > 120, 'el caso de prueba choca');
   const crash = { steps: world.steps, progress: world.progress, cause: world.crashCause };
-  assert.equal(crash.steps, 628); // 10,47 s, el caso de las capturas
   world.restore(states[states.length - 60]); // un segundo antes
   assert.equal(world.crashed, false);
   while (!world.crashed && world.steps < 60 * 30) world.step();

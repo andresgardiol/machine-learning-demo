@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createWorld } from '../src/core/world.js';
 import { constantController } from '../src/core/controller.js';
-import { STEP, MAX_SPEED } from '../src/core/constants.js';
+import { STEP, MAX_SPEED, CAR_LENGTH } from '../src/core/constants.js';
 
 const FORWARD = constantController({ forward: true });
 const run = (world, steps) => { for (let i = 0; i < steps; i++) world.step(); return world; };
@@ -64,10 +64,8 @@ test('choque contra el borde: marcado como chocado y detenido', () => {
 });
 
 test('choque contra el tráfico: marcado como chocado y detenido', () => {
-  let seed = 1;
-  const probe = (s) => createWorld({ seed: s, density: 100, irregularity: 0 });
-  // semilla cuyo primer grupo ocupa el carril del auto (el del medio), para chocar yendo derecho
-  while (!probe(seed).traffic.groupAt(0).vehicles.some((v) => v.lane === 1)) seed += 1;
+  // Todos los carriles tienen su corriente: yendo derecho, el auto alcanza al primero del suyo.
+  const seed = 1;
   const w = run(createWorld({ seed, density: 100, irregularity: 0, controller: FORWARD }), 60 * 30);
   assert.equal(w.crashed, true);
   assert.equal(w.crashCause, 'vehicle');
@@ -198,13 +196,72 @@ test('unión entre configuraciones: al menos cuatro largos de hueco entre lo ant
   for (let seed = 1; seed <= 300; seed++) {
     const w = createWorld({ seed, density: 100, irregularity: 100 });
     w.setTraffic({ density: (seed * 37) % 101, irregularity: (seed * 53) % 101 });
+    // Por carril y con el largo real de cada vehículo (trafico-vivo D8).
     const all = w.vehiclesIn(-200, 600);
-    const old = all.filter((v) => !v.id.includes('~'));
-    const fresh = all.filter((v) => v.id.includes('~'));
-    if (!old.length || !fresh.length) continue;
-    const gap = Math.min(...fresh.map((v) => v.distance)) - Math.max(...old.map((v) => v.distance)) - 4;
-    assert.ok(gap >= 16 - 1e-9, `semilla ${seed}: hueco ${gap}`);
+    for (let lane = 0; lane < 3; lane++) {
+      const old = all.filter((v) => v.lane === lane && !v.id.includes('~'));
+      const fresh = all.filter((v) => v.lane === lane && v.id.includes('~'));
+      if (!old.length || !fresh.length) continue;
+      const last = old.reduce((a, v) => (v.distance > a.distance ? v : a));
+      const first = fresh.reduce((a, v) => (v.distance < a.distance ? v : a));
+      const gap = (first.distance - first.length / 2) - (last.distance + last.length / 2);
+      assert.ok(gap >= 16 - 1e-9, `semilla ${seed}, carril ${lane}: hueco ${gap}`);
+    }
   }
+});
+
+test('Cada carril conserva su ritmo: al cambiar la irregularidad en marcha, cada carril sigue a la misma velocidad', () => {
+  const w = run(createWorld({ seed: 6, controller: FORWARD }), 120);
+  const before = [...w.traffic.laneSpeeds];
+  w.setTraffic({ irregularity: 100 });
+  assert.deepEqual([...w.traffic.laneSpeeds], before);
+  run(w, 120);
+  for (const v of w.vehiclesIn(w.progress - 100, w.progress + 400)) assert.equal(v.speed, before[v.lane]);
+});
+
+/** Mundo quieto con el auto puesto a mano en el carril del medio, en `x`, y lo que ve en ese momento. */
+function placeCar(w, x) {
+  w.car.position = { x, y: w.track.laneCenter(1, 0).position.y };
+  w.car.angle = 0;
+  w.configureSensors({}); // vuelve a mirar
+  return w;
+}
+/** Semilla cuyo primer vehículo del carril del medio es del tipo pedido (irregularidad 0: centrado). */
+function seedWithLeader(type) {
+  for (let seed = 1; seed < 500; seed++) {
+    const w = createWorld({ seed, irregularity: 0 });
+    const leader = w.traffic.laneBases(1, 0, 1000)[0];
+    if (leader.type === type) return { seed, leader };
+  }
+  return null;
+}
+
+test('Se choca con la medida real: el auto toca el extremo trasero de un camión, a más de un largo y medio de su centro', () => {
+  const { seed, leader } = seedWithLeader('truck');
+  const w = createWorld({ seed, irregularity: 0 });
+  // Frente del auto 0,3 m dentro de la cola del camión; el camión avanza menos de 0,2 m en un paso.
+  const x = leader.base - leader.length / 2 - CAR_LENGTH / 2 + 0.3;
+  placeCar(w, x);
+  assert.ok(leader.base - x > 1.5 * CAR_LENGTH, `${leader.base - x} m entre centros`);
+  w.step();
+  assert.equal(w.crashed, true);
+  assert.equal(w.crashCause, 'vehicle');
+});
+
+test('Los sensores ven la medida real: el rayo del medio lee la cola angosta de una moto, no la de un auto', () => {
+  const { seed, leader } = seedWithLeader('motorcycle');
+  const w = createWorld({ seed, irregularity: 0 });
+  const rear = leader.base - leader.length / 2;
+  placeCar(w, rear - 6);
+  const middle = w.rays[Math.floor(w.rays.length / 2)];
+  assert.ok(Math.abs(middle.distance - 6) < 1e-9, `lee ${middle.distance} m`);
+  // Con el contorno de un auto (4 m) la cola estaría 0,9 m más cerca.
+  assert.ok(Math.abs(middle.distance - (leader.base - CAR_LENGTH / 2 - (rear - 6))) > 0.8);
+  // Un rayo que pasa a más de medio ancho de moto del centro no la ve (el de un auto sí la vería).
+  w.configureSensors({ count: 1, spread: 10 });
+  w.car.position = { x: rear - 6, y: w.track.laneCenter(1, 0).position.y + 0.7 };
+  w.configureSensors({});
+  assert.equal(w.rays[0].distance, null, 'pasa al costado de la moto');
 });
 
 test('varios cambios seguidos no acumulan capas sin tramo', () => {

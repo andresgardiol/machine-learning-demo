@@ -21,7 +21,8 @@ import {
 import { readSensors, rangeMeters } from './sensors.js';
 import { normalizeControls, idleController, isController } from './controller.js';
 import { outline, segmentIntersection, contoursTouch, distance } from './geometry.js';
-import { STEP, CAR_LENGTH, REVERSE_FRACTION, TRAFFIC_CHANGE_AHEAD, TRAFFIC_SPEED } from './constants.js';
+import { STEP, CAR_LENGTH, REVERSE_FRACTION, TRAFFIC_CHANGE_AHEAD } from './constants.js';
+import { MAX_VEHICLE_LENGTH } from './traffic.js';
 
 /**
  * @param {object} spec
@@ -77,7 +78,9 @@ export function createWorld(spec = {}) {
   let time;
   let steps;
 
-  const windowRadius = (agent) => rangeMeters(agent.car.sensors) + 2 * CAR_LENGTH;
+  // Tramo de tráfico de cada agente: el alcance de sus sensores más medio vehículo del más largo,
+  // y nunca menos que lo que alcanza para chocar (trafico-vivo D9).
+  const windowRadius = (agent) => rangeMeters(agent.car.sensors) + CAR_LENGTH + MAX_VEHICLE_LENGTH / 2;
 
   /**
    * Actualiza el progreso (y el tramo de pista) del agente a partir de su posición. En una pista
@@ -132,7 +135,7 @@ export function createWorld(spec = {}) {
     const range = rangeMeters(car.sensors);
     const obstacles = [...track.bordersNear(car.position, range)];
     for (const v of agent.nearby) {
-      if (distance(v.position, car.position) <= range + CAR_LENGTH) obstacles.push(...outline(v.contour));
+      if (distance(v.position, car.position) <= range + v.length / 2 + v.width / 2) obstacles.push(...outline(v.contour));
     }
     agent.rays = readSensors(car, car.sensors, obstacles);
     agent.perception = { sensors: agent.rays.map((r) => r.reading), speed: normalizedSpeed(car) };
@@ -156,7 +159,7 @@ export function createWorld(spec = {}) {
     let touching = null;
     for (const v of agent.nearby) {
       if (agent.passThrough?.has(v.id)) continue;
-      if (distance(v.position, car.position) <= CAR_LENGTH * 1.5 && contoursTouch(contour, v.contour)) { touching = v; break; }
+      if (distance(v.position, car.position) <= (CAR_LENGTH + v.length) / 2 + 1 && contoursTouch(contour, v.contour)) { touching = v; break; }
     }
     // Recién reaparecido (respawn), el tráfico no lo choca, y la protección no termina mientras esté
     // encimado con un vehículo: termina en el primer paso, cumplido su tiempo, en que no toca ninguno.
@@ -242,12 +245,13 @@ export function createWorld(spec = {}) {
     },
     /**
      * Cambia densidad e irregularidad en marcha, sin reiniciar: lo que está hasta TRAFFIC_CHANGE_AHEAD
-     * por delante del auto no cambia y el tráfico nuevo empieza más adelante (ver changeTraffic).
+     * por delante del auto no cambia y el tráfico nuevo empieza más adelante (ver changeTraffic). La
+     * frontera se pasa por carril, en el marco de cada uno (trafico-vivo D8).
      */
     setTraffic(partial) {
       trafficConfig = { ...trafficConfig, ...partial };
       const next = trafficOf(trafficConfig);
-      traffic = changeTraffic(traffic, next, first.progress + TRAFFIC_CHANGE_AHEAD - TRAFFIC_SPEED * time);
+      traffic = changeTraffic(traffic, next, next.laneSpeeds.map((v) => first.progress + TRAFFIC_CHANGE_AHEAD - v * time));
       look(agents);
     },
     configureSensors(partial) { configureSensors(first.car, partial); look([first]); },

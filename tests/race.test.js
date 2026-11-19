@@ -12,6 +12,8 @@ import { createRulesController, parseProgram } from '../src/core/rules.js';
 import { createRandom } from '../src/core/random.js';
 import { createTrackById } from '../src/core/circuits.js';
 import { STEP, CAR_LENGTH } from '../src/core/constants.js';
+import { carContour } from '../src/core/car.js';
+import { contoursTouch } from '../src/core/geometry.js';
 
 const idle = constantController({});
 const forward = constantController({ forward: true });
@@ -286,20 +288,30 @@ test('a través del vehículo que chocó: reaparece detrás, lo atraviesa y no v
   assert.equal(race.results[0].crashes, 1, 'en los 2 s siguientes no vuelve a chocar');
 });
 
-test('encimado al cumplirse el tiempo: sigue protegido hasta dejar de estar encimado', () => {
-  const race = createRace({ seed: 5, density: 100, irregularity: 0, competitors: [{ id: 'a', controller: idle }] });
+test('encimado al cumplirse el tiempo, con un camión detrás del punto de reaparición: sigue protegido hasta dejar de estar encimado', () => {
+  // Semilla cuyo primer vehículo del carril del medio es un camión (10 m).
+  let seed = 1;
+  const leaderOf = (sd) => createRace({ seed: sd, density: 100, irregularity: 0, competitors: [{ id: 'a', controller: idle }] }).world.traffic.laneBases(1, 0, 1000)[0];
+  while (leaderOf(seed).type !== 'truck') seed += 1;
+  const race = createRace({ seed, density: 100, irregularity: 0, competitors: [{ id: 'a', controller: idle }] });
   const w = race.world;
-  const v = w.vehiclesIn(0, 400).find((x) => x.lane === 1);
-  // Detenido delante del vehículo, que va a 10 m/s: lo alcanza a 1,6 s y lo atraviesa hasta 2,4 s.
-  w.respawn(0, { progress: v.distance + 2 * CAR_LENGTH + 12, protect: RESPAWN_GRACE });
+  const v = w.vehiclesIn(0, 1000).filter((x) => x.lane === 1).sort((a, b) => a.distance - b.distance)[0];
+  assert.equal(v.type, 'truck');
+  // Detenido delante del camión: el frente del camión llega a su cola a 1,6 s y lo atraviesa hasta que
+  // la cola del camión pasa su frente, (10 + 4) m después.
+  const reach = 1.6 * v.speed;
+  const enter = 1.6;
+  const leave = enter + (v.length + CAR_LENGTH) / v.speed;
+  assert.ok(leave > RESPAWN_GRACE + 0.2, 'sigue encimado al cumplirse los 2 s');
+  w.respawn(0, { progress: v.distance + v.length / 2 + CAR_LENGTH / 2 + reach, protect: RESPAWN_GRACE });
   let crashed = false;
-  for (let i = 0; i < Math.round(3 / STEP); i++) {
+  for (let i = 0; i < Math.round((leave + 0.5) / STEP); i++) {
     w.step();
     if (w.agents[0].car.crashed) crashed = true;
-    if (Math.abs(w.time - 2.2) < STEP / 2) assert.equal(w.isProtected(0), true, 'a los 2,2 s sigue encimado y protegido');
+    if (Math.abs(w.time - (RESPAWN_GRACE + leave) / 2) < STEP / 2) assert.equal(w.isProtected(0), true, 'cumplido el tiempo, sigue encimado y protegido');
   }
   assert.equal(crashed, false);
-  assert.equal(w.isProtected(0), false, 'al salir del vehículo termina la protección');
+  assert.equal(w.isProtected(0), false, 'al salir del camión termina la protección');
 });
 
 test('en carreras con tráfico denso, nadie sale de la protección encimado con un vehículo', () => {
@@ -313,8 +325,9 @@ test('en carreras con tráfico denso, nadie sale de la protección encimado con 
         if (wasProtected[i] && !now && r.state === 'racing' && !r.penalized) {
           const a = race.world.agents[i];
           const p = a.progress;
-          const close = race.world.vehiclesIn(p - 2 * CAR_LENGTH, p + 2 * CAR_LENGTH)
-            .filter((v) => !a.passThrough?.has(v.id) && Math.abs(v.distance - p) < CAR_LENGTH && Math.abs(v.position.y - a.car.position.y) < 2);
+          // Con el contorno real de cada vehículo (largo, ancho, zigzag y giro).
+          const close = race.world.vehiclesIn(p - 4 * CAR_LENGTH, p + 4 * CAR_LENGTH)
+            .filter((v) => !a.passThrough?.has(v.id) && contoursTouch(carContour(a.car), v.contour));
           assert.equal(close.length, 0, `seed ${seed}, ${a.car.position.x}`);
         }
         wasProtected[i] = now;
