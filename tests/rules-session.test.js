@@ -49,7 +49,9 @@ test('Progreso: con dos vehículos superados, la primera misión muestra 2 de 3 
   assert.deepEqual(missions(session), { pass: '2/3', passMany: '2/10', traffics: '0/3' });
 });
 
-test('Frenar no alcanza: el ejemplo que frena recorre un kilómetro sin chocar y ninguna misión avanza', () => {
+test('Frenar no alcanza: el ejemplo que frena recorre un kilómetro sin chocar y no cumple la misión de superar 10', () => {
+  // Con carriles a distinto ritmo (trafico-vivo), quien sigue al primero de un carril rápido supera a los de
+  // los carriles lentos: frenar detrás alcanza para algunos, no para los 10 de la segunda misión.
   const three = EXAMPLES.find((e) => e.id === 'three');
   const { program } = parseProgram(es[three.textKey], { sensors: three.sensors.count });
   const world = createWorld({ ...worldSpec({ ...DEFAULT_SETTINGS, ...sensorSettings(three) }, DEFAULT_SEED), controller: createRulesController({ program }) });
@@ -63,7 +65,10 @@ test('Frenar no alcanza: el ejemplo que frena recorre un kilómetro sin chocar y
   }
   assert.equal(world.crashed, false);
   assert.ok(session.distance >= 1000);
-  assert.deepEqual(missions(session), { pass: '0/3', passMany: '0/10', traffics: '0/3' });
+  const m = missions(session);
+  assert.equal(m.passMany.startsWith('10/'), false, m.passMany);
+  assert.ok(session.passed < 10, `${session.passed} superados`);
+  assert.equal(m.traffics, '0/3');
 });
 
 test('Tráficos distintos: 10 vehículos, tráfico nuevo y otros 10 → la tercera misión muestra 2 de 3', () => {

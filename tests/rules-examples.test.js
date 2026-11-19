@@ -41,8 +41,8 @@ function drive(p, seed, { dict = es, maxSteps = TWO_MINUTES } = {}) {
   return { distance: session.distance, passed: session.passed, crashed: world.crashed, cause: world.crashCause, seconds: world.time };
 }
 
-test('la pestaña usa la semilla de tráfico 2 y el orden de los ejemplos es 3, 7 y 20 sensores', () => {
-  assert.equal(DEFAULT_SEED, 2);
+test('la pestaña usa la semilla de tráfico 516 y el orden de los ejemplos es 3, 7 y 20 sensores', () => {
+  assert.equal(DEFAULT_SEED, 516);
   assert.deepEqual(EXAMPLES.map((e) => e.id), ['three', 'seven', 'twenty']);
   assert.equal(INITIAL_PROGRAM.id, 'initial');
 });
@@ -108,30 +108,30 @@ const report = (t, id, expected) => {
 
 test('El programa inicial hace algo y no alcanza: esquiva al primer vehículo, lo supera y choca contra el borde antes de los 100 m', (t) => {
   const r = measured('initial');
-  report(t, 'initial', '82 m y 1, borde');
+  report(t, 'initial', '96 m y 2, borde (semilla 516)');
   assert.equal(r.crashed, true);
   assert.equal(r.cause, 'edge');
   assert.ok(r.distance < 100, `${r.distance} m`);
   assert.ok(r.passed >= 1, `${r.passed} superados`);
 });
 
-test('Tres sensores cortos: en dos minutos no choca y no supera ningún vehículo', (t) => {
+test('Tres sensores cortos: en dos minutos no choca y supera menos vehículos que el de siete sensores', (t) => {
   const r = measured('three');
-  report(t, 'three', '1224 m y 0, sin chocar');
+  report(t, 'three', '1227 m y 6, sin chocar (semilla 516)');
   assert.equal(r.crashed, false);
-  assert.equal(r.passed, 0);
-  assert.ok(r.distance > 500, `${r.distance} m`); // avanza: frena detrás del primero y lo sigue
+  assert.ok(r.passed < measured('seven').passed, `${r.passed} contra ${measured('seven').passed}`);
+  assert.ok(r.distance > 500, `${r.distance} m`); // avanza: frena detrás del primero de su carril y lo sigue
 });
 
 test('Siete sensores: supera al menos 10 vehículos antes de chocar', (t) => {
   const r = measured('seven');
-  report(t, 'seven', '1041 m y 14');
+  report(t, 'seven', '1500 m y 27 (semilla 516)');
   assert.ok(r.passed >= 10, `${r.passed} superados`);
 });
 
 test('Veinte sensores: más del triple de reglas que el de siete y recorre menos distancia que aquel', (t) => {
   const r = measured('twenty');
-  report(t, 'twenty', '290 m y 4');
+  report(t, 'twenty', '729 m y 11 (semilla 516)');
   const rules20 = parsed(es, byId.twenty).rules;
   const rules7 = parsed(es, byId.seven).rules;
   assert.ok(rules20 > rules7 * 3, `${rules20} reglas contra ${rules7}`);

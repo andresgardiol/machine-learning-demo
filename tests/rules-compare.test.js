@@ -15,7 +15,7 @@ const byId = (rows) => Object.fromEntries(rows.map((r) => [r.id, r]));
 let defaults = null;
 const measured = () => (defaults ??= compareNow(spec()));
 
-test('Estado por defecto: con la semilla 2 devuelve cuatro filas, con sus sensores, reglas y cifras', (t) => {
+test('Estado por defecto: con la semilla de la pestaña (516) devuelve cuatro filas, con sus sensores, reglas y cifras', (t) => {
   const rows = measured();
   t.diagnostic(rows.map((r) => `${r.id}: ${r.sensors.count} sensores, ${r.rules} reglas, ${r.distance.toFixed(1)} m, ${r.passed} superados, ${r.crashed ? `choca (${r.cause}) a los ${r.seconds.toFixed(1)} s` : 'no choca en 2 min'}`).join(' · '));
   assert.deepEqual(rows.map((r) => r.id), ['initial', 'three', 'seven', 'twenty']);
@@ -29,7 +29,7 @@ test('Estado por defecto: con la semilla 2 devuelve cuatro filas, con sus sensor
   }
   const m = byId(rows);
   assert.equal(m.initial.crashed, true);
-  assert.equal(Math.floor(m.initial.distance), 82); // el mismo choque que se ve en la pestaña
+  assert.equal(Math.floor(m.initial.distance), 95); // el mismo choque que se ve en la pestaña
 });
 
 test('Determinismo: dos corridas dan las mismas cifras', () => {
@@ -78,11 +78,14 @@ test('Corre en la calle recta aunque la pestaña esté en un circuito, y avisa l
 });
 
 test('Frenar no alcanza: sin chocar y sin superar a nadie, el resultado dice que frena detrás del primero', () => {
+  // Con carriles a distinto ritmo (trafico-vivo), el ejemplo de tres sensores supera a los de los carriles
+  // lentos: la fila "frena detrás del primero" queda para un programa que no supera a nadie.
   const m = byId(measured());
-  assert.deepEqual(compareResult(m.three), { key: 'rules.compare.brakes' });
+  assert.deepEqual(compareResult({ ok: true, crashed: false, passed: 0, distance: 700 }), { key: 'rules.compare.brakes' });
+  assert.deepEqual(compareResult(m.three), { key: 'rules.compare.notCrashed' });
   assert.equal(es['rules.compare.brakes'], 'frena detrás del primero');
   assert.equal(typeof en['rules.compare.brakes'], 'string');
-  assert.deepEqual(compareResult(m.seven), { key: 'rules.compare.crashed', params: { value: 1040 } });
+  assert.deepEqual(compareResult(m.seven), { key: 'rules.compare.crashed', params: { value: Math.floor(m.seven.distance) } });
   assert.deepEqual(compareResult({ ok: true, crashed: false, passed: 3, distance: 900 }), { key: 'rules.compare.notCrashed' });
   assert.deepEqual(compareResult({ ok: false }), { key: 'rules.compare.invalid' });
 });

@@ -5,8 +5,11 @@ import { tokenize } from '../../core/rules.js';
 // Cada programa es un texto de los diccionarios (en los dos idiomas) más los sensores del auto para
 // el que está escrito. Cargar un ejemplo cambia el programa y los sensores.
 
-/** Tráfico inicial de esta pestaña: con la semilla 2 el programa inicial muestra algo en segundos. */
-export const DEFAULT_SEED = 2;
+/**
+ * Tráfico inicial de esta pestaña: con la semilla 516 el programa inicial supera un vehículo y choca contra
+ * el borde en segundos, y los ejemplos cumplen sus escenarios con carriles a distinto ritmo (trafico-vivo).
+ */
+export const DEFAULT_SEED = 516;
 
 const freeze = (p) => Object.freeze({ ...p, sensors: Object.freeze(p.sensors) });
 
