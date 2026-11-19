@@ -47,7 +47,8 @@ const empty = (w) => !w || !(w[0] < w[1]);
  * @param {object} traffic tráfico (de createTraffic o changeTraffic)
  * @param {{from:number, to:number, tMax:number, car?:{speed:number, start?:number}}} options `car`: un
  *   auto que va derecho a esa velocidad desde `start`; cada muro dice si lo encuentra en su camino.
- * @returns {{start:number, end:number, duration:number, met:boolean}[]} ordenados por comienzo
+ * @returns {{start:number, end:number, duration:number, met:boolean, slow:number, fast:number}[]} ordenados
+ *   por comienzo; `slow` y `fast`: índice del vehículo del carril más lento y del más rápido
  */
 export function findWalls(traffic, { from, to, tMax, car = null }) {
   const speeds = traffic.laneSpeeds;
@@ -92,7 +93,7 @@ export function findWalls(traffic, { from, to, tMax, car = null }) {
           current.met ||= met;
         } else {
           if (current) walls.push(current);
-          current = { start: p.span[0], end: p.span[1], met };
+          current = { start: p.span[0], end: p.span[1], met, slow: s.index, fast: f.index };
         }
       }
       if (current) walls.push(current);
