@@ -461,12 +461,12 @@
 .inspect-release-selection { flex: 0 0 auto; white-space: nowrap; }
 .inspector-knob[data-big="true"] { height: 26px; min-height: 26px; min-width: 56px; padding: 0 var(--space-2) 0 var(--space-1); gap: var(--space-1); font-size: var(--text-body); cursor: ns-resize; }
 .inspector-knob[data-big="true"]::before { content: "▲\A▼"; white-space: pre; font-size: var(--text-label); line-height: 10px; transform: scale(0.75); font-weight: var(--weight-regular); color: var(--color-text-muted); }.v2-stage[data-stage="entender"] .v2-net-vignette { position: relative; inset: auto; width: auto; max-width: none; }
-.v2-stage[data-stage="entender"] .inspect-shortcut { white-space: normal; overflow: visible; text-overflow: clip; text-align: left; }
+:is(.v2-stage[data-stage="entender"], .v2-stage[data-stage="gradiente"]) .inspect-shortcut { white-space: normal; overflow: visible; text-overflow: clip; text-align: left; }
 .v2-net-vignette .inspect-scene .camera-controls { left: 6px; right: 6px; justify-content: flex-end; }
 .v2-net-vignette .inspect-scene .camera-controls .inspect-drive { position: static; height: 28px; padding: 0 8px; font-size: 12px; white-space: nowrap; }
 .v2-net-vignette .inspect-scene-badges { top: auto; left: 6px; right: 6px; bottom: 6px; }
-.v2-stage[data-stage="entender"] .inspect-where { white-space: normal; overflow: visible; text-overflow: clip; max-width: 220px; font-size: 12px; text-align: right; }
-.v2-stage[data-stage="entender"] .inspect-from-button { overflow: visible; text-overflow: clip; }
+:is(.v2-stage[data-stage="entender"], .v2-stage[data-stage="gradiente"]) .inspect-where { white-space: normal; overflow: visible; text-overflow: clip; max-width: 220px; font-size: 12px; text-align: right; }
+:is(.v2-stage[data-stage="entender"], .v2-stage[data-stage="gradiente"]) .inspect-from-button { overflow: visible; text-overflow: clip; }
 
 /* Tabla de pesos (render/weight-table.js), copiada de la V1. */
 .weight-tables { position: absolute; inset: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: var(--space-2); padding: var(--space-2); overflow: auto; }
@@ -515,11 +515,17 @@
 .weight-table tr[data-blame="positive"] > th { box-shadow: inset -4px 0 0 var(--color-network-blame); }
 .weight-table tr[data-blame="negative"] > th { box-shadow: inset -4px 0 0 transparent; outline: 2px dotted var(--color-network-blame); outline-offset: -2px; }
 /* V2: la tabla de pesos se desplaza dentro de su zona (no tapa la barra de reproducción). */
-.v2-stage[data-stage="entender"] .inspect-area { position: relative; min-height: 0; overflow: hidden; }
-.v2-stage[data-stage="entender"] .inspect-table-zone { position: absolute; inset: 0; overflow: auto; }
-.v2-stage[data-stage="entender"] .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:is(.v2-stage[data-stage="entender"], .v2-stage[data-stage="gradiente"]) .inspect-area { position: relative; min-height: 0; overflow: hidden; }
+:is(.v2-stage[data-stage="entender"], .v2-stage[data-stage="gradiente"]) .inspect-table-zone { position: absolute; inset: 0; overflow: auto; }
+:is(.v2-stage[data-stage="entender"], .v2-stage[data-stage="gradiente"]) .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 /* V2: las tablas de pesos van una debajo de otra, con todo el ancho de la zona: así no se cortan los encabezados. */
-.v2-stage[data-stage="entender"] .weight-tables { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 10px; }
-.v2-stage[data-stage="entender"] .wt-layer { max-width: 100%; flex: none; }
-.v2-stage[data-stage="entender"] .wt-scroll { max-width: 100%; }
-.v2-stage[data-stage="entender"] .weight-table .wt-col, .v2-stage[data-stage="entender"] .weight-table th { max-width: none; overflow: visible; text-overflow: clip; white-space: nowrap; }
+:is(.v2-stage[data-stage="entender"], .v2-stage[data-stage="gradiente"]) .weight-tables { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 10px; }
+:is(.v2-stage[data-stage="entender"], .v2-stage[data-stage="gradiente"]) .wt-layer { max-width: 100%; flex: none; }
+:is(.v2-stage[data-stage="entender"], .v2-stage[data-stage="gradiente"]) .wt-scroll { max-width: 100%; }
+:is(.v2-stage[data-stage="entender"], .v2-stage[data-stage="gradiente"]) .weight-table .wt-col, .v2-stage[data-stage="entender"] .weight-table th { max-width: none; overflow: visible; text-overflow: clip; white-space: nowrap; }
+/* Lista de misiones (Entender y Por gradiente): el nombre y su estado, separados. */
+.v2-stage .inspect-mission-list { margin: 0; padding-left: 18px; display: grid; gap: 2px; font-size: 12px; }
+.v2-stage .inspect-mission { display: list-item; }
+.v2-stage .inspect-mission .mission-status { margin-left: 6px; color: var(--color-text-muted); }
+.v2-stage .inspect-mission .mission-status::before { content: "· "; }
+.v2-stage .inspect-mission[data-current="true"] .mission-name { font-weight: 700; }

@@ -50,6 +50,7 @@ const stageModules = {
   evolucion: () => import('./stages/evolucion/index.js'),
   evaluar: () => import('./stages/evaluar/index.js'),
   entender: () => import('./stages/entender/index.js'),
+  gradiente: () => import('./stages/gradiente/index.js'),
 };
 shell = createShell({ root: document.getElementById('app'), i18n, prefs, stageModules, services: { library, tooltips, scenario, scenery } });
 
