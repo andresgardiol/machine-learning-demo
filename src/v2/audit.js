@@ -12,6 +12,12 @@ export const hasLetters = (text) => /[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}/.test(
 /** Una zona que pide desplazar o corta su contenido. */
 export const overflows = ({ scrollHeight, clientHeight, scrollWidth = 0, clientWidth = 0 }, tolerance = 1) =>
   scrollHeight > clientHeight + tolerance || scrollWidth > clientWidth + tolerance;
+/**
+ * Marca de ayuda sobre un control (spec *Aviso de que hay ayuda*): un seudoelemento (::before o ::after) con
+ * contenido, puesto encima y chico, como el punto en la esquina que se quitó. Recibe su estilo calculado.
+ */
+export const isHelpMark = ({ content, position, width, height }) =>
+  content !== 'none' && content !== 'normal' && position === 'absolute' && parseFloat(width) <= 12 && parseFloat(height) <= 12;
 /** Más de una acción principal a la vista. */
 export const tooManyPrimary = (count) => count > 1;
 
@@ -28,6 +34,17 @@ const controls = (root) => [...root.querySelectorAll(CONTROLS)].filter(visible);
 
 export function auditTooltips(root = document) {
   return controls(root).filter((c) => !c.closest('[data-help]')).map((c) => ({ reason: 'sin tooltip', element: c, detail: describe(c) }));
+}
+/** Ningún control con ayuda lleva una marca encima: ni punto ni ícono (spec *Sin marcas sobre los controles*). */
+export function auditMarks(root = document) {
+  const problems = [];
+  for (const e of root.querySelectorAll('[data-help]')) {
+    if (!visible(e)) continue;
+    for (const pseudo of ['::before', '::after']) {
+      if (isHelpMark(getComputedStyle(e, pseudo))) problems.push({ reason: 'marca de ayuda sobre un control', element: e, detail: `${describe(e)} ${pseudo}` });
+    }
+  }
+  return problems;
 }
 export function auditPrimary(root = document) {
   const p = [...root.querySelectorAll('.v2-primary')].filter(visible);
@@ -75,6 +92,6 @@ export function auditTexts(root = document) {
 }
 /** Todas juntas, con la cantidad por auditoría. */
 export function auditAll(root = document) {
-  const r = { tooltips: auditTooltips(root), primary: auditPrimary(root), targets: auditTargets(root), overflow: auditOverflow(root), sheets: auditSheets(root), texts: auditTexts(root) };
+  const r = { tooltips: auditTooltips(root), marks: auditMarks(root), primary: auditPrimary(root), targets: auditTargets(root), overflow: auditOverflow(root), sheets: auditSheets(root), texts: auditTexts(root) };
   return { ...r, total: Object.values(r).reduce((a, l) => a + l.length, 0) };
 }

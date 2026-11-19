@@ -75,3 +75,12 @@ test('v2/preferences: rechaza valores inválidos', () => {
   s.setItem(SHARED_LANGUAGE_KEY, 'fr');
   assert.equal(p.language, null);
 });
+
+test('v2/preferences: el aviso de ayudas se muestra hasta que se cierra, y se recuerda en mlLab.v2.*', () => {
+  const s = memoryStorage();
+  const p = createV2Preferences(() => s);
+  assert.equal(p.helpNoticeSeen, false);
+  p.helpNoticeSeen = true;
+  assert.equal(s.getItem(`${V2_PREFIX}helpNoticeSeen`), 'on');
+  assert.equal(createV2Preferences(() => s).helpNoticeSeen, true);
+});

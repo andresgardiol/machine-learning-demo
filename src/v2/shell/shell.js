@@ -91,8 +91,20 @@ export function createShell({ root, i18n, prefs, stageModules = {}, services = {
     el('h2', { i18n: 'narrow.title' }), el('p', { i18n: 'narrow.body', params: { width: NARROW_WIDTH } }));
   const storageNote = el('p', { class: 'v2-storage', i18n: 'app.storageOff', attrs: { role: 'status' } });
   storageNote.hidden = prefs.storageWorks !== false;
+  // Aviso de la primera vez: todo control explica qué hace (spec *Aviso de que hay ayuda*). Se cierra y se recuerda.
+  const helpNotice = el('div', { class: 'v2-help-notice', attrs: { role: 'status' } },
+    el('p', {}, el('b', { i18n: 'helpNotice.title' }), el('span', { i18n: 'helpNotice.body' })),
+    el('button', { class: 'v2-btn', i18n: 'helpNotice.close', help: 'helpNotice.close', attrs: { type: 'button' }, on: { click: () => closeHelpNotice() } }));
+  helpNotice.hidden = prefs.helpNoticeSeen;
+  function closeHelpNotice() {
+    prefs.helpNoticeSeen = true;
+    const hadFocus = helpNotice.contains(doc.activeElement);
+    helpNotice.hidden = true;
+    services.tooltips?.hide();
+    if (hadFocus) hintsSwitch.focus({ preventScroll: true });
+  }
 
-  root.append(el('div', { class: 'v2-app' }, header, rail, mesa, storageNote, narrow, credits, journey));
+  root.append(el('div', { class: 'v2-app' }, header, rail, mesa, storageNote, helpNotice, narrow, credits, journey));
 
   // ---------- una etapa: sus zonas y su cuaderno ----------
   function buildStage(id) {
@@ -269,7 +281,7 @@ export function createShell({ root, i18n, prefs, stageModules = {}, services = {
   win.addEventListener('hashchange', () => { const id = win.location.hash.slice(1); if (stageById(id) && id !== active) open(id); });
 
   const api = {
-    open, setFolded, setGuide, setHints, setShortcuts, setLanguage,
+    open, setFolded, setGuide, setHints, setShortcuts, setLanguage, closeHelpNotice,
     get active() { return active; },
     stage: (id) => stages.get(id),
     reveal: (control) => stages.get(active)?.notebook.reveal(control),

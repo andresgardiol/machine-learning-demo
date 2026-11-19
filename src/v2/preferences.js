@@ -54,6 +54,9 @@ export function createV2Preferences(getStorage = defaultStorage) {
     set guide(v) { setFlag('guide', v); },
     get hints() { return flag('hints', true); },
     set hints(v) { setFlag('hints', v); },
+    /** Si la persona ya cerró el aviso de que los controles tienen ayuda (spec *Aviso de que hay ayuda*). */
+    get helpNoticeSeen() { return flag('helpNoticeSeen', false); },
+    set helpNoticeSeen(v) { setFlag('helpNoticeSeen', v); },
     get shortcuts() { return flag('shortcuts', true); },
     set shortcuts(v) { setFlag('shortcuts', v); },
     /** Si el cuaderno quedó plegado (spec *Cuaderno plegable*). */

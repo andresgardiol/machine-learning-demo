@@ -11,13 +11,18 @@ html[data-guide="off"] .v2-guide-only { display: none !important; }
 html:not([data-guide="off"]) .v2-guide-state { display: none; }
 html[data-shortcuts="off"] kbd.v2-key { display: none; }
 
-/* ---------- indicio constante de ayuda: un punto en la esquina ---------- */
+/* ---------- aviso de que hay ayuda (spec *Aviso de que hay ayuda*): sin marcas sobre los controles ----------
+   Solo los nombres de los ajustes llevan un subrayado punteado tenue; el resto lo anuncia el aviso de la primera vez. */
 [data-help] { position: relative; }
-[data-help]:not(input):not(select):not(textarea)::after {
-  content: ""; position: absolute; top: -2px; right: -2px; width: 6px; height: 6px; border-radius: 50%;
-  background: var(--color-text-muted); opacity: .75; pointer-events: none;
+html:not([data-hints="off"]) :is(.v2-setting-name > span, label.v2-setting-name, span.v2-setting-name:not(:has(> span)), .lab-field-name, .lab-slider-label > span) {
+  text-decoration: underline dotted; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-decoration-thickness: 1px; text-underline-offset: 3px;
 }
-html[data-hints="off"] [data-help]:not([data-help="hints"])::after { display: none; }
+.v2-help-notice { position: fixed; z-index: 40; top: calc(var(--barra-alto) + 8px); right: 16px; max-width: 400px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 10px; padding: 10px 10px 10px 14px; border-radius: 10px; border: 1px solid var(--instrumento-borde); background: var(--tip-fondo); color: var(--tip-texto); font-size: 13px; line-height: 1.4; box-shadow: 0 8px 24px rgba(0, 0, 0, .4); }
+.v2-help-notice b { display: block; font-weight: 700; margin-bottom: 2px; }
+.v2-help-notice .v2-btn { min-height: 28px; padding: 0 12px; font-size: 13px; font-weight: 700; background: var(--tip-texto); color: var(--tip-fondo); border-color: var(--tip-texto); }
+.v2-help-notice .v2-btn:focus-visible { outline-color: var(--tip-texto); }
+html[data-hints="off"] .v2-help-notice { display: none; }
 .v2-tip { position: fixed; z-index: 50; max-width: 320px; padding: 10px 12px; border-radius: 8px; background: var(--tip-fondo); color: var(--tip-texto); font-size: 13px; line-height: 1.35; display: grid; gap: 4px; box-shadow: 0 8px 24px rgba(0, 0, 0, .4); pointer-events: none; }
 .v2-tip-title { font: 700 15px/1.2 var(--a-fuente-num); }
 
@@ -87,7 +92,6 @@ html[data-notebook="folded"] .v2-notebook { visibility: hidden; }
 .v2-tab-host { position: absolute; top: 50%; right: 0; transform: translateY(-50%); z-index: 4; display: none; }
 html[data-notebook="folded"] .v2-tab-host { display: block; }
 .v2-tab { writing-mode: vertical-rl; transform: rotate(180deg); padding: 14px 8px; background: var(--color-cuaderno); color: var(--color-text); border: 1px solid var(--color-cuaderno-linea); border-right: 0; border-radius: 0 10px 10px 0; cursor: pointer; font: 600 14px/1 var(--d-fuente-cuaderno); }
-.v2-tab[data-help]::after { display: none; }
 @keyframes v2-reveal { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 30%, 70% { box-shadow: 0 0 0 4px var(--color-accent); } }
 .v2-revealed { animation: v2-reveal 1.2s ease-in-out 2; border-radius: 6px; }
 
@@ -192,7 +196,6 @@ kbd { font: 600 11px/1 var(--a-fuente-texto); padding: 3px 5px; border-radius: 4
 .v2-scene .camera-button { min-width: 32px; height: 32px; padding: 0 10px; border-radius: 7px; background: transparent; border: 1px solid transparent; color: var(--color-text); font: 600 13px/1 var(--a-fuente-texto); cursor: pointer; }
 .v2-scene .camera-button:hover { border-color: var(--boton-secundario-borde); }
 .v2-scene .camera-button[aria-pressed="true"], .v2-scene .camera-button[data-active="true"] { border-color: var(--boton-secundario-borde); }
-.v2-scene .camera-button[data-help]::after { top: 2px; right: 2px; }
 .v2-scene .stage-corner { position: absolute; top: 60px; right: 14px; z-index: 3; display: grid; gap: 6px; justify-items: end; }
 .v2-badge { padding: 6px 10px; border-radius: 8px; background: var(--color-text); color: var(--color-bg); font: 700 13px/1.1 var(--a-fuente-texto); }
 .v2-badge-machine { background: var(--color-sensor); }

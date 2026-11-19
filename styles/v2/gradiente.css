@@ -283,5 +283,4 @@
 .v2-zone-lab .lab-group-lab-kind { min-width: 0; } .v2-zone-lab .lab-group-lab-kind .lab-experiments, .v2-zone-lab .lab-experiment { min-width: 0; box-sizing: border-box; width: 100%; }
 .v2-stage[data-stage="gradiente"] .lab-group { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
 .v2-zone-lab .lab-experiment { width: auto; max-width: 100%; } .v2-zone-lab .lab-plane { max-width: min(260px, 100%); } .v2-zone-lab .lab-data { align-content: start; }
-.v2-zone-lab .lab-experiment::after { top: 3px; right: 3px; }
-.v2-zone-lab .v2-plate { padding-right: 4px; padding-top: 2px; }
+.v2-zone-lab .v2-plate { padding-top: 2px; }

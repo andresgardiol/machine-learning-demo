@@ -242,7 +242,7 @@ La disposición es la de la maqueta D (design.md *D-elegida*). `borradores/inter
 
 ## 17. Revisión del dueño sobre la V2
 
-- [ ] 17.1 Quitar el punto de ayuda de la esquina de cada control (el dueño, el 19 de noviembre de 2026: "No entiendo qué son estos puntos en cada cosa, quedan muy mal"). En su lugar va lo que pide la spec *Ayudas con nombre claro*:
+- [x] 17.1 Quitar el punto de ayuda de la esquina de cada control (el dueño, el 19 de noviembre de 2026: "No entiendo qué son estos puntos en cada cosa, quedan muy mal"). En su lugar va lo que pide la spec *Ayudas con nombre claro*:
   - un aviso la primera vez, que se cierra y se recuerda en `mlLab.v2.*`, con textos en los dos idiomas y tooltip en su botón de cerrar;
   - un subrayado punteado tenue en los nombres de los ajustes.
 

@@ -56,6 +56,6 @@ shell = createShell({ root: document.getElementById('app'), i18n, prefs, stageMo
 
 window.mlLab = { v2: {
   shell, i18n, prefs, library, tooltips, dictionaries, stageModules, scenario, scenery,
-  auditTooltips: audit.auditTooltips, auditPrimary: audit.auditPrimary, auditTargets: audit.auditTargets,
+  auditTooltips: audit.auditTooltips, auditMarks: audit.auditMarks, auditPrimary: audit.auditPrimary, auditTargets: audit.auditTargets,
   auditOverflow: audit.auditOverflow, auditSheets: audit.auditSheets, auditTexts: audit.auditTexts, auditAll: audit.auditAll,
 } };
