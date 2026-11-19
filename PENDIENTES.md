@@ -299,7 +299,11 @@ Lo que quedó:
   de unos 4 px (observado).
 - El tooltip de una pastilla de Compuertas puede tapar la del sesgo mientras
   la primera tiene el foco (observado).
-- Sin probar: la sensación del volante suave (0,3 s, `STEER_RAMP_STEPS`); un
+- El volante suave se descartó el 19 de noviembre (`volante-directo`): el
+  dueño lo probó y el auto tardaba demasiado en responder a las flechas. El
+  teclado vuelve a girar desde el primer cuadro. Si algún día se quiere
+  suavizar el manejo, no por este camino de una subida en el teclado.
+- Sin probar: un
   choque sin capas ocultas o antes de 3 s en el navegador; los botones de
   Competir con un lector de pantalla real; la imitación del Laboratorio con
   el volante suave.
@@ -316,9 +320,6 @@ Nada.
   compuertas*.
 - Fluidez con el navegador a la vista: casi todas las medidas se tomaron con
   Chrome sin ventana. Lista de qué medir en *Pruebas que faltan*, más abajo.
-- Volante suave (`manejo-amable-y-competir-sin-cortes`): si 0,3 s se siente
-  bien en El problema y en Competir (`STEER_RAMP_STEPS`), y si la imitación
-  de Tu manejo en el Laboratorio cambia con él.
 - "Mostrame" (`misiones-que-muestran-el-control`): con VoiceOver, que anuncie
   «Se muestra: …» y quede sobre el control (se leyó el árbol de accesibilidad,
   no se escuchó); con el navegador a la vista, el anillo y el desplazamiento

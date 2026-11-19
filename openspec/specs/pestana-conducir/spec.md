@@ -149,11 +149,11 @@ las barras MUST seguir visibles.
 ### Requirement: Acción visible
 El tablero SHALL mostrar, en una tarjeta, cuatro indicadores, uno por control
 (avanzar, retroceder, izquierda, derecha), que se resaltan mientras ese
-control está accionado. Izquierda y derecha SHALL mostrar además el nivel del volante suave, de 0 a 100 %, con un relleno proporcional y su número, sin destellar cuando el controlador reparte el giro entre cuadros. Un tooltip SHALL explicar que el giro crece mientras se mantiene la flecha.
+control está accionado.
 
 #### Scenario: Presionar una tecla
 - **WHEN** la persona mantiene presionada la flecha izquierda
-- **THEN** el indicador de izquierda se llena de a poco hasta el 100 % en 0,3 s y vuelve a su estado normal al soltarla
+- **THEN** el indicador de izquierda se resalta entero desde que la aprieta y vuelve a su estado normal al soltarla
 
 #### Scenario: Avanzar
 - **WHEN** la persona mantiene presionada la flecha arriba
