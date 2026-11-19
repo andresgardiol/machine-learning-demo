@@ -290,7 +290,11 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
     onChange: (key, value, { first }) => {
       if (settings[key] !== value) applySettings({ ...settings, [key]: value }, { countAttempt: first });
     },
-    onReset: () => applySettings({ ...DEFAULT_SETTINGS }, { countAttempt: true }),
+    onReset: () => {
+      applySettings({ ...DEFAULT_SETTINGS }, { countAttempt: true });
+      // Si el tráfico había cambiado en marcha, vuelve el de la semilla: el mismo que al abrir (trafico-vivo).
+      if (world.traffic.layers) restartAttempt({ countAttempt: true });
+    },
   });
   bar?.append(scenario.node);
 

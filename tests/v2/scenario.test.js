@@ -52,3 +52,13 @@ test('v2/escenario: avisa a los suscriptores', () => {
   s.set('problema', 'density', 20);
   assert.deepEqual(vistos, ['problema']);
 });
+
+test('restablecer avisa que viene de restablecer (las etapas vuelven al tráfico de la semilla, trafico-vivo)', () => {
+  const s = createScenario();
+  const seen = [];
+  s.subscribe((e) => seen.push(e.reset));
+  s.set(null, 'irregularity', 0);
+  s.resetCommon();
+  s.resetStage('problema');
+  assert.deepEqual(seen, [false, true, true]);
+});

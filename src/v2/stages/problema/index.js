@@ -181,7 +181,7 @@ export function mount({ zones, notebook, i18n, scenario, scenery = null }) {
   }
 
   // El escenario compartido: la pista y los carriles reinician el intento; el resto se aplica en marcha.
-  const offScenario = scenario.subscribe(() => {
+  const offScenario = scenario.subscribe(({ reset = false } = {}) => {
     const before = settings;
     settings = normalizeSettings({ ...settings, ...scenario.forStage(STAGE) });
     if (needsRestart(before, settings)) { restartAttempt({ rebuild: true }); return; }
@@ -189,6 +189,8 @@ export function mount({ zones, notebook, i18n, scenario, scenery = null }) {
     if (settings.density !== before.density || settings.irregularity !== before.irregularity) {
       world.setTraffic({ density: settings.density, irregularity: settings.irregularity });
     }
+    // Restablecer después de cambiar el tráfico en marcha: vuelve el tráfico de la semilla (trafico-vivo).
+    if (reset && world.traffic.layers) { restartAttempt(); return; }
     sync();
   });
 

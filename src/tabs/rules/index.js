@@ -992,7 +992,11 @@ export function mount({ stage, board, bar, i18n, store, preferences, reportError
     onChange: (key, value, { first }) => {
       if (state.settings[key] !== value) applySettings({ ...state.settings, [key]: value }, { countAttempt: first });
     },
-    onReset: () => applySettings(scenarioReset(state.settings), { countAttempt: true }),
+    onReset: () => {
+      applySettings(scenarioReset(state.settings), { countAttempt: true });
+      // Si el tráfico había cambiado en marcha, vuelve el de la semilla: el mismo que al abrir (trafico-vivo).
+      if (state.world.traffic.layers) restartAttempt({ countAttempt: true });
+    },
   });
   bar?.append(scenario.node);
 

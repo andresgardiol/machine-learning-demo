@@ -44,7 +44,8 @@ export function createScenario({ initial = DEFAULT_SCENARIO, save = () => {} } =
   /** Valores fijados por etapa: { stage: { key: value } }. */
   const fixed = Object.fromEntries(Object.entries(STAGE_FIXED).map(([s, v]) => [s, { ...v }]));
   const listeners = new Set();
-  const notify = (stage) => { for (const fn of listeners) fn({ stage, common: { ...common } }); };
+  // `reset`: el cambio viene de restablecer (las etapas vuelven al tráfico de la semilla, trafico-vivo).
+  const notify = (stage, reset = false) => { for (const fn of listeners) fn({ stage, common: { ...common }, reset }); };
 
   return {
     get common() { return { ...common }; },
@@ -76,9 +77,9 @@ export function createScenario({ initial = DEFAULT_SCENARIO, save = () => {} } =
       notify(stage);
     },
     /** Vuelve una etapa a sus valores fijos de fábrica (sin tocar el común). */
-    resetStage(stage) { fixed[stage] = { ...(STAGE_FIXED[stage] ?? {}) }; notify(stage); },
+    resetStage(stage) { fixed[stage] = { ...(STAGE_FIXED[stage] ?? {}) }; notify(stage, true); },
     /** Vuelve el escenario común al de fábrica. */
-    resetCommon() { common = { ...DEFAULT_SCENARIO }; save(JSON.stringify(common)); notify(null); },
+    resetCommon() { common = { ...DEFAULT_SCENARIO }; save(JSON.stringify(common)); notify(null, true); },
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
   };
 }

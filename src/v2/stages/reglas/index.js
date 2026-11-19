@@ -315,7 +315,7 @@ export function mount({ zones, notebook, i18n, scenario, scenery = null, prefs }
   function holdCase() { if (state.caseInfo) session.hold(); }
 
   // Ajustes: el escenario común y los sensores de la etapa (con el programa).
-  function applySettings() {
+  function applySettings({ reset = false } = {}) {
     const before = settings;
     settings = settingsNow();
     if (settings.sensorCount !== before.sensorCount) afterProgramChange(program.setSensors(settings.sensorCount));
@@ -324,6 +324,8 @@ export function mount({ zones, notebook, i18n, scenario, scenery = null, prefs }
     if (needsRestart(before, settings)) { restartAttempt({ rebuild: true }); return; }
     if (settings.maxSpeed !== before.maxSpeed) world.setMaxSpeed(settings.maxSpeed);
     if (settings.density !== before.density || settings.irregularity !== before.irregularity) world.setTraffic({ density: settings.density, irregularity: settings.irregularity });
+    // Restablecer después de cambiar el tráfico en marcha: vuelve el tráfico de la semilla (trafico-vivo).
+    if (reset && world.traffic.layers) { restartAttempt(); return; }
     sync();
   }
   const offScenario = scenario.subscribe(applySettings);
