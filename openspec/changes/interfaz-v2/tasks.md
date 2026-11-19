@@ -38,9 +38,12 @@
 
 ## 3. Fase 1c: síntesis
 
-- [ ] 3.1 Escribir `analisis/principios.md`: de 8 a 12 principios de diseño de la V2, cada uno con la evidencia de los grupos 1 y 2 que lo justifica y el artículo de la constitución que sirve. Verificación: cada principio cita al menos un hallazgo y un artículo.
-- [ ] 3.2 Escribir `analisis/paridad.md`: cada requisito de las 33 capacidades de `openspec/specs/` en una fila, con su capacidad, su experiencia, su lugar previsto en la V2 y su estado ("igual", "rediseñado", "fusionado con…" o "propuesto quitar", con el motivo). Verificación: un guion cuenta los `### Requirement:` de `openspec/specs/` y las filas de la matriz, y los dos números coinciden.
-- [ ] 3.3 Fijar los criterios para comparar las maquetas, con su peso: claridad didáctica, usabilidad, convivencia de los dos públicos, costo de la paridad, esfuerzo de la fase 3, riesgo para la fluidez y accesibilidad. Verificación: la tabla de criterios está en `analisis/comparacion.md`, vacía de puntajes.
+- [x] 3.1 Escribir `analisis/principios.md`: de 8 a 12 principios de diseño de la V2, cada uno con la evidencia de los grupos 1 y 2 que lo justifica y el artículo de la constitución que sirve. Verificación: cada principio cita al menos un hallazgo y un artículo.
+  *Hecho: `analisis/principios.md` con doce principios. Cada uno cita al menos un hallazgo del informe (Q de la Parte 1 o T, E, R, N, C, I, L, medidas 2.1 o auditoría 2.5 de la Parte 2) y un artículo de la constitución, más una tabla de qué tiene que verse de cada principio en una maqueta estática.*
+- [x] 3.2 Escribir `analisis/paridad.md`: cada requisito de las 33 capacidades de `openspec/specs/` en una fila, con su capacidad, su experiencia, su lugar previsto en la V2 y su estado ("igual", "rediseñado", "fusionado con…" o "propuesto quitar", con el motivo). Verificación: un guion cuenta los `### Requirement:` de `openspec/specs/` y las filas de la matriz, y los dos números coinciden.
+  *Hecho: `analisis/paridad.md`, generada por `borradores/interfaz-v2/paridad.py` (local) con un estado y un lugar por capacidad y 28 excepciones por requisito revisadas a mano. Medido con `paridad.py --contar`: 526 requisitos en `openspec/specs/` y 526 filas; coinciden. Estados: igual 284, rediseñado 226, fusionado con un requisito de la V2 15, propuesto quitar 1 (*Panel ajustable*). Cuatro puntos quedan para el dueño, listados en el resumen. El lugar es la etapa; la zona exacta se completa después de elegir.*
+- [x] 3.3 Fijar los criterios para comparar las maquetas, con su peso: claridad didáctica, usabilidad, convivencia de los dos públicos, costo de la paridad, esfuerzo de la fase 3, riesgo para la fluidez y accesibilidad. Verificación: la tabla de criterios está en `analisis/comparacion.md`, vacía de puntajes.
+  *Hecho: tabla de siete criterios con su peso (claridad 25, usabilidad 20, dos públicos 15 y 10 cada uno para paridad, esfuerzo, fluidez y accesibilidad), qué se mira y cómo se puntúa en una maqueta estática, en `analisis/comparacion.md`, con la tabla de puntajes vacía.*
 
 ## 4. Fase 2: tres maquetas
 

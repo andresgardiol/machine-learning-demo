@@ -1,0 +1,555 @@
+# Matriz de paridad: interfaz-v2
+
+Cada requisito de las capacidades de `openspec/specs/` (commit `767f239`) con su lugar previsto en la V2 y su estado. Generada por `borradores/interfaz-v2/paridad.py` (local) y revisada a mano; la verificación es `python3 borradores/interfaz-v2/paridad.py --contar`.
+
+**Estados.** *igual*: la V2 reutiliza la misma lógica o la misma regla sin cambio visible de conducta. *rediseñado*: la misma conducta en otro lugar o con otro componente. *fusionado con…*: se cumple a través de un requisito de `specs/interfaz-v2`. *propuesto quitar*: necesita la decisión del dueño, con fecha (spec *Paridad de features con la V1*).
+
+**Lugar previsto** [Propuesta]: la etapa de la arquitectura del informe (1.4) y, cuando se sabe, la zona. La zona exacta depende de la propuesta elegida y se completa con `/opsx:update` (tareas 6.2 y 16.1).
+
+**Experiencia**: la pestaña de la V1 donde vive hoy.
+
+## Resumen
+
+- Requisitos: **526** en 33 capacidades.
+- igual: 284
+- rediseñado: 226
+- fusionado con: 15
+- propuesto quitar: 1
+
+Lo que necesita al dueño antes de la fase 3 [Propuesta]:
+
+- *Panel ajustable* (`estructura-app`): propuesto quitar.
+- *Reintento automático* (`pestana-reglas`): apagado por defecto.
+- *La marcha es la acción principal* (`jerarquia-visual`): la acción principal sale de la consigna.
+- *Interruptor de guía sin tooltips* y *Interruptor de ayudas*: un control de guía con nombre y otro, aparte, para los tooltips.
+
+## Matriz
+
+| # | Capacidad | Requisito | Experiencia (V1) | Lugar previsto en la V2 | Estado | Motivo |
+|---|---|---|---|---|---|---|
+| 1 | `accesibilidad` | Atajos de una tecla desactivables | todas | Armazón y componentes | igual | mismos atajos, desactivables |
+| 2 | `accesibilidad` | Límites de los controles con contraste | todas | Armazón y componentes | igual | se conserva (spec *Accesibilidad de la V2*) |
+| 3 | `accesibilidad` | Tamaño mínimo de los controles | todas | Armazón y componentes | igual | se conserva (spec *Accesibilidad de la V2*) |
+| 4 | `accesibilidad` | Escenario descrito en texto | todas | Armazón y componentes | igual | se conserva (spec *Accesibilidad de la V2*) |
+| 5 | `accesibilidad` | Sin destellos | todas | Armazón y componentes | igual | se conserva (spec *Accesibilidad de la V2*) |
+| 6 | `ayuda-contextual` | Tooltip en todo control | todas | Armazón · tooltip con indicio | igual | misma regla; se suma el indicio constante (spec *Ayudas con nombre claro*) |
+| 7 | `ayuda-contextual` | Aparición y cierre del tooltip | todas | Armazón · tooltip con indicio | igual | misma regla; se suma el indicio constante (spec *Ayudas con nombre claro*) |
+| 8 | `ayuda-contextual` | Ubicación del tooltip | todas | Armazón · tooltip con indicio | igual | misma regla; se suma el indicio constante (spec *Ayudas con nombre claro*) |
+| 9 | `ayuda-contextual` | Tooltips en el idioma activo | todas | Armazón · tooltip con indicio | igual | misma regla; se suma el indicio constante (spec *Ayudas con nombre claro*) |
+| 10 | `ayuda-contextual` | Controles no disponibles explicados | todas | Armazón · tooltip con indicio | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 11 | `ayuda-contextual` | Lenguaje llano | todas | Armazón · tooltip con indicio | igual | misma regla; se suma el indicio constante (spec *Ayudas con nombre claro*) |
+| 12 | `ayuda-contextual` | Apretar un control sin acción lo explica | todas | Armazón · tooltip con indicio | igual | misma regla; se suma el indicio constante (spec *Ayudas con nombre claro*) |
+| 13 | `ayuda-contextual` | Tooltips con las ayudas apagadas | todas | Armazón · tooltip con indicio | igual | misma regla; se suma el indicio constante (spec *Ayudas con nombre claro*) |
+| 14 | `barra-escenario` | Barra de escenario | todas menos el Laboratorio | Escenario compartido (D7) | fusionado con *El escenario se comparte entre etapas* | una sola barra de escenario con valores "de esta etapa" |
+| 15 | `barra-escenario` | Pista en la barra | todas menos el Laboratorio | Escenario compartido (D7) | fusionado con *El escenario se comparte entre etapas* | una sola barra de escenario con valores "de esta etapa" |
+| 16 | `barra-escenario` | Cambios del escenario en el momento | todas menos el Laboratorio | Escenario compartido (D7) | rediseñado | un solo escenario común con valores "de esta etapa" |
+| 17 | `barra-escenario` | Ajustes de tráfico en un circuito | todas menos el Laboratorio | Escenario compartido (D7) | rediseñado | un solo escenario común con valores "de esta etapa" |
+| 18 | `barra-escenario` | Restablecer el escenario | todas menos el Laboratorio | "Restablecer ajustes de esta etapa" | fusionado con *Reinicios con alcance explícito* | un verbo con objeto escrito y Deshacer |
+| 19 | `barra-escenario` | Barra explicada y accesible | todas menos el Laboratorio | Escenario compartido (D7) | fusionado con *El escenario se comparte entre etapas* | una sola barra de escenario con valores "de esta etapa" |
+| 20 | `barra-escenario` | Grupo que no aplica en una pestaña | todas menos el Laboratorio | Escenario compartido (D7) | fusionado con *El escenario se comparte entre etapas* | una sola barra de escenario con valores "de esta etapa" |
+| 21 | `barra-escenario` | Grupo propio de una pestaña | todas menos el Laboratorio | Escenario compartido (D7) | fusionado con *El escenario se comparte entre etapas* | una sola barra de escenario con valores "de esta etapa" |
+| 22 | `carrera` | Carrera de varios competidores | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 23 | `carrera` | Meta de la carrera | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 24 | `carrera` | Chocar no saca de la carrera | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 25 | `carrera` | Protegido al reaparecer | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 26 | `carrera` | Un vehículo choca una sola vez | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 27 | `carrera` | Competidor que no avanza | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 28 | `carrera` | Fin de la carrera | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 29 | `carrera` | Resultado de cada competidor | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 30 | `carrera` | Mejor vuelta | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 31 | `carrera` | Orden de la carrera | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 32 | `carrera` | Carrera reproducible | Competir | Evaluar · núcleo | igual | núcleo reutilizado tal cual |
+| 33 | `cerebros` | Contenido de un cerebro | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 34 | `cerebros` | Entradas y salidas de un cerebro | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 35 | `cerebros` | Datos de entrenamiento | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 36 | `cerebros` | Compatibilidad con el auto | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 37 | `cerebros` | Validación de un cerebro | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 38 | `cerebros` | Nombre propio | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 39 | `cerebros` | Biblioteca recordada | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 40 | `cerebros` | Lista de cerebros | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 41 | `cerebros` | Renombrar | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 42 | `cerebros` | Eliminar con confirmación | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 43 | `cerebros` | Actualizar un cerebro guardado | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 44 | `cerebros` | Exportar | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 45 | `cerebros` | Importar | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 46 | `cerebros` | Autoguardado | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 47 | `cerebros` | Controles de la biblioteca explicados | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 48 | `cerebros` | Pistas en los datos de entrenamiento | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 49 | `cerebros` | Cerebro que aprendió imitando | Entrenar, Competir, Inspeccionar, Laboratorio | Biblioteca compartida (todas las etapas) | igual | misma biblioteca y mismas claves (spec *Cerebros compartidos*) |
+| 50 | `cerebros-de-ejemplo` | Cuatro cerebros incluidos | Competir, Inspeccionar | Núcleo y datos compartidos | igual | datos versionados reutilizados |
+| 51 | `cerebros-de-ejemplo` | Ejemplos que no cambian | Competir, Inspeccionar | Núcleo y datos compartidos | igual | datos versionados reutilizados |
+| 52 | `cerebros-de-ejemplo` | Ejemplos que se pueden regenerar | Competir, Inspeccionar | Núcleo y datos compartidos | igual | datos versionados reutilizados |
+| 53 | `cerebros-de-ejemplo` | Lo que muestran los ejemplos | Competir, Inspeccionar | Núcleo y datos compartidos | igual | datos versionados reutilizados |
+| 54 | `consigna-de-pestana` | Tarjeta al principio del panel | todas | Tarjeta de la etapa, según la propuesta | rediseñado | la tarjeta suma la pregunta; su lugar sale de la disposición |
+| 55 | `consigna-de-pestana` | Consigna | todas | Armazón · pregunta de la etapa + consigna + misión | rediseñado | la tarjeta suma la pregunta de la etapa (spec *El recorrido como cadena de preguntas*) |
+| 56 | `consigna-de-pestana` | Acción principal en la tarjeta | todas | Tarjeta de la etapa, según la propuesta | rediseñado | la tarjeta suma la pregunta; su lugar sale de la disposición |
+| 57 | `consigna-de-pestana` | Misión en curso | todas | Armazón · pregunta de la etapa + consigna + misión | rediseñado | la tarjeta suma la pregunta de la etapa (spec *El recorrido como cadena de preguntas*) |
+| 58 | `consigna-de-pestana` | Tarjeta con la guía apagada | todas | Tarjeta de la etapa, según la propuesta | rediseñado | la tarjeta suma la pregunta; su lugar sale de la disposición |
+| 59 | `consigna-de-pestana` | Tarjeta al elegir en Inspeccionar y en el Laboratorio | todas | Tarjeta de la etapa, según la propuesta | rediseñado | la tarjeta suma la pregunta; su lugar sale de la disposición |
+| 60 | `consigna-de-pestana` | Tarjeta accesible | todas | Armazón · pregunta de la etapa + consigna + misión | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 61 | `consigna-de-pestana` | Texto de guía plegado | todas | Tarjeta de la etapa, según la propuesta | rediseñado | la tarjeta suma la pregunta; su lugar sale de la disposición |
+| 62 | `consigna-de-pestana` | Mostrar el control de la misión | todas | Armazón · pregunta de la etapa + consigna + misión | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 63 | `consigna-de-pestana` | Controles de las misiones de El problema | todas | Armazón · pregunta de la etapa + consigna + misión | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 64 | `consigna-de-pestana` | Controles de las misiones de Reglas a mano | todas | Armazón · pregunta de la etapa + consigna + misión | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 65 | `consigna-de-pestana` | Controles de las misiones de Entrenar | todas | Armazón · pregunta de la etapa + consigna + misión | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 66 | `consigna-de-pestana` | Controles de las misiones de Competir | todas | Armazón · pregunta de la etapa + consigna + misión | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 67 | `consigna-de-pestana` | Controles de las misiones de Inspeccionar | todas | Armazón · pregunta de la etapa + consigna + misión | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 68 | `consigna-de-pestana` | Controles de las misiones de compuertas del Laboratorio | todas | Armazón · pregunta de la etapa + consigna + misión | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 69 | `consigna-de-pestana` | Controles de las misiones de puntos y tu manejo del Laboratorio | todas | Armazón · pregunta de la etapa + consigna + misión | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 70 | `consigna-de-pestana` | Cómo se muestra un control | todas | Armazón · pregunta de la etapa + consigna + misión | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 71 | `controladores` | Contrato único de controlador | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 72 | `controladores` | Contenido de la percepción | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 73 | `controladores` | Controles contradictorios | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 74 | `controladores` | Controlador de teclado | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 75 | `controladores` | El teclado no interfiere con la página | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 76 | `controladores` | Controlador de red neuronal | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 77 | `controladores` | Red que no corresponde a la percepción | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 78 | `controladores` | Controlador de reglas | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 79 | `controladores` | Programa que no corresponde al auto | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 80 | `controladores` | Controlador con observador | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 81 | `controladores` | Volante suave | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 82 | `cuenta-de-la-red` | Cuenta desglosada | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
+| 83 | `cuenta-de-la-red` | Recorrido paso a paso | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
+| 84 | `cuenta-de-la-red` | Cambios de prueba | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
+| 85 | `cuenta-de-la-red` | Cambios que se deshacen | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
+| 86 | `cuenta-de-la-red` | Cuenta reproducible y sin navegador | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
+| 87 | `cuenta-de-la-red` | De dónde viene lo que recibe una neurona | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
+| 88 | `cuenta-de-la-red` | Respuesta de una neurona a una entrada | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
+| 89 | `datos-de-ejemplo` | Puntos de dos colores | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 90 | `datos-de-ejemplo` | Ejemplos de manejo | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 91 | `datos-de-ejemplo` | Maestro | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 92 | `datos-de-ejemplo` | Apartar ejemplos | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 93 | `datos-de-ejemplo` | Resumen de los datos | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 94 | `datos-de-ejemplo` | Ejemplos evaluados | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 95 | `datos-de-ejemplo` | Compuertas lógicas | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 96 | `estructura-app` | Pestañas del recorrido | todas | Armazón · navegación de cinco etapas | rediseñado | seis pestañas → cinco etapas con su pregunta (informe 1.4) |
+| 97 | `estructura-app` | Lista para usar al abrir | todas | Armazón | igual | misma regla en el armazón nuevo |
+| 98 | `estructura-app` | Disposición común | todas | Disposición de la propuesta elegida | rediseñado | la disposición sale de la fase 2 (D4, eje 1) |
+| 99 | `estructura-app` | Panel ajustable | todas | — | propuesto quitar | las tres maquetas fijan las zonas; el ancho lo da la disposición. Decide el dueño |
+| 100 | `estructura-app` | Preferencias recordadas | todas | Armazón · preferencias `mlLab.v2.*` | rediseñado | claves propias (D6) |
+| 101 | `estructura-app` | Créditos | todas | Armazón | igual | misma regla en el armazón nuevo |
+| 102 | `estructura-app` | Aviso en pantallas angostas | todas | Armazón | igual | misma regla en el armazón nuevo |
+| 103 | `estructura-app` | Errores en lenguaje humano | todas | Armazón | igual | misma regla en el armazón nuevo |
+| 104 | `estructura-app` | Biblioteca de cerebros compartida | todas | Biblioteca compartida | igual | misma biblioteca (D6) |
+| 105 | `estructura-app` | Una sola pestaña en marcha | todas | Armazón | igual | misma regla en el armazón nuevo |
+| 106 | `estructura-app` | Escenario ajustable | todas | Escenario compartido (D7) | fusionado con *El escenario se comparte entre etapas* | una sola barra de escenario con valores "de esta etapa" |
+| 107 | `estructura-app` | Anchos que se adaptan a la ventana | todas | Disposición de la propuesta elegida | rediseñado | la disposición sale de la fase 2 (D4, eje 1) |
+| 108 | `estructura-app` | Disposición en ventanas medianas | todas | Disposición de la propuesta elegida | rediseñado | la disposición sale de la fase 2 (D4, eje 1) |
+| 109 | `estructura-app` | Orden común del panel | todas | Disposición de la propuesta elegida | rediseñado | la disposición sale de la fase 2 (D4, eje 1) |
+| 110 | `estructura-app` | Interruptor de guía sin tooltips | todas | Barra superior · "Guía" | fusionado con *Ayudas con nombre claro* | un solo control con nombre para la guía; los tooltips siguen |
+| 111 | `estructura-app` | Interruptor de ayudas | todas | Barra superior · preferencias | rediseñado | se conserva aparte de la guía, con nombre que diga que apaga los tooltips |
+| 112 | `estructura-app` | Disposición de Reglas a mano | todas | Disposición de la propuesta elegida | rediseñado | la disposición sale de la fase 2 (D4, eje 1) |
+| 113 | `inspector-de-red` | Dos vistas de la misma red | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 114 | `inspector-de-red` | Actividad en el momento | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 115 | `inspector-de-red` | Paso animado | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 116 | `inspector-de-red` | Elegir una neurona o una conexión | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 117 | `inspector-de-red` | Capas resumidas | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 118 | `inspector-de-red` | Conexiones más importantes | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 119 | `inspector-de-red` | Acercar y moverse | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 120 | `inspector-de-red` | Marcas de lo apagado y lo cambiado | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 121 | `inspector-de-red` | Redes grandes en el inspector | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 122 | `inspector-de-red` | Inspector accesible | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 123 | `inspector-de-red` | La vuelta en la red | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 124 | `inspector-de-red` | Vuelta animada | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 125 | `inspector-de-red` | Estado sin nada elegido | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 126 | `inspector-de-red` | Conexiones siempre visibles | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 127 | `inspector-de-red` | Neuronas que usan el espacio | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 128 | `inspector-de-red` | Neurona por dentro | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 129 | `inspector-de-red` | Vista previa al posar el cursor | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 130 | `inspector-de-red` | Números sobre las conexiones | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 131 | `inspector-de-red` | Cambiar un peso en el lugar | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 132 | `inspector-de-red` | De dónde viene una neurona | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 133 | `inspector-de-red` | Flujo de la señal | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 134 | `inspector-de-red` | Pocos colores con significado | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 135 | `inspector-de-red` | Mapa dentro de la neurona | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 136 | `inspector-de-red` | Perillas de pesos y sesgos sobre la red | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 137 | `inspector-de-red` | Perillas de las entradas | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 138 | `inspector-de-red` | Lo que titubea, quieto | Inspeccionar y Laboratorio | Entender y Aprender · por gradiente · vista de la red | igual | pintor de canvas reutilizado (`src/render`); la V2 define sus colores |
+| 139 | `internacionalizacion` | Dos idiomas completos | todas | Armazón · diccionarios propios de la V2 | igual | mismo motor de i18n, claves propias |
+| 140 | `internacionalizacion` | Selector de idioma | todas | Armazón · diccionarios propios de la V2 | igual | mismo motor de i18n, claves propias |
+| 141 | `internacionalizacion` | Cambio de idioma en vivo | todas | Armazón · diccionarios propios de la V2 | igual | mismo motor de i18n, claves propias |
+| 142 | `internacionalizacion` | Idioma inicial | todas | Armazón · diccionarios propios de la V2 | igual | mismo motor de i18n, claves propias |
+| 143 | `internacionalizacion` | Texto faltante | todas | Armazón · diccionarios propios de la V2 | igual | mismo motor de i18n, claves propias |
+| 144 | `internacionalizacion` | Números según el idioma | todas | Armazón · diccionarios propios de la V2 | igual | mismo motor de i18n, claves propias |
+| 145 | `jerarquia-visual` | Cinco estilos con un significado cada uno | todas | Componentes | igual | misma regla, con los componentes de la V2 |
+| 146 | `jerarquia-visual` | La salida de la red no parece botón | todas | Componentes | igual | misma regla, con los componentes de la V2 |
+| 147 | `jerarquia-visual` | Una sola acción principal a la vista | todas | Componentes | igual | misma regla, con los componentes de la V2 |
+| 148 | `jerarquia-visual` | La marcha es la acción principal | todas | Componentes · acción principal | rediseñado | la acción principal sale de la consigna: en Reglas a mano es escribir, no pausar (informe R3). Decide el dueño |
+| 149 | `jerarquia-visual` | Estados que cambian la acción principal | todas | Componentes | igual | misma regla, con los componentes de la V2 |
+| 150 | `jerarquia-visual` | Guardar no compite con la marcha | todas | Componentes | igual | misma regla, con los componentes de la V2 |
+| 151 | `jerarquia-visual` | Opciones elegidas con un mismo aspecto | todas | Componentes | igual | misma regla, con los componentes de la V2 |
+| 152 | `neuroevolucion` | Población evaluada en el mismo escenario | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 153 | `neuroevolucion` | Tamaño de la población | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 154 | `neuroevolucion` | Fin de la generación | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 155 | `neuroevolucion` | Eliminar a los lentos | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 156 | `neuroevolucion` | Pasar de generación a pedido | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 157 | `neuroevolucion` | Funciones de fitness | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 158 | `neuroevolucion` | Selección de los padres | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 159 | `neuroevolucion` | Élite | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 160 | `neuroevolucion` | Mutación | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 161 | `neuroevolucion` | Cruce opcional | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 162 | `neuroevolucion` | Tráfico por generación | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 163 | `neuroevolucion` | Entrenamiento reproducible | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 164 | `neuroevolucion` | El mejor nunca empeora con élite y mismo tráfico | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 165 | `neuroevolucion` | Historial de generaciones | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 166 | `neuroevolucion` | Campeón | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 167 | `neuroevolucion` | Líder | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 168 | `neuroevolucion` | Cambios de configuración durante el entrenamiento | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 169 | `neuroevolucion` | Continuar desde un cerebro | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 170 | `neuroevolucion` | Modo de selección | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 171 | `neuroevolucion` | Elegir al líder como padre | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 172 | `neuroevolucion` | Generación siguiente desde el padre elegido | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 173 | `neuroevolucion` | Sin padre elegido | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 174 | `neuroevolucion` | Deshacer la elección | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 175 | `neuroevolucion` | Padre al cambiar de modo | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 176 | `neuroevolucion` | Padre al continuar desde un cerebro | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 177 | `neuroevolucion` | Cerebro del entrenamiento | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 178 | `neuroevolucion` | Vehículos superados | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 179 | `neuroevolucion` | Escenario por defecto del entrenamiento | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 180 | `neuroevolucion` | Enfriamiento de la mutación | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 181 | `neuroevolucion` | Aprendizaje con los valores por defecto | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 182 | `neuroevolucion` | Pistas del entrenamiento | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 183 | `neuroevolucion` | Ventaja en un circuito | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 184 | `neuroevolucion` | Vueltas de un individuo | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 185 | `neuroevolucion` | Aprendizaje en el óvalo | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 186 | `neuroevolucion` | Reiniciar la generación en curso | Entrenar | Aprender · por evolución · núcleo | rediseñado | "Reiniciar" con alcance y Deshacer si se pierde trabajo |
+| 187 | `neuroevolucion` | Muestra de la mutación | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 188 | `neuroevolucion` | Cambios que rigen en cada generación | Entrenar | Aprender · por evolución · núcleo | igual | núcleo reutilizado tal cual (`src/core`) |
+| 189 | `paisaje` | Paisaje de la calle | todas | Escena (dibujo) | igual | pintor reutilizado; colores de la propuesta |
+| 190 | `paisaje` | Paisaje de los circuitos | todas | Escena (dibujo) | igual | pintor reutilizado; colores de la propuesta |
+| 191 | `paisaje` | Paisaje solo estético | todas | Escena (dibujo) | igual | pintor reutilizado; colores de la propuesta |
+| 192 | `paisaje` | Paisaje reproducible | todas | Escena (dibujo) | igual | pintor reutilizado; colores de la propuesta |
+| 193 | `paisaje` | Colores del paisaje | todas | Escena (dibujo) | igual | pintor reutilizado; colores de la propuesta |
+| 194 | `paisaje` | Mostrar u ocultar el paisaje | todas | Escena (dibujo) | igual | pintor reutilizado; colores de la propuesta |
+| 195 | `paisaje` | Paisaje fluido | todas | Escena (dibujo) | igual | pintor reutilizado; colores de la propuesta |
+| 196 | `pestana-competir` | Carrera lista al abrir | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 197 | `pestana-competir` | Guía de inicio | Competir | Pregunta de la etapa + consigna | fusionado con *Una consigna y una acción principal* | la guía de inicio pasa a la pregunta y la consigna |
+| 198 | `pestana-competir` | Elegir a los competidores | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 199 | `pestana-competir` | Agregar competidores | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 200 | `pestana-competir` | Sensores de cada competidor | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 201 | `pestana-competir` | Tu programa como competidor | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 202 | `pestana-competir` | Programas de ejemplo como competidores | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 203 | `pestana-competir` | Vos como competidor | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 204 | `pestana-competir` | Cuenta regresiva al largar | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 205 | `pestana-competir` | Controles de la carrera | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 206 | `pestana-competir` | Chocar y seguir | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 207 | `pestana-competir` | Meta y espera | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 208 | `pestana-competir` | Tráfico de la carrera | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 209 | `pestana-competir` | Barra de escenario en Competir | Competir | Escenario compartido (D7) | fusionado con *El escenario se comparte entre etapas* | una sola barra de escenario con valores "de esta etapa" |
+| 210 | `pestana-competir` | Meta configurable | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 211 | `pestana-competir` | Panel sin desplazamiento lateral | Competir | Evaluar | rediseñado | lo cubre la spec *Tamaños de ventana de la V2* |
+| 212 | `pestana-competir` | Indicadores de la carrera | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 213 | `pestana-competir` | Marcador de la carrera | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 214 | `pestana-competir` | Seguir a un competidor | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 215 | `pestana-competir` | Tabla por pista | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 216 | `pestana-competir` | Dónde entrenó cada cerebro | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 217 | `pestana-competir` | Resultado de la calle con su tráfico | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 218 | `pestana-competir` | Misiones | Competir | Evaluar | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 219 | `pestana-competir` | La carrera se conserva al cambiar de pestaña | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 220 | `pestana-competir` | Pestaña a la vista sin desplazarse | Competir | Evaluar | rediseñado | lo cubre la spec *Tamaños de ventana de la V2* |
+| 221 | `pestana-competir` | Controles de la pestaña explicados | Competir | Evaluar | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 222 | `pestana-competir` | Cerebros que aprendieron imitando | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 223 | `pestana-competir` | Marcador y tabla sin cortes | Competir | Evaluar | rediseñado | lo cubre la spec *Tamaños de ventana de la V2* |
+| 224 | `pestana-competir` | Botones de solo ícono con nombre | Competir | Evaluar | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 225 | `pestana-competir` | Panel a la vista en 1366×768 | Competir | Evaluar | rediseñado | lo cubre la spec *Tamaños de ventana de la V2* |
+| 226 | `pestana-conducir` | Manejo inmediato | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 227 | `pestana-conducir` | Guía de inicio | El problema | Pregunta de la etapa + consigna | fusionado con *Una consigna y una acción principal* | la guía de inicio pasa a la pregunta y la consigna |
+| 228 | `pestana-conducir` | Indicadores del intento | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 229 | `pestana-conducir` | Fin del intento por choque | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 230 | `pestana-conducir` | Reiniciar el intento | El problema | Problema | rediseñado | "Reiniciar" con alcance y Deshacer si se pierde trabajo |
+| 231 | `pestana-conducir` | Tráfico nuevo | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 232 | `pestana-conducir` | Pausa | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 233 | `pestana-conducir` | Percepción visible | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 234 | `pestana-conducir` | Acción visible | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 235 | `pestana-conducir` | Ver como la máquina | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 236 | `pestana-conducir` | Misiones | El problema | Problema | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 237 | `pestana-conducir` | Configuración avanzada | El problema | "Avanzado" de la etapa (plegado y recordado) | rediseñado | spec *Ajustes en tres niveles* |
+| 238 | `pestana-conducir` | Restablecer la configuración | El problema | "Restablecer ajustes de esta etapa" | fusionado con *Reinicios con alcance explícito* | un verbo con objeto escrito y Deshacer |
+| 239 | `pestana-conducir` | Controles de la pestaña explicados | El problema | Problema | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 240 | `pestana-conducir` | Panel a la vista sin desplazarse | El problema | Problema | rediseñado | lo cubre la spec *Tamaños de ventana de la V2* |
+| 241 | `pestana-conducir` | Elegir la pista | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 242 | `pestana-conducir` | Pestaña en un circuito | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 243 | `pestana-conducir` | Cinta del manejo | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 244 | `pestana-conducir` | Cartel de primer manejo | El problema | Problema | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 245 | `pestana-entrenar` | Entrenamiento en marcha al abrir | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 246 | `pestana-entrenar` | Guía de inicio | Entrenar | Pregunta de la etapa + consigna | fusionado con *Una consigna y una acción principal* | la guía de inicio pasa a la pregunta y la consigna |
+| 247 | `pestana-entrenar` | Indicadores del entrenamiento | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 248 | `pestana-entrenar` | Pausa | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 249 | `pestana-entrenar` | Velocidad del entrenamiento | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 250 | `pestana-entrenar` | Pasar a la siguiente generación | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 251 | `pestana-entrenar` | Reiniciar el entrenamiento | Entrenar | Aprender · por evolución | rediseñado | "Reiniciar" con alcance y Deshacer si se pierde trabajo |
+| 252 | `pestana-entrenar` | Población nueva | Entrenar | Aprender · por evolución | rediseñado | con Deshacer en lugar del diálogo |
+| 253 | `pestana-entrenar` | Curva de fitness | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 254 | `pestana-entrenar` | Red del líder | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 255 | `pestana-entrenar` | Sensores del líder | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 256 | `pestana-entrenar` | Configuración básica | Entrenar | "Probá esto" de la etapa | rediseñado | spec *Ajustes en tres niveles* |
+| 257 | `pestana-entrenar` | Configuración avanzada | Entrenar | "Avanzado" de la etapa (plegado y recordado) | rediseñado | spec *Ajustes en tres niveles* |
+| 258 | `pestana-entrenar` | Red y sensores | Entrenar | "Avanzado" de la etapa (plegado y recordado) | rediseñado | spec *Ajustes en tres niveles* |
+| 259 | `pestana-entrenar` | Restablecer la configuración | Entrenar | "Restablecer ajustes de esta etapa" | fusionado con *Reinicios con alcance explícito* | un verbo con objeto escrito y Deshacer |
+| 260 | `pestana-entrenar` | Guardar el campeón | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 261 | `pestana-entrenar` | Biblioteca de cerebros en la pestaña | Entrenar | Biblioteca compartida · en la etapa | rediseñado | misma biblioteca; su lugar sale de la propuesta |
+| 262 | `pestana-entrenar` | Seguir entrenando un cerebro | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 263 | `pestana-entrenar` | El entrenamiento se conserva al cambiar de pestaña | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 264 | `pestana-entrenar` | Misiones | Entrenar | Aprender · por evolución | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 265 | `pestana-entrenar` | Controles de la pestaña explicados | Entrenar | Aprender · por evolución | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 266 | `pestana-entrenar` | Controles de marcha agrupados | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 267 | `pestana-entrenar` | Panel a la vista sin desplazarse | Entrenar | Aprender · por evolución | rediseñado | lo cubre la spec *Tamaños de ventana de la V2* |
+| 268 | `pestana-entrenar` | Avanzado por grupos | Entrenar | "Avanzado" de la etapa (plegado y recordado) | rediseñado | spec *Ajustes en tres niveles* |
+| 269 | `pestana-entrenar` | Quién elige al padre | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 270 | `pestana-entrenar` | Elegir al líder | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 271 | `pestana-entrenar` | Deshacer la elección | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 272 | `pestana-entrenar` | Estado del padre elegido | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 273 | `pestana-entrenar` | Ajustes que no aplican con selección manual | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 274 | `pestana-entrenar` | Selección manual explicada | Entrenar | Aprender · por evolución | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 275 | `pestana-entrenar` | Funciones de fitness a elegir | Entrenar | "Probá esto" de la etapa | rediseñado | spec *Ajustes en tres niveles* |
+| 276 | `pestana-entrenar` | Valores de ventaja con su unidad | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 277 | `pestana-entrenar` | Pistas del entrenamiento | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 278 | `pestana-entrenar` | Generación en un circuito | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 279 | `pestana-entrenar` | Ver como la máquina | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 280 | `pestana-entrenar` | Vistas del panel | Entrenar | Banco o inspector de la etapa | rediseñado | las subpestañas Entrenamiento/Ajustes/Cerebros se reparten en los tres niveles (informe N2) |
+| 281 | `pestana-entrenar` | Cambios pendientes a la vista | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 282 | `pestana-entrenar` | Textos de la pestaña coherentes | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 283 | `pestana-entrenar` | Corte de generación | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 284 | `pestana-entrenar` | Tarjeta de generación | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 285 | `pestana-entrenar` | La mutación en la red | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 286 | `pestana-entrenar` | Cambios marcados en la curva | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 287 | `pestana-entrenar` | Vista previa de la mutación | Entrenar | Aprender · por evolución | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 288 | `pestana-inspeccionar` | Lista para mirar al abrir | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 289 | `pestana-inspeccionar` | La red en el centro | Inspeccionar | Disposición de la propuesta elegida | rediseñado | la disposición sale de la fase 2 (D4, eje 1) |
+| 290 | `pestana-inspeccionar` | Escena del auto en segundo plano | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 291 | `pestana-inspeccionar` | Elegir el cerebro | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 292 | `pestana-inspeccionar` | Barra de reproducción junto a la red | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 293 | `pestana-inspeccionar` | Ritmo de la reproducción | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 294 | `pestana-inspeccionar` | Avance paso a paso | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 295 | `pestana-inspeccionar` | Operación en curso | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 296 | `pestana-inspeccionar` | Tarjeta de la neurona | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 297 | `pestana-inspeccionar` | Decisión de la red | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 298 | `pestana-inspeccionar` | Entradas a mano | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 299 | `pestana-inspeccionar` | Apagar una parte de la red | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 300 | `pestana-inspeccionar` | Cambiar pesos y sesgos | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 301 | `pestana-inspeccionar` | Deshacer y restablecer la red | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 302 | `pestana-inspeccionar` | Vista de la red a la vista | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 303 | `pestana-inspeccionar` | Guía, leyenda y misiones | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 304 | `pestana-inspeccionar` | Estado conservado | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 305 | `pestana-inspeccionar` | Atajos de la pestaña | Inspeccionar | Entender | igual | mismos atajos, desactivables |
+| 306 | `pestana-inspeccionar` | Pestaña a la vista sin desplazarse | Inspeccionar | Entender | rediseñado | lo cubre la spec *Tamaños de ventana de la V2* |
+| 307 | `pestana-inspeccionar` | Controles explicados y accesibles | Inspeccionar | Entender | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 308 | `pestana-inspeccionar` | Detalle de una conexión | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 309 | `pestana-inspeccionar` | Panel sin nada elegido | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 310 | `pestana-inspeccionar` | Comparar con el original | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 311 | `pestana-inspeccionar` | Flujo de la señal en Inspeccionar | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 312 | `pestana-inspeccionar` | Curva de respuesta | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 313 | `pestana-inspeccionar` | La tarjeta sigue la cuenta de a una operación | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 314 | `pestana-inspeccionar` | La entrada que se lee, en la escena | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 315 | `pestana-inspeccionar` | Manejar vos | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 316 | `pestana-inspeccionar` | Tu decisión y la de la red | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 317 | `pestana-inspeccionar` | Devolver el volante | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 318 | `pestana-inspeccionar` | Caso del choque en Inspeccionar | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 319 | `pestana-inspeccionar` | Repetición del choque en Inspeccionar | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 320 | `pestana-inspeccionar` | Reintentar desde un cuadro | Inspeccionar | Entender | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 321 | `pestana-laboratorio` | Disposición del Laboratorio | Laboratorio | Disposición de la propuesta elegida | rediseñado | la disposición sale de la fase 2 (D4, eje 1) |
+| 322 | `pestana-laboratorio` | Elegir los datos | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 323 | `pestana-laboratorio` | Plano de puntos | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 324 | `pestana-laboratorio` | Reproducción del aprendizaje | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 325 | `pestana-laboratorio` | Un ejemplo, paso a paso | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 326 | `pestana-laboratorio` | Operación en curso del aprendizaje | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 327 | `pestana-laboratorio` | Ejemplo en curso | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 328 | `pestana-laboratorio` | Curvas de aprendizaje | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 329 | `pestana-laboratorio` | Ejemplos apartados y sobreajuste | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 330 | `pestana-laboratorio` | Armar la red | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 331 | `pestana-laboratorio` | Tasa de aprendizaje | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 332 | `pestana-laboratorio` | Empezar de nuevo | Laboratorio | Aprender · por gradiente | rediseñado | "Reiniciar" con alcance y Deshacer si se pierde trabajo |
+| 333 | `pestana-laboratorio` | Aprender a manejar imitando | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 334 | `pestana-laboratorio` | Grabar tu propio manejo | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 335 | `pestana-laboratorio` | Guardar lo aprendido como cerebro | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 336 | `pestana-laboratorio` | Tabla de datos | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 337 | `pestana-laboratorio` | Cambiar la red a mano | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 338 | `pestana-laboratorio` | Deshacer y restablecer los cambios a mano | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 339 | `pestana-laboratorio` | Guía y misiones del Laboratorio | Laboratorio | Aprender · por gradiente | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 340 | `pestana-laboratorio` | Estado conservado en el Laboratorio | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 341 | `pestana-laboratorio` | Atajos del Laboratorio | Laboratorio | Aprender · por gradiente | igual | mismos atajos, desactivables |
+| 342 | `pestana-laboratorio` | Controles del Laboratorio explicados y accesibles | Laboratorio | Aprender · por gradiente | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 343 | `pestana-laboratorio` | Qué detecta cada neurona | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 344 | `pestana-laboratorio` | Panel del Laboratorio con algo elegido | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 345 | `pestana-laboratorio` | Filtro de conexiones en el Laboratorio | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 346 | `pestana-laboratorio` | Detalle de una conexión en el Laboratorio | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 347 | `pestana-laboratorio` | Historia de un peso | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 348 | `pestana-laboratorio` | Lo que el Laboratorio no usa de la vista | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 349 | `pestana-laboratorio` | La espiral se puede aprender | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 350 | `pestana-laboratorio` | Punto de prueba en el plano | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 351 | `pestana-laboratorio` | La red muestra el punto de prueba | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 352 | `pestana-laboratorio` | Compuertas al abrir | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 353 | `pestana-laboratorio` | Nada aprende sin pedirlo | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 354 | `pestana-laboratorio` | Tabla de verdad | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 355 | `pestana-laboratorio` | Plano de las compuertas | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 356 | `pestana-laboratorio` | Elegir la compuerta | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 357 | `pestana-laboratorio` | Perillas en la red del Laboratorio | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 358 | `pestana-laboratorio` | Se ve en el momento si va mejor | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 359 | `pestana-laboratorio` | XOR no se separa con una recta | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 360 | `pestana-laboratorio` | De la mano a backpropagation | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 361 | `pestana-laboratorio` | Ver una solución | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 362 | `pestana-laboratorio` | Cada clase de datos con lo suyo | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 363 | `pestana-laboratorio` | Textos de las compuertas | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 364 | `pestana-laboratorio` | A mano primero en Compuertas | Laboratorio | Aprender · por gradiente | rediseñado | misma conducta; pasa a la etapa Aprender (informe 1.4) |
+| 365 | `pestana-reglas` | Programa en marcha al abrir | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 366 | `pestana-reglas` | Guía de inicio | Reglas a mano | Pregunta de la etapa + consigna | fusionado con *Una consigna y una acción principal* | la guía de inicio pasa a la pregunta y la consigna |
+| 367 | `pestana-reglas` | Editor del programa | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 368 | `pestana-reglas` | Escribir con comodidad | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 369 | `pestana-reglas` | El programa rige mientras se escribe | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 370 | `pestana-reglas` | Errores a la vista | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 371 | `pestana-reglas` | Líneas que se cumplen resaltadas | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 372 | `pestana-reglas` | Paleta de palabras | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 373 | `pestana-reglas` | Indicadores del programa | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 374 | `pestana-reglas` | Percepción y acción con los nombres del lenguaje | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 375 | `pestana-reglas` | Controles del intento | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 376 | `pestana-reglas` | Reintento automático | Reglas a mano | Reglas a mano · interruptor "Reintentar solo" | rediseñado | propuesta: apagado por defecto para que el choque se quede (informe R6). Decide el dueño |
+| 377 | `pestana-reglas` | Programas de ejemplo | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 378 | `pestana-reglas` | Restablecer el programa | Reglas a mano | Reglas a mano · "Restablecer programa" | rediseñado | con Deshacer de 8 s en lugar del diálogo |
+| 379 | `pestana-reglas` | Programa recordado | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 380 | `pestana-reglas` | Exportar e importar el programa | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 381 | `pestana-reglas` | Misiones | Reglas a mano | Reglas a mano | igual | lógica de misiones reutilizada (`session.js`); cambia solo dónde se ve la tarjeta |
+| 382 | `pestana-reglas` | Configuración avanzada | Reglas a mano | "Avanzado" de la etapa (plegado y recordado) | rediseñado | spec *Ajustes en tres niveles* |
+| 383 | `pestana-reglas` | Fluidez con el programa en marcha | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 384 | `pestana-reglas` | Controles de la pestaña explicados | Reglas a mano | Reglas a mano | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 385 | `pestana-reglas` | Elegir la pista | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 386 | `pestana-reglas` | Ejemplos en la calle recta | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 387 | `pestana-reglas` | Ver como la máquina | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 388 | `pestana-reglas` | Insertar un dato desde su barra | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 389 | `pestana-reglas` | Mesa de trabajo | Reglas a mano | Disposición de la propuesta elegida | rediseñado | la disposición sale de la fase 2 (D4, eje 1) |
+| 390 | `pestana-reglas` | Caso del choque | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 391 | `pestana-reglas` | Repetición del choque | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 392 | `pestana-reglas` | Comparar con los ejemplos | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 393 | `pestana-reglas` | Tu programa | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 394 | `pestana-reglas` | Cuaderno de casos | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 395 | `pestana-reglas` | Regla para el caso | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 396 | `pestana-reglas` | Vista de fichas | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 397 | `pestana-reglas` | Ficha de regla | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 398 | `pestana-reglas` | Ficha escrita a mano | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 399 | `pestana-reglas` | Editar con fichas | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 400 | `pestana-reglas` | Agregar y borrar fichas | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 401 | `pestana-reglas` | Reordenar fichas | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 402 | `pestana-reglas` | Constantes como deslizadores | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 403 | `pestana-reglas` | Fichas que se cumplen | Reglas a mano | Reglas a mano | rediseñado | misma conducta; cambia el lugar en la pantalla |
+| 404 | `pista` | Pista definida por línea central, ancho y carriles | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 405 | `pista` | Calle recta de 2, 3 o 4 carriles | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 406 | `pista` | Bordes de la pista | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 407 | `pista` | Centro de carril | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 408 | `pista` | Progreso sobre la pista | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 409 | `pista` | Pista cerrada | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 410 | `pista` | Progreso por vueltas | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 411 | `pista` | Catálogo de circuitos | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 412 | `pista` | Circuitos manejables | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 413 | `pista` | Nombres de las pistas | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 414 | `red-neuronal` | Estructura por capas | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 415 | `red-neuronal` | Cálculo de las salidas | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 416 | `red-neuronal` | Salidas sí/no | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 417 | `red-neuronal` | Activación de las capas ocultas | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 418 | `red-neuronal` | Inicialización reproducible | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 419 | `red-neuronal` | Valores de todas las neuronas | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 420 | `red-neuronal` | Cálculo sin efectos | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 421 | `reglas` | Programa por líneas | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 422 | `reglas` | Órdenes | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 423 | `reglas` | Reglas | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 424 | `reglas` | Condiciones | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 425 | `reglas` | Constantes | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 426 | `reglas` | Datos disponibles | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 427 | `reglas` | Ejecución en cada instante | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 428 | `reglas` | Vocabulario en español y en inglés | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 429 | `reglas` | Errores explicados | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 430 | `reglas` | Errores de constantes | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 431 | `reglas` | Tamaño de un programa | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 432 | `reglas` | Cantidad de reglas | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 433 | `reglas` | Líneas que se cumplen | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 434 | `reglas` | Lenguaje sin navegador | Reglas a mano | Reglas a mano · núcleo del lenguaje | igual | lógica sin DOM reutilizada tal cual |
+| 435 | `retropropagacion` | Respuesta suave | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 436 | `retropropagacion` | Error de un ejemplo | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 437 | `retropropagacion` | Culpa de cada neurona | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 438 | `retropropagacion` | Corrección de los pesos | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 439 | `retropropagacion` | La corrección achica el error | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 440 | `retropropagacion` | Una época | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 441 | `retropropagacion` | Recorrido paso a paso del aprendizaje | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 442 | `retropropagacion` | Aprender con partes apagadas | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 443 | `retropropagacion` | Cambios a mano durante el aprendizaje | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 444 | `retropropagacion` | Valores de cada neurona sobre una grilla | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 445 | `retropropagacion` | Historia de los pesos | Laboratorio | Aprender · por gradiente · núcleo | igual | núcleo reutilizado tal cual |
+| 446 | `sensores` | Rayos distribuidos en un abanico | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 447 | `sensores` | Lectura normalizada | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 448 | `sensores` | Obstáculos detectados | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 449 | `sensores` | Orden estable de las lecturas | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 450 | `sensores` | Configuración de los sensores | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 451 | `simulacion` | Avance en pasos fijos | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 452 | `simulacion` | Resultado reproducible | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 453 | `simulacion` | Ejecución sin navegador | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 454 | `simulacion` | Aceleración y velocidad máxima | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 455 | `simulacion` | Velocidad máxima configurable | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 456 | `simulacion` | Fricción | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 457 | `simulacion` | Giro | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 458 | `simulacion` | Choque | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 459 | `simulacion` | Reinicio | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 460 | `simulacion` | Pausa | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 461 | `simulacion` | Sacar un auto de carrera | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 462 | `simulacion` | Varios autos en un mismo mundo | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 463 | `simulacion` | Los autos no chocan entre sí | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 464 | `simulacion` | Un auto se comporta igual solo o acompañado | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 465 | `simulacion` | Reproducibilidad con varios autos | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 466 | `simulacion` | Reinicio con varios autos | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 467 | `simulacion` | Velocidad de simulación | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 468 | `simulacion` | Mundo sobre un circuito | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 469 | `sistema-de-diseno` | Escala tipográfica acotada | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 470 | `sistema-de-diseno` | Tres alturas de control | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 471 | `sistema-de-diseno` | Espaciado en pasos | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 472 | `sistema-de-diseno` | Superficies con nombre | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 473 | `sistema-de-diseno` | Un color, un significado | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 474 | `sistema-de-diseno` | Cuatro roles con un color y una forma | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 475 | `sistema-de-diseno` | Rótulos de rol | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 476 | `sistema-de-diseno` | Estado "se cumple" | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 477 | `sistema-de-diseno` | Estado "error" | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 478 | `sistema-de-diseno` | Estado "choque" | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 479 | `sistema-de-diseno` | Deslizadores de la app | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 480 | `sistema-de-diseno` | El sistema no cambia el comportamiento | todas | Tokens de la propuesta elegida | rediseñado | la V2 trae su propio sistema (D4, eje 4) |
+| 481 | `tablero` | Zona de tablero | El problema, Entrenar, Competir | Zona del objeto o banco, según la propuesta | rediseñado | el tablero de la V1 se reparte según la disposición elegida |
+| 482 | `tablero` | Renglón de indicadores | El problema, Entrenar, Competir | Zona del objeto o banco, según la propuesta | rediseñado | el tablero de la V1 se reparte según la disposición elegida |
+| 483 | `tablero` | Tarjetas del tablero | El problema, Entrenar, Competir | Zona del objeto o banco, según la propuesta | rediseñado | el tablero de la V1 se reparte según la disposición elegida |
+| 484 | `tablero` | Las tarjetas se reparten el alto | El problema, Entrenar, Competir | Zona del objeto o banco, según la propuesta | rediseñado | el tablero de la V1 se reparte según la disposición elegida |
+| 485 | `tablero` | Renglones de ayuda | El problema, Entrenar, Competir | Zona del objeto o banco, según la propuesta | rediseñado | el tablero de la V1 se reparte según la disposición elegida |
+| 486 | `tablero` | Tarjetas operables con el teclado | El problema, Entrenar, Competir | Zona del objeto o banco, según la propuesta | rediseñado | el tablero de la V1 se reparte según la disposición elegida |
+| 487 | `tablero` | Tablero explicado | El problema, Entrenar, Competir | Zona del objeto o banco, según la propuesta | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 488 | `tablero` | Tarjeta con editor | El problema, Entrenar, Competir | Zona del objeto o banco, según la propuesta | rediseñado | el tablero de la V1 se reparte según la disposición elegida |
+| 489 | `trafico` | Tráfico reproducible | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 490 | `trafico` | Tráfico siempre superable | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 491 | `trafico` | Densidad configurable | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 492 | `trafico` | Irregularidad configurable | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 493 | `trafico` | Cambio de configuración en marcha | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 494 | `trafico` | Movimiento del tráfico | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 495 | `trafico` | Tráfico sin fin | todas | Núcleo compartido | igual | núcleo sin DOM reutilizado |
+| 496 | `vista-escenario` | Dibujo del escenario | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 497 | `vista-escenario` | Colores con significado constante | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 498 | `vista-escenario` | Sensores visibles | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 499 | `vista-escenario` | Cámara que sigue al auto | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 500 | `vista-escenario` | Zoom | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 501 | `vista-escenario` | Paneo | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 502 | `vista-escenario` | Restablecer la vista | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 503 | `vista-escenario` | Controles de cámara explicados | todas | Escena (dibujo y cámara) | igual | tooltips y nombres se conservan; los textos se revisan con `ux-writing` |
+| 504 | `vista-escenario` | Adaptación al tamaño de la ventana | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 505 | `vista-escenario` | Fluidez | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 506 | `vista-escenario` | Dibujo de una población | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 507 | `vista-escenario` | Marca de la élite | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 508 | `vista-escenario` | Seguimiento del líder | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 509 | `vista-escenario` | Fluidez con una población | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 510 | `vista-escenario` | Dibujo de un circuito | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 511 | `vista-escenario` | Circuito entero a la vista | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 512 | `vista-escenario` | Fluidez en un circuito | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 513 | `vista-escenario` | Competidores distinguibles | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 514 | `vista-escenario` | Meta a la vista | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 515 | `vista-escenario` | Fluidez en una carrera | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 516 | `vista-escenario` | Escena chica | todas | Escena | rediseñado | la escena pasa a protagonista (spec *La escena como protagonista*) |
+| 517 | `vista-escenario` | Rayos que se mueven a mano | todas | Escena (dibujo y cámara) | igual | pintor reutilizado; colores de la propuesta (D8) |
+| 518 | `vista-red` | Diagrama por capas | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
+| 519 | `vista-red` | Entradas y salidas con nombre | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
+| 520 | `vista-red` | Pesos visibles | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
+| 521 | `vista-red` | Sesgos visibles | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
+| 522 | `vista-red` | Actividad en vivo | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
+| 523 | `vista-red` | Colores propios y constantes | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
+| 524 | `vista-red` | Redes grandes | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
+| 525 | `vista-red` | Diagrama solo de lectura | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
+| 526 | `vista-red` | Diagrama que ocupa su zona | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
