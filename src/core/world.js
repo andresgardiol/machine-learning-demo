@@ -23,6 +23,11 @@ import { normalizeControls, idleController, isController } from './controller.js
 import { outline, segmentIntersection, contoursTouch, distance } from './geometry.js';
 import { STEP, CAR_LENGTH, REVERSE_FRACTION, TRAFFIC_CHANGE_AHEAD } from './constants.js';
 import { MAX_VEHICLE_LENGTH } from './traffic.js';
+import { VEHICLE_TYPES } from './constants.js';
+
+// Media diagonal del vehículo más grande del tráfico, y la distancia entre centros hasta la que puede chocar.
+const VEHICLE_REACH = Math.max(...VEHICLE_TYPES.map((t) => Math.hypot(t.length, t.width) / 2));
+const CRASH_REACH = (CAR_LENGTH + MAX_VEHICLE_LENGTH) / 2 + 1;
 
 /**
  * @param {object} spec
@@ -78,9 +83,9 @@ export function createWorld(spec = {}) {
   let time;
   let steps;
 
-  // Tramo de tráfico de cada agente: el alcance de sus sensores más medio vehículo del más largo,
-  // y nunca menos que lo que alcanza para chocar (trafico-vivo D9).
-  const windowRadius = (agent) => rangeMeters(agent.car.sensors) + CAR_LENGTH + MAX_VEHICLE_LENGTH / 2;
+  // Tramo de tráfico de cada agente: el alcance de sus sensores más la media diagonal del vehículo más
+  // grande (un rayo puede tocar su esquina), y nunca menos que lo que alcanza para chocar (trafico-vivo D9).
+  const windowRadius = (agent) => Math.max(rangeMeters(agent.car.sensors) + VEHICLE_REACH, CRASH_REACH);
 
   /**
    * Actualiza el progreso (y el tramo de pista) del agente a partir de su posición. En una pista
@@ -135,7 +140,7 @@ export function createWorld(spec = {}) {
     const range = rangeMeters(car.sensors);
     const obstacles = [...track.bordersNear(car.position, range)];
     for (const v of agent.nearby) {
-      if (distance(v.position, car.position) <= range + v.length / 2 + v.width / 2) obstacles.push(...outline(v.contour));
+      if (distance(v.position, car.position) <= range + Math.hypot(v.length, v.width) / 2) obstacles.push(...outline(v.contour));
     }
     agent.rays = readSensors(car, car.sensors, obstacles);
     agent.perception = { sensors: agent.rays.map((r) => r.reading), speed: normalizedSpeed(car) };
