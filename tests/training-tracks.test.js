@@ -8,7 +8,7 @@ import {
 import { recordStep, createStats, fitnessOf } from '../src/core/evolution.js';
 import { validateBrain, createBrain } from '../src/core/brain.js';
 import { createLibrary } from '../src/ui/library.js';
-import { STEP, TRAFFIC_SPEED } from '../src/core/constants.js';
+import { STEP, TRAFFIC_SPEEDS } from '../src/core/constants.js';
 
 const small = (config = {}) => ({ population: 6, elite: 1, maxDuration: 10, ...config });
 
@@ -101,7 +101,7 @@ test('Alternancia reproducible: misma semilla y misma lista, misma pista por gen
 /** Estadísticas de un auto que avanza a velocidad constante `speed` durante `seconds` (progreso acumulado). */
 function constantRun(speed, seconds) {
   const st = createStats();
-  for (let s = 1; s <= Math.round(seconds / STEP); s++) recordStep(st, { progress: speed * s * STEP, crashed: false }, TRAFFIC_SPEED * s * STEP);
+  for (let s = 1; s <= Math.round(seconds / STEP); s++) recordStep(st, { progress: speed * s * STEP, crashed: false }, TRAFFIC_SPEEDS.max * s * STEP);
   return st;
 }
 
@@ -159,8 +159,8 @@ test('Sin tráfico que superar: en un circuito la cuenta de vehículos superados
   assert.deepEqual(t.world.vehicles, []);
 });
 
-test('regla de los lentos en un circuito: saca de carrera a un auto que va a menos de 10 m/s', () => {
-  const t = createTraining({ seed: 5, config: small({ tracks: ['grandPrix'], population: 30, maxDuration: 30 }) });
+test('regla de los lentos en un circuito: saca de carrera a un auto que avanza menos que el carril más lento (6 m/s)', () => {
+  const t = createTraining({ seed: 2, config: small({ tracks: ['grandPrix'], population: 60, maxDuration: 30 }) });
   const history = [];
   let retired = 0;
   for (let s = 0; s < 20 / STEP && t.generation === 1; s++) {
@@ -171,8 +171,8 @@ test('regla de los lentos en un circuito: saca de carrera a un auto que va a men
       if (a.crashCause !== SLOW_CAUSE) return;
       const now = history.length - 1;
       const back = now - Math.round(SLOW_SECONDS / STEP);
-      // Al momento de salir, avanzó lo mismo o menos que el tráfico en esos 5 s.
-      if (back >= 0 && history[now - 1]?.[i] !== undefined) assert.ok(history[now][i] - history[back][i] <= TRAFFIC_SPEED * SLOW_SECONDS + 1e-9);
+      // Al momento de salir, avanzó menos que el carril más lento en esos 5 s.
+      if (back >= 0 && history[now - 1]?.[i] !== undefined) assert.ok(history[now][i] - history[back][i] < TRAFFIC_SPEEDS.min * SLOW_SECONDS);
     });
   }
   retired = t.world.agents.filter((a) => a.crashCause === SLOW_CAUSE).length;

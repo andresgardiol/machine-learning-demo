@@ -124,17 +124,20 @@ test('misión de superar vehículos: con el líder en 3 y nadie antes con más, 
   assert.equal(missionOf(s, 'passed').progress, 0);
 });
 
-test('seguir al tráfico no la cumple: un auto que recorre 600 m detrás del primer vehículo deja la misión en 0 de 5', () => {
-  // Acelera mientras no ve un vehículo cerca adelante: alcanza al primero y va detrás a su velocidad.
+test('seguir al tráfico no la cumple: un auto que recorre 600 m detrás del primer vehículo del carril más lento deja la misión en 0 de 5', () => {
+  // Acelera mientras no ve un vehículo cerca adelante y retrocede si lo tiene muy cerca: alcanza al primero
+  // de su carril y va detrás a su velocidad. Con carriles a distinto ritmo (trafico-vivo), seguir a uno
+  // de un carril rápido sí supera a los de los carriles lentos: la semilla 2 pone el carril del auto a 6 m/s.
   const follower = {
     sizes: [6, 4], activation: 'step',
-    layers: [{ weights: [[0, 0, -10, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], biases: [1, -1, -1, -1] }],
+    layers: [{ weights: [[0, 0, -10, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 10, 0, 0, 0]], biases: [1, -1, -1, -4] }],
   };
   const brain = createBrain({
     id: 'b', name: 'B', now: '2026-11-12T10:00:00.000Z', network: follower, sensors: { count: 5, range: 3, spread: 90 },
     training: { generations: 0, seed: 1, maxSpeed: 20, fitness: { kind: 'distance', best: 1 }, evolution: {}, scenarios: [] },
   });
-  const t = createTraining({ seed: 2, config: { population: 2, mutationStrength: 0, mutationCooling: false, slowRule: false }, brain });
+  const t = createTraining({ seed: 2, config: { population: 2, mutationStrength: 0, mutationCooling: false, slowRule: false, maxDuration: 120 }, brain });
+  assert.equal(t.world.traffic.laneSpeeds[1], t.world.traffic.slowestSpeed);
   const s = createTrainSession();
   while (t.leader.progress < 600) { assert.equal(t.step(), null); s.observe(t); }
   assert.equal(t.leader.crashed, false);

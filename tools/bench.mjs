@@ -15,7 +15,7 @@ import { performance } from 'node:perf_hooks';
 import { createWorld } from '../src/core/world.js';
 import { createNetwork, computeNetwork } from '../src/core/network.js';
 import { randomFor } from '../src/core/random.js';
-import { STEP, TRAFFIC_SPEED } from '../src/core/constants.js';
+import { STEP, TRAFFIC_SPEEDS } from '../src/core/constants.js';
 
 const CARS = 100;
 const STEPS = 3600;
@@ -37,11 +37,14 @@ function randomCars(generation) {
   }));
 }
 
-/** Va recto: acelera si no ve nada adelante; si ve un vehículo, se queda detrás a su velocidad. */
+/**
+ * Va recto: acelera si no ve nada adelante; si ve un vehículo, no pasa de 1 m/s menos que el carril
+ * más lento, así nunca alcanza al de adelante (trafico-vivo: cada carril va a su velocidad).
+ */
 const follower = {
   control({ sensors, speed }) {
     const ahead = sensors[Math.floor(sensors.length / 2)];
-    return { forward: ahead === 0 || speed * 15 < TRAFFIC_SPEED - 1 };
+    return { forward: ahead === 0 || speed * 15 < TRAFFIC_SPEEDS.min - 1 };
   },
 };
 

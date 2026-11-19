@@ -57,6 +57,8 @@ test('Frenar no alcanza: el ejemplo que frena recorre un kilómetro sin chocar y
   while (session.distance < 1000) {
     world.step();
     session.step(world, { seed: DEFAULT_SEED });
+    // Si choca, el mundo se detiene y el reloj no avanza: se corta acá para no quedar en un bucle sin fin.
+    assert.equal(world.crashed, false, `chocó a los ${session.distance.toFixed(0)} m`);
     assert.ok(world.steps < 120 * 60, 'no llegó al kilómetro en dos minutos');
   }
   assert.equal(world.crashed, false);

@@ -385,9 +385,9 @@ test('lentos: la regla está encendida por defecto', () => {
   assert.equal(createTraining({ seed: 1, config: { population: 2 } }).config.slowRule, true);
 });
 
-test('lentos: un auto que avanza a 10 m/s o menos durante 5 s queda fuera de carrera por lento', () => {
-  // El individuo 0 es una copia exacta del cerebro que se queda en 10 m/s; los demás, hijos mutados (algunos más rápidos).
-  const t = createTraining({ seed: 2, config: { population: 12, mutationStrength: 10, density: 0, maxSpeed: 20 }, brain: brainOf(speedCap(0.5)) });
+test('Auto detrás del tráfico: un auto que avanza más despacio que el carril más lento durante 5 s queda fuera de carrera por lento', () => {
+  // El individuo 0 es una copia exacta del cerebro que se queda en 5 m/s; los demás, hijos mutados (algunos más rápidos).
+  const t = createTraining({ seed: 2, config: { population: 12, mutationStrength: 10, density: 0, maxSpeed: 20 }, brain: brainOf(speedCap(0.25)) });
   for (let i = 0; i < 299; i++) t.step();
   assert.equal(t.world.agents[0].crashed, false, 'antes de los 5 s sigue en carrera');
   const startProgress = t.world.agents.map((a) => a.progress);
@@ -396,12 +396,21 @@ test('lentos: un auto que avanza a 10 m/s o menos durante 5 s queda fuera de car
   assert.equal(slow.crashed, true);
   assert.equal(slow.crashCause, 'tooSlow');
   assert.equal(slow.car.speed, 0);
-  assert.ok(slow.progress <= 50, `avanzó ${slow.progress} m`);
+  assert.ok(slow.progress < 29, `avanzó ${slow.progress} m`);
   const out = t.world.agents.filter((a) => a.crashCause === 'tooSlow').length;
   assert.ok(out >= 1 && out < 12, `salieron ${out}`);
   assert.equal(t.aliveCount, 12 - out, 'los que salen dejan de contarse en carrera');
   assert.equal(t.generation, 1);
   assert.ok(startProgress.length === 12);
+});
+
+test('Esperar el hueco no elimina: un auto a la velocidad del carril más lento (6 m/s) sigue en carrera', () => {
+  // Acelera solo hasta 0,3 de 20 m/s: va a 6 m/s, como quien sigue a un vehículo del carril más lento.
+  const t = capped(0.3, { maxDuration: 10 });
+  for (let i = 0; i < 7 * 60; i++) t.step(); // 7 s simulados
+  assert.equal(t.world.agents[0].crashed, false, `salió: ${t.world.agents[0].crashCause}`);
+  assert.ok(t.world.time > 6);
+  assert.equal(t.world.traffic.slowestSpeed, 6);
 });
 
 test('lentos: un auto más rápido que el tráfico sigue en carrera', () => {
@@ -422,12 +431,12 @@ test('lentos: ninguno sale antes de los 5 s; si salen todos, la generación term
   assert.equal(record.generation, 1);
 });
 
-test('lentos: el fitness es el logrado hasta salir (unos 40 m en 5 s, y 5 s sin chocar)', () => {
-  const distance = runToEnd(capped(0.4, { fitness: 'distance' }));
+test('Fitness al salir por lento: unos 25 m en 5 s, y 5 s sin chocar', () => {
+  const distance = runToEnd(capped(0.25, { fitness: 'distance' }));
   assert.equal(distance.steps, 300);
   assert.equal(distance.record.reason, 'allCrashed');
-  assert.ok(Math.abs(distance.record.best - 40) < 0.5, String(distance.record.best));
-  const survival = runToEnd(capped(0.4, { fitness: 'survival' }));
+  assert.ok(Math.abs(distance.record.best - 25) < 1, String(distance.record.best));
+  const survival = runToEnd(capped(0.25, { fitness: 'survival' }));
   assert.equal(survival.steps, 300);
   assert.equal(survival.record.best, 5);
 });
@@ -463,7 +472,7 @@ test('lentos: con la regla apagada, el auto que va detrás del tráfico sigue ha
 });
 
 test('lentos: apagar la regla durante una generación rige desde la siguiente', () => {
-  const t = capped(0.5, { maxDuration: 10 });
+  const t = capped(0.25, { maxDuration: 10 });
   for (let i = 0; i < 100; i++) t.step();
   t.configure({ slowRule: false });
   assert.deepEqual(t.pending, { slowRule: false });
@@ -923,19 +932,20 @@ test('con selección manual la élite no se usa: con élite 3 hay una sola copia
 });
 
 test('selección automática sin cambios: diez generaciones dan el mismo historial que antes de existir el modo manual', () => {
-  // Valores tomados con el código anterior a este cambio (commit 6666eea).
+  // Valores tomados con el código anterior a este cambio (commit 6666eea), vueltos a tomar con el tráfico por
+  // carril de trafico-vivo (cambió el tráfico, no la selección).
   const reference = {
     7: {
       config: { population: 20, fitness: 'distance', elite: 1, irregularity: 50, mutationCooling: false },
-      history: [[173.09611111111008, 12.323868334683358, 'allCrashed'], [177.02611111111764, 56.59658782841579, 'allCrashed'], [215.45611111111066, 45.57227185857482, 'allCrashed'], [230.4333333333343, 97.66567684199762, 'allCrashed'], [654.7100000000501, 187.71093141383827, 'timeLimit'], [623.1050000000541, 189.2358953869945, 'timeLimit'], [622.7300000000541, 189.33111692576713, 'timeLimit'], [576.488333333371, 196.5945833333404, 'allCrashed'], [623.1500000000524, 213.01127777778456, 'timeLimit'], [603.9411111111549, 177.04788888889453, 'allCrashed']],
-      champion: [0.7200939933564513, -0.20062512566754592, -0.39658241034718233, -0.311009442126844, -0.6131282534566708, -0.2090255785142071, 0.3704336073459126, -0.17201321303797884],
-      network5: [0.7295786444472148, -0.22580245024249887, -0.3229296427567024, -0.22090159799293607, -0.6430286154069472, -0.15366096351561132, 0.3554913577160332, -0.17638623934010975],
+      history: [[433.6700000000128,  27.935888613024144,  'timeLimit'],  [429.1850000000268,  124.03304114868006,  'timeLimit'],  [449.34000000001106,  258.65836691784864,  'timeLimit'],  [523.9483333333483,  193.81513264044332,  'timeLimit'],  [404.5550000000221,  180.9960108110128,  'timeLimit'],  [396.4550000000163,  171.91098463511443,  'timeLimit'],  [442.3850000000384,  233.82483781726333,  'timeLimit'],  [445.6060307402222,  201.97069326491618,  'timeLimit'],  [496.03337778658897,  230.60204099640833,  'timeLimit'],  [439.7600000000384,  148.09251713666745,  'timeLimit']],
+      champion: [0.7017934528663324,  -0.31725994205672814,  -0.43771116768519136,  -0.17302851008479458,  -0.4622292377559376,  0.0536459343908158,  0.3948598771419159,  -0.10808085460820437],
+      network5: [0.7131081580061078,  -0.3307737849927629,  -0.35994552436091054,  -0.0967187591550916,  -0.5072195012762873,  0.0827433980989093,  0.3774750005324362,  -0.1188471167533127],
     },
     3: {
       config: { population: 30, crossover: true, elite: 2, fitness: 'speed', maxDuration: 20, irregularity: 50, mutationCooling: false },
-      history: [[8.616268620560946, 0.48746722943157494, 'allCrashed'], [18.619047619049006, 4.2924902346862615, 'allCrashed'], [18.62559241706161, 7.870541346565223, 'allCrashed'], [19.320843091334897, 10.1866169026929, 'allCrashed'], [18.599033816426527, 13.744880632604765, 'timeLimit'], [19.599999999999596, 11.503707517202429, 'timeLimit'], [18.84633799206913, 18.601855370207463, 'allCrashed'], [19.359823399559144, 18.87872351578132, 'allCrashed'], [18.84633799206913, 18.597254088575543, 'allCrashed'], [19.51260504201681, 17.247306881782233, 'allCrashed']],
-      champion: [0.547849652684154, 0.5372338201839011, 0.08799074937007391, 0.5655069567912258, -0.6659191250396846, -0.5379186205567932, -0.4824922658099234, 0.3178409683696227],
-      network5: [0.49328364287248777, 0.43262509838573165, 0.017533420586376455, 0.39066568043404903, -0.6954464549300592, -0.5794628636168255, -0.4206782795032262, 0.2548412419457105],
+      history: [[8.616268620560946,  0.48746722943157494,  'allCrashed'],  [18.535353535355007,  4.289700431896462,  'allCrashed'],  [19.070512820513752,  7.970489383019773,  'allCrashed'],  [19.033333333334305,  9.194749944666505,  'timeLimit'],  [19.18974301944423,  14.652678656630396,  'allCrashed'],  [19.241983853824266,  10.981829577115938,  'allCrashed'],  [19.031151824393145,  12.256300513280994,  'allCrashed'],  [18.8671875,  12.456459473049083,  'allCrashed'],  [19.49211908931699,  12.26285870187045,  'allCrashed'],  [18.953068592057765,  14.688246416775302,  'timeLimit']],
+      champion: [-0.4961144810775295,  0.09586496990797812,  -0.05810984582169914,  0.0997495961742755,  -0.6381110042845831,  -0.5760671386046801,  -0.6000611543352716,  -0.07470188045874236],
+      network5: [-0.34845249487948604,  0.03539313313740099,  -0.1139571150862193,  0.013402218334319357,  -0.6704191462504678,  -0.6137965298599237,  -0.5264902791760396,  -0.09844732199981807],
     },
   };
   for (const [seed, ref] of Object.entries(reference)) {

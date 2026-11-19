@@ -43,7 +43,7 @@ import { sensorConfig, DEFAULT_SENSORS } from './sensors.js';
 import { maxSpeedOf } from './car.js';
 import { DEFAULT_TRAFFIC } from './traffic.js';
 import { deriveSeed, randomFor } from './random.js';
-import { ALLOWED_LANES, CAR_LENGTH, DEFAULT_LANES, MAX_SPEED, STEP, TRAFFIC_SPEED } from './constants.js';
+import { ALLOWED_LANES, CAR_LENGTH, DEFAULT_LANES, MAX_SPEED, STEP } from './constants.js';
 
 /** Semilla del tráfico del escenario, la que se usa en el modo "mismo tráfico". */
 export const SCENARIO_TRAFFIC_SEED = 1;
@@ -53,10 +53,39 @@ export const STALL_SECONDS = 5;
 
 /**
  * Regla "eliminar a los lentos" (design.md D18): un auto en carrera que en los últimos SLOW_SECONDS
- * avanzó lo mismo o menos que el tráfico en ese tiempo queda fuera de carrera con este motivo.
+ * avanzó lo mismo o menos que el carril más lento del tráfico en ese tiempo queda fuera de carrera
+ * con este motivo (trafico-vivo D7): esperar un hueco detrás de un vehículo no saca a nadie.
  */
 export const SLOW_SECONDS = 5;
+/**
+ * Margen (m) por debajo de lo que avanza el carril más lento en SLOW_SECONDS: un auto que sigue a un
+ * vehículo de ese carril avanza justo eso, con las oscilaciones de la aceleración, y no tiene que salir.
+ */
+export const SLOW_MARGIN = 1;
 export const SLOW_CAUSE = 'tooSlow';
+
+/**
+ * Vehículos enteros detrás de un auto (trafico-vivo D7): por carril, los frentes (en el instante 0,
+ * ordenados) que en el instante `time` quedan detrás de la cola del auto, con la velocidad de su
+ * carril. Una búsqueda binaria por carril.
+ * @param {ArrayLike<number>[]} laneFronts frentes ordenados de cada carril
+ * @param {number[]} laneSpeeds velocidad de cada carril (m/s)
+ */
+export function passedBehind(laneFronts, laneSpeeds, progress, time) {
+  let n = 0;
+  for (let lane = 0; lane < laneFronts.length; lane++) {
+    const fronts = laneFronts[lane];
+    const line = progress - CAR_LENGTH / 2 - laneSpeeds[lane] * time;
+    let lo = 0;
+    let hi = fronts.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (fronts[mid] < line) lo = mid + 1; else hi = mid;
+    }
+    n += lo;
+  }
+  return n;
+}
 
 export const END_REASONS = Object.freeze(['allCrashed', 'timeLimit', 'stalled', 'requested']);
 
@@ -275,9 +304,10 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
   let leaderIndex;
   let maxSteps;
   let recent; // progreso de cada agente en los últimos SLOW_STEPS pasos (anillo por agente)
-  let trafficStarts; // distancias, en el instante 0, de los vehículos que un auto puede llegar a superar (ordenadas)
+  let laneFronts; // por carril, el frente (en el instante 0) de los vehículos que un auto puede llegar a superar (ordenados)
+  let laneSpeeds;
+  let slowLimit;
   const SLOW_STEPS = Math.round(SLOW_SECONDS / STEP);
-  const SLOW_LIMIT = TRAFFIC_SPEED * SLOW_SECONDS;
 
   function startGeneration() {
     const sensors = { ...config.sensors };
@@ -287,10 +317,14 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
       lanes: config.lanes, density: config.density, irregularity: config.irregularity,
       cars: networks.map((net) => ({ controller: createNetworkController(net, sensors.count), sensors, maxSpeed: config.maxSpeed })),
     });
-    // Vehículos superados (fitness-que-premia-superar D2): un vehículo que empezó en d0 queda entero
-    // detrás del auto cuando d0 < ventaja − CAR_LENGTH. La lista se arma una vez por generación.
-    const reach = (config.maxSpeed - TRAFFIC_SPEED) * config.maxDuration + 2 * CAR_LENGTH;
-    trafficStarts = Float64Array.from(world.vehiclesIn(0, reach).map((v) => v.distance)).sort();
+    // Vehículos superados (trafico-vivo D7): el vehículo del carril i con frente f (en el instante 0)
+    // queda entero detrás del auto cuando f + v_i·t < progreso − CAR_LENGTH/2. Las listas se arman una
+    // vez por generación, por carril y ordenadas, con los vehículos que el auto puede llegar a alcanzar.
+    const traffic = world.traffic;
+    laneSpeeds = traffic.laneSpeeds;
+    slowLimit = traffic.slowestSpeed * SLOW_SECONDS - SLOW_MARGIN;
+    const reach = (config.maxSpeed - traffic.slowestSpeed) * config.maxDuration + traffic.maxLength;
+    laneFronts = laneSpeeds.map((_, lane) => Float64Array.from(traffic.laneBases(lane, -Infinity, reach).map((v) => v.base + v.length / 2)).sort());
     stats = networks.map(() => ({ ...createStats(), passed: 0 }));
     running = networks.map(() => true);
     lastImprovement = 0;
@@ -299,6 +333,9 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     recent = new Float64Array(networks.length * SLOW_STEPS);
     world.agents.forEach((a, i) => recent.fill(a.progress, i * SLOW_STEPS, (i + 1) * SLOW_STEPS));
   }
+
+  /** Vehículos que están enteros detrás de un auto con ese progreso en el instante `time`. */
+  const passedNow = (progress, time) => passedBehind(laneFronts, laneSpeeds, progress, time);
 
   /** Líder: el auto en carrera que más avanzó (se conserva el actual en caso de empate); si no queda ninguno, el que llegó más lejos. */
   function findLeader() {
@@ -398,24 +435,22 @@ export function createTraining({ seed = 1, config: partial = {}, brain = null } 
     world.step();
     const agents = world.agents;
     const now = world.steps;
-    const trafficAdvance = TRAFFIC_SPEED * world.time;
+    const time = world.time;
+    const trafficAdvance = world.traffic.fastestSpeed * time;
     for (let i = 0; i < agents.length; i++) {
       if (!running[i]) continue;
       const a = agents[i];
       if (a.progress > stats[i].best) lastImprovement = now;
       const st = stats[i];
-      const leadBefore = st.lead;
       recordStep(st, a, trafficAdvance);
-      if (st.lead > leadBefore) {
-        const line = st.lead - CAR_LENGTH;
-        while (st.passed < trafficStarts.length && trafficStarts[st.passed] < line) st.passed += 1;
-      }
+      const passed = passedNow(a.progress, time);
+      if (passed > st.passed) st.passed = passed;
       if (a.crashed) { running[i] = false; continue; }
       // Eliminar a los lentos: compara con el progreso de hace SLOW_STEPS pasos.
       const slot = i * SLOW_STEPS + (now % SLOW_STEPS);
       const before = recent[slot];
       recent[slot] = a.progress;
-      if (config.slowRule && now >= SLOW_STEPS && a.progress - before <= SLOW_LIMIT) {
+      if (config.slowRule && now >= SLOW_STEPS && a.progress - before < slowLimit) {
         world.retire(i, SLOW_CAUSE);
         stats[i].crashed = true;
         running[i] = false;

@@ -9,14 +9,15 @@ import { CAR_LENGTH } from '../../core/constants.js';
 export const PASS_WINDOW = 80;
 
 /**
- * Un vehículo cuenta como superado cuando todo el auto quedó por delante de él (la cola del auto
- * pasó el frente del vehículo) y deja de contar si vuelve a quedar por completo delante del auto.
- * Entre ambos límites (van a la par) conserva su estado anterior.
+ * Un vehículo cuenta como superado cuando queda entero detrás del auto (la cola del auto pasó el
+ * frente del vehículo) y deja de contar si vuelve a quedar por completo delante del auto. Entre ambos
+ * límites (van a la par) conserva su estado anterior. Cada vehículo con su propio largo (trafico-vivo D9).
  * @returns {'behind'|'ahead'|'alongside'}
  */
-export function relativePosition(carProgress, vehicleDistance, carLength = CAR_LENGTH) {
-  if (vehicleDistance < carProgress - carLength) return 'behind';
-  if (vehicleDistance > carProgress + carLength) return 'ahead';
+export function relativePosition(carProgress, vehicleDistance, vehicleLength = CAR_LENGTH, carLength = CAR_LENGTH) {
+  const reach = (carLength + vehicleLength) / 2;
+  if (vehicleDistance < carProgress - reach) return 'behind';
+  if (vehicleDistance > carProgress + reach) return 'ahead';
   return 'alongside';
 }
 
@@ -32,14 +33,14 @@ export function createAttempt() {
   return {
     /**
      * Actualiza distancia y vehículos superados con el estado actual del mundo.
-     * @param {{progress:number, crashed:boolean, vehiclesIn:(from:number,to:number)=>{id:string,distance:number}[]}} world
+     * @param {{progress:number, crashed:boolean, vehiclesIn:(from:number,to:number)=>{id:string,distance:number,length?:number}[]}} world
      */
     observe(world) {
       if (ended) return;
       const progress = world.progress;
       distance = Math.max(0, progress);
       for (const v of world.vehiclesIn(progress - PASS_WINDOW, progress + PASS_WINDOW)) {
-        const where = relativePosition(progress, v.distance);
+        const where = relativePosition(progress, v.distance, v.length ?? CAR_LENGTH);
         if (where === 'behind') passed.add(v.id);
         else if (where === 'ahead') passed.delete(v.id);
       }

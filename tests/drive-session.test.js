@@ -33,6 +33,36 @@ test('posición relativa: superado recién cuando la cola del auto pasó el fren
   assert.equal(relativePosition(100, 100 + CAR_LENGTH + 0.01), 'ahead');
 });
 
+test('posición relativa con el largo de cada vehículo: un camión de 10 m cuenta recién cuando la cola pasa su frente', () => {
+  // Camión con centro en 100: frente en 105. La cola del auto (4 m) está en progreso − 2.
+  assert.equal(relativePosition(105, 100, 10), 'alongside', 'la cola pasó el centro, no el frente');
+  assert.equal(relativePosition(107, 100, 10), 'alongside');
+  assert.equal(relativePosition(107.01, 100, 10), 'behind');
+  assert.equal(relativePosition(100 - 7.01, 100, 10), 'ahead');
+  assert.equal(relativePosition(103.11, 100, 2.2), 'behind', 'una moto se supera antes');
+});
+
+test('Superar un camión: los superados no cambian hasta que la cola del auto deja atrás el frente del camión', () => {
+  const s = createDriveSession();
+  const w = fakeWorld();
+  w.vehicles = [{ id: 'camion', distance: 30, length: 10 }];
+  driveTo(s, w, 36); // cola en 34: pasó el centro (30), no el frente (35)
+  assert.equal(s.passed, 0);
+  driveTo(s, w, 37.5); // cola en 35,5: pasó el frente
+  assert.equal(s.passed, 1);
+});
+
+test('Vehículo que vuelve a pasar porque su carril va más rápido: los superados disminuyen en uno', () => {
+  const s = createDriveSession();
+  const w = fakeWorld();
+  w.vehicles = [{ id: 'rapido', distance: 20, length: 4 }];
+  driveTo(s, w, 30);
+  assert.equal(s.passed, 1);
+  // El auto se queda quieto y el vehículo de un carril más rápido avanza y lo vuelve a pasar.
+  for (let d = 20; d <= 40; d += 1) { w.vehicles = [{ id: 'rapido', distance: d, length: 4 }]; s.observe(w); }
+  assert.equal(s.passed, 0);
+});
+
 test('valores iniciales: distancia 0, 0 superados, 1 intento, mejor distancia 0', () => {
   const s = createDriveSession();
   assert.equal(s.distance, 0);
@@ -45,11 +75,13 @@ test('valores iniciales: distancia 0, 0 superados, 1 intento, mejor distancia 0'
 });
 
 test('avanzar (con el mundo real): la distancia crece de forma continua y los superados aumentan de a uno', () => {
-  // Semilla cuyo primer grupo tiene un solo vehículo y deja libre el carril del auto (el del medio).
-  const seed = Array.from({ length: 500 }, (_, i) => i + 1).find((sd) => {
-    const w = createWorld({ seed: sd });
-    const lanes = [0, 1, 2, 3].map((k) => w.traffic.groupAt(k).vehicles.map((v) => v.lane));
-    return lanes[0].length === 1 && lanes.every((l) => !l.includes(1));
+  // Semilla en la que, yendo derecho, el auto supera dos vehículos de los carriles vecinos antes de
+  // alcanzar al primero del suyo.
+  const seed = Array.from({ length: 200 }, (_, i) => i + 1).find((sd) => {
+    const w = createWorld({ seed: sd, controller: constantController({ forward: true }) });
+    const s = createDriveSession();
+    for (let i = 0; i < 60 * 30 && !w.crashed && s.passed < 2; i++) { w.step(); s.observe(w); }
+    return !w.crashed && s.passed >= 2;
   });
   assert.ok(seed, 'hay una semilla adecuada');
   const world = createWorld({ seed, controller: constantController({ forward: true }) });

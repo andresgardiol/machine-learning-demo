@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createCar, stepCar, resolveControls } from '../src/core/car.js';
-import { STEP, MAX_SPEED, MAX_REVERSE_SPEED, TRAFFIC_SPEED } from '../src/core/constants.js';
+import { STEP, MAX_SPEED, MAX_REVERSE_SPEED, TRAFFIC_SPEEDS } from '../src/core/constants.js';
 
 const FORWARD = { forward: true };
 const run = (car, controls, seconds) => {
@@ -11,7 +11,7 @@ const run = (car, controls, seconds) => {
 };
 
 test('relaciones entre constantes: tráfico más lento que el auto, marcha atrás más lenta que el avance', () => {
-  assert.ok(TRAFFIC_SPEED < MAX_SPEED);
+  assert.ok(TRAFFIC_SPEEDS.max < MAX_SPEED);
   assert.ok(MAX_REVERSE_SPEED < MAX_SPEED);
 });
 
@@ -126,5 +126,5 @@ test('velocidad máxima fuera de rango: se ajusta a 12 o 40 m/s, siempre por enc
   assert.equal(createCar({ maxSpeed: 90 }).maxSpeed, 40);
   assert.equal(createCar().maxSpeed, MAX_SPEED);
   assert.equal(maxSpeedOf('rápido'), MAX_SPEED);
-  assert.ok(TRAFFIC_SPEED < SPEED_LIMITS.min);
+  assert.ok(TRAFFIC_SPEEDS.max < SPEED_LIMITS.min);
 });

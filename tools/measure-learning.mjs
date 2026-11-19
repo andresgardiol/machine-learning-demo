@@ -33,7 +33,7 @@ import { createTraining } from '../src/core/training.js';
 import { createWorld } from '../src/core/world.js';
 import { createTrackById } from '../src/core/circuits.js';
 import { createNetworkController } from '../src/core/brain.js';
-import { CAR_LENGTH, STEP, TRAFFIC_SPEED } from '../src/core/constants.js';
+import { CAR_LENGTH, STEP } from '../src/core/constants.js';
 
 export const LEARNING_PROTOCOL = Object.freeze({
   seeds: Object.freeze([1, 2, 3, 4, 5, 6, 7, 8]),
@@ -56,18 +56,26 @@ export function testDrive(network, { seed, lanes, density, irregularity, sensors
     seed, lanes, density, irregularity,
     cars: [{ controller: createNetworkController(network, sensors.count), sensors, maxSpeed }],
   });
-  const reach = (maxSpeed - TRAFFIC_SPEED) * seconds + 2 * CAR_LENGTH;
-  const starts = world.vehiclesIn(0, reach).map((v) => v.distance);
+  // Superados por carril, con el largo de cada vehículo y la velocidad de su carril (trafico-vivo D7).
+  const traffic = world.traffic;
+  const reach = (maxSpeed - traffic.slowestSpeed) * seconds + traffic.maxLength;
+  const fronts = traffic.laneSpeeds.map((_, lane) => traffic.laneBases(lane, -Infinity, reach).map((v) => v.base + v.length / 2));
   const agent = world.agents[0];
   const steps = Math.round(seconds / STEP);
   let lead = 0;
+  let passed = 0;
   for (let s = 0; s < steps && !agent.crashed; s++) {
     world.step();
-    const l = agent.progress - TRAFFIC_SPEED * world.time;
+    const l = agent.progress - traffic.fastestSpeed * world.time;
     if (l > lead) lead = l;
+    let now = 0;
+    traffic.laneSpeeds.forEach((v, lane) => {
+      const line = agent.progress - CAR_LENGTH / 2 - v * world.time;
+      for (const f of fronts[lane]) if (f < line) now += 1;
+    });
+    if (now > passed) passed = now;
   }
-  const line = lead - CAR_LENGTH;
-  return { passed: starts.filter((d) => d < line).length, crashed: agent.crashed, lead };
+  return { passed, crashed: agent.crashed, lead };
 }
 
 /**
