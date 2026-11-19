@@ -577,3 +577,56 @@ Filas ya hechas en la V2, con dónde quedaron. [Medido] en el navegador una por 
 - **242 · Pestaña en un circuito** (grupo 10): consigna de circuito, vueltas en las cifras, sin misiones, tráfico ni carriles (se ocultan).
 - **243 · Cinta del manejo** (grupo 10): al pie de la hoja Manejar, con el alto que queda y la marca del choque.
 - **244 · Cartel de primer manejo** (grupo 10): sobre la escena, con la guía, hasta la primera tecla de manejo.
+- **365 · Programa en marcha al abrir** (grupo 11): el programa (el recordado o el de fábrica) maneja al abrir la etapa.
+- **366 · Guía de inicio** (grupo 11): pregunta y consigna en la placa de la columna; el párrafo de la V1 en "Más sobre esta etapa".
+- **367 · Editor del programa** (grupo 11): editor de texto copiado de la V1, en la columna de la zona.
+- **368 · Escribir con comodidad** (grupo 11): mismo editor (resaltado por tipo de palabra, números de línea, deshacer); Tab sale del editor en la V2 (11.2).
+- **369 · El programa rige mientras se escribe** (grupo 11): análisis a los 250 ms de la última tecla, como la V1.
+- **370 · Errores a la vista** (grupo 11): estado y lista de errores arriba de las fichas o del texto.
+- **371 · Líneas que se cumplen resaltadas** (grupo 11): marcas en el editor y en las fichas, también en la repetición.
+- **372 · Paleta de palabras** (grupo 11): debajo del editor en la vista de texto.
+- **373 · Indicadores del programa** (grupo 11): "Reglas N" en la cabecera del programa; distancia, superados y mejor en la banda.
+- **374 · Percepción y acción con los nombres del lenguaje** (grupo 11): percepción compacta con `sensorN` y `velocidad`, y las lámparas.
+- **375 · Controles del intento** (grupo 11): Pausar y Reiniciar en la banda, con espacio y R.
+- **376 · Reintento automático** (grupo 11): interruptor "Reintentar solo" en "Probá esto", apagado por defecto (maqueta D).
+- **377 · Programas de ejemplo** (grupo 11): la franja de programas de "Probá esto", con su cifra de superados.
+- **378 · Restablecer el programa** (grupo 11): "Restablecer" con Deshacer (11.2).
+- **379 · Programa recordado** (grupo 11): texto, sensores y vista en `mlLab.v2.rules.*`.
+- **380 · Exportar e importar el programa** (grupo 11): botones en "Programa y tráfico"; misma lógica de la V1. No medido en el navegador (bajaría un archivo o pide elegir uno).
+- **381 · Misiones** (grupo 11): nota de misión con su progreso y Mostrame (al editor o a Tráfico nuevo).
+- **382 · Configuración avanzada** (grupo 11): "Sensores del auto" (de esta etapa) en Programar; la calle, en la hoja Escenario.
+- **383 · Fluidez con el programa en marcha** (grupo 11): no medido aquí (el panel del navegador de esta sesión no pide cuadros); queda para la 16.2.
+- **384 · Controles de la pestaña explicados** (grupo 11): tooltips en todo (auditoría en 0) y textos de la V1.
+- **385 · Elegir la pista** (grupo 11): hoja Escenario.
+- **386 · Ejemplos en la calle recta** (grupo 11): un ejemplo pone la calle recta; desde un circuito ofrece Deshacer.
+- **387 · Ver como la máquina** (grupo 11): interruptor en "Probá esto", con su rótulo en la escena.
+- **388 · Insertar un dato desde su barra** (grupo 11): cada fila de la percepción inserta su comparación (en las fichas, una ficha nueva).
+- **389 · Mesa de trabajo** (grupo 11): la escena, la percepción y el editor juntos en la zona (KD1).
+- **390 · Caso del choque** (grupo 11): el caso en la banda, con Compará como acción principal.
+- **391 · Repetición del choque** (grupo 11): deslizador sobre la escena, con Mayús+flecha de a 10 cuadros.
+- **392 · Comparar con los ejemplos** (grupo 11): la tabla sobre el editor; se calcula sola por tramos.
+- **393 · Tu programa** (grupo 11): en la franja de programas cuando hay un texto propio guardado.
+- **394 · Cuaderno de casos** (grupo 11): en la banda, con la guía; se oculta mientras el caso está a la vista.
+- **395 · Regla para el caso** (grupo 11): "Escribir una regla para este caso" agrega la condición sin acción.
+- **396 · Vista de fichas** (grupo 11): vista por defecto, copia de la de la V1.
+- **397 · Ficha de regla** (grupo 11): igual que la V1; el asa mide 24 px de ancho en la V2.
+- **398 · Ficha escrita a mano** (grupo 11): igual que la V1; su texto se parte en líneas en lugar de desplazar de costado.
+- **399 · Editar con fichas** (grupo 11): selectores, números y deslizadores, como la V1.
+- **400 · Agregar y borrar fichas** (grupo 11): como la V1.
+- **401 · Reordenar fichas** (grupo 11): con Alt+↑/↓ medido; el arrastre con el mouse, no medido.
+- **402 · Constantes como deslizadores** (grupo 11): como la V1.
+- **403 · Fichas que se cumplen** (grupo 11): marcas de "se cumple" y "choque" en las fichas.
+- **421 · Programa por líneas** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **422 · Órdenes** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **423 · Reglas** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **424 · Condiciones** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **425 · Constantes** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **426 · Datos disponibles** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **427 · Ejecución en cada instante** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **428 · Vocabulario en español y en inglés** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **429 · Errores explicados** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **430 · Errores de constantes** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **431 · Tamaño de un programa** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **432 · Cantidad de reglas** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **433 · Líneas que se cumplen** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **434 · Lenguaje sin navegador** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.

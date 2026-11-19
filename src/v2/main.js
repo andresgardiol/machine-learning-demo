@@ -46,6 +46,7 @@ const scenery = createStore({ scenery: prefs.scenery });
 scenery.subscribe((state) => { prefs.scenery = state.scenery !== false; });
 const stageModules = {
   problema: () => import('./stages/problema/index.js'),
+  reglas: () => import('./stages/reglas/index.js'),
 };
 shell = createShell({ root: document.getElementById('app'), i18n, prefs, stageModules, services: { library, tooltips, scenario, scenery } });
 

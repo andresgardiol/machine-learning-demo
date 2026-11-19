@@ -1,0 +1,290 @@
+/* Reglas a mano en la V2 (grupo 11). Las reglas del editor y de las fichas son las de la V1 (styles/app.css),
+   copiadas abajo tal cual; arriba, los nombres de tokens de la V1 que usan, apuntados a los de la V2. */
+.v2-stage[data-stage="reglas"] {
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --text-label: 12px; --text-code: 13px; --text-body: 14px;
+  --font-code: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --weight-bold: 700; --weight-regular: 400; --control-h: 32px; --control-h-sm: 24px;
+  --radius-control: 6px; --radius-card: 8px; --radius-round: 999px;
+  --color-control-border: var(--a-petroleo-700); --color-state-holds: var(--color-text); --color-role-decide: var(--color-text);
+  --color-role-in: var(--color-sensor); --color-selected-bg: var(--a-petroleo-800); --color-selected-border: var(--color-accent);
+}
+
+/* ---------- zona: la escena a la izquierda, la percepción y el editor a la derecha (KD1) ---------- */
+.v2-zone-rules .v2-scene-zone { display: grid; grid-template-columns: minmax(260px, 40%) minmax(0, 1fr); }
+.v2-zone-rules .v2-scene { position: relative; inset: auto; min-height: 0; overflow: hidden; }
+.v2-rules-col { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 8px; padding: 10px 12px 8px; border-left: 1px solid var(--instrumento-borde); background: var(--color-surface); overflow: hidden; }
+.v2-zone-rules .v2-plate { position: static; max-width: none; padding: 0; background: none; border: 0; backdrop-filter: none; -webkit-backdrop-filter: none; gap: 2px; }
+.v2-zone-rules .v2-question { font-size: 24px; }
+.v2-zone-rules .v2-consigna { font-size: 14px; }
+
+/* La percepción compacta: una fila por dato (nombre, barra, lectura y +) en dos columnas, y las lámparas. */
+.v2-rules-io { display: grid; gap: 4px; }
+.v2-rules-rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 10px; }
+.v2-rules-row { display: grid; grid-template-columns: 62px minmax(30px, 1fr) 34px 14px; align-items: center; gap: 6px; min-height: 24px; padding: 0 4px; background: none; border: 1px solid transparent; border-radius: 6px; color: var(--color-text); cursor: pointer; font: inherit; text-align: left; }
+.v2-rules-row:hover, .v2-rules-row:focus-visible { border-color: var(--color-sensor); }
+.v2-rules-row code { font: 12px/1 var(--font-code); color: var(--color-sensor); }
+.v2-rules-track { height: 8px; border-radius: 4px; background: var(--a-petroleo-800); overflow: hidden; }
+.v2-rules-track i { display: block; height: 100%; width: 0; background: var(--color-sensor); }
+.v2-rules-row b { font: 600 12px/1 var(--a-fuente-num); font-variant-numeric: tabular-nums; text-align: right; }
+.v2-rules-plus { color: var(--color-text-muted); font-weight: 700; }
+.v2-rules-io .v2-role { font-size: 11px; }
+.v2-rules-io .v2-lamps { grid-template-columns: repeat(4, auto); justify-content: start; }
+.v2-rules-io .v2-lamp { font-size: 11px; padding: 1px 6px; }
+.v2-rules-many[hidden] { display: none; }
+
+/* El editor ocupa lo que queda; las fichas y el texto se desplazan por dentro (no la hoja ni la página). */
+.v2-rules-editor { position: relative; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
+.v2-rules-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.v2-rules-head h2 { font: 600 16px/1.1 var(--d-fuente-cuaderno); }
+.v2-rules-head .v2-segment { min-height: 28px; padding: 0 10px; font-size: 12px; }
+.v2-rules-count { margin-left: auto; font-size: 13px; color: var(--color-text-muted); }
+.v2-rules-count b { color: var(--color-text); font: 700 16px/1 var(--a-fuente-num); }
+.v2-rules-body { position: relative; flex: 1 1 auto; min-height: 120px; display: flex; flex-direction: column; }
+.v2-rules-body .code-editor[data-offstage="true"] { position: absolute; left: -10000px; top: 0; width: 480px; height: 200px; min-height: 0; flex: none; }
+.v2-rules-body .rules-compare { position: absolute; inset: 0; z-index: 5; overflow: auto; padding: 8px 10px; background: var(--color-surface-2); border: 1px solid var(--instrumento-borde); border-radius: 8px; box-shadow: 0 8px 24px rgb(0 0 0 / .45); }
+.v2-rules-body .rules-compare[hidden] { display: none; }
+.rules-compare-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.rules-compare-head h3 { font: 600 15px/1.1 var(--d-fuente-cuaderno); }
+.rules-compare-head .v2-tertiary { margin-left: auto; }
+.rules-compare-note, .rules-compare-status { font-size: 13px; color: var(--color-text-muted); }
+.rules-compare-note[hidden], .rules-compare-status[hidden], .rules-compare-table[hidden] { display: none; }
+.rules-compare-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+.rules-compare-table th, .rules-compare-table td { padding: 3px 6px; border-bottom: 1px solid var(--instrumento-borde); text-align: left; }
+.rules-compare-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.rules-compare-table .col-passed { font-weight: 700; }
+.rules-compare-table tr[aria-current="true"] { background: var(--a-petroleo-800); }
+.rules-compare-driving { font-size: 11px; color: var(--color-text-muted); }
+.v2-rules-message { font-size: 13px; padding: 4px 8px; border-left: 3px solid var(--color-accent); background: var(--color-surface-2); }
+.v2-rules-message[data-state="error"] { border-left-color: var(--color-state-crash); }
+.v2-rules-message[hidden] { display: none; }
+.v2-file { display: none; }
+.v2-notice { font-size: 13px; padding: 4px 8px; border-left: 3px solid var(--color-accent); background: rgba(15, 28, 31, .7); }
+.v2-notice[hidden] { display: none; }
+.v2-row-start { justify-content: flex-start; }
+.v2-strip { flex-wrap: wrap; }
+.v2-strip-item { display: inline-flex; align-items: baseline; gap: 6px; }
+.v2-strip-item[hidden] { display: none; }
+.v2-strip-figure { font: 700 13px/1 var(--a-fuente-num); font-variant-numeric: tabular-nums; min-width: 1ch; }
+
+/* Banda: el cuaderno de casos, las cifras y la marcha; con el choque, el caso. */
+.v2-zone-rules .v2-band { gap: 14px; }
+.v2-casebook { flex: 1 1 200px; min-width: 0; display: grid; gap: 4px; }
+.v2-casebook-summary { font-size: 12px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v2-casebook-axis { position: relative; height: 16px; border-bottom: 1px dashed var(--instrumento-borde); }
+.v2-casebook-dot { position: absolute; bottom: 0; transform: translateX(-50%); color: var(--color-state-crash); font-size: 12px; line-height: 1; }
+.v2-band .v2-figures[hidden], .v2-band .v2-run[hidden] { display: none; }
+.v2-case { flex: 3 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 4px 10px; border-left: 3px solid var(--color-state-crash); }
+.v2-case[hidden] { display: none; }
+.v2-case-text { min-width: 0; display: grid; gap: 2px; font-size: 13px; }
+.v2-case-title { font: 700 16px/1.1 var(--a-fuente-num); color: var(--color-state-crash); }
+.v2-case-actions { display: flex; gap: 8px; margin-left: auto; flex: none; }
+.v2-replay { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 3; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: var(--instrumento-fondo); border: 1px solid var(--instrumento-borde); font-size: 12px; }
+.v2-replay[hidden] { display: none; }
+.v2-replay-input { flex: 1 1 auto; }
+.v2-replay-value { min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Hoja "Programar": el grupo de archivo cede su lugar al texto de "Más sobre esta etapa". */
+.v2-sheet-rules .v2-grid-3 .v2-setting-name { font-size: 12px; }
+
+/* 800×600 y ventanas angostas: la escena arriba y la percepción y el editor debajo (spec *800×600 usable*). */
+@media (max-width: 1100px) {
+  .v2-zone-rules .v2-scene-zone { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(110px, 30%) minmax(0, 1fr); }
+  .v2-rules-col { border-left: 0; border-top: 1px solid var(--instrumento-borde); padding: 6px 10px; gap: 4px; }
+  .v2-zone-rules .v2-question { font-size: 18px; }
+  .v2-zone-rules .v2-plate-stage, .v2-zone-rules .v2-consigna { display: none; }
+  .v2-rules-rows { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  .v2-rules-row { grid-template-columns: 54px minmax(16px, 1fr) 30px 10px; gap: 4px; }
+  .v2-zone-rules .v2-band { gap: 8px; padding-left: 8px; padding-right: 8px; }
+  .v2-zone-rules .v2-figures, .v2-zone-rules .v2-casebook { display: none; }
+  .v2-zone-rules .v2-run { margin-left: 0; }
+  .v2-case-actions .v2-btn { padding: 0 8px; font-size: 13px; }
+}
+
+/* ---------- copiado de la V1 (styles/app.css): editor de código, estado, errores, paleta y fichas ---------- */
+.editor-text {
+  font-family: var(--font-code);
+  font-size: var(--text-code); line-height: 20px; letter-spacing: 0; font-variant-ligatures: none;
+  tab-size: 4; -moz-tab-size: 4; white-space: pre; word-wrap: normal; overflow-wrap: normal;
+}
+.code-editor {
+  display: flex; flex: 1 1 auto; min-height: 0;
+  background: var(--color-bg); border: 1px solid var(--color-control-border); border-radius: var(--radius-control);
+  overflow: hidden;
+}
+.code-editor:focus-within { border-color: var(--color-accent); }
+.editor-gutter {
+  position: relative; flex: 0 0 auto; width: 40px; overflow: hidden;
+  padding: var(--space-1) 0; border-right: 1px solid var(--color-border);
+  color: var(--color-text-muted); text-align: right; user-select: none;
+}
+/* Los números van fuera del flujo: el alto del editor lo da la tarjeta, no el largo del programa. Un
+   programa más largo que el editor se desplaza adentro, sin estirar la tarjeta ni desplazar el tablero. */
+.editor-gutter-inner { position: absolute; top: var(--space-1); left: 0; right: 0; will-change: transform; }
+.editor-line-no { position: relative; height: 20px; padding-right: var(--space-1); font-variant-numeric: tabular-nums; }
+/* Marca junto al número: ▸ la línea se cumple, ✕ la línea tiene un error (no dependen solo del color). */
+.editor-line-no[data-mark="active"]::before,
+.editor-line-no[data-mark="error"]::before { position: absolute; left: 3px; }
+.editor-line-no[data-mark="active"]::before { content: "▸"; color: var(--color-state-holds); }
+.editor-line-no[data-mark="active"] { color: var(--color-text); font-weight: var(--weight-bold); }
+.editor-line-no[data-mark="error"]::before { content: "✕"; color: var(--color-car-crashed); }
+.editor-line-no[data-mark="error"] { color: var(--color-car-crashed); font-weight: var(--weight-bold); }
+.editor-main { position: relative; flex: 1 1 auto; min-width: 0; overflow: hidden; }
+/* Con los anchos por defecto en 1440 px, una línea de 70 caracteres entra entera (spec: reglas largas sin cortar). */
+.editor-backdrop, .editor-input { margin: 0; padding: var(--space-1); border: 0; }
+.editor-backdrop { position: absolute; inset: 0; overflow: hidden; pointer-events: none; color: var(--color-text); }
+.editor-code { display: block; min-width: max-content; padding: 0; background: none; border-radius: 0; font: inherit; will-change: transform; }
+.editor-line { display: block; min-height: 20px; }
+.editor-line[data-mark="error"] { text-decoration: underline wavy var(--color-car-crashed); text-decoration-skip-ink: none; text-underline-offset: 4px; }
+.editor-input {
+  position: absolute; inset: 0; width: 100%; height: 100%; resize: none; overflow: auto;
+  background: transparent; color: transparent; -webkit-text-fill-color: transparent; caret-color: var(--color-text);
+  outline: none;
+}
+.editor-input::selection { background: color-mix(in srgb, var(--color-accent) 40%, transparent); }
+/* Tipos de palabra: forma además de color. Palabras de regla en negrita; órdenes en negrita y subrayadas;
+   datos con subrayado punteado; constantes en cursiva; números sin adorno; comentarios en cursiva, tras su #. */
+.tok-keyword { font-weight: var(--weight-bold); color: var(--color-text); }
+/* Acción: el estilo de "sale" (blanca, negrita y subrayada), sin el azul de "vos" (sistema-de-diseno-base D1, B). */
+.tok-action { font-weight: var(--weight-bold); color: var(--color-text); text-decoration: underline solid; text-underline-offset: 3px; }
+.tok-data { color: var(--color-sensor); text-decoration: underline dotted; text-underline-offset: 3px; }
+.tok-name { font-style: italic; color: var(--color-role-decide); } /* constantes: parte del programa, decide (D1, B) */
+.tok-number { color: var(--color-text); }
+.tok-operator { color: var(--color-text-muted); }
+.tok-comment { font-style: italic; color: var(--color-text-muted); }
+.rules-status { margin: 0; font-size: var(--text-body); color: var(--color-text-muted); flex: 0 0 auto; }
+.rules-status[data-state="ok"]::before { content: "✓ "; color: var(--color-car); font-weight: var(--weight-bold); }
+.rules-status[data-state="errors"] { color: var(--color-text); }
+.rules-status[data-state="errors"]::before { content: "✕ "; color: var(--color-car-crashed); font-weight: var(--weight-bold); }
+.rules-errors {
+  margin: 0; padding: var(--space-1) var(--space-2); list-style: none; flex: 0 0 auto;
+  max-height: 120px; overflow-y: auto; font-size: var(--text-body);
+  background: var(--color-surface-2); border-radius: 0 var(--radius-card) var(--radius-card) 0;
+}
+.rules-errors[hidden] { display: none; }
+.rules-error + .rules-error { margin-top: 2px; }
+/* Paleta de palabras: cada una con la forma de su tipo en el editor. */
+.rules-palette { display: flex; flex-wrap: wrap; gap: var(--space-1); flex: 0 0 auto; align-items: center; }
+.rules-palette[hidden] { display: none; } /* solo en la vista de texto (reglas-como-fichas D4) */
+.palette-word {
+  padding: 1px var(--space-2); border: 1px solid var(--color-control-border); border-radius: var(--radius-control); background: var(--color-surface-2);
+  font-family: var(--font-code); font-size: var(--text-code); line-height: 18px; cursor: pointer;
+  min-width: 24px; min-height: var(--control-h); /* la altura normal: la paleta no es una barra densa */
+}
+.palette-word:hover { border-color: var(--color-accent); }
+.palette-note { font-size: var(--text-label); color: var(--color-text-muted); }
+.rules-cards-view { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; gap: var(--space-1); }
+.rules-cards-view[hidden] { display: none; }
+.rules-cards-scroll { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-1); padding-right: var(--space-1); }
+/* Constantes en un renglón (D8, punto 4): fichas chicas con un deslizador de 64 px cada una. */
+.rules-constants { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
+.rules-constants[hidden] { display: none; }
+.rules-constant {
+  display: inline-flex; align-items: center; gap: var(--space-1); min-height: var(--control-h); padding: 0 var(--space-1);
+  background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-card);
+}
+.rules-constant .rules-card-range { width: 64px; }
+.rules-constant-name, .rules-card-constant { font-family: var(--font-code); font-size: var(--text-label); }
+.rules-constant-value { min-width: 4ch; font-family: var(--font-code); font-size: var(--text-label); font-variant-numeric: tabular-nums; }
+.rules-cards { display: flex; flex-direction: column; gap: var(--space-1); margin: 0; padding: 0 0 0 var(--space-4); list-style: none; }
+/* Ficha compacta (D8, punto 3): controles de 24 px, como una barra densa; la fila mide 32 px. */
+.rules-card {
+  position: relative; display: flex; align-items: center; gap: var(--space-1); min-height: var(--control-h);
+  padding: 2px;
+  background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-card);
+}
+.rules-card-body { display: flex; flex: 1 1 auto; flex-wrap: wrap; align-items: center; gap: 2px; min-width: 0; }
+.rules-card-body > .rules-card-word { padding: 0 2px; }
+.rules-card-cond, .rules-card-actions, .rules-card-threshold { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 2px; }
+.rules-card-actions { flex-wrap: wrap; }
+/* En las fichas, la letra de código va a 12 px (rótulo): así una regla de dos comparaciones entra en un renglón. */
+.rules-card-word { font-family: var(--font-code); font-size: var(--text-label); }
+/* Selectores al largo de su palabra (--chars lo pone la vista), con una flecha chica propia. */
+.rules-card-select {
+  -webkit-appearance: none; appearance: none; box-sizing: border-box;
+  width: calc(var(--chars, 6) * 1ch + var(--space-3) + var(--space-1) + 2px); height: var(--control-h-sm); min-height: var(--control-h-sm); padding: 0 var(--space-3) 0 var(--space-1);
+  font-family: var(--font-code); font-size: var(--text-label); color: var(--color-text);
+  background:
+    linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%) right 7px center / 4px 4px no-repeat,
+    linear-gradient(-45deg, transparent 50%, var(--color-text-muted) 50%) right 3px center / 4px 4px no-repeat,
+    var(--color-bg);
+  border: 1px solid var(--color-control-border); border-radius: var(--radius-control); cursor: pointer;
+}
+.rules-card-select:focus-visible, .rules-card-number:focus-visible, .rules-card-handle:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+/* Dato: el color de "entra"; acción: la negrita de "sale" (sistema-de-diseno-base D1, B). */
+.rules-card-select.tok-data { color: var(--color-sensor); text-decoration: none; }
+.rules-card-action { font-weight: var(--weight-bold); }
+.rules-card-pick { border-style: dashed; }
+.rules-card-more { min-width: var(--control-h-sm); font-weight: var(--weight-bold); }
+/* El riel del umbral: el deslizador de 88 px y, encima, la marca del valor en vivo del dato, del color de "entra". */
+.rules-card-rail { position: relative; display: inline-flex; align-items: center; width: 88px; height: var(--control-h-sm); }
+.rules-card-range { width: 88px; margin: 0; }
+.rules-card-live {
+  position: absolute; left: -1.5px; top: calc(50% - 8px); width: 3px; height: 16px; border-radius: var(--radius-round);
+  background: var(--color-role-in); pointer-events: none; will-change: transform;
+}
+/* El número se lee al lado del deslizador, sin caja; con el foco (un toque o Tab) se edita y se ve su contorno. */
+.rules-card-number {
+  width: calc(4ch + var(--space-1) + 2px); height: var(--control-h-sm); min-height: var(--control-h-sm); padding: 0 2px; box-sizing: border-box;
+  font-family: var(--font-code); font-size: var(--text-label); font-variant-numeric: tabular-nums; color: var(--color-text);
+  background: transparent; border: 1px solid transparent; border-radius: var(--radius-control); cursor: text;
+}
+.rules-card-number:hover { border-color: var(--color-border); }
+.rules-card-number:focus { border-color: var(--color-control-border); background: var(--color-bg); }
+.rules-card-handle {
+  flex: 0 0 auto; width: var(--space-4); height: var(--control-h-sm); min-height: var(--control-h-sm); padding: 0;
+  background: transparent; border: 0; border-radius: var(--radius-control); color: var(--color-text-muted); cursor: grab; letter-spacing: -2px;
+}
+.rules-card-handle:active { cursor: grabbing; }
+.rules-card-delete { flex: 0 0 auto; align-self: flex-start; }
+.rules-card-incomplete { font-size: var(--text-label); color: var(--color-text); }
+.rules-card-manual { border-style: dashed; }
+.rules-card-manual-label { font-size: var(--text-label); font-weight: var(--weight-bold); color: var(--color-text-muted); }
+.rules-card-text { flex: 1 1 100%; margin: 0; padding: 0; overflow-x: auto; color: var(--color-text); background: none; }
+.rules-card-note { padding: 0 var(--space-2); color: var(--color-text-muted); }
+.rules-card-note .editor-text { white-space: pre-wrap; }
+/* "Agregar regla": la última ficha de la pila, vacía (borde punteado). */
+.rules-card-add { display: flex; }
+.rules-cards-add { flex: 1 1 auto; justify-content: flex-start; border-style: dashed; background: transparent; color: var(--color-text-muted); }
+.rules-cards-add:hover { color: var(--color-text); }
+.rules-cards-guide { position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--color-accent); pointer-events: none; }
+.rules-cards-guide[hidden] { display: none; }
+.rules-cards-view[data-dragging="true"] .rules-card { cursor: grabbing; }
+/* Estados en las fichas (sistema-de-diseno-base D6): se cumple con ▸ y la barra clara; choque con ✸, la barra
+   roja y el rayado del editor; error con ✕ y la barra roja. La forma no depende solo del color. */
+.rules-card[data-state="holds"]::before,
+.rules-card[data-state="crash"]::before { position: absolute; left: calc(-1 * var(--space-4) + 2px); font-size: var(--text-label); font-weight: var(--weight-bold); }
+.rules-card[data-state="holds"]::before { content: "▸"; color: var(--color-state-holds); }
+.rules-card[data-state="crash"] {
+  padding: 2px; border: 1px solid var(--color-state-crash);
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-state-crash) 30%, transparent) 0 2px, transparent 2px 7px), var(--color-surface-2);
+  box-shadow: inset 3px 0 0 var(--color-state-crash);
+}
+.rules-card[data-state="crash"]::before { content: "✸"; color: var(--color-state-crash); }
+.rules-card[data-state="error"] { padding-left: var(--space-1); }
+.rules-card[data-state="error"]::before { flex: 0 0 auto; }
+
+/* V2: el asa de las fichas mide 24 px de ancho (objetivo mínimo, WCAG 2.5.8). */
+.v2-stage[data-stage="reglas"] .rules-card-handle { width: 24px; letter-spacing: -3px; }
+/* Con el caso a la vista, la banda es del caso, en un renglón. */
+.v2-casebook.v2-hidden { display: none; }
+.v2-casebook-summary { white-space: normal; overflow: visible; text-overflow: clip; }
+.v2-case-title { white-space: nowrap; }
+.v2-case-text p { font-size: 12px; line-height: 1.25; }
+.v2-rules-count { white-space: nowrap; }
+@media (max-width: 1100px) { .v2-rules-row { grid-template-columns: 66px minmax(16px, 1fr) 30px 10px; } }
+.v2-rules-col { grid-template-columns: minmax(0, 1fr); }
+/* V2: una ficha escrita a mano muestra su texto entero, en varias líneas si hace falta (sin desplazar de costado). */
+.v2-stage[data-stage="reglas"] .rules-card-text { white-space: pre-wrap; overflow-x: visible; word-break: break-word; }
+@media (max-width: 1100px) {
+  .v2-case { flex-wrap: wrap; gap: 6px; padding: 2px 8px; }
+  .v2-case-title { white-space: normal; font-size: 14px; }
+  .v2-case-actions { margin-left: 0; flex-wrap: wrap; }
+  .v2-case-actions .v2-btn { height: 30px; }
+}
+@media (max-width: 1100px) {
+  .v2-zone-rules .v2-band { flex-wrap: wrap; }
+  .v2-case { flex: 1 1 100%; }
+  .v2-case-actions { flex: 1 1 100%; }
+  .v2-case-actions .v2-btn { padding: 0 8px; font-size: 13px; }
+}

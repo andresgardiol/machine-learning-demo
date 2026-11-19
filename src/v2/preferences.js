@@ -82,5 +82,11 @@ export function createV2Preferences(getStorage = defaultStorage) {
     /** Programa recordado de Reglas a mano (como en la V1, pero con clave propia). */
     get rulesProgram() { return read(V2_PREFIX + 'rules.program'); },
     set rulesProgram(text) { write(V2_PREFIX + 'rules.program', String(text).slice(0, 20000)); },
+    /** Sensores del auto para el que está escrito el programa recordado: { count, range, spread } o null. */
+    get rulesSensors() { try { const v = JSON.parse(read(V2_PREFIX + 'rules.sensors') ?? 'null'); return v && typeof v === 'object' ? v : null; } catch { return null; } },
+    set rulesSensors(v) { write(V2_PREFIX + 'rules.sensors', JSON.stringify(v ?? null)); },
+    /** Vista del programa: 'cards' (fichas) o 'text'. */
+    get rulesView() { return read(V2_PREFIX + 'rules.view') === 'text' ? 'text' : 'cards'; },
+    set rulesView(v) { write(V2_PREFIX + 'rules.view', v === 'text' ? 'text' : 'cards'); },
   };
 }

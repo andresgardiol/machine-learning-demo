@@ -240,3 +240,12 @@ kbd { font: 600 11px/1 var(--a-fuente-texto); padding: 3px 5px; border-radius: 4
 .v2-band .v2-figures { min-width: 0; }
 .v2-band .v2-figures span { max-width: 72px; }
 @media (max-width: 1400px), (max-height: 800px) { .v2-band { padding-top: 6px; padding-bottom: 6px; } }
+/* Ventanas angostas (800 px): la barra de arriba entra en un renglón sin el nombre largo del laboratorio. */
+@media (max-width: 960px) {
+  .v2-brand > span:first-child { display: none; }
+  .v2-bar { gap: 8px; padding: 0 10px; }
+  .v2-tools { gap: 6px; }
+  .v2-bar .v2-link { white-space: nowrap; }
+}
+/* La zona nunca crece con su contenido (un texto que no se parte no la ensancha). */
+.v2-zone { grid-template-columns: minmax(0, 1fr); }
