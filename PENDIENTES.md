@@ -316,6 +316,9 @@ Nada.
   compuertas*.
 - Fluidez con el navegador a la vista: casi todas las medidas se tomaron con
   Chrome sin ventana. Lista de qué medir en *Pruebas que faltan*, más abajo.
+- Volante suave (`manejo-amable-y-competir-sin-cortes`): si 0,3 s se siente
+  bien en El problema y en Competir (`STEER_RAMP_STEPS`), y si la imitación
+  de Tu manejo en el Laboratorio cambia con él.
 - "Mostrame" (`misiones-que-muestran-el-control`): con VoiceOver, que anuncie
   «Se muestra: …» y quede sobre el control (se leyó el árbol de accesibilidad,
   no se escuchó); con el navegador a la vista, el anillo y el desplazamiento
@@ -346,11 +349,9 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      esto", "Más" y "Avanzado" colapsado. La tabla de qué va en cada nivel
      está en §5.3 del informe y hay que validarla con el dueño. Choca con el
      mismo requisito que la barra plegable.
-   - `misiones-que-muestran-el-control` (M): un "Mostrame" en cada misión
-     que resalta el control que hay que tocar. Hecho (ver *En curso*).
-   - `laboratorio-experimentos-a-la-vista` (M): Compuertas, Puntos y Tu
-     manejo como tres experimentos con nombre; en Compuertas, arrastrar un
-     peso como acción principal.
+   - ~~`misiones-que-muestran-el-control` (M)~~: hecho el 17 de noviembre.
+   - ~~`laboratorio-experimentos-a-la-vista` (M)~~: hecho el 18 de noviembre
+     dentro de `red-al-centro`.
    - Chicos e independientes:
      - `reinicios-con-alcance` (S–M): unificar Restablecer y Reiniciar,
        decir qué se pierde y ofrecer deshacer;
@@ -358,13 +359,15 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
        son globales o por pestaña? Lo decide el dueño;
      - `interruptores-de-ayuda-claros` (S): Guía, Ayudas y Atajos que digan
        qué ocultan;
-     - `inspeccionar-guia-persistente` (M): la guía sigue al elegir una
-       neurona y los controles van en grupos;
-     - `cortes-y-desbordes-ux` (S): junto con los de la *Prioridad 2*;
-     - `tooltips-anunciados` (S): un indicio de que hay ayuda, y texto en
-       los botones de solo ícono;
-     - `primer-manejo-guiado` (S): el cartel "Usá las flechas" en El
-       problema. Pregunta abierta: ¿suavizar el volante? Toca la física;
+     - ~~`inspeccionar-guia-persistente` (M)~~: hecho el 18 de noviembre
+       dentro de `red-al-centro`;
+     - `cortes-y-desbordes-ux` (S): lo que queda de la *Prioridad 2* (los
+       de Competir y del Laboratorio ya están);
+     - `tooltips-anunciados` (S): un indicio de que hay ayuda. Los botones
+       de solo ícono de Competir ya tenían nombre y tooltip;
+     - ~~`primer-manejo-guiado` (S)~~: hecho el 18 de noviembre dentro de
+       `manejo-amable-y-competir-sin-cortes`, con el volante suave en el
+       teclado, sin tocar la física;
      - `vocabulario-escalonado` (M): definir en pantalla fitness, élite,
        época y los demás términos.
    - ~~Decisión del dueño: artículo de jerarquía visual~~: aprobado el 18 de
@@ -480,10 +483,12 @@ arreglarlos de a uno.
 - Los tooltips siguen nombrando la tecla con los atajos apagados. En
   *Entrenar, tráfico y aprendizaje* (lo que quedó de
   `panel-de-entrenar-por-vistas`).
-- Cosas que se cortan o se desplazan: el panel de Competir a 1366×768, la
-  barra de pestañas a 1032 px, "Choques" y el nombre de la pista en
-  Competir, las acciones del Laboratorio en dos renglones en español, la
-  vista de entrenamiento con selección manual a 1440×900. En sus áreas.
+- Cosas que se cortan o se desplazan: la barra de pestañas a 1032 px; el
+  panel de Inspeccionar a 1366×768 sin nada elegido (67 px, por la leyenda,
+  desde `red-al-centro`); el tooltip de una pastilla de Compuertas que tapa
+  la del sesgo. Ya arreglados el 18 de noviembre: Competir a 1366×768,
+  "Choques" y el nombre de la pista, las acciones del Laboratorio y la
+  selección manual de Entrenar a 1440×900.
 - Teclado: el editor de Reglas a mano corta el recorrido con Tab; los atajos
   con el foco en un botón del panel; el foco de "Eliminar" en la biblioteca.
 
@@ -666,7 +671,10 @@ arreglarlos de a uno.
 
 ## Inspeccionar y vista de la red
 
-- **Zoom en la escena chica de Inspeccionar y del Laboratorio.** Pedido del
+- ~~**Zoom en la escena chica de Inspeccionar y del Laboratorio.**~~ Hecho
+  el 18 de noviembre dentro de `red-al-centro`: la escena pasó a la zona
+  izquierda con la cámara del escenario grande. Queda la nota original como
+  referencia. Pedido del
   dueño (18 de noviembre de 2026), con una captura de Inspeccionar: "la
   preview tanto de la tab 5 como la 6 deberían poder hacer zoom in y out".
   - Choca con la spec: `pestana-inspeccionar`, requisito "Escena del auto en
