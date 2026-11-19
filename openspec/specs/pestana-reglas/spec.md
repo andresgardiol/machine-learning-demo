@@ -303,7 +303,7 @@ sensores, sin pedir confirmación.
 
 #### Scenario: Tres sensores cortos
 - **WHEN** se corre el ejemplo de tres sensores durante dos minutos con el tráfico inicial de la pestaña
-- **THEN** el auto no choca y no supera ningún vehículo: frena detrás del primero que encuentra
+- **THEN** el auto no choca y supera menos vehículos que con el ejemplo de siete sensores: frena detrás del primero de su carril y solo deja atrás a los de los carriles más lentos
 
 #### Scenario: Siete sensores
 - **WHEN** se corre el ejemplo de siete sensores con el tráfico inicial de la pestaña
@@ -406,8 +406,8 @@ cerrar la aplicación.
 - **THEN** la primera misión muestra 2 de 3 y la segunda 2 de 10
 
 #### Scenario: Frenar no alcanza
-- **WHEN** el programa solo frena detrás del primer vehículo y recorre un kilómetro sin chocar
-- **THEN** ninguna misión avanza, porque no superó a nadie
+- **WHEN** el programa solo frena detrás del primer vehículo de su carril y recorre un kilómetro sin chocar
+- **THEN** la misión de superar 10 vehículos no se cumple: solo deja atrás a algunos de los carriles más lentos
 
 #### Scenario: Tráficos distintos
 - **WHEN** el programa supera 10 vehículos, la persona pide un tráfico nuevo y vuelve a superar 10
@@ -655,7 +655,7 @@ La tarjeta del programa SHALL ofrecer una comparación, en el mismo tráfico y c
 - **THEN** la primera columna de cifras es la de vehículos superados, destacada, y la distancia va después, con menos peso
 
 #### Scenario: Frenar no alcanza
-- **WHEN** un programa termina los 2 minutos sin chocar y sin superar ningún vehículo, como el ejemplo de 3 sensores cortos
+- **WHEN** un programa termina los 2 minutos sin chocar y sin superar ningún vehículo
 - **THEN** su fila dice que frena detrás del primer vehículo, en lugar de verse como el mejor resultado
 
 #### Scenario: Probar un ejemplo

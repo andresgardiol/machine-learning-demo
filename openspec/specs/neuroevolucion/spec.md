@@ -57,17 +57,23 @@ simulados. El motivo MUST quedar registrado.
 ### Requirement: Eliminar a los lentos
 El entrenamiento SHALL ofrecer una regla, encendida por defecto, que saca de
 carrera a todo auto que en los últimos 5 segundos simulados avanzó menos que el
-tráfico en ese tiempo (50 metros, a 10 m/s). La regla MUST aplicarse recién
-cuando la generación lleva 5 segundos, MUST dejar al auto detenido y fuera de
-carrera con el motivo "demasiado lento", y su fitness SHALL ser el logrado
-hasta ese momento. Con la regla apagada, ningún auto sale de carrera por lento.
+carril más lento del tráfico en ese tiempo (30 metros, a 6 m/s), para que
+esperar un hueco detrás de un vehículo no saque a nadie de carrera. La regla
+MUST aplicarse recién cuando la generación lleva 5 segundos, MUST dejar al auto
+detenido y fuera de carrera con el motivo "demasiado lento", y su fitness
+SHALL ser el logrado hasta ese momento. Con la regla apagada, ningún auto sale
+de carrera por lento.
 
 #### Scenario: Auto detrás del tráfico
-- **WHEN** con la regla encendida un auto avanza a 10 m/s o menos durante 5 segundos simulados
+- **WHEN** con la regla encendida un auto avanza a 6 m/s o menos durante 5 segundos simulados
 - **THEN** queda fuera de carrera con el motivo "demasiado lento" y deja de contarse entre los autos en carrera
 
+#### Scenario: Esperar el hueco no elimina
+- **WHEN** con la regla encendida un auto sigue durante 6 segundos simulados a un vehículo del carril más lento, a su misma velocidad
+- **THEN** sigue en carrera
+
 #### Scenario: Auto más rápido que el tráfico
-- **WHEN** con la regla encendida un auto avanza a más de 10 m/s sin chocar
+- **WHEN** con la regla encendida un auto avanza a más de 6 m/s sin chocar
 - **THEN** sigue en carrera
 
 #### Scenario: Comienzo de la generación
@@ -75,8 +81,8 @@ hasta ese momento. Con la regla apagada, ningún auto sale de carrera por lento.
 - **THEN** ninguno sale por lento antes de que pasen 5 segundos simulados
 
 #### Scenario: Fitness al salir por lento
-- **WHEN** un auto sale por lento tras recorrer 40 metros en 5 segundos
-- **THEN** su fitness por distancia es 40 y por tiempo sin chocar es 5
+- **WHEN** un auto sale por lento tras recorrer 25 metros en 5 segundos
+- **THEN** su fitness por distancia es 25 y por tiempo sin chocar es 5
 
 #### Scenario: Regla apagada
 - **WHEN** la regla está apagada y un auto va detrás del tráfico toda la generación
@@ -93,10 +99,11 @@ momento, evaluando a cada individuo con lo logrado hasta ese instante.
 ### Requirement: Funciones de fitness
 El fitness de cada individuo SHALL calcularse con una función elegible entre
 cuatro: ventaja sobre el tráfico (la mayor ventaja que alcanzó en carrera: lo
-que avanzó menos lo que avanzó el tráfico en el mismo tiempo, nunca menor que
-cero, en metros), distancia (la mayor distancia alcanzada, en metros), tiempo
-sin chocar (segundos en carrera) y velocidad media (distancia dividida por el
-tiempo en carrera). La función por defecto SHALL ser ventaja sobre el tráfico.
+que avanzó menos lo que avanzó en el mismo tiempo el carril más rápido del
+tráfico, nunca menor que cero, en metros), distancia (la mayor distancia
+alcanzada, en metros), tiempo sin chocar (segundos en carrera) y velocidad
+media (distancia dividida por el tiempo en carrera). La función por defecto
+SHALL ser ventaja sobre el tráfico.
 
 #### Scenario: Distancia
 - **WHEN** un auto llega a 120 metros, retrocede hasta 100 y la generación termina
@@ -111,11 +118,11 @@ tiempo en carrera). La función por defecto SHALL ser ventaja sobre el tráfico.
 - **THEN** su fitness por velocidad media es 15
 
 #### Scenario: Ventaja sobre el tráfico
-- **WHEN** a los 20 segundos de una generación un auto lleva recorridos 300 metros, con el tráfico a 10 m/s
+- **WHEN** a los 20 segundos de una generación un auto lleva recorridos 300 metros, con el carril más rápido del tráfico a 10 m/s
 - **THEN** su fitness por ventaja sobre el tráfico es 100
 
 #### Scenario: Seguir al tráfico no suma
-- **WHEN** un auto alcanza una ventaja de 30 metros y después va 20 segundos detrás de un vehículo, a su misma velocidad
+- **WHEN** un auto alcanza una ventaja de 30 metros y después va 20 segundos detrás de un vehículo de cualquier carril, a su misma velocidad
 - **THEN** su fitness por ventaja sobre el tráfico sigue siendo 30
 
 #### Scenario: La ventaja alcanzada se conserva
@@ -491,22 +498,31 @@ entrenamiento MUST NOT entregar ningún cerebro.
 
 ### Requirement: Vehículos superados
 El entrenamiento SHALL poder informar, para cada individuo de la generación en
-curso, cuántos vehículos superó: los vehículos del tráfico que quedaron
-enteros detrás del auto en el momento de su mayor ventaja sobre el tráfico. La
-cuenta MUST NOT bajar durante la generación y MUST NOT depender de la función
-de fitness elegida.
+curso, cuántos vehículos superó: la mayor cantidad de vehículos del tráfico
+que, habiendo empezado delante del auto, quedaron a la vez enteros detrás de
+él, cada uno con su propio largo y la velocidad de su carril. La cuenta MUST
+NOT bajar durante la generación y MUST NOT depender de la función de fitness
+elegida.
 
 #### Scenario: Sin superar a nadie
-- **WHEN** un auto va toda la generación detrás del primer vehículo del tráfico
+- **WHEN** un auto va toda la generación detrás del primer vehículo de su carril
 - **THEN** su cuenta de vehículos superados es 0
 
 #### Scenario: Vehículo que queda atrás
 - **WHEN** la cola de un auto deja atrás el frente de un vehículo que tenía adelante
 - **THEN** su cuenta de vehículos superados sube en uno
 
+#### Scenario: Un camión se supera entero
+- **WHEN** la cola del auto deja atrás el centro de un camión que tenía adelante, pero todavía no su frente
+- **THEN** su cuenta de vehículos superados no cambia
+
 #### Scenario: Chocar no descuenta
 - **WHEN** un auto supera tres vehículos, choca y esos vehículos lo vuelven a pasar
 - **THEN** su cuenta de vehículos superados sigue siendo 3
+
+#### Scenario: Un carril rápido que lo vuelve a pasar
+- **WHEN** un auto supera cuatro vehículos, frena, un vehículo del carril más rápido lo vuelve a pasar y después supera a otros dos
+- **THEN** su cuenta de vehículos superados es 5
 
 #### Scenario: Con otra función de fitness
 - **WHEN** el entrenamiento usa la función distancia y un auto supera dos vehículos
@@ -521,15 +537,15 @@ y Reglas a mano.
 
 #### Scenario: Estado por defecto
 - **WHEN** empieza un entrenamiento sin configurar nada
-- **THEN** los vehículos de cada grupo van alineados, centrados en su carril, y todos los grupos están a la misma distancia uno de otro
+- **THEN** cada vehículo va centrado en su carril, sin zigzaguear, y dentro de cada carril los huecos son iguales
 
 #### Scenario: Subir la irregularidad
 - **WHEN** se configura una irregularidad del 50 % durante una generación
-- **THEN** la generación siguiente tiene grupos a distancias distintas y vehículos desalineados
+- **THEN** en la generación siguiente los vehículos zigzaguean dentro de su carril y los huecos de cada carril son desparejos
 
 #### Scenario: Volver al valor por defecto
 - **WHEN** se restablece la configuración después de entrenar con irregularidad 50 %
-- **THEN** la generación siguiente vuelve a tener el tráfico alineado
+- **THEN** en la generación siguiente los vehículos vuelven a ir centrados y con huecos parejos
 
 #### Scenario: Otras pestañas
 - **WHEN** se abre El problema o Reglas a mano sin configurar nada
