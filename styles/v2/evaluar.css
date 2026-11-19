@@ -1,0 +1,71 @@
+/* Evaluar en la V2 (grupo 13). El selector para agregar es una copia de la V1: sus reglas van al final. */
+.v2-stage[data-stage="evaluar"] { --space-1: 4px; --space-2: 8px; --text-label: 12px; --weight-bold: 700; --color-border: var(--a-petroleo-700); }
+/* Zona: la escena arriba y la banda de la carrera (marcador y tabla por pista) debajo. */
+.v2-zone-race .v2-band { align-items: stretch; flex-wrap: nowrap; gap: 0; padding: 0; min-height: 0; }
+.v2-race-score, .v2-race-table { min-width: 0; padding: 6px 12px 8px; display: grid; align-content: start; gap: 4px; }
+.v2-race-score { flex: 1 1 54%; }
+.v2-race-table { flex: 1 1 46%; border-left: 1px solid var(--instrumento-borde); }
+.v2-race-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.v2-race-head .v2-role { font-size: 11px; }
+.v2-race-figures { gap: 14px; }
+.v2-race-figures > div { justify-items: end; }
+.v2-race-figures b { font-size: 16px; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v2-race-figures span { font-size: 11px; }
+.v2-score, .v2-tracks { width: 100%; border-collapse: collapse; font-size: 13px; }
+.v2-score th, .v2-score td, .v2-tracks th, .v2-tracks td { padding: 2px 6px; text-align: left; border-bottom: 1px solid var(--instrumento-borde); vertical-align: top; }
+.v2-score thead th, .v2-tracks thead th { font-size: 11px; font-weight: 600; color: var(--color-text-muted); }
+.v2-score .num { text-align: right; font-variant-numeric: tabular-nums; }
+.v2-score tr[data-followed="true"] { background: var(--a-petroleo-800); }
+.v2-race-who { display: flex; align-items: center; gap: 6px; font-weight: 600; min-width: 0; }
+.v2-race-follow { background: none; border: 0; padding: 0; min-height: 24px; color: var(--color-text); font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; text-align: left; }
+.v2-race-follow[aria-pressed="true"] { text-decoration-thickness: 2px; color: var(--color-accent); }
+.v2-race-badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; border-radius: 50%; font: 700 11px/1 var(--a-fuente-num); color: var(--color-bg); background: var(--color-car); }
+.v2-race-badge[data-color="competitor1"] { background: var(--color-competitor-1); } .v2-race-badge[data-color="competitor2"] { background: var(--color-competitor-2); }
+.v2-race-badge[data-color="competitor3"] { background: var(--color-competitor-3); } .v2-race-badge[data-color="competitor4"] { background: var(--color-competitor-4); }
+.v2-race-badge[data-color="competitor5"] { background: var(--color-competitor-5); } .v2-race-badge[data-color="competitor6"] { background: var(--color-competitor-6); }
+.v2-tracks-cell { font-size: 12px; }
+.v2-tracks-result[data-other="true"] { opacity: .7; }
+.v2-tracks-mark { display: inline-block; margin-top: 2px; padding: 0 5px; border-radius: 4px; font-size: 11px; font-weight: 700; border: 1px solid var(--instrumento-borde); }
+.v2-tracks-mark[data-mark="trained"] { color: var(--color-car); border-color: var(--color-car); }
+.v2-tracks-mark[data-mark="unseen"] { color: var(--color-competitor-3); border-color: var(--color-competitor-3); border-style: dashed; }
+.v2-tracks-name { max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v2-race-hint { font-size: 12px; }
+.v2-race-start-note { font-size: 13px; }
+.v2-race-start-note[hidden] { display: none; }
+.v2-countdown { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; pointer-events: none; }
+.v2-countdown[hidden] { display: none; }
+.v2-countdown-number { font: 700 120px/1 var(--a-fuente-num); color: var(--color-text); text-shadow: 0 0 30px rgba(0, 0, 0, .6); }
+/* Hoja Competidores. */
+.v2-race-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.v2-race-item { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border: 1px solid var(--instrumento-borde); border-radius: 8px; background: rgba(15, 28, 31, .6); }
+.v2-race-item .v2-race-who { flex: 1 1 auto; display: grid; gap: 1px; font-weight: 600; }
+.v2-race-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v2-race-meta { font-size: 12px; font-weight: 400; }
+.v2-race-icon { min-width: 32px; padding: 0 6px; }
+.v2-race-icon[aria-pressed="true"] { border-color: var(--color-accent); }
+.v2-race-icon[hidden] { display: none; }
+
+/* ---------- copiado de la V1 (styles/app.css): el selector para agregar ---------- */
+.compete-picker {
+  position: fixed; z-index: 30; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--color-surface); border: 1px solid var(--color-control-border); border-radius: var(--radius-card);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+}
+.compete-picker[hidden] { display: none; }
+.compete-picker-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--space-1) var(--space-2); }
+.compete-picker-group + .compete-picker-group { margin-top: var(--space-2); }
+.compete-picker-title { margin: var(--space-1) 0 2px; font-size: var(--text-label); font-weight: var(--weight-bold); color: var(--color-text-muted); text-transform: none; }
+.compete-option {
+  display: flex; flex-direction: column; align-items: flex-start; width: 100%; min-height: 34px; padding: var(--space-1) var(--space-2);
+  background: transparent; border: 0; border-radius: var(--radius-control); color: var(--color-text); text-align: left; cursor: pointer; font-size: var(--text-body);
+}
+.compete-option:hover, .compete-option:focus-visible { background: var(--color-surface-2); }
+.compete-option[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+.compete-option .compete-name, .compete-option .compete-meta { max-width: 100%; }
+.compete-picker-foot { display: flex; justify-content: flex-end; padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-border); }
+.compete-picker-empty { margin: var(--space-2) 0; }
+.v2-race-score, .v2-race-table { box-sizing: border-box; flex-basis: 0; overflow: hidden; }
+.v2-race-score { flex-grow: 54; } .v2-race-table { flex-grow: 46; }
+.v2-group:has(> :not(h3):not([hidden])) { } .v2-group.v2-empty { display: none; }
+.v2-race-figures b { white-space: normal; overflow: visible; text-overflow: clip; max-width: 190px; font-size: 14px; line-height: 1.15; text-align: right; }
+.v2-race-follow { min-width: 24px; }

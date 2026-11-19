@@ -48,6 +48,7 @@ const stageModules = {
   problema: () => import('./stages/problema/index.js'),
   reglas: () => import('./stages/reglas/index.js'),
   evolucion: () => import('./stages/evolucion/index.js'),
+  evaluar: () => import('./stages/evaluar/index.js'),
 };
 shell = createShell({ root: document.getElementById('app'), i18n, prefs, stageModules, services: { library, tooltips, scenario, scenery } });
 

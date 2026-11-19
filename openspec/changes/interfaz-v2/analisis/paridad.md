@@ -727,3 +727,44 @@ Filas ya hechas en la V2, con dónde quedaron. [Medido] en el navegador una por 
 - **285 · La mutación en la red** (grupo 12): la muestra del hijo en la red durante el corte, en las capturas.
 - **286 · Cambios marcados en la curva** (grupo 12): curva copiada de la V1 con sus marcas.
 - **287 · Vista previa de la mutación** (grupo 12): vista previa al mover la fuerza de mutación.
+- **22 · Carrera de varios competidores** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **23 · Meta de la carrera** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **24 · Chocar no saca de la carrera** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **25 · Protegido al reaparecer** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **26 · Un vehículo choca una sola vez** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **27 · Competidor que no avanza** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **28 · Fin de la carrera** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **29 · Resultado de cada competidor** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **30 · Mejor vuelta** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **31 · Orden de la carrera** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **32 · Carrera reproducible** (grupo 13): núcleo de la carrera reutilizado sin cambios (`src/core/race.js`); medido una carrera completa en la etapa Evaluar.
+- **196 · Carrera lista al abrir** (grupo 13): la carrera se arma al abrir la etapa, con "Vos", el programa de Reglas y un ejemplo.
+- **197 · Guía de inicio** (grupo 13): pregunta y consigna en la placa; el párrafo de la V1 en "Más sobre esta etapa".
+- **198 · Elegir a los competidores** (grupo 13): hoja Competidores: la lista de los que corren, con quitar.
+- **199 · Agregar competidores** (grupo 13): "Agregar" abre el selector (copia del de la V1); no medido abrir el selector en el navegador.
+- **200 · Sensores de cada competidor** (grupo 13): botón 👁 por competidor, con nombre accesible.
+- **201 · Tu programa como competidor** (grupo 13): el programa recordado de Reglas a mano de la V2 corre como competidor (medido: "7 sensores").
+- **202 · Programas de ejemplo como competidores** (grupo 13): ejemplos de la V1 como competidores.
+- **203 · Vos como competidor** (grupo 13): "Vos" maneja con las flechas; medido quitarlo y volver a agregarlo.
+- **204 · Cuenta regresiva al largar** (grupo 13): medido: Largar con "Vos" muestra 3, 2, 1 y arranca; el botón queda deshabilitado mientras cuenta.
+- **205 · Controles de la carrera** (grupo 13): en la placa: Largar (solo antes de la carrera, KD11), Pausar/Reanudar u Otra carrera; Reiniciar y Otra carrera al lado.
+- **206 · Chocar y seguir** (grupo 13): lógica de la carrera sin cambios.
+- **207 · Meta y espera** (grupo 13): aviso de la espera en la escena y en el tiempo de las cifras.
+- **208 · Tráfico de la carrera** (grupo 13): "Tráfico de la carrera" en la hoja Carrera; oculto en un circuito.
+- **209 · Barra de escenario en Competir** (grupo 13): hoja Escenario (escenario compartido, irregularidad "de esta etapa").
+- **210 · Meta configurable** (grupo 13): "Distancia" o "Vueltas" en la hoja Carrera, por pista.
+- **211 · Panel sin desplazamiento lateral** (grupo 13): el cuaderno no desplaza de costado.
+- **212 · Indicadores de la carrera** (grupo 13): tiempo, meta y primero (o ganador) en la cabecera del marcador.
+- **213 · Marcador de la carrera** (grupo 13): marcador en la banda, debajo de la escena.
+- **214 · Seguir a un competidor** (grupo 13): el nombre en el marcador es un botón para seguir (medido).
+- **215 · Tabla por pista** (grupo 13): tabla por pista en la banda, con "practicó" y "no la vio".
+- **216 · Dónde entrenó cada cerebro** (grupo 13): en la hoja Competidores, "Calle + Óvalo" junto al nombre.
+- **217 · Resultado de la calle con su tráfico** (grupo 13): el tráfico ("nuevo" o "de práctica") delante del resultado de la calle.
+- **218 · Misiones** (grupo 13): nota de misión con Mostrame (a la pista o a Largar).
+- **219 · La carrera se conserva al cambiar de pestaña** (grupo 13): al cambiar de etapa la carrera queda en pausa y se retoma.
+- **220 · Pestaña a la vista sin desplazarse** (grupo 13): escena, placa, marcador y tabla a la vista a 1366×768.
+- **221 · Controles de la pestaña explicados** (grupo 13): tooltips en todo (auditoría en 0).
+- **222 · Cerebros que aprendieron imitando** (grupo 13): los marca la lógica de la V1 (competitors.js).
+- **223 · Marcador y tabla sin cortes** (grupo 13): el ganador se parte en dos renglones en lugar de cortarse.
+- **224 · Botones de solo ícono con nombre** (grupo 13): 👁 y ✕ con aria-label con el nombre.
+- **225 · Panel a la vista en 1366×768** (grupo 13): ninguna hoja desplaza a 1366×768.
