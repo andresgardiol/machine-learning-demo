@@ -5,7 +5,10 @@
 // así la forma del choque queda igual (Art. 7).
 import { CAR_LENGTH, CAR_WIDTH } from '../../core/constants.js';
 
-export const GLOW_BLUR_PX = 10;
+// Intensidad bajada un tercio a pedido del dueño (19 de noviembre de 2026): "me gustan, pero les pondría un poco menos".
+export const GLOW_BLUR_PX = 7;
+export const RAY_ALPHA = 0.33;
+export const BEAM_ALPHA = 0.25;
 export const BEAM_LENGTH = 7; // metros por delante del auto
 
 /** Segmentos de los rayos hasta lo que detectan (puro; tiene pruebas). */
@@ -27,13 +30,12 @@ export function createGlow({ colors }) {
       const c = colors();
       const px = 1 / zoom;
       ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      // Rayos: un solo trazo con resplandor.
+      // Rayos: un solo trazo con resplandor, sin sumar luz (con 'lighter' el celeste se iba a blanco).
       ctx.shadowColor = c.sensor;
       ctx.shadowBlur = GLOW_BLUR_PX * dpr;
       ctx.strokeStyle = c.sensor;
-      ctx.globalAlpha = 0.5;
-      ctx.lineWidth = 3 * px;
+      ctx.globalAlpha = RAY_ALPHA;
+      ctx.lineWidth = 2.5 * px;
       ctx.beginPath();
       for (const s of raySegments(rays)) { ctx.moveTo(s.from.x, s.from.y); ctx.lineTo(s.to.x, s.to.y); }
       ctx.stroke();
@@ -44,7 +46,7 @@ export function createGlow({ colors }) {
       ctx.rotate(car.angle);
       const x0 = CAR_LENGTH / 2;
       const g = ctx.createLinearGradient(x0, 0, x0 + BEAM_LENGTH, 0);
-      g.addColorStop(0, withAlpha(c.headlight, 0.38));
+      g.addColorStop(0, withAlpha(c.headlight, BEAM_ALPHA));
       g.addColorStop(1, withAlpha(c.headlight, 0));
       ctx.fillStyle = g;
       ctx.beginPath();
