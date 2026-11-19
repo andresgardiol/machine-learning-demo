@@ -529,3 +529,5 @@
 .v2-stage .inspect-mission .mission-status { margin-left: 6px; color: var(--color-text-muted); }
 .v2-stage .inspect-mission .mission-status::before { content: "· "; }
 .v2-stage .inspect-mission[data-current="true"] .mission-name { font-weight: 700; }
+/* WCAG 2.5.8: los rótulos de rol y las marcas enfocables miden al menos 24 px de alto. */
+.v2-stage .role-tag { min-height: 24px; display: inline-flex; align-items: center; }

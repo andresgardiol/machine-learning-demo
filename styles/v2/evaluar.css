@@ -69,3 +69,4 @@
 .v2-group:has(> :not(h3):not([hidden])) { } .v2-group.v2-empty { display: none; }
 .v2-race-figures b { white-space: normal; overflow: visible; text-overflow: clip; max-width: 190px; font-size: 14px; line-height: 1.15; text-align: right; }
 .v2-race-follow { min-width: 24px; }
+.v2-tracks-mark { min-height: 24px; display: inline-flex; align-items: center; }

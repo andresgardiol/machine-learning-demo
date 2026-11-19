@@ -80,6 +80,8 @@ export function createShell({ root, i18n, prefs, stageModules = {}, services = {
         }
       } else railLinks.set(r.stages[0], main);
       main.dataset.mainOf = r.stages.join(' ');
+      // La pestaña de la V1 que cubre cada etapa (data-v1, para la prueba de paridad, tarea 16.1).
+      for (const [id, link] of railLinks) if (r.stages.includes(id)) link.dataset.v1 = `tab.${stageById(id).v1Tab}`;
       return el('div', { class: 'v2-rail-group' }, items);
     }));
 

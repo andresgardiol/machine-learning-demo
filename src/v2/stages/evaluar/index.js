@@ -208,7 +208,7 @@ export function mount({ zones, notebook, i18n, scenario, scenery = null, library
     on: { click: () => { const open = moreBody.hidden; moreBody.hidden = !open; moreButton.setAttribute('aria-expanded', String(open)); } } }, el('span', { i18n: 'stage.more' }));
   const goalKind = () => RACE_GOALS[state.settings.track].kind;
   const goal = slider({ labelKey: 'bar.goal.meters', help: 'compete.bar.goal', min: 100, max: 1000, step: 100, value: 100, format: (v) => t(`compete.goal.short.${goalKind()}`, { value: v }), onInput: () => {} });
-  goal.element.dataset.v1 = 'compete.bar.goal';
+  goal.element.dataset.v1 = 'compete.bar.goal compete.bar.goal.meters compete.bar.goal.laps';
   goal.input.addEventListener('change', () => setGoal(Number(goal.input.value)));
   function setGoal(v) {
     const value = goalValueOf(goalKind(), v);

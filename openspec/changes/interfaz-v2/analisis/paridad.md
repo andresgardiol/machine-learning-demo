@@ -107,7 +107,7 @@ Lo que necesita al dueño antes de la fase 3 [Propuesta]:
 | 78 | `controladores` | Controlador de reglas | todas | Núcleo compartido | igual | contrato único reutilizado |
 | 79 | `controladores` | Programa que no corresponde al auto | todas | Núcleo compartido | igual | contrato único reutilizado |
 | 80 | `controladores` | Controlador con observador | todas | Núcleo compartido | igual | contrato único reutilizado |
-| 81 | `controladores` | Volante suave | todas | Núcleo compartido | igual | contrato único reutilizado |
+| 81 | `controladores` | Volante suave | todas | Núcleo compartido | igual | quitada de las specs; decisión del dueño: queda el volante actual (tarea 6.2) |
 | 82 | `cuenta-de-la-red` | Cuenta desglosada | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
 | 83 | `cuenta-de-la-red` | Recorrido paso a paso | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
 | 84 | `cuenta-de-la-red` | Cambios de prueba | Inspeccionar | Entender · tarjeta de la neurona | igual | lógica sin DOM reutilizada |
@@ -125,7 +125,7 @@ Lo que necesita al dueño antes de la fase 3 [Propuesta]:
 | 96 | `estructura-app` | Pestañas del recorrido | todas | Armazón · navegación de cinco etapas | rediseñado | seis pestañas → cinco etapas con su pregunta (informe 1.4) |
 | 97 | `estructura-app` | Lista para usar al abrir | todas | Armazón | igual | misma regla en el armazón nuevo |
 | 98 | `estructura-app` | Disposición común | todas | Disposición de la propuesta elegida | rediseñado | la disposición sale de la fase 2 (D4, eje 1) |
-| 99 | `estructura-app` | Panel ajustable | todas | — | propuesto quitar | las tres maquetas fijan las zonas; el ancho lo da la disposición. Decide el dueño |
+| 99 | `estructura-app` | Panel ajustable | todas | — | propuesto quitar | decisión del dueño: eligió D (tarea 6.1), que fija las zonas; lo reemplaza plegar el cuaderno |
 | 100 | `estructura-app` | Preferencias recordadas | todas | Armazón · preferencias `mlLab.v2.*` | rediseñado | claves propias (D6) |
 | 101 | `estructura-app` | Créditos | todas | Armazón | igual | misma regla en el armazón nuevo |
 | 102 | `estructura-app` | Aviso en pantallas angostas | todas | Armazón | igual | misma regla en el armazón nuevo |
@@ -905,3 +905,182 @@ Filas ya hechas en la V2, con dónde quedaron. [Medido] en el navegador una por 
 - **443 · Cambios a mano durante el aprendizaje** (grupo 15): núcleo reutilizado sin cambios (`src/core/backprop.js`); medido aprender de a épocas en Puntos (20 épocas, 99 % de aciertos en práctica).
 - **444 · Valores de cada neurona sobre una grilla** (grupo 15): núcleo reutilizado sin cambios (`src/core/backprop.js`); medido aprender de a épocas en Puntos (20 épocas, 99 % de aciertos en práctica).
 - **445 · Historia de los pesos** (grupo 15): núcleo reutilizado sin cambios (`src/core/backprop.js`); medido aprender de a épocas en Puntos (20 épocas, 99 % de aciertos en práctica).
+- **1 · Atajos de una tecla desactivables** (grupo 16): atajos de una tecla desactivables (interruptor "Atajos"), foco visible, objetivos de al menos 24 px (auditoría en 0) y textos alternativos; ver la auditoría de la tarea 16.3.
+- **2 · Límites de los controles con contraste** (grupo 16): atajos de una tecla desactivables (interruptor "Atajos"), foco visible, objetivos de al menos 24 px (auditoría en 0) y textos alternativos; ver la auditoría de la tarea 16.3.
+- **3 · Tamaño mínimo de los controles** (grupo 16): atajos de una tecla desactivables (interruptor "Atajos"), foco visible, objetivos de al menos 24 px (auditoría en 0) y textos alternativos; ver la auditoría de la tarea 16.3.
+- **4 · Escenario descrito en texto** (grupo 16): atajos de una tecla desactivables (interruptor "Atajos"), foco visible, objetivos de al menos 24 px (auditoría en 0) y textos alternativos; ver la auditoría de la tarea 16.3.
+- **5 · Sin destellos** (grupo 16): atajos de una tecla desactivables (interruptor "Atajos"), foco visible, objetivos de al menos 24 px (auditoría en 0) y textos alternativos; ver la auditoría de la tarea 16.3.
+- **6 · Tooltip en todo control** (grupo 16): tooltips de la V2 (`components/tooltip.js`) con qué hace y por qué importa, el punto constante en cada control y el interruptor "Ayudas"; auditoría de tooltips en 0.
+- **7 · Aparición y cierre del tooltip** (grupo 16): tooltips de la V2 (`components/tooltip.js`) con qué hace y por qué importa, el punto constante en cada control y el interruptor "Ayudas"; auditoría de tooltips en 0.
+- **8 · Ubicación del tooltip** (grupo 16): tooltips de la V2 (`components/tooltip.js`) con qué hace y por qué importa, el punto constante en cada control y el interruptor "Ayudas"; auditoría de tooltips en 0.
+- **9 · Tooltips en el idioma activo** (grupo 16): tooltips de la V2 (`components/tooltip.js`) con qué hace y por qué importa, el punto constante en cada control y el interruptor "Ayudas"; auditoría de tooltips en 0.
+- **10 · Controles no disponibles explicados** (grupo 16): tooltips de la V2 (`components/tooltip.js`) con qué hace y por qué importa, el punto constante en cada control y el interruptor "Ayudas"; auditoría de tooltips en 0.
+- **11 · Lenguaje llano** (grupo 16): tooltips de la V2 (`components/tooltip.js`) con qué hace y por qué importa, el punto constante en cada control y el interruptor "Ayudas"; auditoría de tooltips en 0.
+- **12 · Apretar un control sin acción lo explica** (grupo 16): tooltips de la V2 (`components/tooltip.js`) con qué hace y por qué importa, el punto constante en cada control y el interruptor "Ayudas"; auditoría de tooltips en 0.
+- **13 · Tooltips con las ayudas apagadas** (grupo 16): tooltips de la V2 (`components/tooltip.js`) con qué hace y por qué importa, el punto constante en cada control y el interruptor "Ayudas"; auditoría de tooltips en 0.
+- **14 · Barra de escenario** (grupo 16): la hoja Escenario del cuaderno (escenario compartido, D7), con los valores fijados "de esta etapa" (grupo 9).
+- **15 · Pista en la barra** (grupo 16): la hoja Escenario del cuaderno (escenario compartido, D7), con los valores fijados "de esta etapa" (grupo 9).
+- **16 · Cambios del escenario en el momento** (grupo 16): la hoja Escenario del cuaderno (escenario compartido, D7), con los valores fijados "de esta etapa" (grupo 9).
+- **17 · Ajustes de tráfico en un circuito** (grupo 16): la hoja Escenario del cuaderno (escenario compartido, D7), con los valores fijados "de esta etapa" (grupo 9).
+- **18 · Restablecer el escenario** (grupo 16): la hoja Escenario del cuaderno (escenario compartido, D7), con los valores fijados "de esta etapa" (grupo 9).
+- **19 · Barra explicada y accesible** (grupo 16): la hoja Escenario del cuaderno (escenario compartido, D7), con los valores fijados "de esta etapa" (grupo 9).
+- **20 · Grupo que no aplica en una pestaña** (grupo 16): la hoja Escenario del cuaderno (escenario compartido, D7), con los valores fijados "de esta etapa" (grupo 9).
+- **21 · Grupo propio de una pestaña** (grupo 16): la hoja Escenario del cuaderno (escenario compartido, D7), con los valores fijados "de esta etapa" (grupo 9).
+- **50 · Cuatro cerebros incluidos** (grupo 16): cerebros de ejemplo de la V1 (`src/data/example-brains.js`) sin cambios, en Evaluar, Entender y Por gradiente.
+- **51 · Ejemplos que no cambian** (grupo 16): cerebros de ejemplo de la V1 (`src/data/example-brains.js`) sin cambios, en Evaluar, Entender y Por gradiente.
+- **52 · Ejemplos que se pueden regenerar** (grupo 16): cerebros de ejemplo de la V1 (`src/data/example-brains.js`) sin cambios, en Evaluar, Entender y Por gradiente.
+- **53 · Lo que muestran los ejemplos** (grupo 16): cerebros de ejemplo de la V1 (`src/data/example-brains.js`) sin cambios, en Evaluar, Entender y Por gradiente.
+- **54 · Tarjeta al principio del panel** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **55 · Consigna** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **56 · Acción principal en la tarjeta** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **57 · Misión en curso** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **58 · Tarjeta con la guía apagada** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **59 · Tarjeta al elegir en Inspeccionar y en el Laboratorio** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **60 · Tarjeta accesible** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **61 · Texto de guía plegado** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **62 · Mostrar el control de la misión** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **63 · Controles de las misiones de El problema** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **64 · Controles de las misiones de Reglas a mano** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **65 · Controles de las misiones de Entrenar** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **66 · Controles de las misiones de Competir** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **67 · Controles de las misiones de Inspeccionar** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **68 · Controles de las misiones de compuertas del Laboratorio** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **69 · Controles de las misiones de puntos y tu manejo del Laboratorio** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **70 · Cómo se muestra un control** (grupo 16): la placa de cada etapa (pregunta y consigna) y la nota de misión con "Mostrame" en la primera hoja (grupos 8 y 10 a 15).
+- **71 · Contrato único de controlador** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
+- **72 · Contenido de la percepción** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
+- **73 · Controles contradictorios** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
+- **74 · Controlador de teclado** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
+- **75 · El teclado no interfiere con la página** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
+- **76 · Controlador de red neuronal** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
+- **77 · Red que no corresponde a la percepción** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
+- **78 · Controlador de reglas** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
+- **79 · Programa que no corresponde al auto** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
+- **80 · Controlador con observador** (grupo 16): contrato de controladores reutilizado sin cambios (`src/core/controller.js` y afines).
+- **81 · Volante suave** (grupo 16): quitada: el volante suave salió de las specs; decisión del dueño: el volante es el actual (`volante-directo`, tarea 6.2).
+- **96 · Pestañas del recorrido** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **97 · Lista para usar al abrir** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **98 · Disposición común** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **99 · Panel ajustable** (grupo 16): decisión del dueño: eligió la maqueta D (tarea 6.1), que fija las zonas; plegar el cuaderno reemplaza al panel ajustable.
+- **100 · Preferencias recordadas** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **101 · Créditos** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **102 · Aviso en pantallas angostas** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **103 · Errores en lenguaje humano** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **104 · Biblioteca de cerebros compartida** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **105 · Una sola pestaña en marcha** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **106 · Escenario ajustable** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **107 · Anchos que se adaptan a la ventana** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **108 · Disposición en ventanas medianas** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **109 · Orden común del panel** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **110 · Interruptor de guía sin tooltips** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **111 · Interruptor de ayudas** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **112 · Disposición de Reglas a mano** (grupo 16): armazón de la V2: riel de etapas, barra de arriba, cuaderno plegable, preferencias `mlLab.v2.*` y biblioteca compartida (grupo 7).
+- **139 · Dos idiomas completos** (grupo 16): motor de idiomas de la V1 con diccionarios propios de la V2 en español e inglés, mismas claves (prueba `tests/v2/i18n.test.js`) y cambio en vivo.
+- **140 · Selector de idioma** (grupo 16): motor de idiomas de la V1 con diccionarios propios de la V2 en español e inglés, mismas claves (prueba `tests/v2/i18n.test.js`) y cambio en vivo.
+- **141 · Cambio de idioma en vivo** (grupo 16): motor de idiomas de la V1 con diccionarios propios de la V2 en español e inglés, mismas claves (prueba `tests/v2/i18n.test.js`) y cambio en vivo.
+- **142 · Idioma inicial** (grupo 16): motor de idiomas de la V1 con diccionarios propios de la V2 en español e inglés, mismas claves (prueba `tests/v2/i18n.test.js`) y cambio en vivo.
+- **143 · Texto faltante** (grupo 16): motor de idiomas de la V1 con diccionarios propios de la V2 en español e inglés, mismas claves (prueba `tests/v2/i18n.test.js`) y cambio en vivo.
+- **144 · Números según el idioma** (grupo 16): motor de idiomas de la V1 con diccionarios propios de la V2 en español e inglés, mismas claves (prueba `tests/v2/i18n.test.js`) y cambio en vivo.
+- **145 · Cinco estilos con un significado cada uno** (grupo 16): una sola acción principal por pantalla (auditoría de la V2 en 0) y los cuatro niveles de botón del grupo 8.
+- **146 · La salida de la red no parece botón** (grupo 16): una sola acción principal por pantalla (auditoría de la V2 en 0) y los cuatro niveles de botón del grupo 8.
+- **147 · Una sola acción principal a la vista** (grupo 16): una sola acción principal por pantalla (auditoría de la V2 en 0) y los cuatro niveles de botón del grupo 8.
+- **148 · La marcha es la acción principal** (grupo 16): una sola acción principal por pantalla (auditoría de la V2 en 0) y los cuatro niveles de botón del grupo 8.
+- **149 · Estados que cambian la acción principal** (grupo 16): una sola acción principal por pantalla (auditoría de la V2 en 0) y los cuatro niveles de botón del grupo 8.
+- **150 · Guardar no compite con la marcha** (grupo 16): una sola acción principal por pantalla (auditoría de la V2 en 0) y los cuatro niveles de botón del grupo 8.
+- **151 · Opciones elegidas con un mismo aspecto** (grupo 16): una sola acción principal por pantalla (auditoría de la V2 en 0) y los cuatro niveles de botón del grupo 8.
+- **189 · Paisaje de la calle** (grupo 16): el paisaje de la V1 (`render/scenery`) sin cambios; el botón "Paisaje" de la cámara, recordado en `mlLab.v2.scenery`.
+- **190 · Paisaje de los circuitos** (grupo 16): el paisaje de la V1 (`render/scenery`) sin cambios; el botón "Paisaje" de la cámara, recordado en `mlLab.v2.scenery`.
+- **191 · Paisaje solo estético** (grupo 16): el paisaje de la V1 (`render/scenery`) sin cambios; el botón "Paisaje" de la cámara, recordado en `mlLab.v2.scenery`.
+- **192 · Paisaje reproducible** (grupo 16): el paisaje de la V1 (`render/scenery`) sin cambios; el botón "Paisaje" de la cámara, recordado en `mlLab.v2.scenery`.
+- **193 · Colores del paisaje** (grupo 16): el paisaje de la V1 (`render/scenery`) sin cambios; el botón "Paisaje" de la cámara, recordado en `mlLab.v2.scenery`.
+- **194 · Mostrar u ocultar el paisaje** (grupo 16): el paisaje de la V1 (`render/scenery`) sin cambios; el botón "Paisaje" de la cámara, recordado en `mlLab.v2.scenery`.
+- **195 · Paisaje fluido** (grupo 16): el paisaje de la V1 (`render/scenery`) sin cambios; el botón "Paisaje" de la cámara, recordado en `mlLab.v2.scenery`.
+- **404 · Pista definida por línea central, ancho y carriles** (grupo 16): pistas y circuitos del núcleo sin cambios (`src/core/circuits.js`), en la hoja Escenario.
+- **405 · Calle recta de 2, 3 o 4 carriles** (grupo 16): pistas y circuitos del núcleo sin cambios (`src/core/circuits.js`), en la hoja Escenario.
+- **406 · Bordes de la pista** (grupo 16): pistas y circuitos del núcleo sin cambios (`src/core/circuits.js`), en la hoja Escenario.
+- **407 · Centro de carril** (grupo 16): pistas y circuitos del núcleo sin cambios (`src/core/circuits.js`), en la hoja Escenario.
+- **408 · Progreso sobre la pista** (grupo 16): pistas y circuitos del núcleo sin cambios (`src/core/circuits.js`), en la hoja Escenario.
+- **409 · Pista cerrada** (grupo 16): pistas y circuitos del núcleo sin cambios (`src/core/circuits.js`), en la hoja Escenario.
+- **410 · Progreso por vueltas** (grupo 16): pistas y circuitos del núcleo sin cambios (`src/core/circuits.js`), en la hoja Escenario.
+- **411 · Catálogo de circuitos** (grupo 16): pistas y circuitos del núcleo sin cambios (`src/core/circuits.js`), en la hoja Escenario.
+- **412 · Circuitos manejables** (grupo 16): pistas y circuitos del núcleo sin cambios (`src/core/circuits.js`), en la hoja Escenario.
+- **413 · Nombres de las pistas** (grupo 16): pistas y circuitos del núcleo sin cambios (`src/core/circuits.js`), en la hoja Escenario.
+- **414 · Estructura por capas** (grupo 16): núcleo de la red reutilizado sin cambios (`src/core/network.js`).
+- **415 · Cálculo de las salidas** (grupo 16): núcleo de la red reutilizado sin cambios (`src/core/network.js`).
+- **416 · Salidas sí/no** (grupo 16): núcleo de la red reutilizado sin cambios (`src/core/network.js`).
+- **417 · Activación de las capas ocultas** (grupo 16): núcleo de la red reutilizado sin cambios (`src/core/network.js`).
+- **418 · Inicialización reproducible** (grupo 16): núcleo de la red reutilizado sin cambios (`src/core/network.js`).
+- **419 · Valores de todas las neuronas** (grupo 16): núcleo de la red reutilizado sin cambios (`src/core/network.js`).
+- **420 · Cálculo sin efectos** (grupo 16): núcleo de la red reutilizado sin cambios (`src/core/network.js`).
+- **446 · Rayos distribuidos en un abanico** (grupo 16): sensores del núcleo sin cambios (`src/core/sensors.js`), con sus ajustes en Reglas a mano y en Aprender por evolución.
+- **447 · Lectura normalizada** (grupo 16): sensores del núcleo sin cambios (`src/core/sensors.js`), con sus ajustes en Reglas a mano y en Aprender por evolución.
+- **448 · Obstáculos detectados** (grupo 16): sensores del núcleo sin cambios (`src/core/sensors.js`), con sus ajustes en Reglas a mano y en Aprender por evolución.
+- **449 · Orden estable de las lecturas** (grupo 16): sensores del núcleo sin cambios (`src/core/sensors.js`), con sus ajustes en Reglas a mano y en Aprender por evolución.
+- **450 · Configuración de los sensores** (grupo 16): sensores del núcleo sin cambios (`src/core/sensors.js`), con sus ajustes en Reglas a mano y en Aprender por evolución.
+- **451 · Avance en pasos fijos** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **452 · Resultado reproducible** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **453 · Ejecución sin navegador** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **454 · Aceleración y velocidad máxima** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **455 · Velocidad máxima configurable** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **456 · Fricción** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **457 · Giro** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **458 · Choque** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **459 · Reinicio** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **460 · Pausa** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **461 · Sacar un auto de carrera** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **462 · Varios autos en un mismo mundo** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **463 · Los autos no chocan entre sí** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **464 · Un auto se comporta igual solo o acompañado** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **465 · Reproducibilidad con varios autos** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **466 · Reinicio con varios autos** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **467 · Velocidad de simulación** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **468 · Mundo sobre un circuito** (grupo 16): núcleo de la simulación reutilizado sin cambios (`src/core/world.js` y afines); prueba de igualdad 9.2.
+- **469 · Escala tipográfica acotada** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **470 · Tres alturas de control** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **471 · Espaciado en pasos** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **472 · Superficies con nombre** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **473 · Un color, un significado** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **474 · Cuatro roles con un color y una forma** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **475 · Rótulos de rol** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **476 · Estado "se cumple"** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **477 · Estado "error"** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **478 · Estado "choque"** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **479 · Deslizadores de la app** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **480 · El sistema no cambia el comportamiento** (grupo 16): tokens propios de la V2 (`styles/v2/tokens.css`, maqueta D) y componentes del grupo 8; las auditorías de la V2 dan 0.
+- **481 · Zona de tablero** (grupo 16): la banda de cada etapa (cifras, percepción y acción) y la franja de la red y la curva (grupos 10 a 15).
+- **482 · Renglón de indicadores** (grupo 16): la banda de cada etapa (cifras, percepción y acción) y la franja de la red y la curva (grupos 10 a 15).
+- **483 · Tarjetas del tablero** (grupo 16): la banda de cada etapa (cifras, percepción y acción) y la franja de la red y la curva (grupos 10 a 15).
+- **484 · Las tarjetas se reparten el alto** (grupo 16): la banda de cada etapa (cifras, percepción y acción) y la franja de la red y la curva (grupos 10 a 15).
+- **485 · Renglones de ayuda** (grupo 16): la banda de cada etapa (cifras, percepción y acción) y la franja de la red y la curva (grupos 10 a 15).
+- **486 · Tarjetas operables con el teclado** (grupo 16): la banda de cada etapa (cifras, percepción y acción) y la franja de la red y la curva (grupos 10 a 15).
+- **487 · Tablero explicado** (grupo 16): la banda de cada etapa (cifras, percepción y acción) y la franja de la red y la curva (grupos 10 a 15).
+- **488 · Tarjeta con editor** (grupo 16): la banda de cada etapa (cifras, percepción y acción) y la franja de la red y la curva (grupos 10 a 15).
+- **489 · Tráfico reproducible** (grupo 16): tráfico del núcleo sin cambios (`src/core/traffic.js`), con densidad e irregularidad en la hoja Escenario.
+- **490 · Tráfico siempre superable** (grupo 16): tráfico del núcleo sin cambios (`src/core/traffic.js`), con densidad e irregularidad en la hoja Escenario.
+- **491 · Densidad configurable** (grupo 16): tráfico del núcleo sin cambios (`src/core/traffic.js`), con densidad e irregularidad en la hoja Escenario.
+- **492 · Irregularidad configurable** (grupo 16): tráfico del núcleo sin cambios (`src/core/traffic.js`), con densidad e irregularidad en la hoja Escenario.
+- **493 · Cambio de configuración en marcha** (grupo 16): tráfico del núcleo sin cambios (`src/core/traffic.js`), con densidad e irregularidad en la hoja Escenario.
+- **494 · Movimiento del tráfico** (grupo 16): tráfico del núcleo sin cambios (`src/core/traffic.js`), con densidad e irregularidad en la hoja Escenario.
+- **495 · Tráfico sin fin** (grupo 16): tráfico del núcleo sin cambios (`src/core/traffic.js`), con densidad e irregularidad en la hoja Escenario.
+- **496 · Dibujo del escenario** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **497 · Colores con significado constante** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **498 · Sensores visibles** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **499 · Cámara que sigue al auto** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **500 · Zoom** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **501 · Paneo** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **502 · Restablecer la vista** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **503 · Controles de cámara explicados** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **504 · Adaptación al tamaño de la ventana** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **505 · Fluidez** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **506 · Dibujo de una población** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **507 · Marca de la élite** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **508 · Seguimiento del líder** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **509 · Fluidez con una población** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **510 · Dibujo de un circuito** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **511 · Circuito entero a la vista** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **512 · Fluidez en un circuito** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **513 · Competidores distinguibles** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **514 · Meta a la vista** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **515 · Fluidez en una carrera** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **516 · Escena chica** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).
+- **517 · Rayos que se mueven a mano** (grupo 16): la vista de la escena de la V1 (`src/render/view.js`, `createStageView`) sin cambios, con sus controles de cámara, en todas las etapas con auto (grupos 10 a 15).

@@ -310,10 +310,16 @@ Lo que quedó:
 
 ## En curso
 
-Nada.
+- `interfaz-v2`: la V2 de la interfaz, en `/v2/`, implementada (grupos 7 a 16) y sin archivar. La V1 sigue
+  siendo la de siempre; solo suma el enlace "Probar la V2". Falta que el dueño la revise, la pruebe con el guion
+  de cinco tareas (`openspec/changes/interfaz-v2/analisis/guion-cinco-tareas.md`) y decida con cuál versión se
+  queda (otro cambio). Lo que quedó, en *V2 de la interfaz*, abajo.
 
 ## Para probar a mano (dueño)
 
+- V2 (`interfaz-v2`): la fluidez a la vista de los cinco casos de `borradores/interfaz-v2/comparacion/fluidez.md`
+  (sin ventana todo dio el tope de 60 c/s); el corte de generación de Aprender por evolución con la página a la
+  vista; arrastrar las perillas y el punto de prueba de Por gradiente y las fichas de Reglas con el mouse.
 - Compuertas: los escenarios en que la red tiene que aprender ("Aprende al
   reproducir", "Con la capa oculta", "Trabada en un mínimo local",
   "Aprendiendo tampoco", "De corrido"). Detalle en *Laboratorio y
@@ -1182,3 +1188,23 @@ arreglarlos de a uno.
     Salidas posibles: un segundo renglón para las herramientas o un menú de
     preferencias.
   - Sin probar: lector de pantalla real, Safari y Firefox.
+
+## V2 de la interfaz
+
+Lo que quedó de `interfaz-v2` (detalle en `openspec/changes/interfaz-v2/analisis/critica-final.md`).
+
+- Las piezas de pantalla de la V1 que la V2 usa son copias (`src/v2/legacy/`, el editor y las fichas de Reglas, la
+  biblioteca, la curva): un arreglo en la V1 no llega solo a la V2. Si la V2 queda, conviene que la V1 las tome
+  de un solo lugar, o quitar la V1 (otro cambio).
+- Sin medir: lector de pantalla real, zoom al 200 %, Safari y Firefox, contraste no textual (1.4.11) y foco no
+  tapado (2.4.11). Los tooltips no se anuncian al lector de pantalla (sigue de la V1).
+- "Guía", "Ayudas" y "Atajos" no dicen en pantalla qué ocultan (sigue de la V1; la V2 suma "Guía oculta").
+- No medido en el navegador: Exportar e Importar el programa de Reglas, Renombrar, Eliminar y Exportar en la
+  biblioteca, Seguir entrenando un cerebro guardado, "Ver original" mantenido apretado, la historia de un peso.
+- Decisiones tomadas en la implementación que el dueño puede revisar: "Reintentar solo" empieza apagado en Reglas
+  (maqueta D); la pista del escenario compartido es la pista del entrenamiento (cambiarla en una etapa la cambia
+  en todas); el corte de generación tapa parte de la escena mientras dura (KD6).
+- La tabla del bench del README (144,5× y 115,5×) no coincide con las corridas de hoy (unos 185× y 1150×, igual
+  antes y después de la V2): actualizarla en otro cambio.
+- La matriz de paridad conserva la fila *Volante suave* (81), que salió de las specs: `paridad.py --contar` da 526
+  filas para 525 requisitos.

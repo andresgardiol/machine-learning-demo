@@ -299,6 +299,8 @@ export function mount({ zones, notebook, i18n, scenery = null, library = null })
   const headerLayer = el('div', { class: 'inspect-headers' });
   const neuronLayer = el('div', { class: 'inspect-neurons', attrs: { role: 'group' }, i18nAttr: 'aria-label:inspect.neurons.label', on: { keydown: (e) => onNeuronKey(e) } });
   inspector.overlay.append(headerLayer, neuronLayer, dragHint);
+  // El dibujo de la red es decorativo para los lectores de pantalla: la red se recorre por los botones de las neuronas.
+  diagram.querySelector('canvas')?.setAttribute('aria-hidden', 'true');
   let headerButtons = [];
   // Rótulo "Entra" de las entradas del diagrama (sistema-de-diseno-base 5.2): debajo de la cabecera de la capa 0.
   // "Decide", debajo de la cabecera de la primera capa que calcula (la oculta, o la de salida si no hay).

@@ -401,7 +401,7 @@ export function mount({ zones, notebook, i18n, scenario, scenery = null, library
   // --- Hoja Cerebros: guardar, la biblioteca y los autoguardados -----------------------------------------
   const s4 = notebook.sheet('cerebros', 'train.view.brains');
   s4.classList.add('v2-sheet-brains');
-  const quickSave = button({ labelKey: 'train.save.champion', help: 'train.save', onClick: () => { if (canSave()) saveChampion({ update: Boolean(sourceEntry()) }); }, attrs: { 'data-v1': 'train.save' } });
+  const quickSave = button({ labelKey: 'train.save.champion', help: 'train.save', onClick: () => { if (canSave()) saveChampion({ update: Boolean(sourceEntry()) }); }, attrs: { 'data-v1': 'train.save train.save.update' } });
   const nameInput = el('input', { class: 'v2-input', help: 'train.save.name', attrs: { type: 'text', maxlength: 40, id: 'v2-train-save-name', 'data-v1': 'train.save.name' }, i18nAttr: 'aria-label:train.save.name',
     on: { keydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); saveAsNew(); } } } });
   function saveAsNew() { if (!canSave()) return; saveChampion({ name: nameInput.value }); nameInput.value = ''; }
@@ -413,6 +413,11 @@ export function mount({ zones, notebook, i18n, scenario, scenery = null, library
   const saveTitle = el('label', { class: 'v2-setting-name', i18n: 'train.save.title', attrs: { for: 'v2-train-save-name' } });
   const libraryZone = el('div', { class: 'v2-library' });
   s4.append(group({ titleKey: null }, saveTitle, el('div', { class: 'v2-row v2-row-start' }, quickSave), el('div', { class: 'v2-row v2-row-start v2-evo-save-row' }, nameInput, saveAsButton), saveResult), libraryZone);
+  // Las hojas cubren las vistas del panel de la V1 (data-v1, para la prueba de paridad, tarea 16.1).
+  for (const [sheet, v1] of [['etapa', 'train.view.training'], ['evolucion', 'train.view.settings'], ['red', 'train.view.settings'], ['cerebros', 'train.view.brains']]) {
+    const tab = doc.getElementById(`v2-t-evolucion-${sheet}`);
+    if (tab) tab.dataset.v1 = v1;
+  }
   const libraryView = library ? createLibraryView({ container: libraryZone, library, i18n, onContinue: continueFrom, doc })
     : { showMessage() {}, cancelConfirms() {}, startRename() {}, dispose() {} };
   function setSaveMessage(m) {
