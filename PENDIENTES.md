@@ -316,20 +316,16 @@ archivado el mismo día, con las specs sincronizadas; lo que quedó, en *V2 de l
 
 ## En curso
 
-`trafico-vivo` (19 de noviembre de 2026), implementado por una sub-sesión, sin archivar. El tráfico de la calle
-dejó las filas: cada carril va a su velocidad (de 6 a 10 m/s, el dueño decidió quedarse con velocidades distintas
+`trafico-vivo` (19 de noviembre de 2026) está archivado, con las specs sincronizadas. El tráfico de la calle
+dejó las filas: cada carril va a su velocidad (de 6 a 10 m/s; el dueño decidió quedarse con velocidades distintas
 después de ver la medición de encierros), hay motos, autos, camionetas y camiones, y la irregularidad hace
 zigzaguear a cada vehículo dentro de su carril. Garantía nueva, "nunca te encierran": seguir al de tu carril es
-seguro y ningún muro dura más de 7 s (medido con mil semillas). Restablecer vuelve al tráfico de la semilla. Queda
-abierto, esperando al dueño:
-- los programas de ejemplo de Reglas no cumplen sus escenarios con el tráfico nuevo (tarea 10.1; no se cambiaron);
-- volver a entrenar los cerebros de ejemplo (tarea 10.3), que hoy chocan en 10 de 10 tráficos nuevos;
-- la fluidez de "Todos en carrera" baja un 18 % por la carga de los rayos (tarea 11.2, aceptado por el dueño:
-  sigue muy por encima de 20x); falta medirla con el navegador a la vista (en *Para probar a mano*);
-- verificar que la población aprende con el tráfico nuevo (no se entrenó para verificar).
-
-Lo medido está en `openspec/changes/trafico-vivo/tasks.md` y en `borradores/trafico-vivo/` (encierros, después y
-comparación con capturas).
+seguro y ningún muro dura más de 7 s (medido con mil semillas). Restablecer vuelve al tráfico de la semilla. Los
+cerebros de ejemplo se volvieron a entrenar (el contraste entre generalizar y memorizar quedó justo: 1,5 contra
+1,6 choques), Reglas a mano pasó a la semilla 516 y la baja de fluidez de "Todos en carrera" (18 %) quedó
+aceptada. Falta verificar que la población aprende con el tráfico nuevo (no se entrenó para verificar) y medir la
+fluidez con el navegador a la vista (en *Para probar a mano*). Lo medido está en
+`openspec/changes/archive/2026-11-19-trafico-vivo/tasks.md` y en `borradores/trafico-vivo/`.
 
 Lo que sigue después es una decisión del dueño: revisar la V2, probarla con el guion de cinco tareas
 (`openspec/changes/archive/2026-11-19-interfaz-v2/analisis/guion-cinco-tareas.md`) y decidir con cuál versión se
@@ -342,7 +338,7 @@ queda (otro cambio). Lo que quedó, en *V2 de la interfaz*, abajo.
   si se entiende sin explicación que los carriles van a distinto ritmo; y que la población aprende con el tráfico
   nuevo (con la configuración por defecto y con irregularidad 50 %).
 - **Cerebros guardados con el tráfico viejo:** siguen cargando, porque la red no cambia, pero se entrenaron con filas
-  a 10 m/s y manejan peor en la calle nueva. No se migran. Los de ejemplo, igual, hasta la tarea 10.3.
+  a 10 m/s y manejan peor en la calle nueva. No se migran. Los de ejemplo ya se volvieron a entrenar.
 - V2 (`interfaz-v2`): la fluidez a la vista de los cinco casos de `borradores/interfaz-v2/comparacion/fluidez.md`
   (sin ventana todo dio el tope de 60 c/s); el corte de generación de Aprender por evolución con la página a la
   vista; arrastrar las perillas y el punto de prueba de Por gradiente y las fichas de Reglas con el mouse.
@@ -620,8 +616,8 @@ arreglarlos de a uno.
 - Cerebros incluidos elegidos por el dueño.
 - Elegir con un clic qué auto seguir en el entrenamiento.
 - Entrenar en segundo plano (Web Worker).
-- **Tráfico menos regular y con variedad de vehículos**: implementado en
-  `trafico-vivo`, sin archivar (ver *En curso*).
+- **Tráfico menos regular y con variedad de vehículos**: hecho en
+  `trafico-vivo`, archivado.
 - Lo que quedó fuera de alcance en cada cambio (Competir, circuitos,
   operación por operación, punto de prueba, vista de la red, Inspeccionar,
   Laboratorio, compuertas, panel de entrenar). Está al final de cada nota de
@@ -971,8 +967,8 @@ arreglarlos de a uno.
   a costa de duplicar el estado para dibujarlo y de cuidar la
   reproducibilidad.
 
-- **Tráfico menos regular y con variedad de vehículos: hecho en `trafico-vivo`** (19 de noviembre de 2026, sin
-  archivar). Pedido del dueño del 18 de noviembre, con una captura de Entrenar en la generación 61. Quedó:
+- **Tráfico menos regular y con variedad de vehículos: hecho en `trafico-vivo`** (19 de noviembre de 2026,
+  archivado). Pedido del dueño del 18 de noviembre, con una captura de Entrenar en la generación 61. Quedó:
   - una corriente por carril, cada una a su velocidad (6, 8 y 10 m/s con tres carriles, sorteadas por la semilla),
     con huecos de al menos cuatro largos de auto y arranque escalonado;
   - cuatro tipos con su contorno de choque; los sensores y los choques usan la medida real;
@@ -981,7 +977,7 @@ arreglarlos de a uno.
     defecto, un auto derecho a 20 m/s se cruza un muro cada 4,8 km; con 2 carriles y la calle llena, uno cada
     215 m. Con irregularidad 100 %, los muros pueden encadenarse junto a un camión lento hasta 25 s, con un hueco
     de 16 m en el carril rápido entre uno y otro;
-  - lo abierto, en *En curso*, arriba.
+  - lo que falta probar, en *Para probar a mano*, arriba.
 
 ## Competir y circuitos
 
