@@ -138,7 +138,7 @@ export function contractBand({ i18n, outputs = ['forward', 'reverse', 'left', 'r
         barEls = values.map((_, i) => el('i', { class: i === values.length - 1 ? 'v2-bar-speed' : '' }));
         bars.replaceChildren(...barEls);
       }
-      values.forEach((v, i) => { const h = `${Math.round(4 + Math.max(0, Math.min(1, v)) * 30)}px`; if (barEls[i].style.height !== h) barEls[i].style.height = h; });
+      values.forEach((v, i) => { const h = `${Math.round(12 + Math.max(0, Math.min(1, v)) * 88)}%`; if (barEls[i].style.height !== h) barEls[i].style.height = h; });
     },
     /** on: { forward, reverse, left, right } con booleanos. */
     setActions(on) { for (const l of lamps) setAttr(l, 'data-on', String(!!on[l.dataset.output])); },

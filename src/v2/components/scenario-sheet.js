@@ -10,24 +10,27 @@ import { slider, segments, grid, group, button, undoNotice, stageTag } from './c
 const range = (key) => SLIDERS.find((s) => s.key === key);
 
 /**
- * @param {{ i18n, scenario, stage: string, panel: HTMLElement, tracks?: boolean, v1Prefix?: string }} spec
- *   v1Prefix: prefijo de las claves de ayuda de la V1 que cubre cada control (data-v1, para la paridad).
+ * @param {{ i18n, scenario, stage: string, panel: HTMLElement, tracks?: boolean, v1?: object, keys?: string[], bare?: boolean }} spec
+ *   v1: clave de ayuda de la V1 que cubre cada control (data-v1, para la paridad).
+ *   keys: los ajustes del escenario que se muestran (por defecto, todos).
+ *   bare: solo los controles, sin el grupo ni "Restablecer escenario" (para sumarlos a "Probá esto").
  */
-export function mountScenarioSheet({ i18n, scenario, stage, panel, tracks = true, v1 = {} }) {
+export function mountScenarioSheet({ i18n, scenario, stage, panel, tracks = true, v1 = {}, keys = null, bare = false }) {
+  const shown = (key) => !keys || keys.includes(key);
   const fmt = (key) => (v) => (key === 'maxSpeed' ? i18n.t('value.speed', { v: formatNumber(v, i18n.language) }) : i18n.t('value.percent', { v: formatNumber(v, i18n.language) }));
   const set = (key) => (v) => scenario.set(stage, key, v);
   const s0 = scenario.forStage(stage);
   const controls = {};
   const tagged = (key, element) => { element.dataset.key = key; return element; };
 
-  if (tracks) {
+  if (tracks && shown('track')) {
     controls.track = segments({
       labelKey: 'scenario.track', help: 'scenario.track', wide: true, value: s0.track, onChange: set('track'),
       options: TRACK_IDS.map((id) => ({ value: id, labelKey: `track.${id}`, dataset: v1.track ? { v1: `track.option.${id}` } : {} })),
     });
   }
-  controls.lanes = segments({ labelKey: 'scenario.lanes', help: 'scenario.lanes', value: s0.lanes, onChange: set('lanes'), options: LANE_OPTIONS.map((n) => ({ value: n, text: String(n) })) });
-  for (const key of ['maxSpeed', 'density', 'irregularity']) {
+  if (shown('lanes')) controls.lanes = segments({ labelKey: 'scenario.lanes', help: 'scenario.lanes', value: s0.lanes, onChange: set('lanes'), options: LANE_OPTIONS.map((n) => ({ value: n, text: String(n) })) });
+  for (const key of ['maxSpeed', 'density', 'irregularity'].filter(shown)) {
     const r = range(key);
     controls[key] = slider({ labelKey: `scenario.${key}`, help: `scenario.${key}`, min: r.min, max: r.max, step: r.step, value: s0[key], format: fmt(key), onInput: set(key) });
   }
@@ -37,6 +40,19 @@ export function mountScenarioSheet({ i18n, scenario, stage, panel, tracks = true
   }
   const tags = Object.fromEntries(Object.keys(controls).map((k) => [k, stageTag('tag.stage')]));
   for (const [k, t] of Object.entries(tags)) controls[k].element.querySelector('.v2-setting-name')?.append(' ', t);
+
+  function refresh() {
+    const s = scenario.forStage(stage);
+    for (const [key, c] of Object.entries(controls)) c.set(s[key]);
+    for (const [key, t] of Object.entries(tags)) t.hidden = !scenario.isFixed(stage, key);
+  }
+  if (bare) {
+    panel.append(...Object.values(controls).map((c) => c.element));
+    const unsubscribe = scenario.subscribe(refresh);
+    i18n.onChange(refresh);
+    refresh();
+    return { refresh, dispose: unsubscribe, controls };
+  }
 
   const notice = undoNotice({ i18n });
   const reset = button({
@@ -53,17 +69,12 @@ export function mountScenarioSheet({ i18n, scenario, stage, panel, tracks = true
   });
   const allShared = scenario.fixedKeys(stage).length === 0;
   panel.append(group({ titleKey: 'scenario.title', tagKey: allShared ? 'tag.shared' : null },
-    grid(2, ...(controls.track ? [controls.track.element] : []), controls.lanes.element, controls.maxSpeed.element, controls.density.element, controls.irregularity.element)),
+    grid(2, ...Object.values(controls).map((c) => c.element))),
   reset, notice.element);
   if (allShared) panel.querySelector('.v2-tag')?.classList.add('v2-tag-shared');
 
-  function refresh() {
-    const s = scenario.forStage(stage);
-    for (const [key, c] of Object.entries(controls)) c.set(s[key]);
-    for (const [key, t] of Object.entries(tags)) t.hidden = !scenario.isFixed(stage, key);
-  }
-  const off = scenario.subscribe(refresh);
+  const unsubscribe = scenario.subscribe(refresh);
   i18n.onChange(refresh);
   refresh();
-  return { refresh, dispose: off, controls };
+  return { refresh, dispose: unsubscribe, controls, notice };
 }

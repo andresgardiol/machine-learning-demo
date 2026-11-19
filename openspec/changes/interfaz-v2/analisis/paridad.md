@@ -553,3 +553,27 @@ Lo que necesita al dueño antes de la fase 3 [Propuesta]:
 | 524 | `vista-red` | Redes grandes | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
 | 525 | `vista-red` | Diagrama solo de lectura | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
 | 526 | `vista-red` | Diagrama que ocupa su zona | Entrenar | Aprender · por evolución · red del líder | igual | pintor reutilizado |
+
+## Avance en la V2
+
+Filas ya hechas en la V2, con dónde quedaron. [Medido] en el navegador una por una. Va como lista, no como tabla, para que `paridad.py --contar` siga contando solo las filas de la matriz.
+
+- **226 · Manejo inmediato** (grupo 10): la etapa abre con el auto listo y las flechas manejan sin otro paso; la escena toma el foco al mostrarse.
+- **227 · Guía de inicio** (grupo 10): la pregunta y la consigna en la placa; el párrafo de la V1 en "Más sobre esta etapa".
+- **228 · Indicadores del intento** (grupo 10): cifras de la banda: distancia, superados (vueltas en un circuito), intentos y mejor distancia.
+- **229 · Fin del intento por choque** (grupo 10): aviso de choque sobre la escena, con la causa, los metros y Reiniciar como acción principal.
+- **230 · Reiniciar el intento** (grupo 10): Reiniciar en la banda y en el aviso, y la tecla R; vacía la cinta y suma un intento, como la V1. No pierde trabajo, así que no lleva Deshacer.
+- **231 · Tráfico nuevo** (grupo 10): "Vista y tráfico" de la hoja Manejar; se oculta en un circuito.
+- **232 · Pausa** (grupo 10): Pausar/Reanudar en la banda, con espacio, y el rótulo "En pausa" en la escena.
+- **233 · Percepción visible** (grupo 10): barras de la banda con la lectura de dos decimales debajo (hasta 12 sensores) y la velocidad aparte.
+- **234 · Acción visible** (grupo 10): las cuatro lámparas de la banda, como estado y no como botón.
+- **235 · Ver como la máquina** (grupo 10): "Probá esto"; rótulo en la escena y descripción para lectores de pantalla.
+- **236 · Misiones** (grupo 10): la misión en curso en la nota de la hoja Manejar, con su progreso; Mostrame en la de "ver como la máquina".
+- **237 · Configuración avanzada** (grupo 10): hoja Escenario: pista, carriles y velocidad (densidad e irregularidad, en "Probá esto").
+- **238 · Restablecer la configuración** (grupo 10): "Restablecer escenario" con Deshacer.
+- **239 · Controles de la pestaña explicados** (grupo 10): todo control con tooltip (auditoría en 0) y textos de la V1 copiados.
+- **240 · Panel a la vista sin desplazarse** (grupo 10): ninguna hoja desplaza a 1366×768 en los dos idiomas.
+- **241 · Elegir la pista** (grupo 10): hoja Escenario.
+- **242 · Pestaña en un circuito** (grupo 10): consigna de circuito, vueltas en las cifras, sin misiones, tráfico ni carriles (se ocultan).
+- **243 · Cinta del manejo** (grupo 10): al pie de la hoja Manejar, con el alto que queda y la marca del choque.
+- **244 · Cartel de primer manejo** (grupo 10): sobre la escena, con la guía, hasta la primera tecla de manejo.

@@ -57,6 +57,8 @@ export function createV2Preferences(getStorage = defaultStorage) {
     get shortcuts() { return flag('shortcuts', true); },
     set shortcuts(v) { setFlag('shortcuts', v); },
     /** Si el cuaderno quedó plegado (spec *Cuaderno plegable*). */
+    get scenery() { return flag('scenery', true); },
+    set scenery(v) { setFlag('scenery', v); },
     get notebookFolded() { return flag('notebookFolded', false); },
     set notebookFolded(v) { setFlag('notebookFolded', v); },
     /** Última etapa abierta. */

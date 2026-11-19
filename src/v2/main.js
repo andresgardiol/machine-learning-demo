@@ -8,6 +8,7 @@ import { installTooltips } from './components/tooltip.js';
 import { createShell } from './shell/shell.js';
 import * as audit from './audit.js';
 import { createScenario, parseScenario } from './scenario.js';
+import { createStore } from '../ui/store.js';
 
 document.getElementById('fallback')?.remove();
 
@@ -40,11 +41,16 @@ const scenario = createScenario({ initial: parseScenario(prefs.scenario), save: 
 
 let shell = null;
 const tooltips = installTooltips({ doc: document, i18n, hintsOn: () => prefs.hints });
-const stageModules = {};
-shell = createShell({ root: document.getElementById('app'), i18n, prefs, stageModules, services: { library, tooltips, scenario } });
+// El paisaje de la escena (el botón de la vista de la V1), el mismo en todas las etapas y recordado.
+const scenery = createStore({ scenery: prefs.scenery });
+scenery.subscribe((state) => { prefs.scenery = state.scenery !== false; });
+const stageModules = {
+  problema: () => import('./stages/problema/index.js'),
+};
+shell = createShell({ root: document.getElementById('app'), i18n, prefs, stageModules, services: { library, tooltips, scenario, scenery } });
 
 window.mlLab = { v2: {
-  shell, i18n, prefs, library, tooltips, dictionaries, stageModules, scenario,
+  shell, i18n, prefs, library, tooltips, dictionaries, stageModules, scenario, scenery,
   auditTooltips: audit.auditTooltips, auditPrimary: audit.auditPrimary, auditTargets: audit.auditTargets,
   auditOverflow: audit.auditOverflow, auditSheets: audit.auditSheets, auditTexts: audit.auditTexts, auditAll: audit.auditAll,
 } };

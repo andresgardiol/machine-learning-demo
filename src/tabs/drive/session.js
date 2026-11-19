@@ -5,7 +5,7 @@
 // (`restart`). No conoce el teclado ni la vista. El seguimiento del intento y las lecturas de las
 // barras son piezas compartidas con la pestaña Reglas a mano (tabs/shared/, design.md D5).
 import { createAttempt, PASS_WINDOW, relativePosition } from '../shared/attempt.js';
-import { readings, READINGS_MAX } from '../shared/driving-cards.js';
+import { readings, READINGS_MAX } from '../shared/driving-logic.js';
 
 export { PASS_WINDOW, relativePosition, readings, READINGS_MAX };
 

@@ -182,3 +182,61 @@ kbd { font: 600 11px/1 var(--a-fuente-texto); padding: 3px 5px; border-radius: 4
 .v2-plate .v2-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .v2-plate .v2-instruction { font-size: 17px; font-weight: 600; }
 @media (max-width: 1400px), (max-height: 800px) { .v2-figures b { font-size: 20px; } .v2-contract { min-width: 130px; } }
+
+/* ---------- escena de la V1 dentro de la V2 (grupo 10) ---------- */
+.v2-scene .stage-canvas { position: absolute; inset: 0; display: block; cursor: grab; }
+.v2-scene .stage-canvas.dragging { cursor: grabbing; }
+.v2-scene:focus { outline: none; }
+.v2-scene:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.v2-scene .camera-controls { position: absolute; top: 14px; right: 14px; z-index: 3; display: flex; gap: 4px; padding: 4px; background: var(--instrumento-fondo); border: 1px solid var(--instrumento-borde); border-radius: 10px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.v2-scene .camera-button { min-width: 32px; height: 32px; padding: 0 10px; border-radius: 7px; background: transparent; border: 1px solid transparent; color: var(--color-text); font: 600 13px/1 var(--a-fuente-texto); cursor: pointer; }
+.v2-scene .camera-button:hover { border-color: var(--boton-secundario-borde); }
+.v2-scene .camera-button[aria-pressed="true"], .v2-scene .camera-button[data-active="true"] { border-color: var(--boton-secundario-borde); }
+.v2-scene .camera-button[data-help]::after { top: 2px; right: 2px; }
+.v2-scene .stage-corner { position: absolute; top: 60px; right: 14px; z-index: 3; display: grid; gap: 6px; justify-items: end; }
+.v2-badge { padding: 6px 10px; border-radius: 8px; background: var(--color-text); color: var(--color-bg); font: 700 13px/1.1 var(--a-fuente-texto); }
+.v2-badge-machine { background: var(--color-sensor); }
+.v2-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.v2-plate .v2-consigna { font-size: 15px; }
+.v2-plate .v2-keys { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.v2-keycaps { display: inline-flex; gap: 4px; }
+.v2-keycaps kbd { min-width: 30px; height: 30px; display: inline-grid; place-items: center; font-size: 15px; background: var(--color-text); color: var(--color-bg); box-shadow: 0 0 14px rgba(244, 210, 60, .35); border-radius: 6px; }
+.v2-howto { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 2; padding: 10px 16px; border-radius: 12px; background: var(--instrumento-fondo); border: 1px solid var(--instrumento-borde); font-weight: 600; pointer-events: none; }
+.v2-crash-layer { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: rgba(11, 20, 22, .35); }
+.v2-crash-layer[hidden] { display: none; }
+.v2-crash { width: min(420px, 80%); display: grid; gap: 10px; justify-items: start; padding: 18px 20px; border-radius: 14px; background: var(--color-surface); border: 2px solid var(--color-state-crash); }
+.v2-crash h2 { font: 700 26px/1 var(--a-fuente-num); color: var(--color-state-crash); }
+
+/* ---------- hoja "Manejar": la cinta ocupa lo que queda ---------- */
+.v2-sheet.v2-sheet-drive:not([hidden]) { display: flex; flex-direction: column; }
+.v2-sheet-drive > * { flex: none; }
+.v2-sheet-drive > .v2-tape { flex: 1 1 0; }
+.v2-more { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0; background: none; border: 0; color: var(--color-text-muted); font: 600 13px/1 var(--a-fuente-texto); cursor: pointer; }
+.v2-more::before { content: '▸'; }
+.v2-more[aria-expanded="true"]::before { content: '▾'; }
+.v2-more-body { display: grid; gap: 6px; padding-top: 6px; font-size: 13px; }
+.v2-more-body[hidden] { display: none; }
+.v2-tape { display: grid; grid-template-rows: auto auto minmax(60px, 1fr); gap: 6px; min-height: 0; padding-top: 8px; border-top: 1px dashed rgba(159, 182, 185, .25); }
+.v2-tape h3 { font: 600 16px/1.1 var(--d-fuente-cuaderno); }
+.v2-tape-box { position: relative; min-height: 0; }
+.v2-tape-canvas { position: absolute; inset: 0; display: block; }
+/* La banda entra en un renglón a 1366 px: cifras más juntas y sus nombres en hasta dos líneas. */
+.v2-band { gap: 14px; flex-wrap: nowrap; }
+.v2-figures { gap: 14px; }
+.v2-figures span { max-width: 86px; text-align: center; line-height: 1.1; }
+/* Lecturas de la percepción debajo de cada barra (El problema). */
+.v2-stage[data-stage="problema"] .v2-bars i { width: 28px; }
+.v2-readings { display: flex; gap: 4px; }
+.v2-readings span { width: 28px; text-align: center; font: 600 10px/1 var(--a-fuente-num); font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
+.v2-readings:empty { display: none; }
+/* La banda, compacta: cabe en un renglón y en unos 64 px con las lecturas debajo de las barras. */
+.v2-band { padding-top: 8px; padding-bottom: 8px; }
+.v2-band .v2-contract { gap: 3px; }
+.v2-band .v2-role { font-size: 11px; line-height: 1.1; }
+.v2-band .v2-bars { height: 26px; }
+.v2-band .v2-lamp { font-size: 11px; line-height: 1.2; padding: 1px 6px; }
+.v2-band .v2-lamps { gap: 3px; }
+.v2-band .v2-run { flex: none; flex-wrap: nowrap; }
+.v2-band .v2-figures { min-width: 0; }
+.v2-band .v2-figures span { max-width: 72px; }
+@media (max-width: 1400px), (max-height: 800px) { .v2-band { padding-top: 6px; padding-bottom: 6px; } }
