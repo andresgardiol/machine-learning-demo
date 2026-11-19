@@ -12,6 +12,7 @@ Quién hace qué (design.md D7): los grupos marcados **[Fable]** los hace una su
   - El contorno de choque se puede superponer con un interruptor.
 
   Verificación: la página abre sin errores en la consola y cada variante muestra todo lo pedido. **Detenerse y consultar**: el dueño elige una variante. Anotar la elección acá.
+  *Hecha la página (`muestras/index.html` y `muestras/variantes.js`), falta la elección. Tres variantes: A · Brillo (degradés suaves y brillo especular, la más cercana a la vista previa), B · Plano (dos tonos con bordes netos, sin degradés) y C · Juguete (más redonda, ruedas a la vista, contorno grueso). Cada una en cinco escenas: zoom por defecto (10 px/m), cercano (40 px/m), lejano (3 px/m, simplificada por debajo de 8 px físicos por metro), los colores (seis competidores, propio, chocado con su cruz y tráfico) y la población al 40 %. Interruptor del contorno de choque; también `?contorno=1` y `?solo=brillo|plano|juguete`. Medido en Chrome: sin errores en la consola; rasterizando cada capa a 50 px/m, ni la carrocería ni el detalle ni la versión simplificada tienen píxeles a más de 1 px del rectángulo de choque en ninguna variante ni tipo; la sombra sale hasta 0,11 m. Las tres usan las medidas de `trafico-vivo`. Capturas en `borradores/vehiculos-ilustrados/capturas-muestras/`. Supuesto, sin medir: que el umbral de 8 px/m sea el adecuado y que se lea bien en una pantalla sin retina.*
 
 ## 2. Dibujos definitivos [Fable]
 
