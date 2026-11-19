@@ -1,0 +1,290 @@
+// Copia para la V2 de src/ui/library-view.js (interfaz-v2, grupo 12): la V2 no importa la pantalla de la V1
+// (design.md D5). Cambian las importaciones (components/legacy.js), las clases de los botones y el nombre de
+// cada cerebro, marcado como dato para la auditoría de textos.
+// Vista de la biblioteca de cerebros (design.md D8): la lista con el resumen de cada cerebro, su
+// detalle desplegable y sus acciones (seguir entrenando, exportar, renombrar y eliminar), importar
+// desde un archivo y el aviso cuando el navegador no permite guardar.
+//
+// Qué se muestra de cada cerebro sale de funciones puras (brainSummary, brainDetail) que se prueban
+// en Node; todos los textos salen de los diccionarios. La vista no decide nada sobre el
+// entrenamiento: "seguir entrenando" llama a `onContinue`, que resuelve la pestaña.
+import { el } from '../dom.js';
+import { button, createTextSetter, inlineConfirm, downloadText, readText, v2Classes } from './legacy.js';
+import { exportFileName } from '../../ui/library.js';
+import { FITNESS_UNITS } from '../../core/evolution.js';
+import { scenarioTracks, learnedByImitation } from '../../core/brain.js';
+
+/** Mejor fitness con su unidad, listo para mostrar. */
+function bestText(fitness) {
+  if (!fitness || fitness.best === null || fitness.best === undefined) return { key: 'library.value.none' };
+  const unit = FITNESS_UNITS[fitness.kind] ?? 'meters';
+  const value = unit === 'meters' || unit === 'metersAhead' ? Math.floor(fitness.best) : Math.round(fitness.best * 10) / 10;
+  return { key: `train.value.${unit}`, params: { value } };
+}
+
+/**
+ * Resumen de un elemento de la biblioteca: nombre, origen, generaciones, sensores, forma de la red y
+ * mejor fitness con su unidad. Un autoguardado trae además `nameKey`, la clave del nombre con que se
+ * muestra en el idioma activo ("Entrenamiento en curso" o "Entrenamiento anterior", design.md D11);
+ * el nombre grabado en el cerebro y el del archivo exportado no cambian.
+ * @param {{origin:'saved'|'autosave', slot?:'current'|'previous', brain:object}} entry
+ */
+/**
+ * "Renombrar" de un cerebro guardado: abre el campo del nombre y le pasa el foco. Lleva data-focus="keep"
+ * para que, tras el clic con el mouse, la pestaña no devuelva el foco al escenario: si lo hiciera, el
+ * campo lo perdería, se cerraría con el mismo nombre y no se podría renombrar (ui/shortcuts.js,
+ * returnsFocusToStage).
+ */
+export function renameButton(onClick) {
+  const b = button('library.rename', 'library.rename', onClick, 'tool small');
+  b.setAttribute('data-focus', 'keep');
+  return b;
+}
+
+export function brainSummary(entry) {
+  const { brain } = entry;
+  const summary = {
+    id: brain.id,
+    name: brain.name,
+    origin: entry.origin === 'autosave' ? 'autosave' : 'saved',
+    generations: brain.training.generations,
+    sensors: brain.sensors.count,
+    shape: brain.network.sizes.join('-'),
+    best: bestText(brain.training.fitness),
+    editable: entry.origin === 'saved',
+  };
+  // Aprendió imitando en el Laboratorio: sus datos dicen eso y la pista, en lugar de las generaciones.
+  if (learnedByImitation(brain)) summary.imitation = { track: brain.imitation.track, epochs: brain.imitation.epochs };
+  if (entry.origin === 'autosave') summary.nameKey = entry.slot === 'previous' ? 'library.autosave.previous' : 'library.autosave.current';
+  return summary;
+}
+
+/** Detalle de un cerebro: función de fitness, evolución, velocidad máxima y escenarios con sus generaciones. */
+export function brainDetail(brain) {
+  const t = brain.training;
+  return {
+    fitness: t.fitness.kind,
+    evolution: { ...t.evolution },
+    maxSpeed: t.maxSpeed,
+    seed: t.seed,
+    activation: brain.network.activation,
+    sensors: { ...brain.sensors },
+    scenarios: t.scenarios.map((s) => ({
+      track: s.track, lanes: s.lanes, density: s.density, irregularity: s.irregularity, trafficMode: s.trafficMode, generations: s.generations,
+    })),
+  };
+}
+
+/**
+ * Texto de un escenario de los datos de un cerebro (circuitos-y-paisaje D5): la pista o las pistas en
+ * que se entrenó, nombradas en el idioma activo, y sus generaciones. Con la calle recta entre las
+ * pistas, también el tráfico; con solo circuitos, no (no hay tráfico).
+ * @returns {{key:string, params:object}}
+ */
+export function scenarioText(s, t) {
+  const ids = scenarioTracks(s.track ?? 'straight');
+  const names = ids.map((id) => t(`track.${id}`));
+  const track = names.length === 1
+    ? names[0]
+    : t('library.value.tracks.alternating', { list: names.slice(0, -1).join(', '), last: names[names.length - 1] });
+  if (!ids.includes('straight')) return { key: 'library.value.scenario.circuits', params: { track, value: s.generations } };
+  return {
+    key: `library.value.scenario.track.${s.trafficMode}`,
+    params: { track, lanes: s.lanes, density: s.density, irregularity: s.irregularity, value: s.generations },
+  };
+}
+
+/**
+ * @param {object} spec
+ * @param {HTMLElement} spec.container
+ * @param {object} spec.library biblioteca (ui/library.js)
+ * @param {object} spec.i18n
+ * @param {(entry:object, confirm:object) => void} spec.onContinue seguir entrenando un cerebro
+ * @param {() => string} [spec.baseName] base del nombre sugerido ("Cerebro")
+ */
+export function createLibraryView({ container, library, i18n, onContinue, doc = document }) {
+  const setText = createTextSetter(i18n);
+  const notice = el('p', { class: 'library-notice', attrs: { role: 'status' } });
+  const message = el('p', { class: 'library-message', attrs: { role: 'alert' } });
+  const fileInput = el('input', { class: 'library-file', help: 'library.import', attrs: { type: 'file', accept: '.json,application/json', tabindex: '-1', 'aria-hidden': 'true' } });
+  const importButton = button('library.import', 'library.import', () => fileInput.click(), 'tool tertiary'); // terciaria (sistema-de-diseno-base D5)
+  const empty = el('p', { class: 'library-empty muted', i18n: 'library.empty' });
+  const list = el('ul', { class: 'library-list' });
+  container.append(el('div', { class: 'library-tools' }, importButton, fileInput), notice, message, empty, list);
+
+  let renaming = null; // id del cerebro que se está renombrando
+  const confirms = [];
+  const openDetails = new Set(); // cerebros con el detalle desplegado: siguen así al redibujar
+  let dirty = false; // hubo cambios mientras una confirmación esperaba respuesta
+
+  function showMessage(key, params) {
+    message.hidden = !key;
+    if (key) setText(message, key, params); else message.textContent = '';
+    // Estado "error" del sistema de diseño (sistema-de-diseno-base D6) para los avisos de error.
+    if (key && key.startsWith('library.error.')) message.dataset.state = 'error'; else delete message.dataset.state;
+  }
+
+  /** Mensaje en lenguaje llano para un código de error de importación. */
+  const importError = (code) => ({
+    notABrain: 'library.error.notABrain',
+    unsupportedVersion: 'library.error.unsupportedVersion',
+    shapeMismatch: 'library.error.damaged',
+    notFinite: 'library.error.notFinite',
+    sensorMismatch: 'library.error.sensorMismatch',
+  }[code] ?? 'library.error.damaged');
+
+  async function onFile() {
+    const file = fileInput.files?.[0];
+    fileInput.value = '';
+    if (!file) return;
+    let text;
+    try { text = await readText(file); } catch { showMessage('library.error.unreadable'); return; }
+    const r = library.importText(text, { baseName: i18n.t('library.defaultName') });
+    if (!r.ok) showMessage(importError(r.code));
+    else if (r.warning) showMessage(`library.status.${r.warning}`);
+    else showMessage('library.imported', { name: r.brain.name });
+  }
+  fileInput.addEventListener('change', onFile);
+
+  function detailList(brain) {
+    const d = brainDetail(brain);
+    const item = (labelKey, valueKey, params) => el('div', { class: 'library-detail-row' },
+      el('dt', { i18n: labelKey }), el('dd', { i18n: valueKey, params }));
+    const e = d.evolution;
+    return el('dl', { class: 'library-detail' },
+      item('library.detail.fitness', `train.fitness.${d.fitness}`),
+      // Quién eligió a los padres; un cerebro que no lo registra se entrenó con selección automática.
+      item('library.detail.selectionMode', e.selectionMode === 'manual' ? 'train.selectionMode.manual' : 'train.selectionMode.auto'),
+      item('library.detail.population', 'train.value.cars', { value: e.population }),
+      item('library.detail.elite', 'train.value.count', { value: e.elite }),
+      item('library.detail.selection', 'drive.value.percent', { value: e.selection }),
+      item('library.detail.mutation', 'library.value.mutation', { strength: e.mutationStrength, rate: e.mutationRate }),
+      item('library.detail.crossover', e.crossover ? 'library.value.yes' : 'library.value.no'),
+      item('library.detail.maxDuration', 'train.value.seconds', { value: e.maxDuration }),
+      ...(e.slowRule === undefined ? [] : [item('library.detail.slowRule', e.slowRule ? 'library.value.yes' : 'library.value.no')]),
+      item('library.detail.maxSpeed', 'drive.value.speed', { value: d.maxSpeed, kmh: Math.round(d.maxSpeed * 3.6) }),
+      item('library.detail.activation', `train.activation.${d.activation}`),
+      item('library.detail.sensors', 'library.value.sensors', { count: d.sensors.count, range: d.sensors.range, spread: d.sensors.spread }),
+      el('div', { class: 'library-detail-row library-scenarios' },
+        el('dt', { i18n: 'library.detail.scenarios' }),
+        el('dd', {}, el('ul', {}, d.scenarios.map((s) => {
+          const { key, params } = scenarioText(s, i18n.t);
+          return el('li', { i18n: key, params });
+        })))));
+  }
+
+  function renderItem(entry) {
+    const s = brainSummary(entry);
+    const confirm = inlineConfirm({ i18n });
+    confirms.push(confirm);
+    // Los autoguardados se nombran en el idioma activo; los guardados, con el nombre que les dio la persona.
+    const nameNode = renaming === s.id
+      ? renameInput(s)
+      : s.nameKey
+        ? el('span', { class: 'library-name', i18n: s.nameKey })
+        : el('span', { class: 'library-name', text: s.name, attrs: { 'data-free-text': '' } }); // el nombre lo eligió la persona: es un dato
+    const origin = el('span', { class: `library-origin origin-${entry.origin}`, i18n: `library.origin.${s.origin}` });
+    const meta = el('p', { class: 'library-meta' },
+      s.imitation
+        ? el('span', { i18n: 'library.value.imitated', params: { track: i18n.t(`track.short.${s.imitation.track}`) } })
+        : el('span', { i18n: 'library.value.generations', params: { value: s.generations } }), ' · ',
+      el('span', { i18n: 'drive.value.rays', params: { value: s.sensors } }), ' · ',
+      el('span', { text: s.shape }), ' · ',
+      el('span', { i18n: s.best.key, params: s.best.params }));
+
+    const continueButton = button('library.continue', 'library.continue', () => onContinue(entry, confirm), 'tool small');
+    const exportButton = button('library.export', 'library.export', () => {
+      downloadText({ fileName: exportFileName(s.name), text: library.exportText(s.id), doc });
+    }, 'tool small tertiary'); // terciaria y compacta: va en una fila de la biblioteca, que es una barra densa
+    const actions = [continueButton, exportButton];
+    // Todo cerebro se puede eliminar, también los autoguardados (panel-de-entrenar-por-vistas D14); los
+    // autoguardados no se renombran: se conservan guardándolos con nombre.
+    if (s.editable) actions.push(renameButton(() => { renaming = s.id; render(); }));
+    else actions.push(el('button', { class: 'v2-btn v2-small', i18n: 'library.rename', help: 'library.autosaveLocked', attrs: { type: 'button', disabled: true } }));
+    // El del entrenamiento en curso vuelve a guardarse solo: la confirmación lo avisa.
+    const deleteMessage = entry.origin === 'autosave' && entry.slot === 'current' ? 'library.confirm.delete.current' : 'library.confirm.delete';
+    actions.push(button('library.delete', 'library.delete', () => confirm.open({
+      message: deleteMessage, params: { name: s.nameKey ? i18n.t(s.nameKey) : s.name }, confirmKey: 'library.delete',
+      onConfirm: () => { library.remove(s.id); showMessage(null); },
+      onCancel: () => { if (dirty) render(); },
+    }), 'tool small'));
+
+    const details = el('details', { class: 'library-more', attrs: { open: openDetails.has(s.id) } },
+      el('summary', { i18n: 'library.more', help: 'library.more' }), detailList(entry.brain));
+    details.addEventListener('toggle', () => { if (details.open) openDetails.add(s.id); else openDetails.delete(s.id); });
+
+    return el('li', { class: 'library-item', dataset: { id: s.id, origin: entry.origin } },
+      el('div', { class: 'library-head' }, nameNode, origin),
+      meta, el('div', { class: 'library-actions' }, actions), confirm.node, details);
+  }
+
+  function renameInput(s) {
+    const input = el('input', {
+      class: 'library-rename', help: 'library.rename',
+      attrs: { type: 'text', value: s.name, maxlength: 60 },
+      i18nAttr: 'aria-label:library.rename.label',
+      on: {
+        keydown: (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); finishRename(s.id, input.value); }
+          else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); renaming = null; render(); }
+        },
+        blur: () => { if (renaming === s.id) finishRename(s.id, input.value); },
+      },
+    });
+    queueMicrotask(() => { input.focus(); input.select(); });
+    return input;
+  }
+
+  function finishRename(id, value) {
+    renaming = null;
+    const r = library.rename(id, value);
+    if (!r.ok && r.code === 'emptyName') showMessage('library.error.emptyName');
+    render();
+  }
+
+  /** Redibuja la lista, salvo mientras se renombra o una confirmación espera respuesta. */
+  function refresh() {
+    if (renaming !== null || confirms.some((c) => c.isOpen)) { dirty = true; return; }
+    render();
+  }
+
+  function render() {
+    dirty = false;
+    for (const c of confirms.splice(0)) c.dispose();
+    const entries = library.list();
+    empty.hidden = entries.length > 0;
+    list.replaceChildren(...entries.map(renderItem));
+    const problem = library.status.problem;
+    notice.hidden = !problem;
+    if (problem) setText(notice, `library.status.${problem}`);
+    i18n.translateTree(container);
+  }
+
+  showMessage(null);
+  const off = library.subscribe(refresh);
+  const offLanguage = i18n.onChange(() => render());
+  render();
+
+  return {
+    render,
+    refresh,
+    showMessage,
+    /** Pone un cerebro guardado en modo renombrar, con el foco en su nombre. */
+    startRename(id) {
+      if (!library.get(id) || library.get(id).origin !== 'saved') return;
+      for (const c of confirms) if (c.isOpen) c.cancel();
+      renaming = id;
+      render();
+      container.querySelector('.library-rename')?.scrollIntoView({ block: 'nearest' });
+    },
+    /** Cancela las confirmaciones abiertas (al dejar la vista donde está la biblioteca). */
+    cancelConfirms() { for (const c of confirms) if (c.isOpen) c.cancel(); },
+    dispose() {
+      off();
+      offLanguage();
+      fileInput.removeEventListener('change', onFile);
+      for (const c of confirms.splice(0)) c.dispose();
+      container.replaceChildren();
+    },
+  };
+}

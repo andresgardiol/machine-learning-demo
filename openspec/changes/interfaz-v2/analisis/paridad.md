@@ -630,3 +630,100 @@ Filas ya hechas en la V2, con dónde quedaron. [Medido] en el navegador una por 
 - **432 · Cantidad de reglas** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
 - **433 · Líneas que se cumplen** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
 - **434 · Lenguaje sin navegador** (grupo 11): núcleo de reglas reutilizado sin cambios (`src/core/rules.js`); se ve en la etapa Reglas a mano.
+- **33 · Contenido de un cerebro** (grupo 12): biblioteca compartida con la V1 (`src/ui/library.js`) y su vista copiada en la hoja Cerebros.
+- **34 · Entradas y salidas de un cerebro** (grupo 12): biblioteca compartida con la V1 (`src/ui/library.js`) y su vista copiada en la hoja Cerebros.
+- **35 · Datos de entrenamiento** (grupo 12): biblioteca compartida con la V1 (`src/ui/library.js`) y su vista copiada en la hoja Cerebros.
+- **36 · Compatibilidad con el auto** (grupo 12): biblioteca compartida con la V1 (`src/ui/library.js`) y su vista copiada en la hoja Cerebros.
+- **37 · Validación de un cerebro** (grupo 12): biblioteca compartida con la V1 (`src/ui/library.js`) y su vista copiada en la hoja Cerebros.
+- **38 · Nombre propio** (grupo 12): biblioteca compartida con la V1 (`src/ui/library.js`) y su vista copiada en la hoja Cerebros.
+- **39 · Biblioteca recordada** (grupo 12): biblioteca compartida con la V1 (`src/ui/library.js`) y su vista copiada en la hoja Cerebros.
+- **40 · Lista de cerebros** (grupo 12): lista en la hoja Cerebros, desplazable por dentro.
+- **41 · Renombrar** (grupo 12): Renombrar de la biblioteca; no medido en el navegador.
+- **42 · Eliminar con confirmación** (grupo 12): Eliminar con confirmación en línea; no medido en el navegador.
+- **43 · Actualizar un cerebro guardado** (grupo 12): Actualizar «nombre» al seguir un cerebro guardado; medido.
+- **44 · Exportar** (grupo 12): no medido en el navegador (bajaría un archivo).
+- **45 · Importar** (grupo 12): medido con un archivo que no es un cerebro: aviso y la biblioteca no cambia.
+- **46 · Autoguardado** (grupo 12): el autoguardado aparece en la lista al terminar una generación.
+- **47 · Controles de la biblioteca explicados** (grupo 12): biblioteca compartida con la V1 (`src/ui/library.js`) y su vista copiada en la hoja Cerebros.
+- **48 · Pistas en los datos de entrenamiento** (grupo 12): biblioteca compartida con la V1 (`src/ui/library.js`) y su vista copiada en la hoja Cerebros.
+- **49 · Cerebro que aprendió imitando** (grupo 12): biblioteca compartida con la V1 (`src/ui/library.js`) y su vista copiada en la hoja Cerebros.
+- **152 · Población evaluada en el mismo escenario** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **153 · Tamaño de la población** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **154 · Fin de la generación** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **155 · Eliminar a los lentos** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **156 · Pasar de generación a pedido** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **157 · Funciones de fitness** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **158 · Selección de los padres** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **159 · Élite** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **160 · Mutación** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **161 · Cruce opcional** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **162 · Tráfico por generación** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **163 · Entrenamiento reproducible** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **164 · El mejor nunca empeora con élite y mismo tráfico** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **165 · Historial de generaciones** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **166 · Campeón** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **167 · Líder** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **168 · Cambios de configuración durante el entrenamiento** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **169 · Continuar desde un cerebro** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **170 · Modo de selección** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **171 · Elegir al líder como padre** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **172 · Generación siguiente desde el padre elegido** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **173 · Sin padre elegido** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **174 · Deshacer la elección** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **175 · Padre al cambiar de modo** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **176 · Padre al continuar desde un cerebro** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **177 · Cerebro del entrenamiento** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **178 · Vehículos superados** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **179 · Escenario por defecto del entrenamiento** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **180 · Enfriamiento de la mutación** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **181 · Aprendizaje con los valores por defecto** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **182 · Pistas del entrenamiento** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **183 · Ventaja en un circuito** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **184 · Vueltas de un individuo** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **185 · Aprendizaje en el óvalo** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **186 · Reiniciar la generación en curso** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **187 · Muestra de la mutación** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **188 · Cambios que rigen en cada generación** (grupo 12): núcleo de entrenamiento reutilizado sin cambios (`src/core/training.js`); prueba de igualdad 9.2.
+- **245 · Entrenamiento en marcha al abrir** (grupo 12): el entrenamiento arranca al abrir la etapa.
+- **246 · Guía de inicio** (grupo 12): pregunta y consigna en la placa; el párrafo de la V1 en "Más sobre esta etapa".
+- **247 · Indicadores del entrenamiento** (grupo 12): cifras de la banda: generación, en carrera, líder (con la unidad del fitness) y superados o vueltas.
+- **248 · Pausa** (grupo 12): Pausar en la placa (acción principal) y espacio.
+- **249 · Velocidad del entrenamiento** (grupo 12): velocidades 1× a Máx. en la banda, con T.
+- **250 · Pasar a la siguiente generación** (grupo 12): Siguiente en la placa y N.
+- **251 · Reiniciar el entrenamiento** (grupo 12): Reiniciar en "Vista y marcha"; empieza ya y ofrece Deshacer si había generaciones (12.3).
+- **252 · Población nueva** (grupo 12): Población nueva, con Deshacer como Reiniciar.
+- **253 · Curva de fitness** (grupo 12): curva con sus marcas de ajuste en la franja debajo de la escena (KD6).
+- **254 · Red del líder** (grupo 12): red del líder en la franja debajo de la escena (KD6).
+- **255 · Sensores del líder** (grupo 12): los rayos del líder en la escena y en su red.
+- **256 · Configuración básica** (grupo 12): "Probá esto" de la hoja Entrenamiento: fitness, población y fuerza.
+- **257 · Configuración avanzada** (grupo 12): hojas Evolución y Red y pista.
+- **258 · Red y sensores** (grupo 12): hoja Red y pista, con la confirmación de entrenamiento nuevo flotando al pie.
+- **259 · Restablecer la configuración** (grupo 12): "Restablecer ajustes" en la hoja Evolución, con su confirmación.
+- **260 · Guardar el campeón** (grupo 12): hoja Cerebros: Guardar campeón o Actualizar, y Guardar como nuevo.
+- **261 · Biblioteca de cerebros en la pestaña** (grupo 12): hoja Cerebros.
+- **262 · Seguir entrenando un cerebro** (grupo 12): "Seguir entrenando" de la biblioteca; no medido con un cerebro guardado.
+- **263 · El entrenamiento se conserva al cambiar de pestaña** (grupo 12): el estado vive en la etapa mientras la página está abierta.
+- **264 · Misiones** (grupo 12): nota de misión y "Todas las misiones"; Mostrame para guardar y para el fitness.
+- **265 · Controles de la pestaña explicados** (grupo 12): tooltips en todo (auditoría en 0).
+- **266 · Controles de marcha agrupados** (grupo 12): Pausar y Siguiente en la placa; velocidad en la banda; Reiniciar y Población nueva en la hoja.
+- **267 · Panel a la vista sin desplazarse** (grupo 12): ninguna hoja desplaza a 1366×768 en los dos idiomas.
+- **268 · Avanzado por grupos** (grupo 12): grupos Quién pasa, Cómo cambian y Cada generación.
+- **269 · Quién elige al padre** (grupo 12): en "Quién pasa", con el aviso de que rige desde la próxima generación.
+- **270 · Elegir al líder** (grupo 12): Elegir al líder (E) en la banda.
+- **271 · Deshacer la elección** (grupo 12): Deshacer (Z) en la banda, oculto sin elección.
+- **272 · Estado del padre elegido** (grupo 12): renglón del padre en la banda.
+- **273 · Ajustes que no aplican con selección manual** (grupo 12): élite, selección, cruce y enfriar se ocultan con selección manual (antes, deshabilitados).
+- **274 · Selección manual explicada** (grupo 12): consigna y guía propias de la selección manual.
+- **275 · Funciones de fitness a elegir** (grupo 12): las cuatro funciones en "Probá esto", con la definición de fitness.
+- **276 · Valores de ventaja con su unidad** (grupo 12): cifras con la unidad del fitness elegido.
+- **277 · Pistas del entrenamiento** (grupo 12): la pista del escenario compartido es la pista del entrenamiento (hoja Red y pista).
+- **278 · Generación en un circuito** (grupo 12): en el óvalo, vueltas del líder y sin modo de tráfico.
+- **279 · Ver como la máquina** (grupo 12): interruptor en "Vista y marcha".
+- **280 · Vistas del panel** (grupo 12): las tres vistas del panel pasan a cuatro hojas del cuaderno, recordadas.
+- **281 · Cambios pendientes a la vista** (grupo 12): avisos de cambios pendientes en Probá esto y en Evolución.
+- **282 · Textos de la pestaña coherentes** (grupo 12): textos de la V1 copiados tal cual.
+- **283 · Corte de generación** (grupo 12): medido en las capturas de Chrome sin ventana (en el panel oculto de esta sesión no aparece, como en la V1 con la página oculta).
+- **284 · Tarjeta de generación** (grupo 12): tarjeta del corte con la élite contada, en las capturas.
+- **285 · La mutación en la red** (grupo 12): la muestra del hijo en la red durante el corte, en las capturas.
+- **286 · Cambios marcados en la curva** (grupo 12): curva copiada de la V1 con sus marcas.
+- **287 · Vista previa de la mutación** (grupo 12): vista previa al mover la fuerza de mutación.

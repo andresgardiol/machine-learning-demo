@@ -18,9 +18,11 @@ export function button({ level = 'secondary', labelKey, help, key = null, keyKey
 
 /** Deslizador con su valor a la vista. `format(v)` devuelve el texto del valor (números según el idioma). */
 export function slider({ labelKey, help, min, max, step = 1, value, format = String, onInput, dataset = {} }) {
-  const out = el('output', { class: 'v2-value' });
+  // El valor a la vista es un dato (sale de un formato del diccionario con el número), no un texto fijo.
+  const out = el('output', { class: 'v2-value', attrs: { 'data-free-text': '' } });
   const input = el('input', { attrs: { type: 'range', min, max, step, value }, dataset });
-  const label = el('label', { class: 'v2-setting', help }, el('span', { class: 'v2-setting-name', i18n: labelKey }), input, out);
+  // El nombre va en un span interno: así un rótulo que se agrega al lado ("de esta etapa") no se pierde al traducir.
+  const label = el('label', { class: 'v2-setting', help }, el('span', { class: 'v2-setting-name' }, el('span', { i18n: labelKey })), input, out);
   const set = (v, notify = false) => {
     const c = clampStep(v, { min, max, step });
     if (Number(input.value) !== c) input.value = String(c);
@@ -42,7 +44,7 @@ export function segments({ labelKey, help, options, value, onChange, wide = fals
     on: { click: () => { set(o.value); onChange?.(o.value); } },
   }));
   group.append(...buttons);
-  const wrap = el('div', { class: `v2-setting${wide ? ' v2-wide' : ''}`, help }, labelKey ? el('span', { class: 'v2-setting-name', i18n: labelKey }) : null, group);
+  const wrap = el('div', { class: `v2-setting${wide ? ' v2-wide' : ''}`, help }, labelKey ? el('span', { class: 'v2-setting-name' }, el('span', { i18n: labelKey })) : null, group);
   function set(v) { for (const b of buttons) setAttr(b, 'aria-pressed', String(b.dataset.value === String(v))); }
   set(value);
   return { element: wrap, set, buttons };

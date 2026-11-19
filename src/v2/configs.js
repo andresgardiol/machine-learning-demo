@@ -12,10 +12,10 @@ export const reglasWorld = (scenario, sensors, seed) => streetWorldSpec({ ...sce
 
 /**
  * Aprender por evolución: los ajustes de fábrica de Entrenar con el escenario de la etapa. La pista del
- * escenario no se usa: la etapa tiene sus propias pistas de entrenamiento (spec *Pistas del entrenamiento*).
+ * escenario es la única pista del entrenamiento, como la barra de escenario de la V1 (una pista elegida).
  */
 export function evolucionSettings(scenario, settings = TRAIN_DEFAULTS) {
-  return { ...settings, lanes: scenario.lanes, density: scenario.density, irregularity: scenario.irregularity, maxSpeed: scenario.maxSpeed };
+  return { ...settings, tracks: [scenario.track], lanes: scenario.lanes, density: scenario.density, irregularity: scenario.irregularity, maxSpeed: scenario.maxSpeed };
 }
 export const evolucionConfig = (scenario, settings = TRAIN_DEFAULTS) => trainingConfig(evolucionSettings(scenario, settings));
 
