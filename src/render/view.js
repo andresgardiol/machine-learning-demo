@@ -11,6 +11,7 @@
 // declaran con data-i18n / data-help y los completa el sistema de idiomas de la interfaz.
 import { carContour } from '../core/car.js';
 import { CAR_LENGTH, CAR_WIDTH } from '../core/constants.js';
+import { MAX_VEHICLE_LENGTH } from '../core/traffic.js';
 import {
   createCamera, orientationFor, panStarts, retarget, advanceBlend, blendTarget, NO_BLEND, fitTrack,
 } from './camera.js';
@@ -419,33 +420,57 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
    * Silueta de un vehículo con detalles (parabrisas, luneta, ópticas y luces traseras), dibujada
    * dentro de su rectángulo de choque: lo que se ve nunca es más grande que lo que choca.
    * Ejes locales: x hacia adelante, y hacia la izquierda; el rectángulo va de -L/2 a L/2 y de -W/2 a W/2.
+   * Dibujo provisorio por tipo (trafico-vivo D12): la silueta del auto escalada a la medida de cada
+   * vehículo; la moto sin luneta y con un solo faro, el camión con la cabina marcada.
    */
-  function drawVehicle(position, angle, body, px) {
-    const L = CAR_LENGTH;
-    const W = CAR_WIDTH;
+  function drawVehicle(position, angle, body, px, L = CAR_LENGTH, W = CAR_WIDTH, type = 'car') {
     ctx.save();
     ctx.translate(position.x, position.y);
     ctx.rotate(angle);
+    const kx = L / CAR_LENGTH;
+    const ky = W / CAR_WIDTH;
     // Carrocería con esquinas redondeadas
     ctx.beginPath();
-    roundedRect(-L / 2, -W / 2, L, W, 0.35);
+    roundedRect(-L / 2, -W / 2, L, W, Math.min(0.35, W * 0.3));
     ctx.fillStyle = body;
     ctx.fill();
     ctx.strokeStyle = colors.outline;
     ctx.lineWidth = 1.5 * px;
     ctx.stroke();
-    // Parabrisas (adelante, más ancho) y luneta (atrás, más angosta): marcan el frente
     ctx.fillStyle = colors.glass;
-    trapezoid(0.35, 1.05, W / 2 - 0.22, W / 2 - 0.12);
-    trapezoid(-1.55, -1.1, W / 2 - 0.2, W / 2 - 0.26);
-    // Ópticas delanteras y luces traseras
+    if (type === 'motorcycle') {
+      // Moto: un parabrisas chico adelante, sin luneta; un faro y una luz trasera centrados.
+      trapezoid(0.25 * kx, 0.75 * kx, W / 2 - 0.12, W / 2 - 0.2);
+      ctx.fillStyle = colors.headlight;
+      ctx.fillRect(L / 2 - 0.18, -0.12, 0.14, 0.24);
+      ctx.fillStyle = colors.taillight;
+      ctx.fillRect(-L / 2 + 0.04, -0.1, 0.12, 0.2);
+    } else if (type === 'truck') {
+      // Camión: cabina adelante (2,4 m) separada de la caja por una línea, con su parabrisas.
+      const cab = L / 2 - 2.4;
+      ctx.beginPath();
+      ctx.moveTo(cab, -W / 2);
+      ctx.lineTo(cab, W / 2);
+      ctx.stroke();
+      trapezoid(cab + 0.9, cab + 1.75, W / 2 - 0.25, W / 2 - 0.14);
+      lights(L, W);
+    } else {
+      // Auto y camioneta: parabrisas (adelante, más ancho) y luneta (atrás, más angosta) marcan el frente.
+      trapezoid(0.35 * kx, 1.05 * kx, (W / 2 - 0.22 * ky), (W / 2 - 0.12 * ky));
+      trapezoid(-1.55 * kx, -1.1 * kx, (W / 2 - 0.2 * ky), (W / 2 - 0.26 * ky));
+      lights(L, W);
+    }
+    ctx.restore();
+  }
+
+  /** Ópticas delanteras y luces traseras en las esquinas de un vehículo de L × W (ejes locales). */
+  function lights(L, W) {
     ctx.fillStyle = colors.headlight;
     ctx.fillRect(L / 2 - 0.2, W / 2 - 0.5, 0.16, 0.36);
     ctx.fillRect(L / 2 - 0.2, -W / 2 + 0.14, 0.16, 0.36);
     ctx.fillStyle = colors.taillight;
     ctx.fillRect(-L / 2 + 0.04, W / 2 - 0.46, 0.14, 0.32);
     ctx.fillRect(-L / 2 + 0.04, -W / 2 + 0.14, 0.14, 0.32);
-    ctx.restore();
   }
 
   /** Trapecio centrado en y = 0 entre x0 y x1, con medio ancho h0 en x0 y h1 en x1. */
@@ -462,7 +487,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
   }
 
   function drawTraffic(vehicles, px) {
-    for (const v of vehicles) drawVehicle(v.position, v.angle, colors.traffic, px);
+    for (const v of vehicles) drawVehicle(v.position, v.angle, colors.traffic, px, v.length ?? CAR_LENGTH, v.width ?? CAR_WIDTH, v.type);
   }
 
   function drawCar(car, px) {
@@ -887,9 +912,11 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
         const to = Math.min(world.track.end, at + radius);
         drawTrack(world.track, from, to, px, finish);
         if (withScenery) scenery.over(ctx, world, b, colors);
-        const inView = (v) => v.position.x >= b.minX - CAR_LENGTH && v.position.x <= b.maxX + CAR_LENGTH
-          && v.position.y >= b.minY - CAR_LENGTH && v.position.y <= b.maxY + CAR_LENGTH;
-        drawTraffic(world.vehiclesIn(from - CAR_LENGTH, to + CAR_LENGTH).filter(inView), px);
+        // Margen de medio vehículo del más largo: un camión con el centro afuera puede asomar (trafico-vivo D9).
+        const m = MAX_VEHICLE_LENGTH / 2 + 1;
+        const inView = (v) => v.position.x >= b.minX - m && v.position.x <= b.maxX + m
+          && v.position.y >= b.minY - m && v.position.y <= b.maxY + m;
+        drawTraffic(world.vehiclesIn(from - m, to + m).filter(inView), px);
       }
     }
     if (population && competitors) {
