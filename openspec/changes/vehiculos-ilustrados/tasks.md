@@ -4,7 +4,8 @@ Quién hace qué (design.md D7): los grupos marcados **[Fable]** los hace una su
 
 ## 1. Muestras de estilo [Fable]
 
-- [ ] 1.1 Capturas del antes, en Chrome a 1440×900: El problema, Reglas a mano, Entrenar con 100 autos y Competir con seis competidores, en la V1 y en la V2. Guardarlas en `borradores/vehiculos-ilustrados/antes/`. Verificación: ocho capturas con su nombre.
+- [x] 1.1 Capturas del antes, en Chrome a 1440×900: El problema, Reglas a mano, Entrenar con 100 autos y Competir con seis competidores, en la V1 y en la V2. Guardarlas en `borradores/vehiculos-ilustrados/antes/`. Verificación: ocho capturas con su nombre.
+  *Hecho: `node borradores/vehiculos-ilustrados/capturar.mjs antes` sobre el commit 8439114 (sin cambios de código todavía), Chrome sin ventana con tiempo virtual, 1440×900, dpr 1. Medido: ocho capturas (`v1-` y `v2-` de `problema`, `reglas`, `entrenar-100` y `competir-6`); Entrenar con «100 autos» y Competir con 6 competidores, según la propia página. En Competir la foto cae a los 6 s de largar, con los seis autos todavía juntos. En la V2 el botón Agregar de Competir está en una sección plegada y el script lo aprieta sin abrirla.*
 - [ ] 1.2 Página de muestra `borradores/vehiculos-ilustrados/muestras/index.html`, que use canvas y los tokens reales. Muestra dos o tres variantes de estilo, inspiradas en `assets/og-image.png`, de los cinco vehículos: el auto del conductor y moto, auto, camioneta y camión del tráfico.
   - Cada variante sobre la pista oscura, con sus medidas reales (D3 de `trafico-vivo`), en el zoom por defecto, en uno cercano y en uno lejano (la versión simplificada).
   - En los colores del auto, el tráfico, el choque (con su cruz) y los seis competidores, y con la población atenuada.
