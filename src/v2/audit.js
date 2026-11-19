@@ -47,7 +47,7 @@ export function auditOverflow(root = document) {
     if (visible(e) && overflows({ scrollHeight: e.scrollHeight, clientHeight: e.clientHeight })) problems.push({ reason: 'zona que desborda', element: e, detail: e.className });
   }
   for (const e of root.querySelectorAll('body *')) {
-    if (!visible(e) || !e.childNodes.length || e.closest('.v2-sr-only')) continue; // el texto solo para lectores de pantalla se recorta a propósito
+    if (!visible(e) || !e.childNodes.length || e.closest('.v2-sr-only, .sr-only')) continue; // el texto solo para lectores de pantalla se recorta a propósito (los pintores de la V1 usan .sr-only)
     const s = getComputedStyle(e);
     if (s.overflowX === 'visible' && s.textOverflow !== 'ellipsis') continue;
     if (![...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) continue;

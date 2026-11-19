@@ -41,3 +41,9 @@ export function tr(node, i18n, key, params = null) {
   const text = i18n.t(key, params ?? undefined);
   if (node.textContent !== text) node.textContent = text;
 }
+
+/** Escribe un dato (data-*) solo si cambió (como ui/dom.js de la V1; lo usan las vistas copiadas de la V1). */
+export function setData(node, key, value) {
+  const v = String(value);
+  if (node.dataset[key] !== v) node.dataset[key] = v;
+}
