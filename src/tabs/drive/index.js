@@ -167,8 +167,8 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   });
   perceptionCard.append(perception.node);
 
-  // Acción: los cuatro controles accionados; izquierda y derecha, con el nivel del volante suave (manejo-amable D1).
-  const action = actionBlock({ role: true, steer: true, i18n });
+  // Acción: los cuatro controles accionados
+  const action = actionBlock({ role: true });
   const actionCard = boardCard({
     id: 'drive-action', titleKey: 'drive.action.title', help: 'drive.action', hintKey: 'drive.action.hint',
     open: cards.action, grow: 0, onToggle: (open) => { cards.action = open; },
@@ -357,7 +357,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
 
     // Percepción: barras y, con hasta 12 sensores, su lectura con dos decimales en el idioma activo.
     perception.update(world.perception);
-    action.update(keyboard.display()); // sin avanzar el volante: el nivel de cada costado, de 0 a 1
+    action.update(keyboard.control());
     sensorsSwitch.setAttribute('aria-checked', String(options.showSensors));
     machineSwitch.setAttribute('aria-checked', String(options.machineView));
 
@@ -393,11 +393,11 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
       const perception = world.perception;
       world.step();
       if (world.steps !== before) {
-        const c = keyboard.last;
+        const c = keyboard.control(); // lo que devolvió el controlador en este paso (lo apretado)
         if (!tapeStarted && (c.forward || c.reverse || c.left || c.right || world.car.speed !== 0)) tapeStarted = true;
       }
       if (world.steps !== before && tapeStarted) {
-        tape.push({ sensors: perception.sensors, speed: perception.speed, controls: keyboard.last });
+        tape.push({ sensors: perception.sensors, speed: perception.speed, controls: keyboard.control() });
         if (world.crashed) tape.freeze();
         tapeVersion += 1;
       }

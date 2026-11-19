@@ -49,21 +49,15 @@ test('A, S y D, y las demás flechas, accionan su control', () => {
   for (const [code, action] of [['KeyA', 'left'], ['KeyS', 'reverse'], ['KeyD', 'right'], ['ArrowLeft', 'left'], ['ArrowDown', 'reverse'], ['ArrowRight', 'right']]) {
     const { kb, press } = setup();
     press(code);
-    assert.deepEqual(kb.held(), { ...NONE, [action]: true }, code);
-    // Retroceder, al instante; los costados, por el volante suave: todos los cuadros desde el 18.
-    for (let k = 0; k < 17; k++) kb.control();
     assert.deepEqual(kb.control(), { ...NONE, [action]: true }, code);
   }
 });
 
-test('dos teclas a la vez: avanzar en todos los cuadros e izquierda en todos desde que el volante llegó al máximo', () => {
+test('dos teclas a la vez: flecha arriba y flecha izquierda devuelven avanzar e izquierda', () => {
   const { kb, press } = setup();
   press('ArrowUp');
   press('ArrowLeft');
-  const frames = Array.from({ length: 30 }, () => kb.control()); // medio segundo
-  assert.ok(frames.every((c) => c.forward));
-  assert.ok(frames.slice(17).every((c) => c.left), 'desde el cuadro 18');
-  assert.ok(frames.slice(0, 17).some((c) => !c.left), 'antes, repartido');
+  assert.deepEqual(kb.control(), { ...NONE, forward: true, left: true });
 });
 
 test('soltar la tecla: sin teclas presionadas no devuelve ningún control', () => {
@@ -170,4 +164,13 @@ test('el borde del panel enfocado con el teclado usa las flechas: el auto no gir
   const e = press('ArrowRight', { target: splitter });
   assert.deepEqual(kb.control(), NONE);
   assert.equal(e.defaultPrevented, false);
+});
+
+test('respuesta inmediata: la flecha izquierda se devuelve desde el mismo cuadro (volante-directo)', () => {
+  const { kb, press, release } = setup();
+  press('ArrowLeft');
+  const frames = Array.from({ length: 6 }, () => kb.control());
+  assert.ok(frames.every((c) => c.left), 'en los seis cuadros, desde el primero');
+  release('ArrowLeft');
+  assert.equal(kb.control().left, false);
 });

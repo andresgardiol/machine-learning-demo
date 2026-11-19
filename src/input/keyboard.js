@@ -1,15 +1,10 @@
 // Controlador de teclado: adapta los eventos del navegador al contrato de controlador
 // del núcleo (control(perception) -> { forward, reverse, left, right }).
 //
-// Flechas y W A S D (por posición física de la tecla), varias a la vez. Izquierda y derecha pasan por el volante suave
-// (steering.js, manejo-amable D1): el giro crece de a poco mientras se mantiene la flecha. Ignora las teclas
+// Flechas y W A S D (por posición física de la tecla), varias a la vez. Ignora las teclas
 // mientras se escribe en un campo de texto o se ajusta un deslizador con el teclado, evita
 // que las flechas desplacen la página y suelta todo cuando la ventana pierde el foco o la
 // página se oculta.
-
-import { createSteering, STEER_RAMP_STEPS } from './steering.js';
-
-export { STEER_RAMP_STEPS };
 
 export const KEY_BINDINGS = Object.freeze({
   ArrowUp: 'forward', KeyW: 'forward',
@@ -67,8 +62,6 @@ export function ownsArrowKeys(target) {
  */
 export function createKeyboardController({ target = globalThis.window, doc = globalThis.document, accepts = null } = {}) {
   const pressed = new Set(); // códigos de tecla presionados
-  const steering = createSteering();
-  let last = { forward: false, reverse: false, left: false, right: false };
 
   function onKeyDown(e) {
     const action = KEY_BINDINGS[e.code];
@@ -86,7 +79,6 @@ export function createKeyboardController({ target = globalThis.window, doc = glo
 
   function releaseAll() {
     pressed.clear();
-    steering.reset();
   }
 
   function onVisibility() {
@@ -99,31 +91,11 @@ export function createKeyboardController({ target = globalThis.window, doc = glo
   doc?.addEventListener?.('visibilitychange', onVisibility);
 
   const isOn = (action) => [...pressed].some((code) => KEY_BINDINGS[code] === action);
-  const held = () => ({ forward: isOn('forward'), reverse: isOn('reverse'), left: isOn('left'), right: isOn('right') });
 
   return {
-    /**
-     * Contrato de controlador: el teclado ignora la percepción. Avanzar y retroceder, lo apretado; izquierda y derecha,
-     * lo que da el volante suave en este cuadro. Lo llama la simulación una vez por cuadro: cada llamada avanza el volante.
-     */
+    /** Contrato de controlador: el teclado ignora la percepción y devuelve lo que está presionado. */
     control() {
-      const h = held();
-      const turn = steering.step(h);
-      last = { forward: h.forward, reverse: h.reverse, left: turn.left, right: turn.right };
-      return { ...last };
-    },
-    /** Lo apretado ahora, sin avanzar el volante (para mostrarlo o para saber si hay alguna tecla). */
-    held,
-    /** Lo que devolvió el último cuadro (lo que movió al auto). */
-    get last() { return { ...last }; },
-    /**
-     * Para mostrar sin avanzar el volante: avanzar y retroceder, apretados o no; izquierda y derecha, su nivel de 0 a 1
-     * (0 si la flecha no está apretada).
-     */
-    display() {
-      const h = held();
-      const lv = steering.levels;
-      return { forward: h.forward, reverse: h.reverse, left: h.left ? lv.left : 0, right: h.right ? lv.right : 0 };
+      return { forward: isOn('forward'), reverse: isOn('reverse'), left: isOn('left'), right: isOn('right') };
     },
     releaseAll,
     dispose() {

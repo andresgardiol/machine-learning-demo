@@ -2163,9 +2163,7 @@ export default {
   'lab.dragHint': 'Drag a weight ↕',
   'consigna.lab.gates.learn': 'Now let it learn: press Play or Step and watch how it does it.',
   'consigna.lab.gates.tries': 'Learning shows you how to fix the weights: press Play or Step.',
-  // manejo-amable-y-competir-sin-cortes: the soft steering, the driving tape and the first-drive card (D1 to D3)
-  'help.drive.action.steer.what': 'How much it turns: it grows from 0 to 100 % in 0.3 s while you hold the arrow and goes back to 0 when you let go.',
-  'help.drive.action.steer.why': 'At each instant the output is still yes or no: the soft turn comes from spreading the "yes" over time.',
+  // manejo-amable-y-competir-sin-cortes: the driving tape and the first-drive card (D2 and D3)
   'drive.tape.title': 'The driving tape',
   'help.drive.tape.what': 'The last 10 seconds, one instant per column: above what the car perceived and below what you pressed. It freezes on a crash and empties on restart.',
   'help.drive.tape.why': 'Each column is one data point: what goes in and what comes out. With data like this a network learns to copy whoever drives.',
