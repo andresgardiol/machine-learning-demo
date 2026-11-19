@@ -308,12 +308,17 @@ Lo que quedó:
   Competir con un lector de pantalla real; la imitación del Laboratorio con
   el volante suave.
 
+El 19 de noviembre de 2026, `interfaz-v2`: la V2 de la interfaz, en `/v2/`, con las etapas en un riel, la escena,
+la banda y el cuaderno a la derecha, en español e inglés. La V1 sigue siendo la de siempre y solo suma el enlace
+"Probar la V2". A pedido del dueño, los controles no llevan un punto de ayuda cada uno: un aviso la primera vez y
+un subrayado punteado en los nombres de los ajustes anuncian los tooltips. Implementado, verificado sin ventana y
+archivado el mismo día, con las specs sincronizadas; lo que quedó, en *V2 de la interfaz*.
+
 ## En curso
 
-- `interfaz-v2`: la V2 de la interfaz, en `/v2/`, implementada (grupos 7 a 16) y sin archivar. La V1 sigue
-  siendo la de siempre; solo suma el enlace "Probar la V2". Falta que el dueño la revise, la pruebe con el guion
-  de cinco tareas (`openspec/changes/interfaz-v2/analisis/guion-cinco-tareas.md`) y decida con cuál versión se
-  queda (otro cambio). Lo que quedó, en *V2 de la interfaz*, abajo.
+Ningún cambio abierto. Lo que sigue es una decisión del dueño: revisar la V2, probarla con el guion de cinco tareas
+(`openspec/changes/archive/2026-11-19-interfaz-v2/analisis/guion-cinco-tareas.md`) y decidir con cuál versión se
+queda (otro cambio). Lo que quedó, en *V2 de la interfaz*, abajo.
 
 ## Para probar a mano (dueño)
 
@@ -371,7 +376,9 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
      - `cortes-y-desbordes-ux` (S): lo que queda de la *Prioridad 2* (los
        de Competir y del Laboratorio ya están);
      - `tooltips-anunciados` (S): un indicio de que hay ayuda. Los botones
-       de solo ícono de Competir ya tenían nombre y tooltip;
+       de solo ícono de Competir ya tenían nombre y tooltip. En la V2 ya
+       está (el aviso de la primera vez y el subrayado en los nombres); en la
+       V1, no;
      - ~~`primer-manejo-guiado` (S)~~: hecho el 18 de noviembre dentro de
        `manejo-amable-y-competir-sin-cortes`, con el volante suave en el
        teclado, sin tocar la física;
@@ -1191,7 +1198,7 @@ arreglarlos de a uno.
 
 ## V2 de la interfaz
 
-Lo que quedó de `interfaz-v2` (detalle en `openspec/changes/interfaz-v2/analisis/critica-final.md`).
+Lo que quedó de `interfaz-v2` (detalle en `openspec/changes/archive/2026-11-19-interfaz-v2/analisis/critica-final.md`).
 
 - Las piezas de pantalla de la V1 que la V2 usa son copias (`src/v2/legacy/`, el editor y las fichas de Reglas, la
   biblioteca, la curva): un arreglo en la V1 no llega solo a la V2. Si la V2 queda, conviene que la V1 las tome
