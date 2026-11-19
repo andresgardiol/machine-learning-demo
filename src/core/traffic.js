@@ -1,32 +1,49 @@
-// Tráfico de la calle recta como función pura de (semilla, número de grupo, tiempo).
-// Cada grupo se calcula solo a partir de la semilla y de su número, de modo que la
-// disposición no depende de cómo maneje la persona (design.md D3).
+// Tráfico de la calle recta como función pura de (semilla, configuración, tiempo) (trafico-vivo D1).
 //
-// Las separaciones entre grupos se sortean por bloques de TRAFFIC_BLOCK_GROUPS grupos: cada
-// bloque reparte su largo fijo en huecos al azar, todos por encima del mínimo. Así la distancia
-// de cualquier grupo sale de la semilla sin recorrer los anteriores, y el promedio de las
-// separaciones sigue siendo el que pide la densidad.
+// Cada carril es una corriente propia de vehículos que avanza a la velocidad del carril. El
+// vehículo j del carril i tiene una distancia de base b_ij (la de su centro en el instante 0) y en
+// el instante t está en b_ij + v_i·t. Nadie se choca dentro de un carril, porque todos van a la
+// misma velocidad y entre dos consecutivos queda siempre el hueco mínimo.
+//
+// Cada carril se arma por bloques de TRAFFIC_BLOCK_VEHICLES vehículos, con su propio espacio de
+// semillas. Un vehículo ocupa una casilla: su largo más el hueco que lo sigue. El hueco es el mínimo
+// más una parte del sobrante, repartida con pesos que van de parejos (irregularidad 0) a
+// exponenciales normalizados (100 %). El tipo, el zigzag y los pesos de cada vehículo salen solo de
+// la semilla del bloque, así que no dependen de la densidad ni de la irregularidad. El largo de un
+// bloque depende solo de los tipos de sus vehículos: los comienzos de bloque se acumulan una vez y
+// se guardan, y cualquier vehículo sale de la semilla sin recorrer los vehículos anteriores.
+//
+// Las velocidades de los carriles dependen solo de la semilla y de la cantidad de carriles (D1, D2),
+// en una sola función (laneSpeedsFor). Nada fuera de este archivo supone velocidades distintas:
+// todo se pide a fastestSpeed, slowestSpeed, laneSpeeds y a la velocidad de cada vehículo (D11).
 import { fromAngle, leftOf, add, scale, rectCorners } from './geometry.js';
-import { deriveSeed, randomFor } from './random.js';
+import { deriveSeed, randomFor, createRandom } from './random.js';
 import {
-  CAR_LENGTH, CAR_WIDTH, MIN_GROUP_GAP_CAR_LENGTHS, TRAFFIC_BLOCK_GROUPS, TRAFFIC_FIRST_GROUP,
-  TRAFFIC_MAX_STAGGER, TRAFFIC_MIN_SPACING, TRAFFIC_SPACING_RANGE, TRAFFIC_SPEED,
+  CAR_LENGTH, MIN_LANE_GAP_CAR_LENGTHS, TRAFFIC_BLOCK_VEHICLES, TRAFFIC_FIRST_VEHICLE, TRAFFIC_LANE_PHASE,
+  TRAFFIC_MIN_SPACING, TRAFFIC_SPACING_RANGE, TRAFFIC_SPEEDS, VEHICLE_TYPES, ZIGZAG_MARGIN,
+  ZIGZAG_MAX_TURN, ZIGZAG_PERIOD,
 } from './constants.js';
 
 export const DEFAULT_TRAFFIC = Object.freeze({ density: 50, irregularity: 50 });
 
-/** Separación mínima entre grupos consecutivos, centro a centro: el hueco exigido más el largo de un auto. */
-export const MIN_GROUP_SPACING = (MIN_GROUP_GAP_CAR_LENGTHS + 1) * CAR_LENGTH;
+/** Hueco mínimo entre dos vehículos consecutivos de un carril, de paragolpes a paragolpes (m). */
+export const MIN_LANE_GAP = MIN_LANE_GAP_CAR_LENGTHS * CAR_LENGTH;
+/** Largo del vehículo más largo (m). */
+export const MAX_VEHICLE_LENGTH = Math.max(...VEHICLE_TYPES.map((t) => t.length));
+/** Largo medio de un vehículo del tráfico, con las proporciones de cada tipo (m). */
+export const MEAN_VEHICLE_LENGTH = VEHICLE_TYPES.reduce((a, t) => a + t.share * t.length, 0);
 
-// Espacio de semillas propio de los bloques, distinto del de los grupos.
-const BLOCK_STREAM = 0xb10c;
+// Espacios de semillas: el de cada carril (LANE_STREAM + carril) y el de la permutación de velocidades.
+const LANE_STREAM = 0x1a4e0;
+const SPEED_STREAM = 0x5bed;
+const PHASE_STREAM = 0x9a5e;
 
 const percent = (value, fallback) => {
   const n = Number(value ?? fallback);
   return Number.isFinite(n) ? Math.min(Math.max(n, 0), 100) : fallback;
 };
 
-/** Distancia promedio entre grupos (centro a centro) para una densidad en porcentaje; infinita si es 0. */
+/** Separación entre grupos del tráfico en filas (centro a centro) para una densidad; infinita si es 0. */
 export function groupSpacing(density) {
   if (density <= 0) return Infinity;
   const f = density / 100;
@@ -34,12 +51,43 @@ export function groupSpacing(density) {
 }
 
 /**
- * Adelanto o atraso máximo (m) de un vehículo respecto de su grupo. Crece con la irregularidad y
- * se acota para que el mínimo entre grupos (que lo descuenta dos veces) quede por debajo del promedio.
+ * Casilla media de un carril (largo más hueco, m) para una densidad y una cantidad de carriles (D4):
+ * pone más o menos la misma cantidad de vehículos por kilómetro que el tráfico en filas.
  */
-export function maxStagger(spacing, irregularity) {
-  if (!Number.isFinite(spacing)) return 0;
-  return (irregularity / 100) * Math.min(TRAFFIC_MAX_STAGGER, (spacing - MIN_GROUP_SPACING) / 6);
+export function meanSlot(density, lanes) {
+  if (density <= 0) return Infinity;
+  const perGroup = 1 + (density / 100) * (lanes - 2);
+  return (lanes * groupSpacing(density)) / perGroup;
+}
+
+/** Velocidades de los carriles: repartidas parejas en [min, max] y asignadas con una permutación sembrada (D2). */
+export function laneSpeedsFor(seed, lanes) {
+  const { min, max } = TRAFFIC_SPEEDS;
+  const even = Array.from({ length: lanes }, (_, k) => (lanes === 1 ? max : min + ((max - min) * k) / (lanes - 1)));
+  const rnd = createRandom(deriveSeed(seed, SPEED_STREAM + lanes));
+  for (let i = even.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [even[i], even[j]] = [even[j], even[i]];
+  }
+  return even;
+}
+
+/** Tipo de vehículo para un número en [0, 1), con las proporciones de VEHICLE_TYPES. */
+function typeFor(u) {
+  let acc = 0;
+  for (const t of VEHICLE_TYPES) {
+    acc += t.share;
+    if (u < acc) return t;
+  }
+  return VEHICLE_TYPES[VEHICLE_TYPES.length - 1];
+}
+
+/**
+ * Amplitud máxima del zigzag (m) de un vehículo con irregularidad 100 %: la que deja su contorno,
+ * girado ZIGZAG_MAX_TURN, a ZIGZAG_MARGIN del borde del carril (D5).
+ */
+export function zigzagAmplitude(laneWidth, length, width) {
+  return Math.max(0, laneWidth / 2 - ZIGZAG_MARGIN - (width / 2) * Math.cos(ZIGZAG_MAX_TURN) - (length / 2) * Math.sin(ZIGZAG_MAX_TURN));
 }
 
 /**
@@ -49,131 +97,207 @@ export function maxStagger(spacing, irregularity) {
 export function createTraffic({ seed, track, density = DEFAULT_TRAFFIC.density, irregularity = DEFAULT_TRAFFIC.irregularity }) {
   const d = percent(density, DEFAULT_TRAFFIC.density);
   const irr = percent(irregularity, DEFAULT_TRAFFIC.irregularity);
-  const f = d / 100;
   const r = irr / 100;
-  const spacing = groupSpacing(d);
   const lanes = track.lanes;
-  const stagger = maxStagger(spacing, irr);
-  // Hueco mínimo entre centros de grupos: con los adelantos, los vehículos más cercanos de dos
-  // grupos consecutivos siguen quedando a MIN_GROUP_SPACING o más.
-  const minGap = MIN_GROUP_SPACING + 2 * stagger;
-  const blockLength = TRAFFIC_BLOCK_GROUPS * spacing;
-  // Desvío lateral máximo dentro del carril sin sobresalir de él (con un 10 % de margen).
-  const maxLateral = (r * (track.laneWidth - CAR_WIDTH) / 2) * 0.9;
-  const blockSeed = deriveSeed(seed, BLOCK_STREAM);
+  const K = TRAFFIC_BLOCK_VEHICLES;
+  const slot = meanSlot(d, lanes);
+  // Sobrante medio por vehículo, después de su largo y del hueco mínimo. Nunca negativo: si la
+  // densidad pidiera menos, el hueco mínimo manda y la densidad satura (D4).
+  const spare = Number.isFinite(slot) ? Math.max(0, slot - MEAN_VEHICLE_LENGTH - MIN_LANE_GAP) : 0;
+  const laneSpeeds = Object.freeze(laneSpeedsFor(seed, lanes));
+  const fastestSpeed = Math.max(...laneSpeeds);
+  const slowestSpeed = Math.min(...laneSpeeds);
+  const phaseRnd = createRandom(deriveSeed(seed, PHASE_STREAM + lanes));
+  const laneStart = laneSpeeds.map(() => TRAFFIC_FIRST_VEHICLE + phaseRnd() * Math.min(TRAFFIC_LANE_PHASE, Number.isFinite(slot) ? slot : 0));
+  const laneSeeds = laneSpeeds.map((_, i) => deriveSeed(seed, LANE_STREAM + i));
+  const amplitudes = new Map(VEHICLE_TYPES.map((t) => [t.type, r * zigzagAmplitude(track.laneWidth, t.length, t.width)]));
 
-  // Distancias (en el instante 0) de los grupos de un bloque. Se guardan los últimos bloques usados.
-  const cache = new Map();
-  function blockOffsets(b) {
-    let offsets = cache.get(b);
-    if (offsets) return offsets;
-    const rnd = randomFor(blockSeed, b);
-    const e = Array.from({ length: TRAFFIC_BLOCK_GROUPS }, () => -Math.log(1 - rnd()));
+  // Vehículos de un bloque en su orden: tipo, pesos y zigzag. Solo de la semilla (no de densidad ni irregularidad).
+  const rawCache = new Map();
+  function rawBlock(lane, b) {
+    const key = lane * 1e7 + b;
+    let raw = rawCache.get(key);
+    if (raw) return raw;
+    const rnd = randomFor(laneSeeds[lane], b);
+    const types = Array.from({ length: K }, () => typeFor(rnd()));
+    const periods = Array.from({ length: K }, () => ZIGZAG_PERIOD.min + rnd() * (ZIGZAG_PERIOD.max - ZIGZAG_PERIOD.min));
+    const phases = Array.from({ length: K }, () => rnd() * 2 * Math.PI);
+    const e = Array.from({ length: K }, () => -Math.log(1 - rnd()));
     const total = e.reduce((a, x) => a + x, 0);
-    offsets = new Array(TRAFFIC_BLOCK_GROUPS);
-    let at = TRAFFIC_FIRST_GROUP + b * blockLength;
-    for (let i = 0; i < TRAFFIC_BLOCK_GROUPS; i++) {
-      offsets[i] = at;
-      const w = (1 - r) + r * TRAFFIC_BLOCK_GROUPS * (e[i] / total);
-      at += minGap + (spacing - minGap) * w;
-    }
-    if (cache.size >= 8) cache.delete(cache.keys().next().value);
-    cache.set(b, offsets);
-    return offsets;
+    const lengthSum = types.reduce((a, t) => a + t.length, 0);
+    raw = { types, periods, phases, e, total, lengthSum };
+    if (rawCache.size >= 64) rawCache.delete(rawCache.keys().next().value);
+    rawCache.set(key, raw);
+    return raw;
   }
 
-  /** Grupo k en el instante 0: distancia sobre la línea central y vehículos (carril, adelanto y desvío lateral). */
-  function groupAt(k) {
-    if (d <= 0) return { index: k, distance: TRAFFIC_FIRST_GROUP + k * blockLength / TRAFFIC_BLOCK_GROUPS, vehicles: [] };
-    const b = Math.floor(k / TRAFFIC_BLOCK_GROUPS);
-    const distance = blockOffsets(b)[k - b * TRAFFIC_BLOCK_GROUPS];
-    const rnd = randomFor(seed, k);
-    // Cantidad de vehículos: entre 1 y lanes - 1, creciente con la densidad.
-    const expected = 1 + f * (lanes - 2);
-    const base = Math.floor(expected);
-    const count = Math.min(lanes - 1, base + (rnd() < expected - base ? 1 : 0));
-    // Carriles ocupados: sorteo sin reposición; siempre queda al menos uno libre.
-    const free = Array.from({ length: lanes }, (_, i) => i);
-    const chosen = [];
-    for (let i = 0; i < count; i++) chosen.push(free.splice(Math.floor(rnd() * free.length), 1)[0]);
-    chosen.sort((a, b2) => a - b2);
-    const vehicles = chosen.map((lane) => {
-      const lateral = (rnd() * 2 - 1) * maxLateral;
-      const offset = (rnd() * 2 - 1) * stagger;
-      return { lane, lateral: maxLateral === 0 ? 0 : lateral, offset: stagger === 0 ? 0 : offset };
-    });
-    return { index: k, distance, vehicles };
+  // Comienzo (en el instante 0) de cada bloque de cada carril: se acumulan los largos una vez.
+  const blockStarts = laneSpeeds.map((_, i) => [laneStart[i]]);
+  const blockLength = (raw) => raw.lengthSum + K * (MIN_LANE_GAP + spare);
+  function blockStart(lane, b) {
+    const starts = blockStarts[lane];
+    while (starts.length <= b) {
+      const c = starts.length - 1;
+      starts.push(starts[c] + blockLength(rawBlock(lane, c)));
+    }
+    return starts[b];
+  }
+  /** Primer bloque del carril cuyo final queda después de `base` (búsqueda en los comienzos guardados). */
+  function blockAt(lane, base) {
+    if (base < laneStart[lane]) return 0;
+    const starts = blockStarts[lane];
+    // Extiende hasta pasar `base` (el largo de un bloque es al menos K · hueco mínimo).
+    while (starts[starts.length - 1] <= base) blockStart(lane, starts.length);
+    let lo = 0;
+    let hi = starts.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (starts[mid] <= base) lo = mid; else hi = mid - 1;
+    }
+    return lo;
+  }
+
+  // Bases (centro en el instante 0) de los vehículos de un bloque.
+  const blockCache = new Map();
+  function block(lane, b) {
+    const key = lane * 1e7 + b;
+    let out = blockCache.get(key);
+    if (out) return out;
+    const raw = rawBlock(lane, b);
+    out = new Array(K);
+    let at = blockStart(lane, b);
+    for (let k = 0; k < K; k++) {
+      const t = raw.types[k];
+      const w = (1 - r) + r * K * (raw.e[k] / raw.total);
+      out[k] = {
+        index: b * K + k, lane, base: at + t.length / 2, type: t.type, length: t.length, width: t.width,
+        period: raw.periods[k], phase: raw.phases[k],
+      };
+      at += t.length + MIN_LANE_GAP + spare * w;
+    }
+    if (blockCache.size >= 16 * lanes) blockCache.delete(blockCache.keys().next().value);
+    blockCache.set(key, out);
+    return out;
+  }
+
+  /**
+   * Vehículos del carril `lane` cuya base (centro en el instante 0) cae en [from, to], en orden.
+   * Es el marco propio del carril: en el instante t, cada uno está en su base + laneSpeeds[lane]·t.
+   */
+  function laneBases(lane, from, to) {
+    // Más allá del final de la pista no hay vehículos: acota consultas abiertas (to = Infinity).
+    to = Math.min(to, track.end);
+    if (d <= 0 || to < from) return [];
+    const out = [];
+    for (let b = blockAt(lane, from); ; b++) {
+      if (blockStart(lane, b) - MAX_VEHICLE_LENGTH > to) break;
+      for (const v of block(lane, b)) if (v.base >= from && v.base <= to) out.push(v);
+    }
+    return out;
+  }
+
+  /** Desvío lateral, velocidad lateral y giro de un vehículo en el instante t (D5). */
+  function zigzag(v, t) {
+    const A = amplitudes.get(v.type);
+    if (A === 0) return { lateral: 0, turn: 0 };
+    const w = (2 * Math.PI) / v.period;
+    const phase = w * t + v.phase;
+    const lateral = A * Math.sin(phase);
+    const turn = Math.atan((A * w * Math.cos(phase)) / laneSpeeds[v.lane]);
+    return { lateral, turn: Math.min(Math.max(turn, -ZIGZAG_MAX_TURN), ZIGZAG_MAX_TURN) };
+  }
+
+  /** Vehículo `v` (de laneBases) en el instante t, listo para dibujar, chocar y sensar. */
+  function place(v, t) {
+    const speed = laneSpeeds[v.lane];
+    const distance = v.base + speed * t;
+    const c = track.laneCenter(v.lane, distance);
+    const { lateral, turn } = zigzag(v, t);
+    const position = lateral === 0 ? c.position : add(c.position, scale(leftOf(fromAngle(c.angle)), lateral));
+    const angle = c.angle + turn;
+    return {
+      id: `${v.lane}:${v.index}`, lane: v.lane, index: v.index, distance, base: v.base, lateral, turn,
+      position, angle, speed, type: v.type, length: v.length, width: v.width,
+      contour: rectCorners(position, angle, v.length, v.width),
+    };
   }
 
   /** Vehículos en el instante `t` (s) cuya posición sobre la línea central cae en [from, to]. */
   function vehicles(t, from, to) {
     if (d <= 0) return [];
-    const shift = TRAFFIC_SPEED * t;
-    const reach = stagger + CAR_LENGTH;
-    const bMin = Math.max(0, Math.floor((from - shift - TRAFFIC_FIRST_GROUP - reach) / blockLength));
-    const bMax = Math.floor((to - shift - TRAFFIC_FIRST_GROUP + reach) / blockLength);
     const out = [];
-    for (let b = bMin; b <= bMax; b++) {
-      const offsets = blockOffsets(b);
-      for (let i = 0; i < TRAFFIC_BLOCK_GROUPS; i++) {
-        const center = offsets[i] + shift;
-        if (center + reach < from || center - reach > to) continue;
-        const g = groupAt(b * TRAFFIC_BLOCK_GROUPS + i);
-        for (const v of g.vehicles) {
-          const distance = center + v.offset;
-          if (distance < from || distance > to || distance > track.end) continue;
-          const c = track.laneCenter(v.lane, distance);
-          const position = add(c.position, scale(leftOf(fromAngle(c.angle)), v.lateral));
-          out.push({
-            id: `${g.index}:${v.lane}`, group: g.index, lane: v.lane, distance, lateral: v.lateral, offset: v.offset,
-            position, angle: c.angle, speed: TRAFFIC_SPEED,
-            contour: rectCorners(position, c.angle, CAR_LENGTH, CAR_WIDTH),
-          });
-        }
-      }
-    }
-    return out;
-  }
-
-  return Object.freeze({ seed, density: d, irregularity: irr, spacing, stagger, minGap, groupAt, vehicles });
-}
-
-/**
- * Cambia la configuración del tráfico en marcha, sin reiniciar (design.md D3).
- *
- * El tráfico que ya existe se conserva por detrás de `boundary` y el nuevo empieza recién
- * MIN_GROUP_SPACING más adelante, así en la unión también quedan cuatro largos de hueco. Las
- * distancias se miden en el marco del tráfico (la distancia en el instante 0), que avanza con él.
- * Cada cambio agrega una capa; las capas que ya no tienen tramo propio se descartan.
- * @param {object} current tráfico actual (simple o ya cambiado)
- * @param {object} next tráfico con la configuración nueva (de createTraffic)
- * @param {number} boundary distancia, en el marco del tráfico, desde la que manda la configuración nueva
- */
-export function changeTraffic(current, next, boundary) {
-  const previous = current.layers ?? [{ traffic: current, from: -Infinity, to: Infinity, prefix: '' }];
-  const generation = (current.generation ?? 0) + 1;
-  const layers = previous
-    .map((l) => ({ ...l, to: Math.min(l.to, boundary) }))
-    .filter((l) => l.from < l.to);
-  layers.push({ traffic: next, from: boundary + MIN_GROUP_SPACING, to: Infinity, prefix: `${generation}~` });
-
-  function vehicles(t, from, to) {
-    const shift = TRAFFIC_SPEED * t;
-    const out = [];
-    for (const l of layers) {
-      if (l.from + shift > to + CAR_LENGTH || l.to + shift < from - CAR_LENGTH) continue;
-      for (const v of l.traffic.vehicles(t, from, to)) {
-        const base = v.distance - shift;
-        if (base < l.from || base >= l.to) continue;
-        out.push(l.prefix ? { ...v, id: l.prefix + v.id } : v);
+    for (let lane = 0; lane < lanes; lane++) {
+      const shift = laneSpeeds[lane] * t;
+      for (const v of laneBases(lane, from - shift, to - shift)) {
+        if (v.base + shift > track.end) continue;
+        out.push(place(v, t));
       }
     }
     return out;
   }
 
   return Object.freeze({
-    seed: next.seed, density: next.density, irregularity: next.irregularity,
-    spacing: next.spacing, stagger: next.stagger, minGap: next.minGap,
-    generation, layers: Object.freeze(layers.map(Object.freeze)), vehicles,
+    seed, density: d, irregularity: irr, lanes, slot, spare,
+    laneSpeeds, fastestSpeed, slowestSpeed, maxLength: MAX_VEHICLE_LENGTH,
+    laneBases, vehicles, place,
+  });
+}
+
+/**
+ * Cambia la configuración del tráfico en marcha, sin reiniciar (trafico-vivo D8).
+ *
+ * Cada carril se corta en su propio marco: el tráfico que ya existe se conserva por detrás de la
+ * frontera de ese carril y el nuevo empieza MIN_LANE_GAP + MAX_VEHICLE_LENGTH más adelante, así en la
+ * unión queda al menos el hueco mínimo con vehículos de cualquier largo. Las fronteras se miden en
+ * el marco de cada carril (la base: la distancia en el instante 0), que avanza con él. Las
+ * velocidades de los carriles no dependen de la densidad ni de la irregularidad, así que las dos
+ * capas de un carril comparten marco. Cada cambio agrega una capa; las capas que ya no tienen tramo
+ * propio en ningún carril se descartan.
+ * @param {object} current tráfico actual (simple o ya cambiado)
+ * @param {object} next tráfico con la configuración nueva (de createTraffic), con la misma semilla y carriles
+ * @param {number[]|number} boundary por carril (o la misma para todos), base desde la que manda la configuración nueva
+ */
+export function changeTraffic(current, next, boundary) {
+  const lanes = next.lanes;
+  const bounds = Array.isArray(boundary) ? boundary : Array.from({ length: lanes }, () => boundary);
+  const all = () => Array.from({ length: lanes });
+  const previous = current.layers ?? [{ traffic: current, from: all().map(() => -Infinity), to: all().map(() => Infinity), prefix: '' }];
+  const generation = (current.generation ?? 0) + 1;
+  const layers = previous
+    .map((l) => ({ ...l, to: l.to.map((x, i) => Math.min(x, bounds[i])) }))
+    .filter((l) => l.from.some((x, i) => x < l.to[i]));
+  layers.push({ traffic: next, from: bounds.map((x) => x + MIN_LANE_GAP + MAX_VEHICLE_LENGTH), to: all().map(() => Infinity), prefix: `${generation}~` });
+
+  function vehicles(t, from, to) {
+    const out = [];
+    for (const l of layers) {
+      for (const v of l.traffic.vehicles(t, from, to)) {
+        if (v.base < l.from[v.lane] || v.base >= l.to[v.lane]) continue;
+        out.push(l.prefix ? { ...v, id: l.prefix + v.id } : v);
+      }
+    }
+    return out;
+  }
+
+  function laneBases(lane, from, to) {
+    const out = [];
+    for (const l of layers) {
+      for (const v of l.traffic.laneBases(lane, Math.max(from, l.from[lane]), Math.min(to, l.to[lane]))) {
+        if (v.base < l.to[lane]) out.push(l.prefix ? { ...v, layer: l.prefix } : v);
+      }
+    }
+    return out;
+  }
+
+  return Object.freeze({
+    seed: next.seed, density: next.density, irregularity: next.irregularity, lanes,
+    slot: next.slot, spare: next.spare, laneSpeeds: next.laneSpeeds,
+    fastestSpeed: next.fastestSpeed, slowestSpeed: next.slowestSpeed, maxLength: next.maxLength,
+    generation, layers: Object.freeze(layers.map(Object.freeze)), vehicles, laneBases,
+    place: (v, t) => {
+      const l = layers.find((x) => x.prefix === (v.layer ?? '')) ?? layers[0];
+      const p = l.traffic.place(v, t);
+      return l.prefix ? { ...p, id: l.prefix + p.id } : p;
+    },
   });
 }
