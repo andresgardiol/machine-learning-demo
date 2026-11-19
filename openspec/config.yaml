@@ -38,6 +38,9 @@ context: |
   11. Bilingüe de origen: ningún texto visible fijo en el código.
   12. Simple por dentro: módulos cohesivos y desacoplados, dependencias hacia
       el núcleo.
+  13. Jerarquía visual: cada pestaña muestra una consigna y una sola acción
+      principal antes que cualquier ajuste; si la consigna pide manipular algo,
+      se destaca eso.
 
   Filtro de entrada para toda feature nueva:
   1. ¿Qué concepto hace visible?

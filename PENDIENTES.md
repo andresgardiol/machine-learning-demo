@@ -367,9 +367,8 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
        problema. Pregunta abierta: ¿suavizar el volante? Toca la física;
      - `vocabulario-escalonado` (M): definir en pantalla fitness, élite,
        época y los demás términos.
-   - Decisión del dueño: el informe sugiere sumar a la constitución un
-     artículo de jerarquía visual ("cada pestaña tiene una acción principal y
-     una consigna visibles antes que cualquier ajuste").
+   - ~~Decisión del dueño: artículo de jerarquía visual~~: aprobado el 18 de
+     noviembre de 2026; es el Art. 13 de `CONSTITUCION.md`.
 2. **Sistema de diseño: revisión con dos skills.** Pedido del dueño (17 de
    noviembre de 2026), después de ver `tarjeta-de-consigna` terminada:
    "Sigo pensando que los botones no tienen jerarquía clara, nos hace falta un
@@ -438,7 +437,7 @@ monta sobre la jerarquía, la tarjeta de consigna y las misiones.
         mutaron en la red y marcas de ajuste en la curva.
      3. ~~`entrenar-mutacion-a-la-vista`~~ (S–M, hecho el 18 de noviembre): trazo fantasma en la red al
         mover la fuerza de mutación.
-     Sigue esperando al dueño: el artículo de jerarquía visual y la tabla de
+     Sigue esperando al dueño: la tabla de
      "Probá esto".
    - Observado por Claude en la captura del dueño de Reglas a mano (17 de
      noviembre, hipótesis, sin medir):

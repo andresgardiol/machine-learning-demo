@@ -101,6 +101,14 @@ simulación no conoce el DOM. Los módulos son cohesivos y desacoplados, con
 dependencias que apuntan hacia el núcleo. El sitio es 100% estático y se
 publica sin paso de build obligatorio.
 
+### 13. Jerarquía visual
+
+Cada pestaña muestra, antes que cualquier ajuste, una consigna que dice qué
+hacer y una sola acción principal que se reconoce sin leer. Si la consigna pide
+manipular algo directamente (arrastrar un peso, manejar), lo que se destaca es
+eso y ningún botón compite con ello. Los ajustes vienen después, y lo avanzado,
+aparte.
+
 ## Filtro de entrada
 
 Toda feature nueva responde estas cuatro preguntas antes de aceptarse:
