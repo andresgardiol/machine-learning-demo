@@ -16,9 +16,11 @@ Los fija la tarea 3.3 antes de ver las maquetas. El orden y los pesos siguen el 
 
 | Maqueta | Claridad (25) | Usabilidad (20) | Dos públicos (15) | Paridad (10) | Esfuerzo (10) | Fluidez (10) | Accesibilidad (10) | Total |
 |---|---|---|---|---|---|---|---|---|
-| A | | | | | | | | |
-| B | | | | | | | | |
-| C | | | | | | | | |
+| A | 4 | 3,5 | 4,5 | 2 | 2,5 | 2 | 3,5 | **3,38** |
+| B | 4 | 3 | 3,5 | 3,5 | 3 | 4 | 4,5 | **3,63** |
+| C | 4,5 | 4,5 | 4 | 4,5 | 4,5 | 4 | 4,5 | **4,38** |
+
+La tabla se llenó en la tarea 5.1; el motivo de cada puntaje está en la sección 5.
 
 ## 2. Las tres direcciones
 
@@ -134,3 +136,54 @@ Método: `design-skills:design-critique` sobre las 30 capturas (`borradores/inte
 | K19 | C | Con la guía oculta, el banco de Evaluar queda con media pantalla vacía. | H8 | **queda**: el mentor podría usarlo para la tabla más grande. |
 | K20 | A, B, C | La etapa Reglas a mano no tiene pantalla en las maquetas; el enlace lleva al recorrido. | Alcance de D4 | **queda**: D4 no la pide. |
 | K21 | A, B, C | Fuentes del sistema de macOS: en otro sistema se ven con su respaldo y no se probó cómo quedan. | — | **queda**: sin probar. |
+
+## 5. Puntajes, pros y contras
+
+Los puntajes son **[Hipótesis razonada]**: se apoyan en las medidas de la sección 4 cuando las hay, pero ponderar es una opinión. La tabla está en la sección 1. Totales: C 4,38 · B 3,63 · A 3,38.
+
+### Motivo de cada puntaje
+
+| Criterio | A · Cabina | B · Cuaderno | C · Mesa de trabajo |
+|---|---|---|---|
+| Claridad didáctica (25) | **4.** La escena más grande del recorrido (70,9 % visible en El problema [Medido]) y la pregunta arriba. Pero los instrumentos compiten con lo que se mira, y las definiciones viven en el cajón cerrado. | **4.** La pregunta es el título del capítulo, "Capítulo siguiente" cierra con la pregunta que sigue, y los términos se definen resaltados en el margen. La escena baja al 23,5 % y al 27,7 % en Aprender y Evaluar [Medido]. | **4,5.** La pregunta fija en el banco, el contrato entra → sale en sus colores en todas las etapas (el hilo de la promesa), escena del 47 al 49 % y red del 48 % [Medido], sin nada encima. |
+| Usabilidad (20) | **3,5.** Pocos controles (15 a 31 [Medido]), pero los instrumentos cambian de lugar según la etapa, el cajón tapa "Lo que percibe" (K13) y pide desplazar. | **3.** La página entera desplaza en las cuatro etapas y el margen también en Aprender (K15) [Medido]; los ajustes al lado de la figura sí se encuentran. | **4,5.** El mismo plano en las cinco pantallas, "Probá esto" siempre a la vista, una sola zona que desplaza (el banco con Avanzado abierto) [Medido]. |
+| Dos públicos (15) | **4,5.** Con la guía oculta y el cajón cerrado queda la escena casi entera: lo mejor para mostrar a un grupo. | **3,5.** Ocultar la guía saca el texto, pero la página sigue siendo un texto con figuras; el mentor salta por capítulos sin problema. | **4.** Avanzado siempre en el mismo lugar del banco; con la guía oculta queda espacio vacío en el banco (K19). |
+| Costo de la paridad (10) | **2.** Cada feature de la V1 que hoy es un panel (editor de Reglas, biblioteca, tablas de pesos, curvas del Laboratorio, cinta del manejo) pasa a ser otro instrumento flotante sobre la escena, o a vivir en el cajón. | **3,5.** Las features caben como figuras y notas de margen; el editor de Reglas puede ser una figura. Las páginas se alargan. | **4,5.** El banco con su inspector aloja lo que hoy está en los paneles, y el inspector que cambia según lo elegido ya es como trabaja la V1 en Inspeccionar y el Laboratorio. |
+| Esfuerzo de la fase 3 (10) | **2,5.** Disposición superpuesta, vidrio con desenfoque y brillo en el dibujo (necesita `src/v2/render/`, D8). 22 componentes. | **3.** Tema claro: hay que revisar que los pintores se lean bien sobre papel (los tokens alcanzan; el trazo de tinta del auto es un cambio de dibujo) y cómo se dimensiona un lienzo dentro de una página que desplaza. 24 componentes. | **4,5.** Dos zonas como la V1 de hoy en Reglas y Entrenar; dibujo plano, los pintores de la V1 alcanzan con los tokens. 24 componentes. |
+| Riesgo para la fluidez (10) | **2.** Lienzo de unos 1290×720 (más de 3 veces el de la V1 en El problema) y `backdrop-filter` sobre una escena que se mueve, más brillo. Sin medir: no hay simulación en las maquetas. | **4.** Lienzo de unas 2 veces la V1, sin capas encima. | **4.** Lienzo de unas 2 veces la V1, sin capas encima. |
+| Accesibilidad (10) | **3,5.** 0 problemas medidos, pero el texto de los instrumentos va sobre vidrio encima de una escena que se mueve: el contraste real cambia con lo que pasa por detrás, y el guion no lo mide. | **4,5.** 0 problemas medidos; tinta sobre papel, alto contraste. | **4,5.** 0 problemas medidos; banco blanco y pozo oscuro con contrastes fijos. |
+
+### Pros y contras
+
+**A · Cabina**
+- A favor: la escena manda como en ninguna otra (principio 2); se siente un producto propio y es la que más se parece a `og-image.png`; con la guía oculta es lo más cercano a un modo proyector sin hacer uno.
+- En contra: los instrumentos tapan la escena y cambian de lugar según la etapa; todo lo que la V1 tiene en paneles necesita un lugar flotante; es la que más arriesga la fluidez (lienzo grande, desenfoque y brillo).
+- **Lo que más le cuesta de la paridad:** `pestana-reglas` (39 requisitos: el editor, las fichas, el cuaderno de casos), `pestana-laboratorio` (44: tabla de datos, curvas, plano y perillas) y la biblioteca de `cerebros` (17). No tienen un lugar natural sobre la escena.
+
+**B · Cuaderno de laboratorio**
+- A favor: la mejor para el principiante que llega solo: la cadena de preguntas se lee como un texto, los términos se definen al lado de donde aparecen y cada capítulo cierra con la pregunta que sigue; es la más accesible en contraste.
+- En contra: desplaza siempre; la escena se achica cuando la figura tiene que mostrar dos cosas; el mentor proyectando ve un cuaderno, no un laboratorio.
+- **Lo que más le cuesta de la paridad:** `pestana-entrenar` y `neuroevolucion` (80 requisitos con mucho estado en vivo: corte, mutación, selección manual, cambios pendientes) y `pestana-competir` (30), que piden ver varias cosas a la vez y no caben en una figura sin achicar la escena.
+
+**C · Mesa de trabajo**
+- A favor: el mismo banco en todas las etapas (principio 3), con la pregunta y la acción siempre en el mismo lugar; el contrato entra → decide → sale como columna vertebral; la más barata de construir y de mantener a la par con la V1.
+- En contra: es la más parecida a la V1 en estructura (dos zonas), así que el cambio se nota más en el orden y la estética que en la forma; deja espacio vacío con la guía oculta; la escena llega al 47 %, no al 70 % de A.
+- **Lo que más le cuesta de la paridad:** `pestana-laboratorio` (44): los tres experimentos con plano, tabla de verdad, curvas y red tienen que repartirse entre el pozo y el banco sin que el banco desplace más.
+
+## 6. Recomendación de Claude
+
+> **Esto es una recomendación, no una decisión.** La elección es del dueño (tarea 6.1), y la fase 3 no empieza sin ella.
+
+**Lo medido** (sección 4): las tres maquetas cumplen las auditorías de tooltips, nombres, contraste, objetivos de 24 px y textos en los dos idiomas, con 0 problemas en las 30 capturas. Las tres llevan la escena a más del doble del área de la V1 en El problema a 1366×768: A 70,9 %, C 47,3 %, B 44,1 %, contra 24,7 % en la V1. Solo A y C muestran todo sin desplazar la página; en las dos, lo único que desplaza es la zona de ajustes con "Avanzado" abierto (el cajón en A, el banco en C).
+
+**Lo opinado:** recomiendo **C · Mesa de trabajo** como base, porque es la que mejor cumple los principios de usabilidad (3, 5 y 12) sin perder claridad, y la que menos arriesga la paridad y la fluidez. Tomaría de las otras dos:
+
+1. **De B, el vocabulario y la cadena de preguntas:** los términos definidos con resaltador en el lugar donde aparecen, y al pie del banco, el "Siguiente: ¿…?" con la pregunta de la etapa que sigue, más la portada con el índice de las cinco preguntas.
+2. **De A, la escena grande para mostrar:** un modo "escena a pantalla completa" para el mentor (el banco se pliega y quedan la pregunta y la marcha encima, como en la Cabina). Es el puente al `modo-proyector` pendiente. Si el dueño lo quiere, entra en la fase 3 como decisión aparte.
+3. **De A, el amarillo de señal y el auto con volumen** de `og-image.png`, solo si el dueño quiere más dirección de arte que el plano de C. Cuesta `src/v2/render/` y una medición de fluidez (D8).
+
+Si el dueño valora más la sorpresa visual que el costo, A con el banco de C para las etapas con mucho panel (Reglas y Laboratorio) sería la mezcla a considerar. Tiene el riesgo de tener dos disposiciones, en contra del principio 3.
+
+### Modo proyector (pregunta abierta de design.md)
+
+Ninguna maqueta lo implementa. A con la guía oculta es lo más cercano, y la recomendación 2 lo acerca a C. Queda para la decisión del dueño junto con la elección.

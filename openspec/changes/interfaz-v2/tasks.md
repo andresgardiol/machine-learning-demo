@@ -66,9 +66,12 @@
 
 ## 5. Fase 2: comparación y presentación
 
-- [ ] 5.1 Completar `analisis/comparacion.md`: el puntaje de cada maqueta en cada criterio (3.3) con su justificación, los pros y contras, y qué parte de la matriz de paridad le cuesta más a cada una. Verificación: la tabla está llena, y cada puntaje tiene una oración de motivo.
-- [ ] 5.2 Escribir la recomendación de Claude, con el porqué y con qué tomaría de las otras dos. Rotularla como recomendación, no como decisión. Verificación: la sección existe y separa lo medido de lo opinado.
-- [ ] 5.3 Presentarle al dueño las tres maquetas: los enlaces locales, las capturas lado a lado y la comparación. Ofrecer una página privada de comparación si la quiere compartir. Verificación: el mensaje al dueño tiene los tres enlaces, el índice de capturas y la pregunta de cuál elige.
+- [x] 5.1 Completar `analisis/comparacion.md`: el puntaje de cada maqueta en cada criterio (3.3) con su justificación, los pros y contras, y qué parte de la matriz de paridad le cuesta más a cada una. Verificación: la tabla está llena, y cada puntaje tiene una oración de motivo.
+  *Hecho: la tabla de la sección 1 de `comparacion.md` llena (C 4,38 · B 3,63 · A 3,38) y la sección 5 con una oración de motivo por puntaje y criterio (21), los pros y contras de cada una y las capacidades de la matriz de paridad que más le cuestan (A: `pestana-reglas`, `pestana-laboratorio`, `cerebros`; B: `pestana-entrenar` con `neuroevolucion`, y `pestana-competir`; C: `pestana-laboratorio`). Los puntajes van rotulados como hipótesis razonada.*
+- [x] 5.2 Escribir la recomendación de Claude, con el porqué y con qué tomaría de las otras dos. Rotularla como recomendación, no como decisión. Verificación: la sección existe y separa lo medido de lo opinado.
+  *Hecho: sección 6 de `comparacion.md`, rotulada "recomendación, no decisión", con un párrafo de lo medido y otro de lo opinado. Recomienda C como base y toma de B el vocabulario resaltado, el "Siguiente: ¿…?" y la portada, y de A un modo "escena a pantalla completa" para el mentor (puente al modo proyector) y, si se quiere, el amarillo de señal y el auto con volumen. Responde la pregunta abierta del modo proyector: ninguna lo implementa.*
+- [x] 5.3 Presentarle al dueño las tres maquetas: los enlaces locales, las capturas lado a lado y la comparación. Ofrecer una página privada de comparación si la quiere compartir. Verificación: el mensaje al dueño tiene los tres enlaces, el índice de capturas y la pregunta de cuál elige.
+  *Hecho: la presentación va en el informe final de esta sub-sesión a la sesión principal, con los tres enlaces locales, el índice de capturas (`maquetas/capturas/indice.md`, 30), el resumen de la comparación, la recomendación, lo que no se midió, la pregunta de cuál elige el dueño y el ofrecimiento de una página privada de comparación. Copia en la carpeta de notas compartida (`interfaz-v2-grupos-1-a-5.md`). La página privada no se publicó: es opcional y la decide el dueño.*
 
 ## 6. Parada: elección del dueño
 
