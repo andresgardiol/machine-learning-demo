@@ -73,6 +73,40 @@
 - [x] 5.3 Presentarle al dueño las tres maquetas: los enlaces locales, las capturas lado a lado y la comparación. Ofrecer una página privada de comparación si la quiere compartir. Verificación: el mensaje al dueño tiene los tres enlaces, el índice de capturas y la pregunta de cuál elige.
   *Hecho: la presentación va en el informe final de esta sub-sesión a la sesión principal, con los tres enlaces locales, el índice de capturas (`maquetas/capturas/indice.md`, 30), el resumen de la comparación, la recomendación, lo que no se midió, la pregunta de cuál elige el dueño y el ofrecimiento de una página privada de comparación. Copia en la carpeta de notas compartida (`interfaz-v2-grupos-1-a-5.md`). La página privada no se publicó: es opcional y la decide el dueño.*
 
+## 5b. Fase 2: maqueta D, la mezcla de A y B (pedido del dueño, 19 de noviembre de 2026)
+
+**Por qué hay un grupo más.** El dueño revisó las tres maquetas. Opinó así de cada una:
+- **A:** la mejor equilibrada. Le gusta el riel vertical de etapas a la izquierda, porque deja ver el recorrido y que se puede avanzar.
+- **B:** le gusta el diseño de cuaderno y la separación clara entre la simulación y los ajustes.
+- **C:** "no mejora realmente la UI". En Entrenar no se ven los ajustes de la red ni de los sensores, y en Competir no se ve la meta.
+- **Las tres:** no le gusta el tema claro de B y C.
+
+Revisado [Medido sobre los `index.html`]: ninguna de las tres maquetas muestra los ajustes de los sensores, la activación, las neuronas por capa ni la meta de la carrera.
+
+- [x] 5b.1 Anotar en `analisis/comparacion.md` la opinión del dueño (resumida arriba), el hueco de paridad de las tres maquetas y el criterio que faltó: "cambio notable respecto de la V1". Revisar los puntajes con ese criterio. Verificación: hay una sección nueva con la fecha, y la tabla tiene la columna del criterio nuevo.
+  *Hecho: sección 7 de `analisis/comparacion.md`, fechada el 19 de noviembre de 2026, con la opinión del dueño, el hueco de paridad medido (`grep` de doce ajustes en los `index.html`: A, B y C muestran 0 de 12, D los 12) y el criterio "cambio notable respecto de la V1" (15 %). La tabla nueva tiene esa columna y los puntajes revisados: D 4,23 · C 3,79 · A 3,61 · B 3,41, rotulados como hipótesis razonada. Bajan los de paridad de A, B y C por el hueco.*
+- [x] 5b.2 Maqueta D en `borradores/interfaz-v2/maquetas/d/`, en oscuro:
+  - de A: el riel vertical de etapas, la dirección de arte nocturna y la escena protagonista, con la pregunta y la acción principal encima;
+  - de B: una columna fija de ajustes que no tapa la escena, con aire de cuaderno adaptado al oscuro (cuadrícula tenue, términos definidos al margen y secciones "Probá esto", "Más" y "Avanzado");
+  - un modo para plegar el cuaderno y ver la escena a pantalla completa.
+
+  Verificación: se abre sin errores en la consola, y el cuaderno se pliega y se despliega.
+  *Hecho: `borradores/interfaz-v2/maquetas/d/`, oscuro con los tokens de A más una capa de cuaderno. Tiene el riel, la escena protagonista con la pregunta y la acción encima, una banda debajo con la percepción, la acción, los indicadores y la marcha, y el cuaderno fijo a la derecha (cuadrícula tenue, línea de margen, "Probá esto", "Más", "Avanzado", escenario aparte y términos al margen). Medido: 0 errores en la consola; en el navegador, "Plegar cuaderno" pasa la columna de 360 px a 0, la lengüeta la vuelve a abrir y se vuelve a plegar. Pantallas `#plegado` y `#avanzado` para las capturas.*
+- [x] 5b.3 La maqueta D tiene la **paridad completa de ajustes** en sus pantallas, tomada de `analisis/paridad.md`:
+  - El problema;
+  - Reglas a mano, con el editor, la paleta, la percepción, los ejemplos, exportar e importar;
+  - Entrenar con "Avanzado" abierto: capas, neuronas, activación, sensores (rayos, alcance y apertura), fitness, élite, selección, mutación, cruce, duración, eliminar a los lentos, tráfico y la biblioteca;
+  - Competir con la meta, el tráfico de la carrera, la penalización y los competidores;
+  - Inspeccionar con una neurona elegida;
+  - el estado mentor.
+
+  Verificación: un guion lista los ajustes de las filas de paridad de esas pantallas y, para cada uno, si está en la maqueta. Da 0 faltantes, o los faltantes con su motivo.
+  *Hecho: `borradores/interfaz-v2/paridad-d.mjs` cruza los controles reales de cada pestaña de la V1 (266 claves `data-help` medidas en el navegador, en `maquetas/d/inventario-v1.json`) con los `data-v1` de cada pantalla de D, y los asocia a su capacidad de `paridad.md`. Medido: 248 de 248 en D (El problema 25, Reglas a mano 49, Entrenar 73, Competir 33, Inspeccionar 57, barra y riel 11), 0 faltantes y 28 excluidos con su motivo. Al quitar una clave a propósito, el guion la informó. Límite: comprueba el lugar con nombre, no el comportamiento.*
+- [x] 5b.4 Textos en los dos idiomas y tooltips, como en la tarea 4.6. Capturas de D a 1440×900 y 1366×768, con las mismas medidas que la tarea 4.8: escena visible, una sola acción principal, zonas que desplazan y auditorías. Verificación: el índice de capturas de D, y la medida de la escena visible en El problema, que se estimó en un 55 % [Hipótesis].
+  *Hecho: textos de D en `maquetas/comun/textos-d.js` (318 claves y 100 tooltips por idioma en total, las mismas claves en los dos [Medido]). Capturas en `maquetas/capturas/indice-d.md` (16) con las de A al lado, `lado-a-lado.html` y `medidas-d.json`. Medido: escena visible en El problema a 1366×768 del 50,0 % (el lienzo ocupa el 55,6 %; la estimación de 55 % era hipótesis) y del 70,9 % con el cuaderno plegado. Una acción principal o ninguna por pantalla; 0 sin tooltip, sin nombre, objetivos chicos, contraste bajo o textos sin clave en los dos idiomas. Los tooltips de tres controles por pantalla, en tres pantallas, salieron correctos.*
+- [x] 5b.5 Criticar D con `design-skills:design-critique`, sumarla a la comparación con el criterio nuevo y presentársela al dueño, con capturas de D y A lado a lado. Verificación: el mensaje al dueño tiene el enlace de D, las capturas y la comparación actualizada.
+  *Hecho con `design-skills:design-critique`: 12 hallazgos de D en `comparacion.md` §7, 8 corregidos (entre ellos la escena de Reglas, que estaba en el 13,7 %) y 4 que quedan, más la recomendación revisada, rotulada como recomendación: D en lugar de C. La presentación va en el informe final de esta sub-sesión a la sesión principal, con el enlace de D, las capturas de D y A lado a lado y la comparación, y en la nota de la carpeta compartida.*
+
 ## 6. Parada: elección del dueño
 
 - [ ] 6.1 Esperar la elección del dueño (una propuesta, o una mezcla explícita) y anotarla con su fecha y sus palabras en `analisis/comparacion.md`. Verificación: la decisión está anotada; sin ella, no se marca esta tarea ni se empieza el grupo 7.

@@ -187,3 +187,117 @@ Si el dueño valora más la sorpresa visual que el costo, A con el banco de C pa
 ### Modo proyector (pregunta abierta de design.md)
 
 Ninguna maqueta lo implementa. A con la guía oculta es lo más cercano, y la recomendación 2 lo acerca a C. Queda para la decisión del dueño junto con la elección.
+
+## 7. Revisión del dueño y maqueta D (grupo 5b, 19 de noviembre de 2026)
+
+### Lo que dijo el dueño (19 de noviembre de 2026, resumido por la sesión principal)
+
+- **A:** la mejor equilibrada. Le gusta el riel vertical de etapas a la izquierda, porque se ve el recorrido y se entiende que se puede avanzar.
+- **B:** le gusta el diseño de cuaderno y la separación clara entre la simulación y los ajustes.
+- **C:** "no mejora realmente la UI". En la etapa 3 no ve las opciones para modificar la red ni los sensores, y en la 4 no ve la configuración de la meta.
+- **Tema:** no le gusta el tema claro de B y C.
+
+### El hueco de paridad de A, B y C [Medido]
+
+Busqué en los `index.html` de las cuatro maquetas los textos de doce ajustes: rayos, alcance, apertura, activación, neuronas por capa, meta, pistas del entrenamiento, duración máxima, eliminar a los lentos, selección, biblioteca de cerebros y el editor de Reglas a mano. **A, B y C no muestran ninguno de los doce. D muestra los doce.** El hueco era de las tres, no solo de C. Las maquetas del grupo 4 seguían D4 al pie de la letra: armazón y cuatro pantallas, con los ajustes "de muestra". El dueño, con razón, las juzgó como si fueran completas. Los puntajes de paridad de la sección 5 valoraban la capacidad de cada disposición para alojar los ajustes, no lo que la maqueta mostraba. Abajo se corrigen.
+
+### El criterio que faltó: cambio notable respecto de la V1
+
+Lo pidió el dueño desde el principio (proposal: "esperaba un cambio más notable"), y la tabla de la sección 1 no lo tenía. Se suma con un 15 %, y los pesos se redistribuyen. Los puntajes son **[Hipótesis razonada]**; los de paridad de A, B y C bajan por el hueco medido arriba.
+
+| Maqueta | Claridad (20) | Usabilidad (20) | **Cambio notable (15)** | Dos públicos (15) | Paridad (10) | Esfuerzo (5) | Fluidez (7,5) | Accesibilidad (7,5) | Total |
+|---|---|---|---|---|---|---|---|---|---|
+| A · Cabina | 4 | 3,5 | **5** | 4,5 | 1,5 | 2,5 | 2 | 3,5 | **3,61** |
+| B · Cuaderno | 4 | 3 | **3** | 3,5 | 2,5 | 3 | 4 | 4,5 | **3,41** |
+| C · Mesa de trabajo | 4,5 | 4,5 | **1,5** | 4 | 3 | 4,5 | 4 | 4,5 | **3,79** |
+| **D · Cabina con cuaderno** | 4,5 | 4 | **4,5** | 4,5 | 5 | 3 | 3 | 4 | **4,23** |
+
+Motivo del criterio nuevo:
+- **A, 5:** la escena a pantalla completa, los instrumentos encima y el riel de etapas: no se parece a la V1 en nada.
+- **B, 3:** la lectura narrativa es nueva, pero el tema claro y las figuras enmarcadas se leen como un documento con la V1 adentro, y el dueño rechazó el tema claro.
+- **C, 1,5:** dos zonas, como la V1 de hoy en Reglas y Entrenar; el dueño dijo que "no mejora realmente la UI".
+- **D, 4,5:** el riel, la noche de A y la escena al 50 % de la ventana [Medido], contra el 24,7 % de la V1. No llega a 5 porque la columna de ajustes a la derecha se parece, en el plano, al panel de la V1. La diferencia está en lo que contiene y en cómo se pliega.
+
+Motivo de los demás puntajes de D:
+- **Claridad, 4,5:** pregunta y acción encima de la escena, el contrato entra → sale en la banda de abajo, términos definidos al margen con resaltador.
+- **Usabilidad, 4:** el mismo plano en las seis pantallas, el cuaderno siempre a la derecha y la escena sin nada encima salvo la pregunta. En Entrenar el cuaderno es largo: 2419 px de contenido en 673 visibles [Medido] (KD4).
+- **Dos públicos, 4,5:** plegar el cuaderno deja la escena en el 70,9 % de la ventana [Medido], lo más cercano a un modo proyector; la guía se oculta como en las demás.
+- **Paridad, 5:** 248 de 248 controles de la V1 en sus pantallas, verificado con un guion (abajo).
+- **Esfuerzo, 3:** el armazón de A más el cuaderno, y el brillo del dibujo (`src/v2/render/`, D8).
+- **Fluidez, 3:** el lienzo es más chico que en A (unas 2 veces el de la V1, no 3,6) y el desenfoque queda solo detrás de la pregunta; sigue el brillo. Sin medir.
+- **Accesibilidad, 4:** 0 problemas medidos; el único texto sobre vidrio es la pregunta.
+
+### Maqueta D (tareas 5b.2 y 5b.3)
+
+En `borradores/interfaz-v2/maquetas/d/`, con `npm start`, en `/borradores/interfaz-v2/maquetas/d/index.html`. Pantallas: `#armazon`, `#problema`, `#reglas`, `#entrenar`, `#avanzado` (Entrenar con el cuaderno en "Red y sensores", como lo dejaría "Mostrame"), `#entender`, `#mentor` (Evaluar con la guía oculta) y `#plegado` (El problema con el cuaderno plegado).
+
+| Eje | D · Cabina con cuaderno |
+|---|---|
+| Disposición | Tres zonas fijas: riel, escena protagonista con una banda debajo (percepción, acción, indicadores y marcha) y cuaderno a la derecha. La pregunta y la acción principal flotan sobre la escena, como en A. Nada más la tapa. |
+| Navegación | El riel vertical de A, con "Por gradiente" como sub-paso de Aprender. |
+| Ajustes | El cuaderno de B en oscuro: cuadrícula tenue, línea de margen rosa, títulos en Iowan Old Style, "Probá esto", "Más" y "Avanzado", el escenario compartido aparte y los términos definidos al margen. Se pliega con "Plegar cuaderno" y se abre con la lengüeta. |
+| Dirección de arte | La noche de A (sus tokens, más una capa de cuaderno: `--color-cuaderno`, `--color-cuaderno-linea`, `--color-termino`). |
+
+**Verificación de 5b.2** [Medido]:
+- 0 errores en la consola en las 16 capturas.
+- En el navegador: "Plegar cuaderno" pasa la columna de 360 px a 0, la lengüeta la vuelve a abrir, y se vuelve a plegar.
+- Las 41 variables de los pintores están definidas (los tokens de A, sin quitar ninguna).
+
+**Verificación de 5b.3** [Medido]: `borradores/interfaz-v2/paridad-d.mjs` toma, para cada pestaña de la V1, sus controles reales: 266 claves `data-help` medidas en el navegador a 1440×900, con Entrenar en sus tres vistas e Inspeccionar en pausa con una neurona elegida (`maquetas/d/inventario-v1.json`). Busca cada clave en el atributo `data-v1` de un control de la pantalla equivalente de D y asocia cada una a su capacidad de `paridad.md`. Resultado: **248 de 248 controles de la V1 están en D; 0 faltantes; 28 excluidos con su motivo** (rótulos de rol, el diálogo de créditos, la pantalla de falla, el aviso de destellos, y el ancho de las zonas, que `paridad.md` propone quitar). Se probó que el guion falla: al quitar a propósito `compete.penalty`, informó el faltante.
+
+| Pantalla de D | Pestaña de la V1 | Controles de la V1 en D |
+|---|---|---|
+| El problema | El problema | 25 de 25 |
+| Reglas a mano | Reglas a mano (editor, fichas, paleta, percepción con "+", ejemplos, exportar, importar, cuaderno de casos) | 49 de 49 |
+| Aprender | Entrenar (capas, neuronas, activación, rayos, alcance, apertura, fitness, élite, selección, mutación, cruce, duración, lentos, tráfico, pistas y biblioteca) | 73 de 73 |
+| Evaluar (mentor) | Competir (meta, tráfico de la carrera, penalización, competidores) | 33 de 33 |
+| Entender | Inspeccionar con una neurona elegida | 57 de 57 |
+| Barra y riel | Comunes | 11 de 11 |
+
+Límite de esta verificación: comprueba que cada control de la V1 tiene un lugar con nombre en D, no que se comporte igual (D es una maqueta estática). Cuando un control se repite por fila (por ejemplo, el "+" de cada sensor o el apagado de cada conexión), se marca una sola fila.
+
+### Medidas de D (tarea 5b.4) [Medido]
+
+Capturas: `borradores/interfaz-v2/maquetas/capturas/indice-d.md` (16: 8 pantallas × 2 tamaños), con las de A al lado, y `lado-a-lado.html` para verlas en el navegador. Medidas en `medidas-d.json`.
+
+| Pantalla, a 1366×768 | D: escena visible | A | V1 (área del lienzo) |
+|---|---|---|---|
+| El problema | **50,0 %** (lienzo 55,6 %) | 70,8 % | 24,7 % |
+| El problema, cuaderno plegado | **70,9 %** | — | — |
+| Reglas a mano | 24,8 % | — (no está en A) | 14,5 % |
+| Aprender | 31,9 % | 41,7 % | 17,5 % |
+| Entender (red) | 47,3 % | 61,5 % (escena y red) | red 599×420 |
+| Evaluar, mentor | 46,1 % | 72,4 % | 24,7 % |
+
+La estimación de 55 % para El problema era **[Hipótesis]**: el lienzo ocupa el 55,6 %, y lo visible queda en el 50,0 %, porque la pregunta flota encima.
+
+En las 16 capturas: una sola acción principal, o ninguna donde se destaca la manipulación (El problema, Reglas a mano, plegado). Además, 0 controles sin tooltip, 0 sin nombre accesible, 0 objetivos de menos de 24 px, 0 textos bajo 4,5:1, 0 textos fuera de los diccionarios en español y en inglés, y 0 líneas que no cambian al pasar a inglés. La página no desplaza en ninguna pantalla; lo único que desplaza es el cuaderno (en El problema, 719 px en 673; en Entrenar, 2419 en 673; en Entender, 925 en 673). Tooltips al posar el cursor en tres controles por pantalla en Reglas, Avanzado y Evaluar: los nueve muestran el suyo.
+
+### Crítica de D (tarea 5b.5, `design-skills:design-critique`)
+
+| # | Hallazgo | Principio | Estado |
+|---|---|---|---|
+| KD1 | En Reglas a mano, la escena quedaba en el 13,7 % de la ventana, como en la V1: la percepción ocupaba la columna de la escena. | Principio 2; cambio notable | **corregido**: la percepción pasa compacta arriba del programa, y la escena tiene toda la altura (24,8 % visible). |
+| KD2 | Los botones "5", "3" y "1" del filtro de conexiones medían menos de 24 px de ancho. | WCAG 2.5.8 | **corregido**: 28 px. |
+| KD3 | El aviso "Restableciste el programa · Deshacer" tapaba la marcha de Reglas. | H8 | **corregido**: va en el cuaderno, junto a "Restablecer programa", que es lo que lo dispara. |
+| KD4 | En Entrenar, "Avanzado" está abierto pero queda debajo del pliegue del cuaderno; es justo lo que el dueño no veía en C. | H6; queja del dueño | **corregido en parte**: "Mostrame" y la vista `#avanzado` llevan al lugar. **Queda** que el cuaderno de Entrenar es largo (2419 px). En la fase 3, "Avanzado" podría dividirse en sus tres grupos (Evolución, Generación, Red y sensores) con un índice arriba. |
+| KD5 | Los botones de cámara salían en columna (el indicio de ayuda pisaba el `display`). | Visual | **corregido**. |
+| KD6 | En Entrenar, la red del líder y la curva al costado dejaban la escena angosta y tapada por la pregunta. | Principio 2 | **corregido**: van en una franja debajo de la escena. **Queda** que la pregunta y el corte de generación tapan parte de la escena (31,9 % visible). |
+| KD7 | El rótulo "de esta etapa" salía en letra de título dentro del cuaderno. | Visual | **corregido**. |
+| KD8 | En Entender, la red se dibujaba chica por los márgenes que dejaban lugar a la pregunta y a la viñeta. | Principio 2 | **corregido**: 47,3 % visible. |
+| KD9 | El amarillo de la acción y el de la élite son el mismo tono (heredado de A, K18). | "Un color, un significado" | **queda**: decidir en la fase 3. |
+| KD10 | El brillo en rayos y faros necesita un dibujo propio y medir la fluidez. | D8, Art. 10 | **queda**: sin medir. |
+| KD11 | En Evaluar (mentor), los autos están en carrera y la acción principal dice "Largar". Es una incoherencia de la maqueta estática. | H1 | **queda**: cosmético, de la maqueta. |
+| KD12 | "Por gradiente" (el Laboratorio) es un enlace en el riel y no tiene pantalla en D. | Alcance de 5b.3 | **queda**: 5b.3 no lo pide. |
+
+### Recomendación revisada (tarea 5b.5)
+
+> **Recomendación, no decisión.** La elección es del dueño (tarea 6.1).
+
+**Lo medido:** D es la única maqueta que muestra todos los ajustes de la V1 en sus pantallas (248 de 248). Duplica la escena de la V1 en El problema (50,0 % visible contra 24,7 % de área) y llega al 70,9 % con el cuaderno plegado. Pasa las mismas auditorías que las otras tres, y nada flota sobre la escena salvo la pregunta y la acción. Eso resuelve K12 y K13 de A.
+
+**Lo opinado:** con el criterio de cambio notable y la opinión del dueño, recomiendo **D** en lugar de C. Toma lo que el dueño valoró de A (el riel, la noche, la escena protagonista) y de B (el cuaderno separado de la simulación). La consistencia de C ya está en D: la columna del cuaderno ocupa el mismo lugar en todas las etapas. Para la fase 3 quedarían:
+1. dividir el "Avanzado" largo de Entrenar en sus grupos con un índice (KD4);
+2. otro tono para la élite (KD9);
+3. medir la fluidez del brillo antes de adoptarlo (KD10), y si no alcanza, el dibujo plano de los pintores de la V1 con los tokens de D;
+4. el modo plegado como base del `modo-proyector` pendiente.
