@@ -196,3 +196,80 @@ test('un clic con un temblor del mouse no es un paneo; un arrastre real sí', ()
   assert.equal(panStarts(6, 0), true);
   assert.equal(panStarts(0, -8), true);
 });
+
+// --- Paneo que sigue al auto (bienvenida-y-primer-manejo D1) ----------------------------------
+
+test('paneo siguiendo al auto: un arrastre de 100 px corre al auto 100 px y la cámara lo sigue', () => {
+  const cam = createCamera();
+  const car = { x: 0, y: 0 };
+  cam.update(car, vp);
+  const before = cam.worldToScreen(car, vp);
+  cam.pan(100, 0, vp, car);
+  assert.equal(cam.following, true);
+  close(cam.worldToScreen(car, vp), { x: before.x + 100, y: before.y }, 'el auto se corre con el arrastre');
+  close(cam.anchor, { x: (before.x + 100) / vp.width, y: before.y / vp.height }, 'nuevo punto de seguimiento');
+});
+
+test('paneo siguiendo al auto: después del arrastre, el auto se queda en ese lugar mientras avanza', () => {
+  const cam = vertical();
+  const car = { x: 0, y: 0 };
+  cam.update(car, vp);
+  cam.pan(100, -50, vp, car);
+  const spot = cam.worldToScreen(car, vp);
+  for (const x of [20, 80, 300]) {
+    const moved = { x, y: 1 };
+    cam.update(moved, vp);
+    close(cam.worldToScreen(moved, vp), spot, `auto en x = ${x}`);
+  }
+});
+
+test('paneo siguiendo al auto: si lo saca de la pantalla, deja de seguirlo', () => {
+  const cam = createCamera();
+  const car = { x: 0, y: 0 };
+  cam.update(car, vp);
+  cam.pan(-0.3 * vp.width - 1, 0, vp, car);
+  assert.equal(cam.following, false);
+  const center = cam.center;
+  cam.update({ x: 50, y: 0 }, vp);
+  assert.deepEqual(cam.center, center);
+});
+
+test('paneo con el circuito entero a la vista: deja la cámara libre', () => {
+  const cam = createCamera();
+  cam.setFit({ zoom: 1, center: { x: 10, y: 20 } });
+  while (cam.zoomBy(0.5, vp)) { /* alejar hasta el mínimo */ }
+  const car = { x: 0, y: 0 };
+  cam.update(car, vp);
+  cam.pan(20, 0, vp, car);
+  assert.equal(cam.following, false);
+});
+
+test('paneo siguiendo al auto: restablecer y reiniciar vuelven al punto de siempre', () => {
+  const cam = vertical();
+  const car = { x: 42, y: -3 };
+  cam.update(car, vp);
+  cam.pan(80, 40, vp, car);
+  cam.reset();
+  cam.update(car, vp);
+  close(cam.worldToScreen(car, vp), { x: VERTICAL_ANCHOR.x * vp.width, y: VERTICAL_ANCHOR.y * vp.height }, 'tras restablecer');
+  cam.pan(-60, 10, vp, car);
+  assert.equal(cam.following, true);
+  cam.follow();
+  cam.update(car, vp);
+  close(cam.worldToScreen(car, vp), { x: VERTICAL_ANCHOR.x * vp.width, y: VERTICAL_ANCHOR.y * vp.height }, 'tras reiniciar');
+});
+
+test('paneo siguiendo al auto: la misma secuencia de arrastres da el mismo lugar del auto', () => {
+  const run = () => {
+    const cam = vertical();
+    let car = { x: 0, y: 0 };
+    cam.update(car, vp);
+    for (const [dx, dy] of [[12, 3], [40, -7], [-5, 22], [9, 9]]) {
+      car = { x: car.x + 3, y: car.y };
+      cam.update(car, vp);
+      cam.pan(dx, dy, vp, car);
+    }
+    return cam.anchor;
+  };
+  assert.deepEqual(run(), run());
+});

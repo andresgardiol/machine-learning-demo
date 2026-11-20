@@ -162,7 +162,33 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
       attrs: { href: COURSE_URL, target: '_blank', rel: 'noopener noreferrer' },
     })),
     el('p', { class: 'muted', i18n: 'credits.note' }),
-    el('button', { class: 'tool', i18n: 'credits.close', help: 'credits.close', attrs: { type: 'button' }, on: { click: () => credits.close() } }));
+    el('div', { class: 'dialog-actions' },
+      el('button', { class: 'tool', i18n: 'credits.close', help: 'credits.close', attrs: { type: 'button' }, on: { click: () => credits.close() } }),
+      // Vuelve a abrir la bienvenida (bienvenida-y-primer-manejo D4): no toca la marca de vista.
+      el('button', {
+        class: 'link-button', i18n: 'credits.welcome', help: 'credits.welcome',
+        attrs: { type: 'button', 'aria-haspopup': 'dialog' }, on: { click: () => { credits.close(); openWelcome(); } },
+      })));
+
+  // --- Bienvenida (bienvenida-y-primer-manejo D4) ------------------------------------
+  // Dice qué es la aplicación y por dónde empezar. Sale sola en la primera visita, sobre El problema ya listo;
+  // cualquier cierre (la acción principal, la cruz o Escape) la marca como vista.
+  const welcomeGo = el('button', {
+    class: 'tool primary', i18n: 'welcome.go', help: 'welcome.go',
+    attrs: { type: 'button', autofocus: '' }, on: { click: () => startDriving() },
+  });
+  const welcome = el('dialog', { class: 'welcome', attrs: { 'aria-labelledby': 'welcome-title' } },
+    el('div', { class: 'welcome-head' },
+      el('h2', { i18n: 'welcome.title', attrs: { id: 'welcome-title' } }),
+      el('button', {
+        class: 'tool welcome-close', help: 'welcome.close', i18nAttr: 'aria-label:welcome.close.label',
+        attrs: { type: 'button' }, on: { click: () => welcome.close() },
+      }, el('span', { attrs: { 'aria-hidden': 'true' } }, '×'))),
+    el('p', { i18n: 'welcome.what' }),
+    el('p', { i18n: 'welcome.start' }),
+    el('p', { class: 'muted', i18n: 'welcome.next' }),
+    el('div', { class: 'dialog-actions' }, welcomeGo));
+  welcome.addEventListener('close', () => { preferences.welcomed = true; });
 
   // --- Aviso de ventana angosta ---------------------------------------------
   const narrow = el('div', { class: 'narrow-notice', attrs: { role: 'status' } },
@@ -181,7 +207,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
       restartButton));
   errorBox.hidden = true;
 
-  const shell = el('div', { class: 'app' }, header, barZone, workspace, narrow, credits, errorBox);
+  const shell = el('div', { class: 'app' }, header, barZone, workspace, narrow, credits, welcome, errorBox);
   root.replaceChildren(shell);
 
   // --- Anchos de las zonas (design.md D2 y D3) ----------------------------------------
@@ -360,6 +386,17 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
     if (!credits.open) credits.showModal();
   }
 
+  function openWelcome() {
+    if (!welcome.open) welcome.showModal();
+  }
+
+  /** "Empezar a manejar": cierra la bienvenida, deja El problema a la vista y el foco en el escenario. */
+  function startDriving() {
+    welcome.close();
+    openTab('drive');
+    stage.focus({ preventScroll: true });
+  }
+
   const ctxFor = () => ({ stage, board, panel, bar: barZone, i18n, store, library, preferences, reportError });
 
   function mount(id) {
@@ -434,9 +471,11 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   render();
   i18n.translateTree(shell);
   if (store.get().activeTab) safely(() => mount(store.get().activeTab));
+  // Primera visita: la bienvenida, encima de la primera pestaña ya lista. Sin almacenamiento, sale en cada visita.
+  if (!preferences.welcomed && !failed) openWelcome();
 
   return {
-    store, stage, board, panel, bar: barZone, library, openTab, layout, reportError, restartTab,
+    store, stage, board, panel, bar: barZone, library, openTab, layout, reportError, restartTab, openWelcome, welcome,
     get activeTab() { return active?.id ?? null; },
     get instance() { return active?.instance ?? null; },
   };

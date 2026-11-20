@@ -2,7 +2,7 @@
 // de la pestaña Reglas a mano y su vista, y paisaje). Toda lectura y escritura
 // va dentro de un bloque que tolera que el almacenamiento no exista o falle.
 
-const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', hints: 'mlLab.hints', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', inspectStageWidth: 'mlLab.inspect.stageWidth', netLeftWidth: 'mlLab.net.leftWidth', rulesStageWidth: 'mlLab.rules.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', rulesView: 'mlLab.rules.programView', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts' });
+const KEYS = Object.freeze({ language: 'mlLab.language', guide: 'mlLab.guide', hints: 'mlLab.hints', panelWidth: 'mlLab.panelWidth', stageWidth: 'mlLab.stageWidth', inspectStageWidth: 'mlLab.inspect.stageWidth', netLeftWidth: 'mlLab.net.leftWidth', rulesStageWidth: 'mlLab.rules.stageWidth', carSpeed: 'mlLab.carSpeed', rulesProgram: 'mlLab.rules.program', rulesSensors: 'mlLab.rules.sensors', rulesView: 'mlLab.rules.programView', scenery: 'mlLab.scenery', shortcuts: 'mlLab.shortcuts', welcomed: 'mlLab.welcomed' });
 
 /** Atajos de una tecla encendidos por defecto (panel-de-entrenar-por-vistas D9). */
 export const DEFAULT_SHORTCUTS = true;
@@ -69,6 +69,12 @@ export function createPreferences(getStorage = defaultStorage) {
       return v === 'off' ? false : v === 'on' ? true : DEFAULT_SHORTCUTS;
     },
     set shortcuts(value) { write(KEYS.shortcuts, value ? 'on' : 'off'); },
+    /**
+     * ¿Ya se cerró la ventana de bienvenida en este navegador? (bienvenida-y-primer-manejo D4) Falso por
+     * defecto y sin almacenamiento: entonces la ventana vuelve en cada visita.
+     */
+    get welcomed() { return read(KEYS.welcomed) === 'yes'; },
+    set welcomed(value) { write(KEYS.welcomed, value ? 'yes' : 'no'); },
     /** Ancho del panel derecho en píxeles, o null si no se guardó uno válido. */
     get panelWidth() {
       const v = Number.parseInt(read(KEYS.panelWidth) ?? '', 10);

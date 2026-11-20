@@ -55,6 +55,23 @@ export function ownsArrowKeys(target) {
 }
 
 /**
+ * ¿El objetivo está dentro de un diálogo (la bienvenida, los créditos)? Con un diálogo abierto, las
+ * flechas no manejan el auto (bienvenida-y-primer-manejo D5). Mismo selector que ui/shortcuts.js.
+ */
+export function insideDialog(target) {
+  if (typeof target?.closest === 'function' && target.closest('dialog, [role="alertdialog"]')) return true;
+  // Con un diálogo modal abierto, aunque el foco haya quedado fuera de él (un clic sobre su texto lo deja en
+  // el cuerpo de la página), el resto de la página está inerte: las teclas tampoco manejan.
+  const doc = target?.ownerDocument ?? (target?.nodeType === 9 ? target : null);
+  if (typeof doc?.querySelector !== 'function') return false;
+  try {
+    return Boolean(doc.querySelector('dialog:modal'));
+  } catch {
+    return Boolean(doc.querySelector('dialog[open]')); // navegador sin :modal
+  }
+}
+
+/**
  * @param {{target?: EventTarget, doc?: EventTarget & {hidden?: boolean}, accepts?: (e: KeyboardEvent) => boolean}} [spec]
  *   target: donde se escuchan las teclas y la pérdida de foco (la ventana)
  *   accepts: filtro propio de la pestaña: con false, la tecla no maneja (por ejemplo, con el foco en
@@ -67,7 +84,7 @@ export function createKeyboardController({ target = globalThis.window, doc = glo
     const action = KEY_BINDINGS[e.code];
     if (!action || e.ctrlKey || e.metaKey || e.altKey) return;
     if (!keyAllowed(e.code)) return; // W A S D, apagadas con los atajos; las flechas siguen
-    if (isTypingTarget(e.target) || ownsArrowKeys(e.target)) return;
+    if (isTypingTarget(e.target) || ownsArrowKeys(e.target) || insideDialog(e.target)) return;
     if (accepts && !accepts(e)) return;
     pressed.add(e.code);
     if (e.code.startsWith('Arrow')) e.preventDefault(); // que las flechas no desplacen la página

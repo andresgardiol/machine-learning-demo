@@ -276,7 +276,11 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     if (dx === 0 && dy === 0) return;
     drag.x = e.clientX;
     drag.y = e.clientY;
-    camera.pan(dx, dy);
+    // Con el auto seguido, el arrastre corre su lugar en la pantalla y la cámara lo sigue desde ahí
+    // (bienvenida-y-primer-manejo D1). La escena chica vuelve a centrar al auto en cada cuadro: ahí el paneo
+    // queda como antes.
+    if (small) camera.pan(dx, dy);
+    else camera.pan(dx, dy, viewport, lastTarget);
     syncFollowIndicator();
   }
   function onPointerUp(e) {

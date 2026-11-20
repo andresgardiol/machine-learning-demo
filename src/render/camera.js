@@ -155,11 +155,27 @@ export function createCamera(options = {}) {
     return zoomAt(s, factor, vp, target);
   }
 
-  /** Desplaza el encuadre según un arrastre en píxeles de pantalla y deja de seguir al auto. */
-  function pan(dx, dy) {
+  /** ¿Está el circuito entero a la vista? (zoom al mínimo con encuadre, siguiendo al auto) */
+  const showsWholeTrack = () => Boolean(frameCenter) && zoom <= cfg.minZoom * (1 + 1e-9);
+
+  /**
+   * Desplaza el encuadre según un arrastre en píxeles de pantalla (bienvenida-y-primer-manejo D1).
+   * Con el auto seguido (`vp` y `target`), corre su lugar en la pantalla, como `zoomAt`, y lo sigue desde
+   * ahí; si quedaría fuera de la pantalla, deja de seguirlo. Sin auto, o con el circuito entero a la
+   * vista, deja la cámara libre (el diagrama de la red y el centrado por teclado usan esta forma).
+   */
+  function pan(dx, dy, vp = null, target = null) {
+    const whole = showsWholeTrack();
     const d = unturn({ x: dx / zoom, y: -dy / zoom });
     center = { x: center.x - d.x, y: center.y - d.y };
-    following = false;
+    if (!following || !vp || !target || whole) {
+      following = false;
+      return;
+    }
+    const t = worldToScreen(target, vp);
+    const a = { x: t.x / vp.width, y: t.y / vp.height };
+    if (a.x < 0 || a.x > 1 || a.y < 0 || a.y > 1) following = false;
+    else anchor = a;
   }
 
   /** Restablecer la vista: vuelve a seguir al auto con el zoom por defecto. */

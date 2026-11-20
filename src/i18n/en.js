@@ -33,6 +33,14 @@ export default {
   'credits.link': 'See the course (opens in a new tab)',
   'credits.note': 'This lab is an independent project that builds on that idea to teach machine learning.',
   'credits.close': 'Close',
+  'credits.welcome': 'See the welcome',
+  // Welcome window (bienvenida-y-primer-manejo D4)
+  'welcome.title': 'Welcome',
+  'welcome.what': 'This lab teaches machine learning with a little car: first you drive it, then you teach a machine to drive it.',
+  'welcome.start': 'Start with The problem: drive with the arrow keys (↑ goes forward, ← → turn) through the traffic without crashing. The traffic waits for your first key.',
+  'welcome.next': 'The next tabs, in order, show how a machine learns to do the same.',
+  'welcome.go': 'Start driving',
+  'welcome.close.label': 'Close the welcome',
 
   // Narrow window notice
   'narrow.title': 'Designed for desktop computers',
@@ -65,6 +73,12 @@ export default {
   'help.credits.link.why': 'If you want to build this car yourself step by step, that course explains it from scratch.',
   'help.credits.close.what': 'Closes the credits.',
   'help.credits.close.why': 'Takes you back to the tab exactly as it was.',
+  'help.credits.welcome.what': 'Closes the credits and opens the welcome window again.',
+  'help.credits.welcome.why': 'It says where to start, in case you closed it without reading it.',
+  'help.welcome.go.what': 'Closes the welcome and leaves The problem ready to drive with the arrow keys.',
+  'help.welcome.go.why': 'Driving it yourself first shows what a machine has to solve: perceive and decide.',
+  'help.welcome.close.what': 'Closes the welcome without changing anything. Escape closes it too.',
+  'help.welcome.close.why': 'It does not come back on its own; you can open it again from the credits.',
 
   // Inline confirmation (src/ui/controls.js)
   'confirm.ok': 'Confirm',
@@ -104,7 +118,7 @@ export default {
   'drive.view.title': 'View',
   'drive.perception.hint': 'One bar per ray, left to right: the taller, the closer the obstacle. The last one is the speed.',
   'drive.action.hint': 'These four actions are the output of the problem: yes or no, at every instant.',
-  'drive.guide.what': 'This is your car (green) on a {lanes}-lane street with other vehicles. The blue rays are its sensors: they measure the distance to an obstacle. Drive without crashing and watch the board: those numbers are all a machine would get.',
+  'drive.guide.what': 'This is your car (green) on a {lanes}-lane street with other vehicles. Its sensors are rays that measure the distance to an obstacle. Drive without crashing and watch the board: those numbers are all a machine would get.',
 
   'drive.restart': 'Restart (R)',
   'drive.newTraffic': 'New traffic',
@@ -125,7 +139,7 @@ export default {
   'drive.value.carLengths.one': '{value} car length',
   'drive.value.degrees': '{value}°',
 
-  'drive.guide.what.circuit': 'Your car (green) is on the “{track}” track, with no traffic. The blue rays are its sensors: they measure the distance to the edge. Drive without leaving the track and watch the board: those numbers are all a machine would get.',
+  'drive.guide.what.circuit': 'Your car (green) is on the “{track}” track, with no traffic. Its sensors are rays that measure the distance to the edge. Drive without leaving the track and watch the board: those numbers are all a machine would get.',
   'drive.stats.laps': 'Laps',
   'drive.value.laps': '{value}',
   'drive.missions.circuit': 'Missions belong to the straight street: choose it to see them.',

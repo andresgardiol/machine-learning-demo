@@ -179,3 +179,20 @@ test('vista del programa de Reglas a mano (reglas-como-fichas D4): fichas por de
   assert.doesNotThrow(() => { failing.rulesView = 'text'; });
   assert.equal(failing.rulesView, 'cards');
 });
+
+test('bienvenida: falsa por defecto, verdadera después de cerrarla, con la clave mlLab.welcomed', () => {
+  const storage = memoryStorage();
+  const prefs = createPreferences(() => storage);
+  assert.equal(prefs.welcomed, false);
+  prefs.welcomed = true;
+  assert.equal(storage.getItem('mlLab.welcomed'), 'yes');
+  assert.equal(createPreferences(() => storage).welcomed, true, 'se recuerda en la visita siguiente');
+});
+
+test('bienvenida con un almacenamiento que falla o no existe: falsa sin error', () => {
+  for (const getStorage of [failingStorage, () => { throw new Error('SecurityError'); }, () => undefined]) {
+    const prefs = createPreferences(getStorage);
+    assert.doesNotThrow(() => { prefs.welcomed = true; });
+    assert.equal(prefs.welcomed, false);
+  }
+});

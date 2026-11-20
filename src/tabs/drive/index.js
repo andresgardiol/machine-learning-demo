@@ -9,7 +9,7 @@
 // barras de percepción, los cuatro controles y la barra de escenario son piezas compartidas con la
 // pestaña Reglas a mano (tabs/shared/, design.md D5).
 import { createWorld } from '../../core/world.js';
-import { createKeyboardController, KEY_BINDINGS, keyAllowed, isTypingTarget } from '../../input/keyboard.js';
+import { createKeyboardController } from '../../input/keyboard.js';
 import { createStageView } from '../../render/view.js';
 import { createLoop } from '../../ui/loop.js';
 import { el } from '../../ui/dom.js';
@@ -33,6 +33,7 @@ import {
 } from './settings.js';
 import { shortcutFor } from './shortcuts.js';
 import { createTape, tapeColumns, tapeRows, TAPE_ACTIONS } from './tape.js';
+import { createAttemptGate, startsAttempt } from './attempt.js';
 
 export const DEFAULT_SEED = 1;
 
@@ -53,7 +54,8 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   let world = makeWorld();
   const session = createDriveSession({ completed: completedMissions });
   const view = createStageView({ container: stage, store });
-  const options = { showSensors: true, machineView: false };
+  // Los rayos arrancan ocultos: primero se ve la calle (bienvenida-y-primer-manejo D3). No se recuerda entre visitas.
+  const options = { showSensors: false, machineView: false };
   // Descripción en texto del escenario, para lectores de pantalla (panel-de-entrenar-por-vistas D9).
   const description = stageDescription({ stage });
 
@@ -71,7 +73,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
       world.reset();
     }
     tape.clear(); // reiniciar vacía la cinta (manejo-amable D2)
-    tapeStarted = false;
+    attempt.reset(); // el intento nuevo espera quieto la primera tecla de manejo (bienvenida-y-primer-manejo D2)
     tapeVersion += 1;
     session.restart({ countAttempt });
     view.followCar();
@@ -179,7 +181,9 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   // cuadro por columna. Se queda con el alto que deja la acción. La línea que dice qué es, con la guía.
   const tape = createTape();
   let tapeVersion = 0;
-  let tapeStarted = false; // la cinta empieza con la primera tecla de manejo del intento: antes, el auto espera quieto
+  // El intento (y con él la cinta) arranca con la primera tecla de manejo: antes, el auto, el tráfico y el reloj
+  // esperan quietos (bienvenida-y-primer-manejo D2).
+  const attempt = createAttemptGate();
   const tapeCanvas = el('canvas', { class: 'drive-tape-canvas', attrs: { role: 'img' }, i18nAttr: 'aria-label:drive.tape.label' });
   const tapeBox = el('div', { class: 'drive-tape' }, tapeCanvas);
   const tapeCard = boardCard({
@@ -319,9 +323,11 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   const howto = el('div', { class: 'guide start-layer drive-howto-layer' },
     el('div', { class: 'start-card drive-howto', attrs: { role: 'note' } }, el('p', { class: 'start-card-text', i18n: 'drive.howto' })));
   stage.append(howto);
+  // La primera tecla de manejo arranca el intento en el `keydown`, antes del próximo paso del bucle: el auto, el
+  // tráfico y el reloj arrancan en el mismo cuadro. También apaga el cartel.
   function onDrivingKey(e) {
-    if (howto.hidden || !KEY_BINDINGS[e.code] || e.ctrlKey || e.metaKey || e.altKey) return;
-    if (!keyAllowed(e.code) || isTypingTarget(e.target)) return;
+    if (!startsAttempt(e)) return;
+    attempt.start();
     howto.hidden = true;
   }
   window.addEventListener('keydown', onDrivingKey);
@@ -393,14 +399,9 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   const loop = createLoop({
     step: () => {
       // La cinta guarda lo que se percibía antes del paso y lo que el controlador devolvió en él (manejo-amable D2).
-      const before = world.steps;
+      // Antes de la primera tecla de manejo del intento, el mundo no avanza.
       const perception = world.perception;
-      world.step();
-      if (world.steps !== before) {
-        const c = keyboard.control(); // lo que devolvió el controlador en este paso (lo apretado)
-        if (!tapeStarted && (c.forward || c.reverse || c.left || c.right || world.car.speed !== 0)) tapeStarted = true;
-      }
-      if (world.steps !== before && tapeStarted) {
+      if (attempt.advance(world)) {
         tape.push({ sensors: perception.sensors, speed: perception.speed, controls: keyboard.control() });
         if (world.crashed) tape.freeze();
         tapeVersion += 1;
@@ -459,7 +460,7 @@ export function mount({ stage, board, panel, bar, i18n, store, reportError }) {
   focusStage();
 
   return {
-    view, options, loop, session, tape,
+    view, options, loop, session, tape, attempt,
     get world() { return world; },
     get settings() { return { ...settings }; },
     get seed() { return seed; },

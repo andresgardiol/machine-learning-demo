@@ -33,6 +33,14 @@ export default {
   'credits.link': 'Ver el curso (se abre en otra pestaña)',
   'credits.note': 'Este laboratorio es un proyecto independiente que toma esa idea para enseñar machine learning.',
   'credits.close': 'Cerrar',
+  'credits.welcome': 'Ver la bienvenida',
+  // Ventana de bienvenida (bienvenida-y-primer-manejo D4)
+  'welcome.title': 'Te damos la bienvenida',
+  'welcome.what': 'Este laboratorio enseña machine learning con un autito: primero lo manejás vos y después le enseñás a una máquina a manejarlo.',
+  'welcome.start': 'Empezá por El problema: manejá con las flechas (↑ avanza, ← → doblan) entre el tráfico, sin chocar. El tráfico espera tu primera tecla.',
+  'welcome.next': 'Las pestañas siguientes, en orden, muestran cómo una máquina aprende a hacer lo mismo.',
+  'welcome.go': 'Empezar a manejar',
+  'welcome.close.label': 'Cerrar la bienvenida',
 
   // Aviso de ventana angosta
   'narrow.title': 'Pensado para computadoras de escritorio',
@@ -65,6 +73,12 @@ export default {
   'help.credits.link.why': 'Si querés construir este auto vos mismo paso a paso, ese curso lo explica desde cero.',
   'help.credits.close.what': 'Cierra los créditos.',
   'help.credits.close.why': 'Vuelve a la pestaña tal como estaba.',
+  'help.credits.welcome.what': 'Cierra los créditos y vuelve a abrir la ventana de bienvenida.',
+  'help.credits.welcome.why': 'Dice por dónde empezar, por si la cerraste sin leerla.',
+  'help.welcome.go.what': 'Cierra la bienvenida y deja el escenario de El problema listo para manejar con las flechas.',
+  'help.welcome.go.why': 'Manejar vos primero muestra qué tiene que resolver una máquina: percibir y decidir.',
+  'help.welcome.close.what': 'Cierra la bienvenida sin cambiar nada. También se cierra con Escape.',
+  'help.welcome.close.why': 'No vuelve a aparecer sola; se puede abrir otra vez desde los créditos.',
 
   // Confirmación en línea (src/ui/controls.js)
   'confirm.ok': 'Confirmar',
@@ -104,7 +118,7 @@ export default {
   'drive.view.title': 'Vista',
   'drive.perception.hint': 'Una barra por rayo, de izquierda a derecha: más alta, más cerca el obstáculo. La última es la velocidad.',
   'drive.action.hint': 'Estas cuatro acciones son la salida del problema: sí o no, en cada instante.',
-  'drive.guide.what': 'Este es tu auto (verde) en una calle de {lanes} carriles con otros vehículos. Los rayos azules son sus sensores: miden la distancia a un obstáculo. Avanzá sin chocar y mirá el tablero: esos números son todo lo que tendría una máquina.',
+  'drive.guide.what': 'Este es tu auto (verde) en una calle de {lanes} carriles con otros vehículos. Sus sensores son rayos que miden la distancia a un obstáculo. Avanzá sin chocar y mirá el tablero: esos números son todo lo que tendría una máquina.',
 
   'drive.restart': 'Reiniciar (R)',
   'drive.newTraffic': 'Tráfico nuevo',
@@ -125,7 +139,7 @@ export default {
   'drive.value.carLengths.one': '{value} largo de auto',
   'drive.value.degrees': '{value}°',
 
-  'drive.guide.what.circuit': 'Este es tu auto (verde) en la pista «{track}», sin tráfico. Los rayos azules son sus sensores: miden la distancia al borde. Avanzá sin salirte y mirá el tablero: esos números son todo lo que tendría una máquina.',
+  'drive.guide.what.circuit': 'Este es tu auto (verde) en la pista «{track}», sin tráfico. Sus sensores son rayos que miden la distancia al borde. Avanzá sin salirte y mirá el tablero: esos números son todo lo que tendría una máquina.',
   'drive.stats.laps': 'Vueltas',
   'drive.value.laps': '{value}',
   'drive.missions.circuit': 'Las misiones son de la calle recta: elegila para verlas.',

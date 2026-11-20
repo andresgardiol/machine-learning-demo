@@ -338,6 +338,19 @@ rayos tampoco pasa sobre el auto. Lo que quedó:
   atención que el auto propio. Se consultó sin retocar.
 - En la V2, el botón junto a «Entradas a mano» de Entender se ve vacío. Es anterior a este cambio.
 
+El 20 de noviembre de 2026, `bienvenida-y-primer-manejo` (los tres pedidos del dueño de ese día): arrastrar el
+escenario corre el lugar del auto en la pantalla y la cámara lo sigue desde ahí (deja de seguirlo solo si el auto
+saldría de la pantalla o con el circuito entero a la vista); en El problema, el auto, el tráfico y el reloj esperan
+la primera tecla de manejo de cada intento, y los rayos arrancan ocultos; y una ventana de bienvenida en la primera
+visita, que se vuelve a abrir desde los créditos. Implementado y verificado sin ventana; el dueño lo aprobó y se
+archivó el mismo día, con las specs sincronizadas. Lo medido está en `borradores/bienvenida-y-primer-manejo/comparacion.md`. Lo que quedó:
+- El paneo nuevo vale para toda escena que sigue a un auto con la vista común, también Entrenar, Competir y las
+  escenas de la V2 que la usan. No se miró a mano en esas pestañas.
+- Con la guía apagada, la escena quieta antes de la primera tecla no tiene ninguna marca de "esperando". Hipótesis
+  sin probar: alcanza con el auto parado y la consigna.
+- La descripción para lectores de pantalla dice que el auto "está en marcha" mientras espera la primera tecla.
+- La V1 tiene un solo tema (oscuro): la ventana no tiene versión clara que mirar.
+
 ## En curso
 
 `trafico-vivo` (19 de noviembre de 2026) está archivado, con las specs sincronizadas. El tráfico de la calle
