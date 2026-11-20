@@ -314,6 +314,21 @@ la banda y el cuaderno a la derecha, en español e inglés. La V1 sigue siendo l
 un subrayado punteado en los nombres de los ajustes anuncian los tooltips. Implementado, verificado sin ventana y
 archivado el mismo día, con las specs sincronizadas; lo que quedó, en *V2 de la interfaz*.
 
+El 20 de noviembre de 2026, `vehiculos-ilustrados`: el auto propio, la moto, el auto, la camioneta y el camión del
+tráfico pasan a ser dibujos de Fable con el estilo de la vista previa («A · Brillo»). Están en dos capas: la
+carrocería se pinta con el color del papel y el detalle es neutro. Se ven igual en la V1 y en la V2. Cada dibujo se
+arma una vez por tipo, color y escala (`src/render/vehicle-cache.js`), y cada cuadro solo lo estampa. El choque es
+el mismo dibujo con el color del choque, la cruz y el contorno punteado. La población de Entrenar tiene la forma del
+auto, atenuada. Los faros de la V2 bajan a 3,5 m, con bordes redondeados. Implementado y verificado sin ventana.
+Falta archivar, que lo decide el dueño. Lo medido está en `openspec/changes/vehiculos-ilustrados/tasks.md` y en
+`borradores/vehiculos-ilustrados/` (`despues.md` y `comparacion.md`). Lo que quedó:
+- La fluidez a la vista. Sin ventana todo da 60 c/s. Con 500 autos, dibujar la población pasa de 1,5 a 2,8 ms por
+  cuadro, porque son 500 imágenes contra un solo trazo.
+- Donde muchos autos de la población se superponen, como en la largada, ahora se ve más denso: cada auto suma su
+  transparencia.
+- Con el zoom más cercano de la escena chica, la imagen del caché se agranda (tope de 2048 px) y puede verse algo
+  menos nítida. No se miró.
+
 ## En curso
 
 `trafico-vivo` (19 de noviembre de 2026) está archivado, con las specs sincronizadas. El tráfico de la calle
@@ -333,6 +348,9 @@ queda (otro cambio). Lo que quedó, en *V2 de la interfaz*, abajo.
 
 ## Para probar a mano (dueño)
 
+- `vehiculos-ilustrados`: con el navegador a la vista, Entrenar con 500 autos (cuadros por segundo, con la meta de
+  50 de «Población grande y fluida»). También, si la moto se reconoce como moto al zoom por defecto en una pantalla
+  de 1× sin que nadie lo diga.
 - `trafico-vivo`: con el navegador a la vista, Entrenar con 500 autos y El problema con densidad 100 % (fluidez:
   cuadros por segundo; sin ventana, "Todos en carrera" bajó un 18 %, de unos 130x a unos 106x, aceptado);
   si se entiende sin explicación que los carriles van a distinto ritmo; y que la población aprende con el tráfico
