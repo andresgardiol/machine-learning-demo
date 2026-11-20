@@ -329,6 +329,15 @@ Falta archivar, que lo decide el dueño. Lo medido está en `openspec/changes/ve
 - Con el zoom más cercano de la escena chica, la imagen del caché se agranda (tope de 2048 px) y puede verse algo
   menos nítida. No se miró.
 
+Antes de archivar, el dueño sumó dos pedidos (grupos 6 y 7). El tráfico toma una paleta de cinco colores de calle
+por versión, que eligió Fable y aprobó el dueño. El color de cada vehículo sale de la semilla, con su propio espacio
+de semillas, así el resto del tráfico de cada semilla no cambia. La guía de El problema ya no dice «naranja». En
+todas las pestañas, los rayos van debajo del auto, con las marcas y las manijas encima; en la V2, el brillo de los
+rayos tampoco pasa sobre el auto. Lo que quedó:
+- En la V1, la moto grafito casi no se ve sobre el asfalto (se ve el casco). En la V2, el auto tiza llama más la
+  atención que el auto propio. Se consultó sin retocar.
+- En la V2, el botón junto a «Entradas a mano» de Entender se ve vacío. Es anterior a este cambio.
+
 ## En curso
 
 `trafico-vivo` (19 de noviembre de 2026) está archivado, con las specs sincronizadas. El tráfico de la calle
