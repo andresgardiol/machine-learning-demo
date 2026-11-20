@@ -37,7 +37,13 @@ const COLOR_VARS = {
   laneLine: '--color-lane-line',
   car: '--color-car',
   carCrashed: '--color-car-crashed',
-  traffic: '--color-traffic',
+  traffic: '--color-traffic', // respaldo si falta un color de la paleta
+  // Paleta del tráfico (vehiculos-ilustrados D8): el índice de pintura de cada vehículo elige uno.
+  traffic1: '--color-traffic-1',
+  traffic2: '--color-traffic-2',
+  traffic3: '--color-traffic-3',
+  traffic4: '--color-traffic-4',
+  traffic5: '--color-traffic-5',
   sensor: '--color-sensor',
   sensorHit: '--color-sensor-hit',
   glass: '--color-car-glass',
@@ -452,8 +458,11 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     ctx.stroke();
   }
 
+  /** Color del tráfico para un índice de pintura: --color-traffic-{paint + 1}, o --color-traffic si falta. */
+  const trafficColor = (paint) => (Number.isInteger(paint) && colors[`traffic${paint + 1}`]) || colors.traffic;
+
   function drawTraffic(list, px) {
-    for (const v of list) drawVehicle(v.position, v.angle, colors.traffic, px, v.type ?? 'car');
+    for (const v of list) drawVehicle(v.position, v.angle, trafficColor(v.paint), px, v.type ?? 'car');
   }
 
   function drawCar(car, px) {

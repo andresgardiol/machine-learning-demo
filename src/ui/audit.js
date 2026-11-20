@@ -111,7 +111,9 @@ export const DRAWING_TOKENS = ['--color-car', '--color-car-crashed', '--color-el
   '--color-sensor-hit', '--color-weight-positive', '--color-weight-negative', '--color-neuron-active', '--color-network-input',
   '--color-network-current', '--color-class-a', '--color-class-b', '--color-network-blame',
   '--color-competitor-1', '--color-competitor-2', '--color-competitor-3', '--color-competitor-4', '--color-competitor-5',
-  '--color-competitor-6'];
+  '--color-competitor-6',
+  // Paleta del tráfico (vehiculos-ilustrados D8).
+  '--color-traffic-1', '--color-traffic-2', '--color-traffic-3', '--color-traffic-4', '--color-traffic-5'];
 
 /**
  * Lugares de la interfaz que muestran algo del dibujo con su mismo significado (una leyenda, la marca de un
