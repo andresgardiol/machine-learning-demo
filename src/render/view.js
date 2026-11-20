@@ -691,7 +691,16 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
    *   highlight?:number|null, reading?:number|null, handles?:{readings:number[], onDrag:(i:number, reading:number)=>void}|null}} spec
    *   reading: el rayo que se está leyendo en el paso a paso; se dibuja en el color de lo que se calcula
    *   y los demás se atenúan.
+   * Se dibuja en dos pasadas (vehiculos-ilustrados D9): esta, con los rayos, va antes del auto, así el auto
+   * queda encima; drawRayMarks, con los puntos de detección y las manijas, va después, así siguen a la vista.
    */
+  function rayAlpha(spec, i) {
+    const look = spec.looks?.[i] ?? null;
+    const off = Boolean(spec.off?.[i] || look?.off);
+    const reading = spec.reading ?? null;
+    return (off ? 0.3 : 1) * (reading !== null && reading !== i ? 0.35 : 1);
+  }
+
   function drawCustomRays(rays, px, spec) {
     const looks = spec.looks ?? null;
     rays.forEach((r, i) => {
@@ -699,7 +708,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
       const off = Boolean(spec.off?.[i] || look?.off);
       const reach = r.hit ?? r.end;
       const reading = spec.reading ?? null;
-      ctx.globalAlpha = (off ? 0.3 : 1) * (reading !== null && reading !== i ? 0.35 : 1);
+      ctx.globalAlpha = rayAlpha(spec, i);
       if (look && look.level > 0) {
         ctx.strokeStyle = look.sign === 'negative' ? colors.weightNegative : colors.weightPositive;
         ctx.lineWidth = (0.8 + look.level * 0.9) * px;
@@ -725,10 +734,6 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
         ctx.lineTo(r.end.x, r.end.y);
         ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle = colors.sensorHit;
-        ctx.beginPath();
-        ctx.arc(r.hit.x, r.hit.y, 3 * px, 0, Math.PI * 2);
-        ctx.fill();
       }
       if (off) {
         // Tachado: una cruz en el medio del rayo.
@@ -744,6 +749,19 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
       }
       ctx.globalAlpha = 1;
     });
+  }
+
+  /** Segunda pasada de los rayos a medida, después del auto: los puntos donde detectan algo y las manijas. */
+  function drawRayMarks(rays, px, spec) {
+    rays.forEach((r, i) => {
+      if (!r.hit) return;
+      ctx.globalAlpha = rayAlpha(spec, i);
+      ctx.fillStyle = colors.sensorHit;
+      ctx.beginPath();
+      ctx.arc(r.hit.x, r.hit.y, 3 * px, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
     // Manijas, en píxeles de pantalla para poder agarrarlas.
     if (!spec.handles) { handleState = null; return; }
     const m = ctx.getTransform();
@@ -935,8 +953,10 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
       return;
     }
     if (raySpec) {
-      drawCar(car, px);
+      // Los rayos debajo del auto y sus marcas encima (vehiculos-ilustrados D9).
       if (showSensors) drawCustomRays(world.rays, px, raySpec);
+      drawCar(car, px);
+      if (showSensors) drawRayMarks(world.rays, px, raySpec);
       return;
     }
     if (showSensors) drawRays(world.rays, px);

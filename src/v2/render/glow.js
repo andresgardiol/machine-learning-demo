@@ -30,6 +30,12 @@ export function createGlow({ colors }) {
       const c = colors();
       const px = 1 / zoom;
       ctx.save();
+      ctx.save();
+      // El resplandor de los rayos no pasa por encima del auto (vehiculos-ilustrados D9): se recorta todo
+      // menos el rectángulo del auto, que ya está dibujado debajo.
+      ctx.beginPath();
+      exceptCar(ctx, car, 1e4);
+      ctx.clip('evenodd');
       // Rayos: un solo trazo con resplandor, sin sumar luz (con 'lighter' el celeste se iba a blanco).
       ctx.shadowColor = c.sensor;
       ctx.shadowBlur = GLOW_BLUR_PX * dpr;
@@ -39,6 +45,7 @@ export function createGlow({ colors }) {
       ctx.beginPath();
       for (const s of raySegments(rays)) { ctx.moveTo(s.from.x, s.from.y); ctx.lineTo(s.to.x, s.to.y); }
       ctx.stroke();
+      ctx.restore();
       // Faros (vehiculos-ilustrados D6): una mancha corta, de bordes redondeados, que se apaga del todo antes
       // de un largo de auto; así no se confunde con un rayo, que es una línea recta de borde neto.
       ctx.shadowBlur = 0;
@@ -70,6 +77,23 @@ export function beamPath(ctx, x0, L) {
   ctx.bezierCurveTo(x0 + L * 0.35, -h - 0.25, x0 + L * 0.75, -h - 0.45, x0 + L * 0.9, -h * 0.9);
   ctx.quadraticCurveTo(x0 + L * 1.1, 0, x0 + L * 0.9, h * 0.9);
   ctx.bezierCurveTo(x0 + L * 0.75, h + 0.45, x0 + L * 0.35, h + 0.25, x0, h);
+  ctx.closePath();
+}
+
+/**
+ * Camino para recortar con 'evenodd': un cuadrado de `far` metros alrededor del auto y, adentro, el rectángulo
+ * del auto. Lo que se dibuje con ese recorte queda afuera del auto. Puro sobre el camino del contexto.
+ */
+export function exceptCar(ctx, car, far) {
+  const { x, y } = car.position;
+  ctx.rect(x - far, y - far, 2 * far, 2 * far);
+  const c = Math.cos(car.angle);
+  const s = Math.sin(car.angle);
+  const corner = (dx, dy) => [x + dx * c - dy * s, y + dx * s + dy * c];
+  const pts = [corner(CAR_LENGTH / 2, CAR_WIDTH / 2), corner(-CAR_LENGTH / 2, CAR_WIDTH / 2),
+    corner(-CAR_LENGTH / 2, -CAR_WIDTH / 2), corner(CAR_LENGTH / 2, -CAR_WIDTH / 2)];
+  ctx.moveTo(...pts[0]);
+  for (const p of pts.slice(1)) ctx.lineTo(...p);
   ctx.closePath();
 }
 
