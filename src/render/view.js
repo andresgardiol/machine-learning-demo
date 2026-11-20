@@ -10,7 +10,7 @@
 // Los colores salen de las variables de styles/tokens.css. Los textos de los botones se
 // declaran con data-i18n / data-help y los completa el sistema de idiomas de la interfaz.
 import { carContour } from '../core/car.js';
-import { CAR_LENGTH, CAR_WIDTH } from '../core/constants.js';
+import { CAR_LENGTH } from '../core/constants.js';
 import { MAX_VEHICLE_LENGTH } from '../core/traffic.js';
 import {
   createCamera, orientationFor, panStarts, retarget, advanceBlend, blendTarget, NO_BLEND, fitTrack,
@@ -18,6 +18,8 @@ import {
 import { createSceneryPainter } from './scenery.js';
 import { keyAllowed } from '../input/keyboard.js';
 import { rangeMeters } from '../core/sensors.js';
+import { DEFAULT_PALETTE, VEHICLE_SIZES } from './vehicles.js';
+import { createVehicleCache } from './vehicle-cache.js';
 
 /** Escena chica (pestana-inspeccionar D10): el auto en el centro y lo que alcanzan sus rayos, con este margen. */
 export const SMALL_FIT = Object.freeze({ anchor: Object.freeze({ x: 0.5, y: 0.5 }), fill: 0.92 });
@@ -184,6 +186,9 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
   container.append(corner);
 
   let colors = readColors(doc);
+  // Vehículos ilustrados (vehiculos-ilustrados D3): cada dibujo se arma una vez por tipo, color y escala.
+  const paletteOf = (c) => ({ ...DEFAULT_PALETTE, glass: c.glass || DEFAULT_PALETTE.glass, headlight: c.headlight || DEFAULT_PALETTE.headlight, taillight: c.taillight || DEFAULT_PALETTE.taillight });
+  const vehicles = createVehicleCache({ createCanvas: () => doc.createElement('canvas'), palette: paletteOf(colors) });
   const scenery = createSceneryPainter();
   let viewport = { width: 0, height: 0 };
   let dpr = 1;
@@ -417,77 +422,38 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
   }
 
   /**
-   * Silueta de un vehículo con detalles (parabrisas, luneta, ópticas y luces traseras), dibujada
-   * dentro de su rectángulo de choque: lo que se ve nunca es más grande que lo que choca.
-   * Ejes locales: x hacia adelante, y hacia la izquierda; el rectángulo va de -L/2 a L/2 y de -W/2 a W/2.
-   * Dibujo provisorio por tipo (trafico-vivo D12): la silueta del auto escalada a la medida de cada
-   * vehículo; la moto sin luneta y con un solo faro, el camión con la cabina marcada.
+   * Un vehículo ilustrado (vehiculos-ilustrados D1 y D2), estampado desde el caché: la carrocería del color
+   * `body`, con el detalle neutro y la sombra (layer 'full'), o solo la carrocería (layer 'mask', la población).
+   * El dibujo queda dentro de su rectángulo de choque; solo la sombra asoma, tenue (spec "Lo que se ve es lo
+   * que choca"). kind: 'player' (el auto del conductor y los competidores) o el tipo del tráfico.
    */
-  function drawVehicle(position, angle, body, px, L = CAR_LENGTH, W = CAR_WIDTH, type = 'car') {
+  function drawVehicle(position, angle, body, px, kind = 'player', layer = 'full') {
     ctx.save();
     ctx.translate(position.x, position.y);
     ctx.rotate(angle);
-    const kx = L / CAR_LENGTH;
-    const ky = W / CAR_WIDTH;
-    // Carrocería con esquinas redondeadas
-    ctx.beginPath();
-    roundedRect(-L / 2, -W / 2, L, W, Math.min(0.35, W * 0.3));
-    ctx.fillStyle = body;
-    ctx.fill();
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = 1.5 * px;
-    ctx.stroke();
-    ctx.fillStyle = colors.glass;
-    if (type === 'motorcycle') {
-      // Moto: un parabrisas chico adelante, sin luneta; un faro y una luz trasera centrados.
-      trapezoid(0.25 * kx, 0.75 * kx, W / 2 - 0.12, W / 2 - 0.2);
-      ctx.fillStyle = colors.headlight;
-      ctx.fillRect(L / 2 - 0.18, -0.12, 0.14, 0.24);
-      ctx.fillStyle = colors.taillight;
-      ctx.fillRect(-L / 2 + 0.04, -0.1, 0.12, 0.2);
-    } else if (type === 'truck') {
-      // Camión: cabina adelante (2,4 m) separada de la caja por una línea, con su parabrisas.
-      const cab = L / 2 - 2.4;
-      ctx.beginPath();
-      ctx.moveTo(cab, -W / 2);
-      ctx.lineTo(cab, W / 2);
-      ctx.stroke();
-      trapezoid(cab + 0.9, cab + 1.75, W / 2 - 0.25, W / 2 - 0.14);
-      lights(L, W);
-    } else {
-      // Auto y camioneta: parabrisas (adelante, más ancho) y luneta (atrás, más angosta) marcan el frente.
-      trapezoid(0.35 * kx, 1.05 * kx, (W / 2 - 0.22 * ky), (W / 2 - 0.12 * ky));
-      trapezoid(-1.55 * kx, -1.1 * kx, (W / 2 - 0.2 * ky), (W / 2 - 0.26 * ky));
-      lights(L, W);
-    }
+    vehicles.stamp(ctx, VEHICLE_SIZES[kind] ? kind : 'car', body, dpr / px, layer);
     ctx.restore();
   }
 
-  /** Ópticas delanteras y luces traseras en las esquinas de un vehículo de L × W (ejes locales). */
-  function lights(L, W) {
-    ctx.fillStyle = colors.headlight;
-    ctx.fillRect(L / 2 - 0.2, W / 2 - 0.5, 0.16, 0.36);
-    ctx.fillRect(L / 2 - 0.2, -W / 2 + 0.14, 0.16, 0.36);
-    ctx.fillStyle = colors.taillight;
-    ctx.fillRect(-L / 2 + 0.04, W / 2 - 0.46, 0.14, 0.32);
-    ctx.fillRect(-L / 2 + 0.04, -W / 2 + 0.14, 0.14, 0.32);
-  }
-
-  /** Trapecio centrado en y = 0 entre x0 y x1, con medio ancho h0 en x0 y h1 en x1. */
-  function trapezoid(x0, x1, h0, h1) {
+  /** Marca de choque (no depende del color): el contorno punteado y una cruz de esquina a esquina. */
+  function crashMarks(car, px, edge, cross) {
+    const [fl, fr, rr, rl] = carContour(car);
+    polygon([fl, fr, rr, rl]);
+    ctx.strokeStyle = edge;
+    ctx.lineWidth = 2 * px;
+    ctx.setLineDash([0.5, 0.4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = cross;
+    ctx.lineWidth = 3 * px;
     ctx.beginPath();
-    ctx.moveTo(x0, -h0); ctx.lineTo(x1, -h1); ctx.lineTo(x1, h1); ctx.lineTo(x0, h0);
-    ctx.closePath();
-    ctx.fill();
+    ctx.moveTo(fl.x, fl.y); ctx.lineTo(rr.x, rr.y);
+    ctx.moveTo(fr.x, fr.y); ctx.lineTo(rl.x, rl.y);
+    ctx.stroke();
   }
 
-  function roundedRect(x, y, w, h, r) {
-    if (typeof ctx.roundRect === 'function') { ctx.roundRect(x, y, w, h, r); return; }
-    ctx.rect(x, y, w, h);
-  }
-
-  function drawTraffic(vehicles, px) {
-    for (const v of vehicles) drawVehicle(v.position, v.angle, colors.traffic, px, v.length ?? CAR_LENGTH, v.width ?? CAR_WIDTH, v.type);
+  function drawTraffic(list, px) {
+    for (const v of list) drawVehicle(v.position, v.angle, colors.traffic, px, v.type ?? 'car');
   }
 
   function drawCar(car, px) {
@@ -495,22 +461,10 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
       drawVehicle(car.position, car.angle, colors.car, px);
       return;
     }
-    // Chocado: otro color, contorno punteado y una cruz (no solo cambia el color).
-    const [fl, fr, rr, rl] = carContour(car);
-    polygon([fl, fr, rr, rl]);
-    ctx.fillStyle = colors.carCrashed;
-    ctx.fill();
-    ctx.strokeStyle = colors.roadEdge;
-    ctx.lineWidth = 2 * px;
-    ctx.setLineDash([0.5, 0.4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = 3 * px;
-    ctx.beginPath();
-    ctx.moveTo(fl.x, fl.y); ctx.lineTo(rr.x, rr.y);
-    ctx.moveTo(fr.x, fr.y); ctx.lineTo(rl.x, rl.y);
-    ctx.stroke();
+    // Chocado (D2): el mismo dibujo con la carrocería del color del choque y, encima, el contorno punteado
+    // y la cruz de siempre, así se reconoce también sin color.
+    drawVehicle(car.position, car.angle, colors.carCrashed, px);
+    crashMarks(car, px, colors.roadEdge, colors.outline);
   }
 
   /**
@@ -554,18 +508,22 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     }
   }
 
-  /** Siluetas simples (solo el contorno de choque) de varios autos, en un solo trazo. */
+  /**
+   * Población (D5): la forma del auto ilustrado, en un solo tono y sin detalle, con la opacidad dada. Cada auto
+   * es un drawImage de la misma imagen del caché.
+   */
   function silhouettes(cars, fill, alpha) {
     if (cars.length === 0) return;
+    const base = ctx.getTransform();
+    const ppm = dpr * camera.zoom;
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = fill;
-    ctx.beginPath();
     for (const car of cars) {
-      const [a, b, c, d] = carContour(car);
-      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y);
-      ctx.closePath();
+      ctx.setTransform(base);
+      ctx.translate(car.position.x, car.position.y);
+      ctx.rotate(car.angle);
+      vehicles.stamp(ctx, 'player', fill, ppm, 'mask');
     }
-    ctx.fill();
+    ctx.setTransform(base);
     ctx.globalAlpha = 1;
   }
 
@@ -658,19 +616,9 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
   function drawCompetitor(car, look, px) {
     const color = colors[look.color] || colors.car;
     if (look.state === 'penalized') {
-      const [fl, fr, rr, rl] = carContour(car);
-      polygon([fl, fr, rr, rl]);
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.strokeStyle = colors.carCrashed;
-      ctx.lineWidth = 2.5 * px;
-      ctx.stroke();
-      ctx.strokeStyle = colors.carCrashed;
-      ctx.lineWidth = 3 * px;
-      ctx.beginPath();
-      ctx.moveTo(fl.x, fl.y); ctx.lineTo(rr.x, rr.y);
-      ctx.moveTo(fr.x, fr.y); ctx.lineTo(rl.x, rl.y);
-      ctx.stroke();
+      // Cumpliendo la penalización: su dibujo con su color, y encima la marca de choque.
+      drawVehicle(car.position, car.angle, color, px);
+      crashMarks(car, px, colors.carCrashed, colors.carCrashed);
       return;
     }
     if (look.state === 'protected') {
@@ -999,7 +947,7 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
     get handlePoints() { return handleState ? handleState.rays.map((r) => ({ ...r.h })) : []; },
     /** ¿La cámara está en el encuadre de los rayos? (con `framing: 'rays'`) */
     get fitted() { return rays && fitted && camera.following; },
-    refreshColors() { colors = readColors(doc); },
+    refreshColors() { colors = readColors(doc); vehicles.reset(paletteOf(colors)); },
     get viewport() { return { ...viewport }; },
     /** Esquina superior izquierda, en el segundo renglón: los mensajes del escenario van acá. */
     corner,
