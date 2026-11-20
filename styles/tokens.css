@@ -109,7 +109,7 @@
   --color-traffic: #ffb020;
   /* Paleta del tráfico (vehiculos-ilustrados D8): colores de calle, apagados y más oscuros que los de papel
      (auto, choque y competidores). La vista elige uno por vehículo según su índice de pintura. */
-  --color-traffic-1: #5f636d; /* grafito */
+  --color-traffic-1: #9a958f; /* gris topo */
   --color-traffic-2: #4560a8; /* azul pizarra */
   --color-traffic-3: #7d2c47; /* bordó */
   --color-traffic-4: #3d8d98; /* petróleo */
