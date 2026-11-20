@@ -21,7 +21,7 @@ import { deriveSeed, randomFor, createRandom } from './random.js';
 import {
   CAR_LENGTH, MIN_LANE_GAP_CAR_LENGTHS, TRAFFIC_BLOCK_VEHICLES, TRAFFIC_FIRST_VEHICLE, TRAFFIC_LANE_STAGGER,
   TRAFFIC_MIN_SPACING, TRAFFIC_SPACING_RANGE, TRAFFIC_SPEEDS, VEHICLE_TYPES, ZIGZAG_MARGIN,
-  ZIGZAG_MAX_TURN, ZIGZAG_PERIOD,
+  ZIGZAG_MAX_TURN, ZIGZAG_PERIOD, TRAFFIC_PAINTS,
 } from './constants.js';
 
 export const DEFAULT_TRAFFIC = Object.freeze({ density: 50, irregularity: 50 });
@@ -37,6 +37,14 @@ export const MEAN_VEHICLE_LENGTH = VEHICLE_TYPES.reduce((a, t) => a + t.share * 
 const LANE_STREAM = 0x1a4e0;
 const SPEED_STREAM = 0x5bed;
 const PHASE_STREAM = 0x9a5e;
+// Pintura de cada vehículo (vehiculos-ilustrados D8): un espacio propio por carril, así sumarla no cambia ningún
+// otro sorteo (tipo, huecos, zigzag) de una semilla.
+const PAINT_STREAM = 0x7a1c0;
+
+/** Índice de pintura (0 a TRAFFIC_PAINTS − 1) del vehículo `index` del carril `lane` bajo `seed` (puro). */
+export function paintFor(seed, lane, index) {
+  return Math.floor(randomFor(deriveSeed(seed, PAINT_STREAM + lane), index)() * TRAFFIC_PAINTS);
+}
 
 const percent = (value, fallback) => {
   const n = Number(value ?? fallback);
@@ -174,7 +182,7 @@ export function createTraffic({ seed, track, density = DEFAULT_TRAFFIC.density, 
       const w = (1 - r) + r * K * (raw.e[k] / raw.total);
       out[k] = {
         index: b * K + k, lane, base: at + t.length / 2, type: t.type, length: t.length, width: t.width,
-        period: raw.periods[k], phase: raw.phases[k],
+        period: raw.periods[k], phase: raw.phases[k], paint: paintFor(seed, lane, b * K + k),
       };
       at += t.length + MIN_LANE_GAP + spare * w;
     }
@@ -220,7 +228,7 @@ export function createTraffic({ seed, track, density = DEFAULT_TRAFFIC.density, 
     const angle = c.angle + turn;
     return {
       id: `${v.lane}:${v.index}`, lane: v.lane, index: v.index, distance, base: v.base, lateral, turn,
-      position, angle, speed, type: v.type, length: v.length, width: v.width,
+      position, angle, speed, type: v.type, length: v.length, width: v.width, paint: v.paint,
       contour: rectCorners(position, angle, v.length, v.width),
     };
   }

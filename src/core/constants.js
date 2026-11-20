@@ -40,6 +40,11 @@ export const ZIGZAG_MAX_TURN = (6 * Math.PI) / 180; // giro máximo del vehícul
 export const ZIGZAG_MARGIN = 0.1; // distancia mínima entre el contorno girado y el borde del carril (m)
 // Tipos de vehículo (D3): largo y ancho en metros y proporción en el tráfico. Ninguno más largo que
 // 10 m (cota de los muros, D2) ni más ancho que un carril.
+/**
+ * Pinturas del tráfico (vehiculos-ilustrados D8): cada vehículo lleva un índice de 0 a TRAFFIC_PAINTS − 1 y la
+ * vista lo traduce en el color --color-traffic-{índice + 1}. Las paletas de la V1 y de la V2 tienen esta cantidad.
+ */
+export const TRAFFIC_PAINTS = 5;
 export const VEHICLE_TYPES = Object.freeze([
   Object.freeze({ type: 'motorcycle', length: 2.2, width: 0.9, share: 0.15 }),
   Object.freeze({ type: 'car', length: 4, width: 2, share: 0.5 }),
