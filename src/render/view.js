@@ -20,6 +20,10 @@ import { keyAllowed } from '../input/keyboard.js';
 import { rangeMeters } from '../core/sensors.js';
 import { DEFAULT_PALETTE, VEHICLE_SIZES } from './vehicles.js';
 import { createVehicleCache } from './vehicle-cache.js';
+import { legibleOn } from './contrast.js';
+
+/** Contraste mínimo de la moto del tráfico contra el asfalto (WCAG 1.4.11, lo que no es texto). */
+export const MOTORCYCLE_CONTRAST = 3;
 
 /** Escena chica (pestana-inspeccionar D10): el auto en el centro y lo que alcanzan sus rayos, con este margen. */
 export const SMALL_FIT = Object.freeze({ anchor: Object.freeze({ x: 0.5, y: 0.5 }), fill: 0.92 });
@@ -461,8 +465,20 @@ export function createStageView({ container, camera: givenCamera = null, doc = d
   /** Color del tráfico para un índice de pintura: --color-traffic-{paint + 1}, o --color-traffic si falta. */
   const trafficColor = (paint) => (Number.isInteger(paint) && colors[`traffic${paint + 1}`]) || colors.traffic;
 
+  // La moto es chica: su color se aclara lo justo para llegar a 3:1 contra el asfalto (como pide WCAG
+  // 1.4.11 para lo que no es texto). Los vehículos grandes conservan el color de la paleta tal cual.
+  const legible = new Map();
+  function motorcycleColor(color) {
+    const key = `${color}|${colors.road}`;
+    if (!legible.has(key)) legible.set(key, legibleOn(color, colors.road, MOTORCYCLE_CONTRAST));
+    return legible.get(key);
+  }
+
   function drawTraffic(list, px) {
-    for (const v of list) drawVehicle(v.position, v.angle, trafficColor(v.paint), px, v.type ?? 'car');
+    for (const v of list) {
+      const color = trafficColor(v.paint);
+      drawVehicle(v.position, v.angle, v.type === 'motorcycle' ? motorcycleColor(color) : color, px, v.type ?? 'car');
+    }
   }
 
   function drawCar(car, px) {
