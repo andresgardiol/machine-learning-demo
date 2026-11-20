@@ -104,7 +104,7 @@ export default {
   'drive.view.title': 'Vista',
   'drive.perception.hint': 'Una barra por rayo, de izquierda a derecha: más alta, más cerca el obstáculo. La última es la velocidad.',
   'drive.action.hint': 'Estas cuatro acciones son la salida del problema: sí o no, en cada instante.',
-  'drive.guide.what': 'Este es tu auto (verde) en una calle de {lanes} carriles con tráfico (naranja). Los rayos azules son sus sensores: miden la distancia a un obstáculo. Avanzá sin chocar y mirá el tablero: esos números son todo lo que tendría una máquina.',
+  'drive.guide.what': 'Este es tu auto (verde) en una calle de {lanes} carriles con otros vehículos. Los rayos azules son sus sensores: miden la distancia a un obstáculo. Avanzá sin chocar y mirá el tablero: esos números son todo lo que tendría una máquina.',
 
   'drive.restart': 'Reiniciar (R)',
   'drive.newTraffic': 'Tráfico nuevo',

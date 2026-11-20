@@ -187,7 +187,7 @@ export default {
   'consigna.drive.plain': "Drive with the arrow keys without crashing.",
   'consigna.drive.circuit': "Drive with the arrow keys or W A S D without leaving the track.",
   'consigna.drive.circuit.plain': "Drive with the arrow keys without leaving the track.",
-  'drive.guide.what': "This is your car (green) on a {lanes}-lane street with traffic (orange). The blue rays are its sensors: they measure the distance to an obstacle. Drive without crashing and watch the board: those numbers are all a machine would get.",
+  'drive.guide.what': "This is your car (green) on a {lanes}-lane street with other vehicles. The blue rays are its sensors: they measure the distance to an obstacle. Drive without crashing and watch the board: those numbers are all a machine would get.",
   'drive.guide.what.circuit': "Your car (green) is on the “{track}” track, with no traffic. The blue rays are its sensors: they measure the distance to the edge. Drive without leaving the track and watch the board: those numbers are all a machine would get.",
   'drive.stats.distance': "Distance",
   'drive.stats.passed': "Vehicles passed",

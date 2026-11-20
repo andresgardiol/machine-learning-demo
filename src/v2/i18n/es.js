@@ -188,7 +188,7 @@ export default {
   'consigna.drive.plain': "Manejá con las flechas sin chocar.",
   'consigna.drive.circuit': "Manejá con las flechas o W A S D sin salirte de la pista.",
   'consigna.drive.circuit.plain': "Manejá con las flechas sin salirte de la pista.",
-  'drive.guide.what': "Este es tu auto (verde) en una calle de {lanes} carriles con tráfico (naranja). Los rayos azules son sus sensores: miden la distancia a un obstáculo. Avanzá sin chocar y mirá el tablero: esos números son todo lo que tendría una máquina.",
+  'drive.guide.what': "Este es tu auto (verde) en una calle de {lanes} carriles con otros vehículos. Los rayos azules son sus sensores: miden la distancia a un obstáculo. Avanzá sin chocar y mirá el tablero: esos números son todo lo que tendría una máquina.",
   'drive.guide.what.circuit': "Este es tu auto (verde) en la pista «{track}», sin tráfico. Los rayos azules son sus sensores: miden la distancia al borde. Avanzá sin salirte y mirá el tablero: esos números son todo lo que tendría una máquina.",
   'drive.stats.distance': "Distancia",
   'drive.stats.passed': "Vehículos superados",
