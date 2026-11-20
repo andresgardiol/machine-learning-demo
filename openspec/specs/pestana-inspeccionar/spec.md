@@ -28,8 +28,12 @@ nuevo. El auto SHALL manejar en una pista donde ese cerebro entrenó.
 - **THEN** la red se ve como diagrama, con todas las capas abiertas, corriendo en tiempo real, sin nada elegido y con todas las conexiones a la vista
 
 #### Scenario: Misma semilla, misma escena
-- **WHEN** dos personas abren la pestaña con el mismo cerebro y los mismos ajustes
-- **THEN** ven al auto hacer lo mismo
+- **WHEN** con el mismo cerebro y los mismos ajustes, el mundo se arma dos veces con la misma semilla de tráfico
+- **THEN** el auto hace lo mismo las dos veces
+
+#### Scenario: Cada apertura, otro tráfico
+- **WHEN** la persona abre la pestaña dos veces en la calle recta con el mismo cerebro y los mismos ajustes
+- **THEN** cada vez el tráfico es otro, elegido al azar
 
 ### Requirement: La red en el centro
 La pestaña SHALL mostrar la escena del auto en la zona izquierda, con la decisión de la red debajo; la red en la zona central, que es la más ancha; y en el panel, lo que se sabe y se puede cambiar de la neurona elegida. Las zonas conservan los divisores para cambiarles el ancho. En una ventana angosta la zona izquierda MUST ceder ancho primero, y la red después, antes de que el panel deje de leerse.
@@ -321,7 +325,9 @@ Con una neurona elegida, el panel SHALL mostrar su cuenta real, y es donde
 se la cambia: una fila por entrada, con de dónde viene, su valor, su peso, su
 producto y una barra con signo de lo que aporta; y al pie, siempre a la vista,
 la suma, el sesgo, la activación y la salida, escritas como una cuenta. Los
-valores SHALL actualizarse en el momento.
+valores SHALL actualizarse en el momento. La tarjeta MUST NOT desplazarse por
+dentro: el único que se desplaza es el panel, y el pie queda pegado al borde
+de abajo del panel mientras la tarjeta está a la vista.
 
 #### Scenario: Neurona de una capa oculta
 - **WHEN** la persona elige una neurona de la primera capa oculta de un cerebro de 5 sensores
@@ -349,7 +355,15 @@ valores SHALL actualizarse en el momento.
 
 #### Scenario: Red grande
 - **WHEN** la red tiene tres capas ocultas de 16 neuronas y 20 sensores
-- **THEN** la tarjeta sigue mostrando una sola neurona, con 21 filas como mucho, que se desplazan por dentro mientras el pie queda a la vista
+- **THEN** la tarjeta sigue mostrando una sola neurona, con 21 filas como mucho; al desplazar el panel las filas pasan y el pie, con el sesgo, queda a la vista
+
+#### Scenario: Un solo desplazamiento
+- **WHEN** la persona elige una neurona de 12 entradas con la ventana en 1440×900
+- **THEN** solo el panel se desplaza, ninguna parte de la tarjeta tiene un desplazamiento propio y el deslizador del sesgo se ve sin desplazar nada
+
+#### Scenario: Peso y sesgo a la vez
+- **WHEN** la persona desplaza el panel para llegar a la última fila de una neurona de 12 entradas
+- **THEN** el deslizador del peso de esa fila y el del sesgo se ven a la vez y se pueden usar
 
 #### Scenario: Con el filtro de conexiones
 - **WHEN** el filtro de conexiones está en las 3 más importantes y la neurona tiene 21 entradas
@@ -887,7 +901,7 @@ La escena SHALL ofrecer "Manejar vos", un botón con tooltip en español y en in
 
 #### Scenario: Estado por defecto
 - **WHEN** se abre la pestaña
-- **THEN** maneja la red, "Manejar vos" está a la vista sin activar y la escena es la de siempre, igual para dos personas con la misma semilla
+- **THEN** maneja la red, "Manejar vos" está a la vista sin activar y el tráfico de la calle recta es uno nuevo, elegido al azar
 
 #### Scenario: Tomar el volante con el botón
 - **WHEN** la persona activa "Manejar vos"
@@ -995,7 +1009,7 @@ Al chocar, la pestaña SHALL congelar la reproducción y mostrar, debajo de la d
 
 #### Scenario: Reiniciar
 - **WHEN** la persona reinicia con R o con el botón
-- **THEN** la tarjeta y el deslizador desaparecen, el intento vuelve a la salida con el mismo tráfico y la reproducción sigue como estaba antes del choque
+- **THEN** la tarjeta y el deslizador desaparecen, el intento vuelve a la salida con el tráfico que indica la opción "Tráfico" (uno nuevo con "Nuevo", el mismo con "Repetir") y la reproducción sigue como estaba antes del choque
 
 #### Scenario: Sin depender del color
 - **WHEN** se ve el caso en escala de grises
@@ -1006,7 +1020,7 @@ Al chocar, la pestaña SHALL congelar la reproducción y mostrar, debajo de la d
 - **THEN** cada uno tiene un tooltip en español y en inglés que dice qué hace y por qué importa
 
 ### Requirement: Repetición del choque en Inspeccionar
-Con un choque a la vista, un deslizador sobre la escena SHALL permitir volver a ver los últimos 3 segundos antes del choque, cuadro por cuadro. La escena, la red, la decisión, la tarjeta del caso y la tarjeta de la neurona elegida siguen al deslizador. Lo que se muestra MUST ser lo que se calculó mientras el auto andaba, con la red de ese momento, aunque la persona la haya cambiado después; en ese caso la tarjeta lo dice. El deslizador SHALL empezar 1 segundo antes del choque, tener tooltip y manejarse con el teclado.
+Con un choque a la vista, un deslizador sobre la escena SHALL permitir volver a ver los últimos 3 segundos antes del choque, cuadro por cuadro. La escena, la red, la decisión, la tarjeta del caso y la tarjeta de la neurona elegida siguen al deslizador. La escena y lo que leen los sensores MUST ser los de ese cuadro. La red, la tarjeta de la neurona elegida y la decisión debajo de la escena SHALL calcular ese cuadro con la red de ahora, con los cambios de prueba aplicados. El deslizador SHALL empezar 1 segundo antes del choque, tener tooltip y manejarse con el teclado.
 
 #### Scenario: Al chocar
 - **WHEN** el auto choca después de 5 segundos de intento
@@ -1026,7 +1040,11 @@ Con un choque a la vista, un deslizador sobre la escena SHALL permitir volver a 
 
 #### Scenario: Red cambiada después del choque
 - **WHEN** con el caso a la vista la persona apaga una neurona y mueve el deslizador
-- **THEN** la repetición muestra la cuenta con la red de antes del cambio, y la tarjeta dice que el cambio rige al reintentar
+- **THEN** la red muestra esa neurona apagada y la cuenta de ese cuadro sin ella, y la tarjeta del choque sigue diciendo lo que la red decidió en realidad
+
+#### Scenario: Mover un sesgo con el caso abierto
+- **WHEN** con el caso a la vista la persona elige una neurona y mueve su sesgo
+- **THEN** la suma, la salida de la neurona y las salidas de la red cambian en ese mismo cuadro mientras arrastra
 
 #### Scenario: Determinismo
 - **WHEN** la persona reinicia y el auto vuelve a chocar igual
@@ -1054,3 +1072,99 @@ Con un choque a la vista, "Reintentar desde acá" SHALL volver el mundo al cuadr
 #### Scenario: Con la persona manejando
 - **WHEN** la persona manejaba al chocar y reintenta desde un cuadro
 - **THEN** sigue manejando la persona desde ese cuadro y la coincidencia con la red vuelve a cero
+
+### Requirement: Tráfico nuevo o repetido
+En la calle recta, la pestaña SHALL usar una semilla de tráfico nueva, al azar, cada vez que arma el intento: al abrirla, al cambiar de cerebro y al cambiar los ajustes. Al reiniciar, la semilla SHALL ser otra con "Tráfico" en "Nuevo" y la misma en "Repetir". Las repeticiones (Atrás, Reintentar desde acá, el deslizador) MUST conservarla. Misma semilla, cerebro y ajustes SHALL dar el mismo intento.
+
+#### Scenario: Estado por defecto
+- **WHEN** la persona abre la pestaña en la calle recta sin tocar nada
+- **THEN** la opción "Tráfico" muestra "Nuevo" y el tráfico es uno elegido al azar
+
+#### Scenario: Reiniciar con Nuevo
+- **WHEN** con "Nuevo", la persona reinicia el intento con R
+- **THEN** el auto vuelve a la salida con otro tráfico
+
+#### Scenario: Reiniciar con Repetir
+- **WHEN** la persona elige "Repetir" y reinicia el intento dos veces sin cambiar la red
+- **THEN** las dos veces el tráfico es el mismo que estaba viendo al elegir "Repetir", y el auto hace lo mismo
+
+#### Scenario: Volver a Nuevo
+- **WHEN** con "Repetir", la persona elige "Nuevo" y reinicia
+- **THEN** el tráfico vuelve a ser otro en cada reinicio
+
+#### Scenario: Elegir la opción no reinicia
+- **WHEN** la persona cambia la opción "Tráfico" en medio de un intento
+- **THEN** el intento sigue sin reiniciarse y la opción rige desde el próximo reinicio
+
+#### Scenario: Las repeticiones conservan el tráfico
+- **WHEN** con "Nuevo", la persona choca, mueve el deslizador y elige "Reintentar desde acá"
+- **THEN** el intento sigue desde ese cuadro con el mismo tráfico
+
+#### Scenario: Atrás conserva el tráfico
+- **WHEN** con "Nuevo", la persona vuelve 30 cuadros con "Atrás" y reproduce
+- **THEN** el auto hace lo mismo que la primera vez, con el mismo tráfico
+
+### Requirement: Opción Tráfico en el panel
+El panel SHALL ofrecer la opción "Tráfico", con los valores "Nuevo" (por defecto) y "Repetir". El grupo y cada valor tienen un tooltip en español y en inglés que dice qué hace y por qué importa. Cambiar la opción MUST NOT reiniciar el intento. La opción no se guarda entre sesiones, y en un circuito, que no tiene tráfico, MUST ocultarse.
+
+#### Scenario: Circuito
+- **WHEN** el cerebro elegido entrenó en el óvalo
+- **THEN** la opción "Tráfico" no se ve
+
+#### Scenario: Nueva sesión
+- **WHEN** la persona eligió "Repetir", cierra la aplicación y la vuelve a abrir
+- **THEN** la opción "Tráfico" muestra "Nuevo"
+
+#### Scenario: Textos y tooltips
+- **WHEN** la persona posa el cursor sobre la opción "Tráfico", "Nuevo" o "Repetir", en español o en inglés
+- **THEN** cada uno tiene un tooltip que dice qué hace y por qué importa
+
+### Requirement: Decisión con tus cambios en el caso
+Con el caso del choque a la vista y con al menos un cambio de prueba en la red, la tarjeta del choque SHALL agregar una línea que dice qué decidiría la red de ahora en el cuadro que muestra el deslizador: la acción, o que decidiría lo mismo. La decisión real de ese cuadro y la neurona que más aportó a ella no cambian. Sin cambios de prueba, la línea MUST NOT verse. La línea está en español y en inglés y la lee el lector de pantalla junto con la tarjeta.
+
+#### Scenario: Estado por defecto
+- **WHEN** el auto choca y la persona no cambió la red
+- **THEN** la tarjeta del choque se ve como siempre, sin la línea de los cambios
+
+#### Scenario: Un cambio que cambia la decisión
+- **WHEN** la red decidió avanzar en el cuadro que se mira y la persona baja el sesgo de avanzar hasta que se apaga y se enciende izquierda
+- **THEN** la tarjeta sigue diciendo que la red decidió avanzar y agrega "Con tus cambios, en este cuadro decidiría: Izquierda"
+
+#### Scenario: Un cambio que no alcanza
+- **WHEN** la persona cambia un peso y la decisión de ese cuadro sigue siendo la misma
+- **THEN** la línea dice que con tus cambios decidiría lo mismo
+
+#### Scenario: Deshacer
+- **WHEN** la persona deshace todos los cambios con el caso a la vista
+- **THEN** la línea desaparece y la red muestra la misma cuenta que al chocar
+
+#### Scenario: Misma cuenta, mismo resultado
+- **WHEN** con los mismos cambios la persona vuelve el deslizador a un cuadro que ya vio
+- **THEN** la red muestra la misma cuenta y la línea dice lo mismo que antes
+
+### Requirement: Lo elegido, primero en el panel
+Con una neurona o una conexión elegida, el panel SHALL mostrar su detalle primero, con sus controles (pesos, sesgo, apagar), debajo de un renglón compacto con el nombre del cerebro y "Cambiar". La opción "Tráfico", la frase de ayuda, "Cómo se lee la red" y las misiones SHALL ir después del detalle. Sin nada elegido, el panel MUST mantener su orden de siempre. En el detalle de una conexión, el peso con su deslizador SHALL ser lo primero debajo del título.
+
+#### Scenario: Estado por defecto
+- **WHEN** se abre la pestaña sin nada elegido
+- **THEN** el panel muestra el cerebro, la opción "Tráfico", la frase y los atajos, la leyenda y las misiones, como siempre
+
+#### Scenario: Elegir una neurona
+- **WHEN** la persona elige la neurona 5 de la capa oculta con la ventana en 1440×900
+- **THEN** la tarjeta de la neurona aparece arriba del panel, debajo del renglón del cerebro, y el deslizador del sesgo se ve sin desplazar nada
+
+#### Scenario: Elegir una conexión
+- **WHEN** la persona elige una conexión
+- **THEN** el detalle de la conexión aparece arriba del panel y su peso con el deslizador es lo primero debajo del título
+
+#### Scenario: Soltar
+- **WHEN** la persona suelta lo elegido
+- **THEN** el panel vuelve a su orden de siempre
+
+#### Scenario: Con el caso del choque
+- **WHEN** hay un choque a la vista y la persona elige una neurona
+- **THEN** la tarjeta de la neurona va primero y la frase del caso queda debajo
+
+#### Scenario: Ventana baja
+- **WHEN** la ventana mide 1366×768 y la persona elige una neurona de 12 entradas
+- **THEN** el panel se desplaza como un solo bloque y el pie con el sesgo queda pegado abajo, a la vista

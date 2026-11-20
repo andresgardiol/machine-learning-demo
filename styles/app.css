@@ -1455,6 +1455,19 @@ button.sensor-row:focus-visible { outline: 2px solid var(--color-accent); outlin
 .inspect-card:not(.lab-card) .inspect-rows-scroll { min-height: calc(22px + 4 * 31px); }
 .inspect-card[data-view="response"] .inspect-rows-scroll, .inspect-card[data-view="response"] .inspect-foot-block { display: none; }
 .inspect-card[data-view="response"] .lab-card-bias { display: none; }
+/* controles-de-la-red-primero D1–D2: en Inspeccionar el panel es el único que se desplaza. La tarjeta y sus filas
+   crecen con su contenido, y el pie (la cuenta, el sesgo, la activación y la salida) queda pegado abajo del
+   panel mientras la tarjeta está a la vista. El Laboratorio (.lab-panel) sigue como estaba. */
+.panel:has(> .inspect-panel:not(.lab-panel)) { overflow-x: hidden; overflow-y: auto; }
+.inspect-panel:not(.lab-panel) { flex: 0 0 auto; min-height: auto; }
+.inspect-panel:not(.lab-panel) .inspect-card { flex: 0 0 auto; min-height: auto; overflow: visible; }
+.inspect-panel:not(.lab-panel) .inspect-rows-scroll { flex: 0 0 auto; min-height: 0; overflow: visible; }
+.inspect-panel:not(.lab-panel) .inspect-foot-block {
+  position: sticky; bottom: 0; z-index: 2; background: var(--color-bg);
+  border-radius: 0 0 var(--radius-card) var(--radius-card); box-shadow: 0 -6px 8px -6px rgb(0 0 0 / 0.5);
+}
+/* D3: con algo elegido, el cerebro es un renglón: nombre y "Cambiar", sin la línea del entrenamiento. */
+.inspect-panel[data-selection="true"] .inspect-brain-meta { display: none; }
 /* Historia de un peso (D12) */
 .history { padding-top: var(--space-1); border-top: 1px solid var(--color-border); }
 .history-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); }

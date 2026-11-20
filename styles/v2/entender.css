@@ -26,6 +26,9 @@
 .v2-zone-net .v2-band { padding-top: 6px; padding-bottom: 6px; }
 .v2-zone-net .v2-band > .inspect-playbar { flex: 1 1 auto; min-width: 0; }
 .v2-sheet-neuron .inspect-card, .v2-sheet-neuron .inspect-link { min-width: 0; }
+/* controles-de-la-red-primero D1, D2 y D5: en la hoja Neurona la hoja es la única que se desplaza. La tarjeta y sus
+   filas crecen con su contenido, y el pie (la cuenta y el sesgo) queda pegado abajo de la hoja mientras la tarjeta
+   está a la vista. Estas reglas van al final del archivo, después de las copiadas de la V1. */
 
 /* ---------- copiado de la V1 (styles/app.css) ---------- */
 .card-heading { margin: 0; font-size: var(--text-heading); }
@@ -531,3 +534,11 @@
 .v2-stage .inspect-mission[data-current="true"] .mission-name { font-weight: 700; }
 /* WCAG 2.5.8: los rótulos de rol y las marcas enfocables miden al menos 24 px de alto. */
 .v2-stage .role-tag { min-height: 24px; display: inline-flex; align-items: center; }
+
+/* controles-de-la-red-primero (ver arriba): un solo desplazamiento y el pie pegado, en la hoja Neurona. */
+.v2-sheet-neuron .inspect-card { flex: 0 0 auto; min-height: auto; overflow: visible; }
+.v2-sheet-neuron .inspect-rows-scroll { flex: 0 0 auto; min-height: 0; overflow: visible; }
+.v2-sheet-neuron .inspect-foot-block {
+  position: sticky; bottom: 0; z-index: 2; background: var(--color-bg);
+  border-radius: 0 0 var(--radius-card) var(--radius-card); box-shadow: 0 -6px 8px -6px rgb(0 0 0 / 0.5);
+}

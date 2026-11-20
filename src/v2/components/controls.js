@@ -34,11 +34,11 @@ export function slider({ labelKey, help, min, max, step = 1, value, format = Str
   return { element: label, input, set, get value() { return Number(input.value); } };
 }
 
-/** Grupo de segmentos (una opción elegida). */
+/** Grupo de segmentos (una opción elegida). Cada opción puede tener su tooltip (`help`). */
 export function segments({ labelKey, help, options, value, onChange, wide = false }) {
   const group = el('div', { class: 'v2-segments', attrs: { role: 'group' }, i18nAttr: labelKey ? `aria-label:${labelKey}` : undefined });
   const buttons = options.map((o) => el('button', {
-    class: 'v2-segment', i18n: o.labelKey, attrs: { type: 'button', 'aria-pressed': 'false', 'data-value': String(o.value) },
+    class: 'v2-segment', i18n: o.labelKey, help: o.help, attrs: { type: 'button', 'aria-pressed': 'false', 'data-value': String(o.value) },
     text: o.labelKey ? undefined : String(o.text ?? o.value),
     dataset: o.dataset ?? {},
     on: { click: () => { set(o.value); onChange?.(o.value); } },

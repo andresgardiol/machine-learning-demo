@@ -35,7 +35,7 @@ import { createLoop } from '../../ui/loop.js';
 import { el, setData } from '../../ui/dom.js';
 import { mainAction, applyMainAction } from '../../ui/main-action.js';
 import { returnsFocusToStage } from '../../ui/shortcuts.js';
-import { createTextSetter } from '../../ui/controls.js';
+import { createTextSetter, optionGroup } from '../../ui/controls.js';
 import { formatValue, formatFixed } from '../../ui/i18n.js';
 import { createPicker } from '../../ui/picker.js';
 import { stageDescription } from '../../ui/stage-description.js';
@@ -63,10 +63,9 @@ import { NET_ZONES } from '../shared/net-zones.js';
 import { createReplayBuffer } from '../shared/replay-buffer.js';
 import { netBar } from '../shared/net-bar.js';
 import { createChangesStrip } from '../shared/changes-strip.js';
-import { caseOf, CASE_FRAMES, CASE_START } from './crash-case.js';
+import { caseOf, nowLineOf, sameChangeList, CASE_FRAMES, CASE_START } from './crash-case.js';
+import { createTrafficSeed, showsTrafficOption, TRAFFIC_MODES } from './traffic-seed.js';
 
-/** Semilla del tráfico: la misma para todos (misma semilla, misma escena). */
-export const SEED = 1;
 /** Filtros de conexiones (D6b). */
 export const FILTERS = Object.freeze(['all', 5, 3, 1]);
 /** Vistas de la red. */
@@ -80,8 +79,11 @@ const completedMissions = new Set();
 /** Interruptor "Flujo" (vista-de-la-red D10): encendido por defecto, recordado hasta cerrar la aplicación. */
 let flowOn = true;
 
-/** Olvida el estado conservado (para pruebas). */
-export function resetState() { state = null; }
+/** Fuente de azar de la semilla del tráfico: la de traffic-seed.js, salvo en pruebas. */
+let trafficRandom;
+
+/** Olvida el estado conservado (para pruebas); `random` fija el azar del tráfico. */
+export function resetState({ random } = {}) { state = null; trafficRandom = random; }
 
 const reducedMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
@@ -102,6 +104,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
       manual: null, // entradas a mano (D9), no quién maneja
       driver: 'network', // quién maneja: 'network' o 'you' (manejar-vos D2)
       missions: createInspectMissions({ completed: completedMissions }),
+      // Semilla del tráfico y opción "Tráfico" (trafico-al-azar D1 y D3): empieza en "Nuevo", no se guarda.
+      traffic: createTrafficSeed({ random: trafficRandom }),
     };
   }
   const t = (k, p) => i18n.t(k, p);
@@ -180,14 +184,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const barDefaults = () => ({ ...trainedScenario(brain), maxSpeed: store?.get().carSpeed ?? MAX_SPEED });
 
   function buildWorld() {
-    const s = state.settings;
     // El controlador lee los cambios vigentes del estado conservado: sigue valiendo al volver a la pestaña.
     const traced = createTraceController(net, brain.sensors.count, () => state.live?.changes ?? null);
     controller = createObservedController({ driver: state.driver === 'you' ? keyboard : traced, observer: traced });
-    world = createWorld({
-      seed: SEED, track: s.track, lanes: s.lanes, density: s.density, irregularity: s.irregularity,
-      cars: [{ controller, sensors: { ...brain.sensors }, maxSpeed: s.maxSpeed }],
-    });
+    makeWorld(state.traffic.fresh()); // cada intento armado de nuevo, con tráfico nuevo (trafico-al-azar D2)
     cursor = createPassCursor(net);
     cursor.complete();
     animation = null;
@@ -199,6 +199,15 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     state.missions.newFrame();
     resetCompare();
     keepLive();
+  }
+
+  /** El mundo del intento con la semilla `seed`, el controlador de ahora y los ajustes vigentes. */
+  function makeWorld(seed) {
+    const s = state.settings;
+    world = createWorld({
+      seed, track: s.track, lanes: s.lanes, density: s.density, irregularity: s.irregularity,
+      cars: [{ controller, sensors: { ...brain.sensors }, maxSpeed: s.maxSpeed }],
+    });
   }
 
   /** Lo que se conserva al salir: el mundo en el cuadro en que quedó, el cursor, los cambios y la memoria (D13). */
@@ -217,8 +226,10 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const changesOf = (e) => (e === epoch ? changes : (e.changes ??= createChanges(net, e.list)));
   /** Cuadro de la memoria que se ve en el caso. */
   const caseFrame = () => (crash ? memory.at(crash.offset) : null);
-  /** Con el caso a la vista, ¿la red cambió después del cuadro que se ve? (la repetición muestra la de entonces) */
-  const caseChanged = () => Boolean(crash) && caseFrame().epoch !== epoch;
+  /** Con el caso a la vista, ¿la red de ahora es otra que la del cuadro que se ve? Por contenido (cambios-visibles-en-el-choque D4). */
+  const caseChanged = () => Boolean(crash) && caseFrame().epoch !== epoch && !sameChangeList(caseFrame().epoch.list, epoch.list);
+  /** La cuenta del cuadro del caso con la red de entonces: de ahí salen la decisión real y la neurona que más aportó (D2). */
+  const caseTrace = () => traceNetwork(net, currentInputs(), changesOf(caseFrame().epoch));
   /** Al chocar: la reproducción se congela y se ve el caso, 1 s antes del choque (o el principio, si duró menos). */
   function openCase() {
     crash = {
@@ -269,7 +280,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   }
   /** "Elegir esta neurona": elige la que más aportó a la decisión del cuadro que se ve. */
   function pickContributor() {
-    const c = crash ? caseOf(traceNow()).contributor : null;
+    const c = crash ? caseOf(caseTrace()).contributor : null;
     if (!c) return;
     const target = { layer: c.layer, neuron: c.neuron };
     if (!sameTarget(target, picked())) select(target);
@@ -282,8 +293,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     if (!state.manual) return real;
     return real.map((v, i) => (state.manual[i] ?? v));
   }
-  // Con el caso a la vista, la cuenta es la de la red con que se calculó ese cuadro (red-al-centro D5).
-  const traceNow = () => traceNetwork(net, currentInputs(), originalHeld ? null : crash ? changesOf(caseFrame().epoch) : changes);
+  // La cuenta que se ve es siempre la de la red de ahora, también con el caso a la vista (cambios-visibles-en-el-choque D1).
+  const traceNow = () => traceNetwork(net, currentInputs(), originalHeld ? null : changes);
   /** "Ver original" (D13): mientras se mantiene apretado, la vista muestra la red sin los cambios. */
   let originalHeld = false;
   const NO_CHANGES = Object.freeze({ has: () => false, count: 0, list: () => [] });
@@ -409,7 +420,11 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   function restart() {
     const was = crash;
     crash = null;
-    world.reset();
+    // Con "Nuevo", otro tráfico: se arma otro mundo con el mismo controlador, cambios y modo de manejo;
+    // con "Repetir" (o en un circuito, sin tráfico), el mismo (trafico-al-azar D2).
+    const seed = showsTrafficOption(state.settings.track) ? state.traffic.forRestart() : world.seed;
+    if (seed !== world.seed) makeWorld(seed);
+    else world.reset();
     memory.clear();
     remember();
     keepLive();
@@ -941,6 +956,14 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const brainSection = el('section', { class: 'inspect-brain', attrs: { 'aria-labelledby': 'inspect-brain-title' } },
     el('h2', { class: 'sr-only', i18n: 'inspect.brain.title', attrs: { id: 'inspect-brain-title' } }),
     el('div', { class: 'inspect-brain-head' }, brainName, changeBrain), brainMeta, brainNotice);
+  // Opción "Tráfico" (trafico-al-azar D3): rige desde el próximo reinicio; oculta en los circuitos.
+  const trafficChoice = optionGroup({
+    labelKey: 'inspect.traffic', labelHelp: 'inspect.traffic',
+    selected: state.traffic.mode,
+    options: TRAFFIC_MODES.map((v) => ({ value: v, i18n: `inspect.traffic.${v}`, help: `inspect.traffic.${v}` })),
+    onSelect: (v) => { state.traffic.setMode(v); sync(); },
+  });
+  trafficChoice.row.classList.add('inspect-traffic');
   const card = createNeuronCard({
     i18n,
     onToggleNeuron: () => toggleNeuron(),
@@ -1066,8 +1089,34 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
   const missions = el('section', { class: 'guide inspect-missions' },
     el('h2', { class: 'sr-only', i18n: 'inspect.missions.title' }),
     el('ol', { class: 'mission-list inspect-mission-list' }, missionRows.map((r) => r.row)));
-  panel.append(el('h1', { class: 'sr-only', i18n: 'inspect.title' }),
-    el('div', { class: 'inspect-panel' }, consigna.node, introMore, brainSection, guideLine, emptyBlock, card.node, linkDetail.node, legend, missions));
+  // Orden del panel (controles-de-la-red-primero D3): sin nada elegido, el de siempre; con una neurona o una
+  // conexión elegida, su detalle va primero, debajo del renglón del cerebro. Se mueven los nodos (no `order` de
+  // CSS) para que el orden de Tab siga al visual.
+  const panelOrder = {
+    none: [consigna.node, introMore, brainSection, trafficChoice.row, guideLine, emptyBlock, card.node, linkDetail.node, legend, missions],
+    picked: [brainSection, card.node, linkDetail.node, trafficChoice.row, guideLine, consigna.node, introMore, emptyBlock, legend, missions],
+  };
+  const panelBody = el('div', { class: 'inspect-panel', dataset: { selection: 'false' } }, panelOrder.none);
+  panel.append(el('h1', { class: 'sr-only', i18n: 'inspect.title' }), panelBody);
+  let panelPicked = false;
+  let panelKey = '';
+  /** Ordena el panel según haya algo elegido y, al elegir algo, lo vuelve arriba (D3). */
+  function arrangePanel() {
+    const p = picked();
+    if (Boolean(p) !== panelPicked) {
+      panelPicked = Boolean(p);
+      const focused = document.activeElement;
+      panelBody.append(...panelOrder[panelPicked ? 'picked' : 'none']);
+      setData(panelBody, 'selection', String(panelPicked));
+      // Mover un nodo le quita el foco: se le devuelve, sin desplazar.
+      if (focused && focused !== document.activeElement && focused.isConnected) focused.focus({ preventScroll: true });
+    }
+    const key = p ? JSON.stringify(p) : '';
+    if (key !== panelKey) {
+      panelKey = key;
+      if (key) panel.scrollTop = 0;
+    }
+  }
 
   const picker = createPicker({
     id: 'inspect-picker', anchor: changeBrain, t,
@@ -1135,6 +1184,8 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     write(brainMeta, `${t('inspect.brain.where', { where: whereOf(brain) })} · ${shapeOf(net)}`);
     brainNotice.hidden = !notice;
     if (notice) setText(brainNotice, notice);
+    show(trafficChoice.row, showsTrafficOption(state.settings.track));
+    trafficChoice.select(state.traffic.mode);
     for (const b of viewButtons) setAttr(b, 'aria-pressed', String(b.dataset.view === state.view));
     for (const b of filterButtons) setAttr(b, 'aria-pressed', String(b.dataset.filter === String(state.filter)));
     const all = state.collapsed.every(Boolean);
@@ -1178,6 +1229,7 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     // Con una neurona o una conexión elegida, la tarjeta cede su lugar, como el texto largo, para que la
     // cuenta entre sin desplazar; al soltar vuelve, al día (decisión del dueño, grupo 5).
     show(consigna.node, !state.selected);
+    arrangePanel();
     // Caso del choque (red-al-centro D5): la tarjeta, la repetición y la acción principal.
     syncCase();
     applyMainAction({ run: playButton, retry: retryButton }, mainAction('inspect', { crashed: Boolean(crash) }));
@@ -1206,14 +1258,23 @@ export function mount({ stage, board, panel, bar, i18n, store, library, reportEr
     setAttr(replayInput, 'aria-valuetext', at);
     // Desde el cuadro del choque (o muy cerca), reintentar vuelve a chocar enseguida: la tarjeta lo dice.
     setText(caseWhen, crash.offset === 0 ? 'inspect.case.when.crash' : crash.offset > -20 ? 'inspect.case.when.near' : 'inspect.case.when.at', { value: secondsText(crash.offset) });
-    show(caseNote, caseChanged());
-    if (caseChanged()) setText(caseNote, 'inspect.case.changed');
   }
-  /** Decisión y neurona que más aportó en el cuadro que se ve (la cuenta de ese cuadro). */
+  /**
+   * Decisión real y neurona que más aportó en el cuadro que se ve (la cuenta con la red de entonces) y, si la red
+   * cambió, qué decidiría la de ahora (cambios-visibles-en-el-choque D2). `trace` es la cuenta que se dibuja.
+   */
   function drawCase(trace) {
     if (!crash) return null;
-    const c = caseOf(trace);
+    const changedNet = caseChanged();
+    // Sin cambios, la cuenta que se dibuja es la de entonces; con "Ver original" apretado, no.
+    const c = caseOf(changedNet || originalHeld ? caseTrace() : trace);
     const action = (j) => t(`network.output.${OUTPUT_KEYS[j] ?? 'forward'}`);
+    // La línea "con tus cambios": en el lugar de la nota, solo si la red de ahora es otra (D3 y D4).
+    show(caseNote, changedNet);
+    if (changedNet) {
+      const line = nowLineOf(c.decision, originalHeld ? traceNetwork(net, currentInputs(), changes) : trace);
+      setText(caseNote, line.key, line.index === undefined ? undefined : { action: action(line.index) });
+    }
     if (!c.decision) {
       setText(caseDecision, 'inspect.case.decision.none');
       show(caseNeuron.parentElement, false);
