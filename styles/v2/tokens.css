@@ -31,6 +31,10 @@
   --color-sidewalk: #172427; --color-crosswalk: var(--a-tiza); --color-kerb-a: #c8d3d4; --color-kerb-b: #8e2b36; --color-stand: #20393d;
   --color-car: var(--a-verde-400); --color-car-crashed: var(--a-rojo-400); --color-car-glass: #10302a;
   --color-headlight: #fff3b0; --color-taillight: #ff4d5e; --color-traffic: #9db2b7;
+  /* Paleta del tráfico (vehiculos-ilustrados D8): colores de calle, lejos de los de papel. 1 tiza, 2 grafito,
+     3 azul pizarra, 4 bordó, 5 bronce. */
+  --color-traffic-1: #e6ebe6; --color-traffic-2: #586268; --color-traffic-3: #4560a8;
+  --color-traffic-4: #7d2c47; --color-traffic-5: #7a6a35;
   --color-sensor: var(--a-celeste-300); --color-sensor-hit: var(--a-rojo-400);
   /* KD9: la élite tiene su tono, distinto del amarillo de la acción (un color, un significado). */
   --color-elite: var(--a-lavanda-300);
