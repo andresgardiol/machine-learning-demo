@@ -117,3 +117,51 @@ test('V2: nada fuera de src/v2 importa de src/v2, y src/v2 solo importa módulos
 test('V2: el núcleo sigue sin DOM con la V2 agregada', () => {
   assert.deepEqual(findViolations(), []);
 });
+
+// ---------------------------------------------------------------------------------------------
+// Prototipos (teoria-prototipos D1): nada fuera de prototipos/ importa de prototipos/. Las pruebas de
+// tests/ quedan fuera de la regla: prueban los prototipos sin formar parte de la app. Se revisan los
+// .js y .mjs del repositorio (salvo node_modules, .git, borradores, openspec y tests) y los módulos de
+// los .html (<script src> e import dentro de <script>).
+const rootDir = resolve(srcDir, '..');
+const prototiposDir = join(rootDir, 'prototipos');
+const SALTEAR = new Set(['node_modules', '.git', '.claude', 'borradores', 'openspec', 'tests', 'prototipos']);
+
+function listarFuentes(dir) {
+  return readdirSync(dir).flatMap((name) => {
+    if (SALTEAR.has(name)) return [];
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) return listarFuentes(p);
+    return /\.(m?js|html)$/.test(name) ? [p] : [];
+  });
+}
+
+function referenciasDe(file, root) {
+  const texto = readFileSync(file, 'utf8');
+  if (!file.endsWith('.html')) return importsOf(file);
+  const srcs = [...texto.matchAll(/<script\b[^>]*\bsrc\s*=\s*['"]([^'"]+)['"]/gi)].map((m) => m[1]);
+  const dentroDeScripts = [...texto.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].flatMap((m) => {
+    const src = stripComments(m[1]);
+    return [
+      ...src.matchAll(/\bimport\s+(?:[^'"();]*?\sfrom\s*)?['"]([^'"]+)['"]/g),
+      ...src.matchAll(/\bimport\s*\(\s*['"]([^'"]+)['"]/g),
+    ].map((x) => x[1]);
+  });
+  return [...srcs, ...dentroDeScripts]
+    .filter((s) => !/^[a-z]+:/i.test(s))
+    .map((s) => (s.startsWith('/') ? join(root, s) : resolve(dirname(file), s)));
+}
+
+export function findPrototiposViolations({ root = rootDir, prototipos = prototiposDir } = {}) {
+  const problems = [];
+  for (const file of listarFuentes(root)) {
+    for (const t of referenciasDe(file, root)) {
+      if (dentro(t, prototipos)) problems.push(`${relative(root, file)}: importa de prototipos/ (${relative(root, t)})`);
+    }
+  }
+  return problems;
+}
+
+test('Prototipos: nada fuera de prototipos/ importa de prototipos/', () => {
+  assert.deepEqual(findPrototiposViolations(), []);
+});

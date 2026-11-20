@@ -653,6 +653,50 @@ arreglarlos de a uno.
       de destellos de `accesibilidad`;
     - el auto chocado, la élite y los competidores numerados de Competir
       tienen que seguir distinguiéndose sin depender del color.
+- **Sección teórica: forma elegida, la película.** Del cambio
+  `teoria-prototipos` (tarea 9.4, 20 de noviembre de 2026). El dueño comparó
+  las tres formas de "Una neurona" y eligió la película: "tiene lo mejor de
+  los dos mundos". En la revisión pidió, y quedó hecho en los prototipos:
+  sensores simétricos que siempre terminan en algo (el borde de la calle, un
+  vehículo del tráfico, o enteros con lectura 0), ayudas de una línea que no tapan la figura,
+  las marcas del borde con el título corto de cada tramo y que la predicción
+  pida elegir antes de seguir. Pendiente para la sección definitiva: que el
+  texto de un tramo no hable de números que la figura ya no muestra después
+  de tocarla (hoy la figura conserva lo que se cambió a mano y el texto sigue
+  diciendo los números del guion hasta apretar "Restablecer"). En la revisión 2
+  (mismo día) el dueño eligió además la disposición "lado a lado" de la
+  película ("Definitivamente me quedo con la opción lado a lado. Es la
+  mejor"), antes de comparar las otras dos variantes que se habían pedido
+  (figura arriba como escenario y figura a pantalla completa), que se
+  quitaron. Quedó hecho: en ventanas angostas (menos de 1024 px) la figura va
+  fija arriba y el texto debajo, sin bajar de 560 px de ancho; el auto se
+  dibuja derecho; y las correcciones de la revisión de contenido contra
+  fuentes (`openspec/changes/teoria-prototipos/revision-contenido.md`). La comparación
+  y las capturas están en `borradores/teoria-prototipos/`.
+- **Temas de teoría que la práctica no tiene.** Del cambio `teoria-prototipos`
+  (D9, 20 de noviembre de 2026). La sección teórica acompaña a la práctica:
+  puede nombrar estos temas en la historia, pero no les dedica capítulo
+  mientras no haya práctica que acompañar. La lista sale de leer las specs y
+  los textos; **no se probó la app para confirmarla** (sin verificar en la
+  app, ninguno de los cinco).
+  - *El descenso por gradiente como imagen.* La palabra "gradiente" no aparece
+    en los textos de la V1 (`src/i18n/es.js`, 0 coincidencias); la V2 tiene
+    una etapa con ese nombre. Falta ver el error como un paisaje por el que se
+    baja. Candidato: en el Laboratorio, el paisaje del error de una neurona de
+    dos pesos, con la bolita que baja en cada corrección.
+  - *Aprendizaje por refuerzo.* La spec de neuroevolución dice que no es
+    aprendizaje por recompensa paso a paso; la historia lo nombra (AlphaGo).
+    Candidato: una pestaña donde el auto aprende de premios y castigos.
+  - *De 2012 en adelante: imágenes, Transformers y LLMs.* La historia llega
+    hasta ahí y la práctica no tiene nada. Candidato: una red mínima que
+    predice la letra siguiente.
+  - *Aprender sin respuestas correctas (no supervisado).* La práctica tiene
+    imitación (supervisado) y evolución. Sin candidato todavía.
+  - *Remedios al sobreajuste.* El Laboratorio lo detecta; sin verificar si
+    muestra cómo se evita. Candidato (propuesta al pasarlo acá; D9 no
+    nombra uno): mostrar en el Laboratorio los remedios
+    (más datos, red más chica, cortar a tiempo) junto a la curva que lo
+    detecta.
 - Cerebros incluidos elegidos por el dueño.
 - Elegir con un clic qué auto seguir en el entrenamiento.
 - Entrenar en segundo plano (Web Worker).
@@ -1172,7 +1216,11 @@ arreglarlos de a uno.
     R, E, Z y N uno por uno (no se tocaron sus manejadores). `.compete-check`
     tiene regla de opción elegida, pero ningún elemento la usa hoy.
 
-- **Introducción guiada para quien llega sin la teoría.** La guía explica
+- **Introducción guiada para quien llega sin la teoría.** Reemplazada por la
+  sección teórica aparte (cambio `teoria-prototipos`, 20 de noviembre de
+  2026): el dueño decidió que la teoría va en una sección propia, que no se
+  mezcla con las pestañas y acompaña a la práctica. La nota queda como
+  antecedente. La guía explica
   cada control, pero la pantalla tiene mucha información a la vez y da por
   sabido lo que el mentor contaría antes: qué es una red, qué es una
   generación, por qué se muta. La idea es un recorrido corto por pestaña, de
