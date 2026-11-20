@@ -90,6 +90,26 @@ Los dibujos son funciones que trazan sobre un canvas (`drawBody(ctx, type)` y `d
 - **Opus 5.5 medium** hace la integración: el caché, el uso en `view.js` y `glow.js`, las pruebas, la fluidez y las capturas.
 - Las tareas indican en cada grupo a qué sesión van.
 
+### D8. Paleta del tráfico (sumada el 20 de noviembre)
+
+- **El núcleo da un índice, la vista da el color.** El generador del tráfico (`src/core/traffic.js`) suma a cada vehículo un índice de pintura (`paint`, de 0 a N−1), sorteado con la semilla en un espacio de semillas propio. Así sorteos que ya existían (tipo, hueco, zigzag) no cambian y el tráfico de cada semilla queda igual. La vista traduce ese índice en un color con los tokens `--color-traffic-1` a `--color-traffic-N`, uno por versión.
+- **Restricciones de la paleta.** Cada versión tiene sus propios colores de papel, así que la paleta de cada una se elige contra los suyos:
+  - V1 (`styles/tokens.css`): auto `#3ddc84`, choque `#ff5a5a` y competidores `#2fd5f0`, `#ff7ac8`, `#f4e04d`, `#b49cff`, `#eef1f5` y `#d9b38c`;
+  - V2 (`styles/v2/tokens.css`): auto verde, choque rojo y competidores `#43d17a`, `#ff7ab6`, `#ffd23f`, `#7cc4ff`, `#b8f27c` y `#ff9d4d`.
+
+  La paleta tiene que separarse de todos esos en tono o en saturación: colores de calle, poco saturados (grises, azul pizarra, bordó, arena, etc.), para que el auto propio y los competidores sean siempre los únicos vivos. También tiene que verse bien con el detalle neutro de los dibujos de Fable y distinguirse para quien ve mal los colores. Si un color se parece al de un papel, gana el papel y el color se descarta.
+- **Quién la elige:** es diseño, así que la elige Fable en una sesión que crea el dueño. Opus la integra.
+- **Caché:** pasa de 4 a unas 4 × N imágenes de tráfico por escala. Se arman una vez, así que no cambia la fluidez del cuadro.
+- **`--color-traffic`** sigue existiendo como color genérico del tráfico (lo usa `.library-notice`) y como respaldo si falta un token de la paleta.
+- **Textos:** la guía de El problema (`drive.guide.what`, en V1 y V2, en español y en inglés) deja de decir "tráfico (naranja)". Pasa a algo como "con otros vehículos", sin nombrar un color.
+- **Alternativa:** tonos de un mismo naranja. Mantiene "naranja = tráfico", pero da poca variedad, y el dueño pidió variedad.
+
+### D9. Rayos debajo del auto (sumada el 20 de noviembre)
+
+- **Causa:** en `render()` de `src/render/view.js`, la rama de rayos a medida (`raySpec`, que usan Inspeccionar, el Laboratorio, Reglas a mano y las etapas equivalentes de la V2) llama primero a `drawCar` y después a `drawCustomRays`. La rama común (El problema) dibuja los rayos y después el auto.
+- **Arreglo:** partir `drawCustomRays` en dos pasadas. Primero los rayos, antes del auto. Después del auto, solo las marcas que tienen que quedar arriba: los puntos de detección y las manijas para arrastrar. Así las manijas siguen a la vista y se pueden tomar.
+- Revisar también las ramas de población (`focus`) y de competidores, para que ninguna deje los rayos encima de la carrocería.
+
 ## Risks / Trade-offs
 
 - **[A zoom lejano, el detalle se vuelve ruido]** → Con menos de 8 píxeles por metro, el caché arma una versión simplificada: carrocería, parabrisas y nada más. Fable la diseña junto con la completa.

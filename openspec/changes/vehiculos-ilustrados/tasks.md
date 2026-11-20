@@ -69,6 +69,22 @@ Quién hace qué (design.md D7): los grupos marcados **[Fable]** los hace una su
 - [x] 5.4 `PENDIENTES.md`: el cambio pasa a *Hecho*, con lo que quedó (por ejemplo, lo que no se pudo medir a la vista). Verificación: el diff.
   *Hecho: `PENDIENTES.md` lo anota en *Hecho*, sin archivar, y suma a *Para probar a mano* la fluidez a la vista y la lectura de la moto.*
 
+## 6. Paleta del tráfico [Fable]
+
+Sumado por el dueño el 20 de noviembre de 2026. Esta sesión la crea el dueño con Fable 5.2 medium.
+
+- [ ] 6.1 Elegir la paleta del tráfico de la V1 y la de la V2 (D8): entre 5 y 7 colores de calle cada una, lejos en tono o en saturación del auto propio, del choque y de los seis competidores de su versión. Que se distingan entre sí también con daltonismo, simulado (deuteranopía y protanopía) en la página de muestra. Sumarlos como `--color-traffic-1..N` en `styles/tokens.css` y `styles/v2/tokens.css`, sin tocar los tokens que ya existen. Verificación: una escena nueva en `borradores/vehiculos-ilustrados/muestras/` con los cuatro tipos del tráfico en cada color, junto al auto propio, el choque y los seis competidores, en V1 y en V2, y su captura. **Detenerse**: el dueño ve la paleta y la aprueba.
+
+## 7. Colores del tráfico y rayos debajo del auto [Opus]
+
+Arranca cuando el dueño aprobó la paleta (6.1).
+
+- [ ] 7.1 Índice de pintura en `src/core/traffic.js` (D8), con su propio espacio de semillas, para que tipo, huecos y zigzag de cada semilla no cambien. Verificación: prueba de "Mismos colores con la misma semilla"; las pruebas de `trafico` y `tests/reproducibility.test.js` siguen pasando sin cambios.
+- [ ] 7.2 La vista pinta cada vehículo con `--color-traffic-{paint+1}` (con `--color-traffic` como respaldo) y el caché suma esos colores. Agregar los tokens nuevos a `DRAWING_TOKENS` de `src/ui/audit.js`. Verificación: "Tráfico de muchos colores", "El tráfico no se confunde con los autos que importan" (Competir con seis por la calle, en V1 y V2) y "Mismo significado tras cambiar el escenario", en el navegador; `auditSistema()` en 0.
+- [ ] 7.3 La guía de El problema (`drive.guide.what`) en `src/i18n/` y `src/v2/i18n/`, en español y en inglés, deja de nombrar el naranja del tráfico. Verificación: las pruebas de i18n pasan y `grep -rn "naranja\|orange" src/i18n src/v2/i18n` solo encuentra textos del Laboratorio.
+- [ ] 7.4 Rayos debajo del auto (D9): partir `drawCustomRays` en rayos (antes del auto) y marcas (después: puntos de detección y manijas), y revisar las ramas de población y de competidores. Verificación: los tres escenarios de *Rayos debajo del auto*, con capturas de Inspeccionar en V1 y V2 antes y después, y arrastrar una manija en el Laboratorio sigue funcionando.
+- [ ] 7.5 Cierre: `npm test` sin fallas, con el total anotado; capturas del después de El problema, Competir con seis por la calle e Inspeccionar, en V1 y V2, sumadas a `borradores/vehiculos-ilustrados/comparacion.md`; `PENDIENTES.md` al día. Verificación: el diff y las capturas enlazadas.
+
 ## Workflow follow-up
 
 - Las sub-sesiones no hacen push ni archivan. El dueño revisa y decide cuándo archivar.

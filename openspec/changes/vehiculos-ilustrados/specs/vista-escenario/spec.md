@@ -22,9 +22,9 @@ Cada dibujo SHALL pintar su carrocería con el color que corresponde a su papel,
 - **WHEN** compiten seis autos en Competir
 - **THEN** los seis tienen el mismo dibujo de auto, cada uno con la carrocería de su color de competidor
 
-#### Scenario: Tráfico de un solo color
+#### Scenario: Tráfico de muchos colores
 - **WHEN** se muestra la calle con tráfico
-- **THEN** todos los vehículos del tráfico tienen la carrocería del color del tráfico, sea cual sea su tipo
+- **THEN** los vehículos del tráfico tienen carrocerías de distintos colores de la paleta del tráfico, sea cual sea su tipo
 
 #### Scenario: Choque reconocible sin color
 - **WHEN** el auto del conductor choca
@@ -58,3 +58,41 @@ En una población, los autos atenuados SHALL dibujarse con la forma del auto ilu
 #### Scenario: Población grande y fluida
 - **WHEN** se muestra una población de quinientos autos durante diez segundos
 - **THEN** el promedio es de al menos 50 cuadros por segundo, lo mismo que pide *Fluidez con una población* para cien
+
+### Requirement: Rayos debajo del auto
+En todas las pestañas con escena, los rayos de los sensores y sus marcas SHALL dibujarse debajo del auto del que salen, de modo que el auto se vea entero. Los puntos donde los rayos detectan algo y las manijas para mover un rayo a mano SHALL seguir viéndose.
+
+#### Scenario: Inspeccionar con sensores
+- **WHEN** se abre Inspeccionar con los sensores visibles
+- **THEN** el auto se ve entero, con los rayos saliendo por debajo, igual que en El problema
+
+#### Scenario: Todas las pestañas con escena
+- **WHEN** se muestra el auto con sus sensores en El problema, Reglas a mano, Entrenar, Competir, Inspeccionar y el Laboratorio, en la V1 y en la V2
+- **THEN** en ninguna los rayos pasan por encima de la carrocería del auto
+
+#### Scenario: Manijas a la vista
+- **WHEN** en una pestaña se pueden mover los rayos a mano
+- **THEN** las manijas de los extremos de los rayos siguen viéndose y se pueden tomar como antes
+
+## MODIFIED Requirements
+
+### Requirement: Colores con significado constante
+La vista SHALL usar siempre el mismo color para el mismo tipo de elemento (auto
+del conductor, sensores, pista) en cualquier escenario y pestaña. El tráfico
+SHALL usar una paleta propia de varios colores, todos distintos del color del
+auto del conductor, del color del choque y de los seis colores de los
+competidores, de modo que ningún vehículo del tráfico se confunda con ellos. El
+color de cada vehículo del tráfico SHALL salir de la semilla: con la misma
+semilla, los mismos colores.
+
+#### Scenario: Mismo significado tras cambiar el escenario
+- **WHEN** se cambia la cantidad de carriles o se genera tráfico nuevo
+- **THEN** el auto del conductor y los sensores conservan sus colores, y el tráfico sigue usando su paleta
+
+#### Scenario: El tráfico no se confunde con los autos que importan
+- **WHEN** en Competir corren seis competidores por la calle con tráfico
+- **THEN** ningún vehículo del tráfico tiene el color del auto del conductor, del choque ni de ninguno de los seis competidores
+
+#### Scenario: Mismos colores con la misma semilla
+- **WHEN** se abre dos veces la misma escena con la misma semilla
+- **THEN** cada vehículo del tráfico tiene el mismo color las dos veces

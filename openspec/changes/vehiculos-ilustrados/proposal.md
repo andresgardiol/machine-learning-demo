@@ -19,6 +19,13 @@ Hoy el auto y el tráfico se dibujan como rectángulos redondeados con un parabr
 - **Fluidez.** Cada dibujo se arma una sola vez por tipo, color y escala de zoom, y cada cuadro solo lo estampa. Así se sostiene con 500 autos en Entrenar.
 - **La población de Entrenar** se dibuja con la forma del auto ilustrado, atenuada, en vez del rectángulo de hoy. El líder va con el dibujo completo.
 - **Se mantienen los estados de siempre:** el choque se ve con la cruz y el contorno punteado (no solo por el color), y siguen la élite, los autos fuera de carrera y los competidores con su insignia.
+- **Tráfico de varios colores** (sumado por el dueño el 20 de noviembre de 2026, antes de archivar):
+  - el tráfico deja de ser de un solo color y toma una paleta propia, para que haya más variedad;
+  - ningún color de esa paleta coincide con el del auto propio, el del choque ni los de los seis competidores;
+  - cada vehículo recibe su color de la semilla.
+
+  Cambia *Colores con significado constante* y la guía de El problema, que hoy dice "tráfico (naranja)".
+- **Rayos debajo del auto** (pedido del dueño el mismo día): en Inspeccionar, el Laboratorio, Reglas a mano y donde se dibujen rayos a medida, los rayos se dibujan hoy encima del auto y lo tapan. Pasan a dibujarse debajo, como en El problema.
 - **V1 y V2 usan el mismo dibujo**, porque la V2 ya dibuja con `src/render/view.js`.
 
 ## Filtro de entrada
@@ -33,7 +40,6 @@ Hoy el auto y el tráfico se dibujan como rectángulos redondeados con un parabr
 ## Fuera de alcance
 
 - Cambiar la pista, el paisaje, los rayos o la red. Solo cambian los vehículos y el cono de los faros.
-- Colores distintos para cada vehículo del tráfico. El tráfico sigue en un solo color (*Colores con significado constante*). Si el dueño quiere variedad de colores, es otro cambio que toca esa spec.
 - Animaciones de los vehículos, como ruedas que giran o luces de freno.
 - 3D.
 - Cambiar las medidas de los tipos. Se dibujan con las de `trafico-vivo` (D3). Si el diseño pide otras, se consulta, porque un camión de más de 10 m cambia la garantía de los muros.
