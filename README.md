@@ -30,6 +30,41 @@ Para pasar de una a la otra: "Probar la V2" en la barra de la V1 (se abre en otr
 
 Regla de dependencias (la verifica `tests/architecture.test.js`): nada fuera de `src/v2/` importa de `src/v2/`; la V2 importa de `src/core`, `src/data`, `src/render` y `src/input`, y de `src/ui` y `src/tabs` solo módulos sin DOM (salvo `src/ui/loop.js`, que recibe el documento como parámetro).
 
+## La teoría
+
+Una sección de lectura aparte de la práctica (cambio `seccion-teoria`): <http://localhost:8000/teoria/>. Tiene
+una portada, una historia de la IA y diez capítulos. Cada capítulo es una película: una figura viva fija y el
+texto que pasa al lado, en tramos. Direcciones: `/teoria/#historia`, `/teoria/#neurona`, `/teoria/#neurona/3`
+(un tramo); una dirección desconocida muestra la portada. Se entra desde el enlace "Teoría" de la barra de la
+V1 y de la V2, que la abre en otra pestaña.
+
+Código: la página es `teoria/index.html`, los estilos `styles/teoria.css` (solo tokens de `styles/tokens.css`)
+y los módulos están en `src/teoria/`. La teoría importa de `src/core`, de `src/render` y de módulos sin DOM de
+`src/ui`; nada de afuera importa de ella (lo verifica `tests/architecture.test.js`).
+
+### Cómo se agrega un capítulo
+
+Con `<id>` en minúsculas y sin espacios (por ejemplo, `ruido`):
+
+1. `src/teoria/capitulos/<id>/cuenta.js`: la cuenta de la figura, sin DOM, sobre el núcleo (`src/core`) sin
+   modificarlo y con azar con semilla. Sus pruebas van en `tests/teoria-<id>.test.js`.
+2. `src/teoria/capitulos/<id>/guion.js`: exporta `TRAMOS`, la lista de tramos. Cada uno es
+   `{ id, estado }` y, si es la predicción, `prediccion: { despues, correcta }`. `estado` es lo que muestra
+   la figura al llegar a ese tramo; no lleva textos.
+3. `src/teoria/capitulos/<id>/figura.js`: exporta
+   `crearFigura(contenedor, { c, alCambiar, alTocar, alRestablecer })` y devuelve
+   `{ elemento, poner(estado, { animar }), mostrarCambios(si), leer(), estado() }`. `c.figura` son sus textos.
+   `alTocar(estado)` avisa cada cambio de la persona (la película lo guarda por tramo) y `leer()` puede
+   devolver `desafio: { bien, total }` para el desafío del cierre.
+4. `src/teoria/contenido/es/<id>.js` y `src/teoria/contenido/en/<id>.js`, con las mismas claves:
+   `{ titulo, bajada, cierre: { texto, enlace }, tramos: { <idDelTramo>: { corto, pregunta, antes, consigna,
+   despues, prediccionTexto?, desafioTexto? } }, figura: {...}, profundizar: {...}, fuentes: {...} }`.
+   Copiá la forma de `profundizar` y `fuentes` de un capítulo que ya exista.
+5. En `src/teoria/capitulos/indice.js`, su entrada en `CAPITULOS` (número, `disponible: true`, pestañas de la
+   app). En `src/teoria/contenido/{es,en}/comun.js`, su título y su frase en `capitulos`.
+6. `npm test`: las pruebas de la teoría comprueban que tenga guion, figura y contenido en los dos idiomas con
+   las mismas claves. Abrí `/teoria/#<id>` y recorrelo.
+
 ## Cómo probar
 
 ```bash

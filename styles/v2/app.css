@@ -54,6 +54,10 @@ html[data-hints="off"] .v2-help-notice { display: none; }
 .v2-rail-sub { padding: 3px 2px; }
 .v2-rail-sub .v2-rail-name { font-size: 10px; border: 1px dashed currentColor; border-radius: 8px; padding: 2px 4px; }
 .v2-rail-item:hover, .v2-rail-item:focus-visible { color: var(--color-text); }
+/* "Teoría" (seccion-teoria, decisión 58): al pie del riel, separada de las etapas por una línea; abre otra página. */
+.v2-rail-theory { margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--instrumento-borde); border-radius: 0 0 10px 10px; color: var(--color-text); }
+.v2-rail-book { width: 22px; height: 22px; }
+.v2-rail-out { color: var(--color-text-muted); }
 .v2-current-group, .v2-rail-item[aria-current] { color: var(--color-text); background: var(--a-petroleo-850); box-shadow: inset 3px 0 0 var(--color-accent); }
 .v2-current-group .v2-rail-num { background: var(--color-accent); color: var(--color-accion-texto); border-color: var(--color-accent); }
 .v2-rail-sub[aria-current] .v2-rail-name { border-style: solid; color: var(--color-accent); }

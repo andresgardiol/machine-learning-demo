@@ -1,25 +1,35 @@
-// Guion y textos de los prototipos de teoría (teoria-prototipos D2, D6 y D7; tareas 2.1, 2.2 y 2.3).
+// Guion y textos de «Una neurona» y de la historia (seccion-teoria D2 y D8; vienen de teoria-prototipos
+// D2, D6 y D7).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import es from '../prototipos/teoria/contenido/es.js';
-import en from '../prototipos/teoria/contenido/en.js';
-import { TRAMOS, HITOS, VISTAS } from '../prototipos/teoria/contenido/guion.js';
-import { crearNeurona, calcular, TABLA_AND } from '../prototipos/teoria/figuras/cuenta.js';
-import { zonaEncendida } from '../prototipos/teoria/figuras/zona.js';
+import comunEs from '../src/teoria/contenido/es/comun.js';
+import comunEn from '../src/teoria/contenido/en/comun.js';
+import neuronaEs from '../src/teoria/contenido/es/neurona.js';
+import neuronaEn from '../src/teoria/contenido/en/neurona.js';
+import historiaEs from '../src/teoria/contenido/es/historia.js';
+import historiaEn from '../src/teoria/contenido/en/historia.js';
+import { TRAMOS, VISTAS } from '../src/teoria/capitulos/neurona/guion.js';
+import { HITOS } from '../src/teoria/hitos.js';
+import { capituloDe } from '../src/teoria/capitulos/indice.js';
+import { armarTramos } from '../src/teoria/cargar.js';
+import { crearNeurona, calcular, TABLA_AND } from '../src/teoria/capitulos/neurona/cuenta.js';
+import { zonaEncendida } from '../src/teoria/figuras/zona.js';
 import { DEFAULT_SENSORS } from '../src/core/sensors.js';
 
+/** Cada idioma armado como lo arma la película: el capítulo con sus tramos, la figura y la historia. */
+const armar = (comun, neurona, historia) => ({
+  comun,
+  capitulo: { ...neurona, tramos: armarTramos(TRAMOS, neurona.tramos) },
+  figura: neurona.figura,
+  historia: { ...historia, hitos: HITOS.map((h) => ({ ...h, ...historia.hitos[h.id] })) },
+});
+const es = armar(comunEs, neuronaEs, historiaEs);
+const en = armar(comunEn, neuronaEn, historiaEn);
 const IDIOMAS = { es, en };
 const texto = (v) => typeof v === 'string' && v.trim().length > 0;
 const salidaDe = ({ entradas, pesos, sesgo }) => calcular(crearNeurona({ pesos: [...pesos], sesgo }), [...entradas]).salida;
-
-/** Todas las claves de un objeto, con su camino; los arreglos cuentan con su largo. */
-function claves(valor, camino = '') {
-  if (Array.isArray(valor)) return [`${camino}[${valor.length}]`, ...valor.flatMap((v, i) => claves(v, `${camino}.${i}`))];
-  if (valor && typeof valor === 'object') return Object.keys(valor).sort().flatMap((k) => claves(valor[k], camino ? `${camino}.${k}` : k));
-  return [`${camino}:${typeof valor}`];
-}
 
 test('guion: seis tramos, cada uno con su pregunta, su texto y el estado de la figura', () => {
   assert.equal(TRAMOS.length, 6);
@@ -85,41 +95,67 @@ test('guion: el desafío del AND arranca sin resolver y tiene solución con las 
   assert.equal(bien({ pesos: [1, 1], sesgo: -1.5 }), 4);
 });
 
-test('historia: cinco hitos con año, título, texto y su vínculo con la práctica', () => {
-  assert.equal(HITOS.length, 5);
+test('historia: doce hitos con año, título, texto, dibujo y su vínculo con la práctica', () => {
+  assert.equal(HITOS.length, 12);
   for (const [idioma, c] of Object.entries(IDIOMAS)) {
     const hitos = c.historia.hitos;
     assert.deepEqual(hitos.map((x) => x.id), HITOS.map((x) => x.id), idioma);
     for (const x of hitos) {
       const donde = `${idioma}:${x.id}`;
       assert.ok(texto(x.anio) && texto(x.titulo), donde);
-      assert.ok(x.texto.length > 0 && x.texto.every(texto), `${donde} texto`);
+      // Dos párrafos como máximo (spec "Hitos de 1943 a los modelos de lenguaje").
+      assert.ok(x.texto.length > 0 && x.texto.length <= 2 && x.texto.every(texto), `${donde} texto`);
       assert.ok(texto(c.historia.imagenes[x.id]), `${donde} texto alternativo de la imagen`);
+      assert.equal(typeof x.quien, 'string', `${donde} quién`);
+      assert.equal(typeof x.pestana, 'string', `${donde} pestaña`);
       if (x.capitulo) {
-        assert.ok(texto(c.historia.capitulos[x.capitulo]), `${donde} capítulo`);
+        assert.ok(texto(c.comun.capitulos[x.capitulo].titulo), `${donde} capítulo`);
         assert.ok(texto(x.pestana), `${donde} pestaña`);
         assert.ok(texto(x.quien), `${donde} quién`);
       }
+      // Una pausa no nombra ni capítulo ni pestaña.
+      if (x.pausa) assert.ok(!x.capitulo && !x.pestana, donde);
     }
     assert.deepEqual(hitos.map((x) => x.anio).slice(0, 3), ['1943', '1958', '1969'], idioma);
-    assert.equal(hitos.at(-1).anio, '1986', idioma);
-    // Solo "Una neurona" existe; los demás capítulos se anuncian.
-    assert.deepEqual(hitos.filter((x) => x.disponible).map((x) => x.capitulo), ['neurona', 'neurona']);
+    assert.deepEqual(hitos.map((x) => x.anio).slice(-6), ['1997', '1998', '2012', '2016', '2017', '2022'], idioma);
+    // Los dos inviernos, cada uno en su época.
+    assert.deepEqual(hitos.filter((x) => !x.quien).map((x) => x.id), ['h1970', 'h1987'], idioma);
+    // Lo que la práctica todavía no tiene lo dice, en lugar de nombrar una pestaña.
+    assert.deepEqual(hitos.filter((x) => !x.pestana && !x.pausa).map((x) => x.id), ['h2012', 'h2016', 'h2017', 'h2022'], idioma);
+    for (const k of ['sinCapitulo', 'ningunCapitulo', 'sinPractica', 'lineaNota', 'final']) assert.ok(texto(c.historia[k]), `${idioma}:${k}`);
+  }
+  // Los vínculos que confirmó la revisión de contenido: 1997 al capítulo 0; 2012 sin capítulo.
+  assert.deepEqual(HITOS.map((x) => x.capitulo), ['neurona', 'neurona', 'xor', null, 'culpa', null, 'programar', 'culpa', null, null, null, null]);
+  // Los capítulos escritos se enlazan; los demás se anuncian. 1986 y 1998 enlazan a «Repartir la culpa».
+  assert.deepEqual(HITOS.filter((x) => capituloDe(x.capitulo)?.disponible).map((x) => x.capitulo), ['neurona', 'neurona', 'xor', 'culpa', 'programar', 'culpa']);
+});
+
+test('historia: los textos nuevos no afirman lo que la revisión de contenido pidió no afirmar', () => {
+  const de = (c, id) => c.historia.hitos.find((x) => x.id === id).texto.join(' ');
+  for (const [idioma, c] of Object.entries(IDIOMAS)) {
+    // Deep Blue: ni red neuronal ni aprendía jugando, pero sus números se afinaron con partidas.
+    assert.match(de(c, 'h1997'), idioma === 'es' ? /miles de partidas de maestros/ : /thousands of master games/, idioma);
+    assert.doesNotMatch(de(c, 'h1997'), /nada aprendido|nothing learned/, idioma);
+    // LeNet: "millones de cheques", sin decir por día ni por mes.
+    assert.doesNotMatch(de(c, 'h1998'), /por día|por mes|per day|per month|a day|a month/, idioma);
+    // AlphaGo: primero de partidas de expertos; no "solo" ni "desde cero".
+    assert.match(de(c, 'h2016'), idioma === 'es' ? /expertos humanos/ : /human experts/, idioma);
+    assert.doesNotMatch(de(c, 'h2016'), /desde cero|from scratch/, idioma);
+    // ChatGPT: los 100 millones son una estimación de analistas, no una cifra de OpenAI.
+    assert.match(de(c, 'h2022'), idioma === 'es' ? /estimación de analistas \(no es una cifra de OpenAI\)/ : /estimate by analysts \(it is not a figure from OpenAI\)/, idioma);
+    // El segundo invierno no da un año para el recorte de DARPA.
+    assert.doesNotMatch(de(c, 'h1987'), /DARPA|1988/, idioma);
   }
 });
 
-test('historia: la fuente de las fechas y los nombres queda anotada en es.js', () => {
-  const fuente = readFileSync(fileURLToPath(new URL('../prototipos/teoria/contenido/es.js', import.meta.url)), 'utf8');
+test('historia: la fuente de las fechas y los nombres queda anotada en contenido/es/historia.js', () => {
+  const fuente = readFileSync(fileURLToPath(new URL('../src/teoria/contenido/es/historia.js', import.meta.url)), 'utf8');
   assert.match(fuente, /FUENTES/);
   // Las publicaciones originales, cada una con su año, y lo que quedó sin verificar.
   for (const [anio, autor] of [['1943', 'McCulloch'], ['1958', 'Rosenblatt'], ['1969', 'Minsky'], ['1986', 'Rumelhart']]) {
     assert.match(fuente, new RegExp(`//\\s+${anio}\\s+${autor}`), `${anio} ${autor}`);
   }
   assert.match(fuente, /No se verificó/);
-});
-
-test('idiomas: español e inglés tienen las mismas claves', () => {
-  assert.deepEqual(claves(en), claves(es));
 });
 
 test('idiomas: cada control tiene su ayuda, de una sola línea corta', () => {

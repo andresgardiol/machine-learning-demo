@@ -111,7 +111,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   }));
   const languageGroup = el('div', { class: 'lang', i18nAttr: 'aria-label:app.language', attrs: { role: 'group' } }, languageButtons);
 
-  // "Créditos" se ve como enlace (jerarquia-de-botones D2.6). Por debajo de 1240 px, como una "i" (interruptor-de-ayudas
+  // "Créditos" se ve como enlace (jerarquia-de-botones D2.6). Por debajo de 1600 px (era 1240; seccion-teoria, decisión 58), como una "i" (interruptor-de-ayudas
   // D6); el nombre accesible es siempre "Créditos".
   const creditsButton = el('button', {
     class: 'link-button credits-button', help: 'credits', i18nAttr: 'aria-label:app.credits',
@@ -121,7 +121,7 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
 
   // "Probar la V2" (interfaz-v2): enlace terciario a la nueva versión, en otra pestaña para no detener lo que
   // está en marcha acá, y en el idioma activo. Los cerebros guardados se comparten entre las dos.
-  // Por debajo de 1240 px se acorta a "V2", como "Créditos" (el nombre accesible sigue completo).
+  // Por debajo de 1600 px se acorta a "V2", como "Créditos" (el nombre accesible sigue completo).
   const v2Link = el('a', { class: 'link-button v2-link', help: 'v2link', i18nAttr: 'aria-label:app.tryV2', attrs: { target: '_blank', rel: 'noopener' } },
     el('span', { class: 'v2-link-label', i18n: 'app.tryV2', attrs: { 'aria-hidden': 'true' } }),
     el('span', { class: 'v2-link-short', attrs: { 'aria-hidden': 'true' } }, 'V2'));
@@ -129,9 +129,23 @@ export function createApp({ root, tabs, i18n, preferences, library: givenLibrary
   updateV2Link();
   i18n.onChange(updateV2Link);
 
+  // "Teoría" (seccion-teoria D7, decisión 58): la sección teórica, en otra pestaña para no detener lo que está
+  // en marcha acá. Es lo único de la práctica que nombra a la teoría. Va a la altura de las pestañas, con su
+  // nombre, pero no es una: queda fuera del tablist (y de su recorrido con flechas), separada por una línea,
+  // con una marca de que abre otra página y sin estado "seleccionada".
+  const libro = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  libro.setAttribute('viewBox', '0 0 16 16');
+  libro.setAttribute('aria-hidden', 'true');
+  libro.setAttribute('class', 'theory-link-icon');
+  libro.innerHTML = '<path d="M2 3.5c2-1 4-1 6 .5v9c-2-1.5-4-1.5-6-.5zM14 3.5c-2-1-4-1-6 .5v9c2-1.5 4-1.5 6-.5z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>';
+  // Por debajo de 1240 px muestra solo el libro y la ↗; el nombre queda en aria-label y en el tooltip.
+  const theoryLink = el('a', { class: 'theory-link', help: 'theorylink', i18nAttr: 'aria-label:app.theory', attrs: { href: 'teoria/', target: '_blank', rel: 'noopener' } },
+    libro, el('span', { class: 'theory-link-label', i18n: 'app.theory', attrs: { 'aria-hidden': 'true' } }), el('span', { class: 'theory-link-out', attrs: { 'aria-hidden': 'true' } }, '↗'));
+
   const header = el('header', { class: 'topbar' },
     el('div', { class: 'brand', i18n: 'app.title' }),
     tabBar,
+    theoryLink,
     el('div', { class: 'tools' }, guideSwitch, hintsSwitch, shortcutsSwitch, languageGroup, v2Link, creditsButton));
 
   // --- Disposición común: escenario, tablero y panel (en ese orden de foco) ----

@@ -1,8 +1,8 @@
-// Sensores de la figura de teoría (teoria-prototipos, revisión 1): lo que se dibuja es lo que se lee.
+// Sensores de la figura de teoría (seccion-teoria; viene de teoria-prototipos, revisión 1): lo que se dibuja es lo que se lee.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SENSORES, escenaDeSensores, distanciaDe, lecturaDe } from '../prototipos/teoria/figuras/sensores.js';
-import { TRAMOS } from '../prototipos/teoria/contenido/guion.js';
+import { SENSORES, escenaDeSensores, distanciaDe, lecturaDe } from '../src/teoria/figuras/sensores.js';
+import { TRAMOS } from '../src/teoria/capitulos/neurona/guion.js';
 
 const MEDIO_AUTO = 17; // medio ancho del auto dibujado (figuras/neurona.js)
 const valores = Array.from({ length: 21 }, (_, i) => i / 20);

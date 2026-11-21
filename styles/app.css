@@ -141,10 +141,34 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .topbar .lang-option { padding: 0 var(--space-2); font-size: var(--text-body); min-height: var(--control-h-sm); }
 .topbar .tool { padding: 2px var(--space-2); font-size: var(--text-label); min-height: 24px; } /* barra densa: la altura compacta (D8) */
 .credits-icon { display: none; }
-/* Enlace a la V2 (interfaz-v2): por debajo de 1240 px se acorta a "V2", como Créditos. */
-.v2-link-short { display: none; }
-@media (max-width: 1239.98px) { .v2-link-label { display: none; } .v2-link-short { display: inline; } }
+/* Enlace a la teoría (seccion-teoria D7, decisión 58): a la altura de las pestañas y con la misma letra, pero
+   separado por una línea, con la marca ↗ de que abre otra página y sin estado "seleccionada". Queda fuera
+   de la fila que se desplaza: siempre a la vista. */
+.theory-link {
+  display: flex; align-items: center; gap: var(--space-1); flex-shrink: 0;
+  margin-left: calc(var(--space-4) * -1 + var(--space-1)); /* más cerca de las pestañas que de las herramientas */
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border-left: 1px solid var(--color-border);
+  color: var(--color-text); font-size: var(--text-body); white-space: nowrap; text-decoration: none;
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+}
+.theory-link:hover { background: var(--color-surface-2); }
+.theory-link:hover .theory-link-label { text-decoration: underline; }
+.theory-link-icon { width: 16px; height: 16px; flex-shrink: 0; }
+.theory-link-out { color: var(--color-text-muted); font-size: var(--text-label); }
+/* Por debajo de 1240 px, solo el libro y la ↗ (el nombre queda en aria-label y en el tooltip), y las herramientas
+   más juntas (separación y relleno de los interruptores de 8 a 4 px): así la fila de pestañas no esconde más que antes del enlace (medido a 1032 px). */
 @media (max-width: 1239.98px) {
+  .theory-link-label { display: none; }
+  .theory-link { gap: 2px; padding: var(--space-1) var(--space-1) var(--space-1) var(--space-2); }
+  .topbar .tools { gap: var(--space-1); }
+  .topbar .switch { padding: 0 var(--space-1); }
+}
+/* Enlace a la V2 (interfaz-v2): por debajo de 1600 px se acorta a "V2", como Créditos. Era 1240 px; subió con el
+   enlace "Teoría" a la altura de las pestañas (seccion-teoria, decisión 58), para dejarles lugar a 1440 px. */
+.v2-link-short { display: none; }
+@media (max-width: 1599.98px) { .v2-link-label { display: none; } .v2-link-short { display: inline; } }
+@media (max-width: 1599.98px) {
   .credits-label { display: none; }
   .credits-icon { display: inline-grid; place-items: center; width: 16px; height: 16px; border: 1px solid currentColor; border-radius: var(--radius-round); font-size: var(--text-label); font-weight: var(--weight-bold); font-style: italic; }
   .topbar .credits-button { padding: var(--space-1) var(--space-2); }

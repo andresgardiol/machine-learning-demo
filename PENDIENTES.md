@@ -388,6 +388,15 @@ queda (otro cambio). Lo que quedó, en *V2 de la interfaz*, abajo.
   compuertas*.
 - Fluidez con el navegador a la vista: casi todas las medidas se tomaron con
   Chrome sin ventana. Lista de qué medir en *Pruebas que faltan*, más abajo.
+- **Sección teórica** (`seccion-teoria`, 20 de noviembre de 2026; `/teoria/`, diez capítulos e historia). Se
+  verificó con Chrome sin ventana (sin errores de consola ni desborde en las doce vistas, en los dos idiomas, a
+  1440×900, 390×844 y 360×640; la predicción, "Restablecer" y "Para profundizar" con el teclado). Falta probar:
+  con personas (si cada capítulo se entiende solo); con un lector de pantalla real (VoiceOver: las
+  descripciones de las figuras y los avisos en vivo); en Firefox y en Safari; el dedo en un celular de verdad
+  (se emuló); la animación y el movimiento reducido con el navegador a la vista; y que el enlace "Teoría" de la
+  barra abra la pestaña nueva en un navegador con ventana (sin ventana se comprobó que la app sigue y el
+  entrenamiento no se corta, pero no se vio la pestaña nueva). Lo que quedó para la sesión de diseño, de la
+  verificación final, está en `borradores/seccion-teoria/verificacion/resumen.md`.
 - "Mostrame" (`misiones-que-muestran-el-control`): con VoiceOver, que anuncie
   «Se muestra: …» y quede sobre el control (se leyó el árbol de accesibilidad,
   no se escuchó); con el navegador a la vista, el anillo y el desplazamiento
@@ -660,10 +669,10 @@ arreglarlos de a uno.
   sensores simétricos que siempre terminan en algo (el borde de la calle, un
   vehículo del tráfico, o enteros con lectura 0), ayudas de una línea que no tapan la figura,
   las marcas del borde con el título corto de cada tramo y que la predicción
-  pida elegir antes de seguir. Pendiente para la sección definitiva: que el
-  texto de un tramo no hable de números que la figura ya no muestra después
-  de tocarla (hoy la figura conserva lo que se cambió a mano y el texto sigue
-  diciendo los números del guion hasta apretar "Restablecer"). En la revisión 2
+  pida elegir antes de seguir. Lo que había quedado pendiente (que el texto de
+  un tramo no hable de números que la figura ya no muestra) se resolvió en
+  `seccion-teoria` (D4): cada tramo guarda lo que la persona cambió ahí y la
+  figura llega a cada tramo con sus números. En la revisión 2
   (mismo día) el dueño eligió además la disposición "lado a lado" de la
   película ("Definitivamente me quedo con la opción lado a lado. Es la
   mejor"), antes de comparar las otras dos variantes que se habían pedido
@@ -671,8 +680,26 @@ arreglarlos de a uno.
   quitaron. Quedó hecho: en ventanas angostas (menos de 1024 px) la figura va
   fija arriba y el texto debajo, sin bajar de 560 px de ancho; el auto se
   dibuja derecho; y las correcciones de la revisión de contenido contra
-  fuentes (`openspec/changes/teoria-prototipos/revision-contenido.md`). La comparación
+  fuentes (`openspec/changes/archive/2026-11-20-teoria-prototipos/revision-contenido.md`). La comparación
   y las capturas están en `borradores/teoria-prototipos/`.
+- **Sección teórica: lo que quedó abierto** (`seccion-teoria`, 20 de noviembre de 2026).
+  - *El enlace "Teoría" de la V1 va sin nombre a menos de 1240 px.* Junto a las pestañas muestra el libro, el
+    nombre y la ↗; por debajo de 1240 px solo el libro y la ↗ (el nombre queda en el nombre accesible y en el
+    tooltip), para que la fila de pestañas no esconda más que antes (127 px a 1032 px, medido). Falta ver si se
+    reconoce sin el nombre.
+  - *Destino del enlace a la app.* El cierre de cada capítulo y "Ir a la app" llevan a la raíz (la V1) y no
+    abren la pestaña que nombran: la V1 no abre una pestaña por dirección. Cuando se decida entre la V1 y la
+    V2 se cambia un solo destino, `DESTINO_APP` en `src/teoria/capitulos/indice.js` (design.md D7).
+  - *Sin resolver de las tandas de diseño* (`openspec/changes/archive/2026-11-20-seccion-teoria/decisiones.md`): a 360×640 la
+    figura del capítulo 0 no queda fija (se desplaza con el texto; D5 lo permite cuando la figura no entra, sin
+    confirmar que sea ese el motivo); en las figuras, a 360 px varios rótulos quedan por debajo de 9 px (las
+    etiquetas de sesgo del capítulo 2 en 8 px, y rótulos y números de ejes en los capítulos 1, 3 a 9); el
+    contorno de una neurona apagada da 2,78:1 (es un token de la app); a 390 px los rótulos de los ejes de los
+    capítulos 4 y 5 casi se tocan ("−5" con "0", "−6" con "0"). Escape sobre la ayuda en el capítulo 0 y el
+    orden de Tab en "Una neurona" no fallaron en la verificación final.
+  - *Sin verificar de las tandas de diseño*: en los capítulos 3 a 6, el movimiento reducido, el dedo emulado y
+    las ayudas con el mouse; en todos, con un lector de pantalla real. A 390 px "Restablecer" de los capítulos 6
+    y 8 no se pudo probar con el script (no encontró una perilla a la vista); a 1440 funciona.
 - **Temas de teoría que la práctica no tiene.** Del cambio `teoria-prototipos`
   (D9, 20 de noviembre de 2026). La sección teórica acompaña a la práctica:
   puede nombrar estos temas en la historia, pero no les dedica capítulo

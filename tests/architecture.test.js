@@ -119,13 +119,10 @@ test('V2: el núcleo sigue sin DOM con la V2 agregada', () => {
 });
 
 // ---------------------------------------------------------------------------------------------
-// Prototipos (teoria-prototipos D1): nada fuera de prototipos/ importa de prototipos/. Las pruebas de
-// tests/ quedan fuera de la regla: prueban los prototipos sin formar parte de la app. Se revisan los
-// .js y .mjs del repositorio (salvo node_modules, .git, borradores, openspec y tests) y los módulos de
-// los .html (<script src> e import dentro de <script>).
+// Fuentes del repositorio para las reglas de la teoría: los .js y .mjs (salvo node_modules, .git, borradores,
+// openspec y tests) y los módulos de los .html (<script src> e import dentro de <script>).
 const rootDir = resolve(srcDir, '..');
-const prototiposDir = join(rootDir, 'prototipos');
-const SALTEAR = new Set(['node_modules', '.git', '.claude', 'borradores', 'openspec', 'tests', 'prototipos']);
+const SALTEAR = new Set(['node_modules', '.git', '.claude', 'borradores', 'openspec', 'tests']);
 
 function listarFuentes(dir) {
   return readdirSync(dir).flatMap((name) => {
@@ -152,16 +149,85 @@ function referenciasDe(file, root) {
     .map((s) => (s.startsWith('/') ? join(root, s) : resolve(dirname(file), s)));
 }
 
-export function findPrototiposViolations({ root = rootDir, prototipos = prototiposDir } = {}) {
+// ---------------------------------------------------------------------------------------------
+// Teoría (seccion-teoria D2). Tres reglas:
+//   1. nada fuera de src/teoria/ (y de su página, teoria/index.html) importa de src/teoria/;
+//   2. src/teoria/ importa solo de sí misma, de src/core, de src/render y de módulos de src/ui que (ellos
+//      y lo que importan dentro de src/ui) no usan document ni window;
+//   3. las cuentas, los guiones, el contenido y los módulos de estado, rutas, idioma y carga no usan DOM.
+const teoriaDir = join(srcDir, 'teoria');
+const paginaTeoria = join(rootDir, 'teoria');
+const TEORIA_PERMITIDAS = ['core', 'render', 'teoria'].map((d) => join(srcDir, d));
+const uiDir = join(srcDir, 'ui');
+const TEORIA_SIN_DOM = /(^|\/)(cuenta|guion|estado-figura|rutas|idioma|cargar|hitos|indice)\.js$|(^|\/)contenido\//;
+
+/**
+ * ¿Usa el DOM el código (sin comentarios ni textos entre comillas)? En la teoría los textos dicen, por
+ * ejemplo, "document recognition" en una cita: eso no es usar el DOM.
+ */
+const sinTextos = (src) => src.replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, "''");
+const usaDomEnCodigo = (file) => /\b(document|window)\b/.test(sinTextos(stripComments(readFileSync(file, 'utf8'))));
+
+/** Archivos de src/ui con DOM alcanzables desde `file` sin salir de src/ui. */
+function domEnUi(file, visto = new Set()) {
+  if (visto.has(file)) return [];
+  visto.add(file);
+  const propios = usaDom(file) ? [file] : [];
+  return [...propios, ...importsOf(file).filter((t) => dentro(t, uiDir)).flatMap((t) => domEnUi(t, visto))];
+}
+
+export function findTeoriaViolations({ root = rootDir, teoria = teoriaDir, pagina = paginaTeoria } = {}) {
   const problems = [];
+  // 1. Nada de afuera importa de la teoría.
   for (const file of listarFuentes(root)) {
+    if (dentro(file, teoria) || dentro(file, pagina)) continue;
     for (const t of referenciasDe(file, root)) {
-      if (dentro(t, prototipos)) problems.push(`${relative(root, file)}: importa de prototipos/ (${relative(root, t)})`);
+      if (dentro(t, teoria)) problems.push(`${relative(root, file)}: importa de src/teoria/ (${relative(root, t)})`);
+    }
+  }
+  let archivos = [];
+  try { archivos = listJs(teoria); } catch { archivos = []; }
+  for (const file of archivos) {
+    const rel = relative(teoria, file).split(sep).join('/');
+    // 2. Lo que importa la teoría.
+    for (const t of importsOf(file)) {
+      if (TEORIA_PERMITIDAS.some((d) => dentro(t, d))) continue;
+      if (dentro(t, uiDir)) {
+        for (const d of domEnUi(t)) problems.push(`src/teoria/${rel}: importa ${relative(root, t)}, que usa el DOM (${relative(root, d)})`);
+        continue;
+      }
+      problems.push(`src/teoria/${rel}: importa de una carpeta no permitida (${relative(root, t)})`);
+    }
+    // 3. Lo que no usa DOM, ni directamente ni por lo que importa dentro de la teoría.
+    if (TEORIA_SIN_DOM.test(rel)) {
+      const pendientes = [file];
+      const visto = new Set();
+      while (pendientes.length) {
+        const f = pendientes.pop();
+        if (visto.has(f)) continue;
+        visto.add(f);
+        if (usaDomEnCodigo(f)) problems.push(`src/teoria/${rel}: usa el DOM (${relative(root, f)})`);
+        pendientes.push(...importsOf(f).filter((t) => dentro(t, teoria)));
+      }
     }
   }
   return problems;
 }
 
-test('Prototipos: nada fuera de prototipos/ importa de prototipos/', () => {
-  assert.deepEqual(findPrototiposViolations(), []);
+test('Teoría: nada de afuera importa de src/teoria/, y la teoría importa del núcleo, del dibujo y de src/ui sin DOM', () => {
+  assert.deepEqual(findTeoriaViolations(), []);
+});
+
+test('Teoría: la regla encuentra lo que tiene que encontrar', () => {
+  // La página de la teoría es la única de afuera que la carga; las cuentas y el estado no tocan el DOM.
+  const fuentes = listarFuentes(rootDir).map((f) => relative(rootDir, f).split(sep).join('/'));
+  assert.ok(fuentes.includes('teoria/index.html'));
+  assert.ok(referenciasDe(join(paginaTeoria, 'index.html'), rootDir).some((t) => dentro(t, teoriaDir)));
+  for (const f of ['capitulos/neurona/cuenta.js', 'capitulos/programar/cuenta.js', 'capitulos/xor/cuenta.js', 'estado-figura.js', 'rutas.js']) {
+    assert.ok(TEORIA_SIN_DOM.test(f), f);
+    assert.equal(usaDom(join(teoriaDir, f)), false, f);
+  }
+  // Un texto entre comillas no es código; una llamada al DOM, sí.
+  assert.equal(/\bdocument\b/.test(sinTextos("const t = 'document recognition'; const u = `window ${1}`;")), false);
+  assert.equal(/\bdocument\b/.test(sinTextos("const e = document.createElement('p');")), true);
 });

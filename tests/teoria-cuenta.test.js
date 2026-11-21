@@ -1,9 +1,9 @@
-// Cuenta de las figuras de los prototipos de teoría (teoria-prototipos D3, tarea 3.1).
+// Cuenta de la figura de «Una neurona» (seccion-teoria; viene de teoria-prototipos D3, tarea 3.1).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   TABLA_AND, crearNeurona, fijarPesos, fijarSesgo, leerNeurona, calcular, rectaDelPlano, tramoEnCaja,
-} from '../prototipos/teoria/figuras/cuenta.js';
+} from '../src/teoria/capitulos/neurona/cuenta.js';
 
 test('cuenta: la neurona es una red real de dos entradas y una salida con escalón', () => {
   const red = crearNeurona();

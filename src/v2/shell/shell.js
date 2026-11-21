@@ -57,6 +57,18 @@ export function createShell({ root, i18n, prefs, stageModules = {}, services = {
     el('button', { class: 'v2-btn', i18n: 'journey.close', help: 'journey.close', attrs: { type: 'button' }, on: { click: () => journey.close() } }));
 
   // ---------- riel ----------
+  // "Teoría" (seccion-teoria D7, decisión 58): la misma sección que enlaza la V1, en otra pestaña para no
+  // detener la etapa. A la altura de las etapas, con su nombre, pero no es una: va debajo de la última, separada
+  // por una línea, con la marca ↗ de que abre otra página y sin estado "actual".
+  function theoryLink() {
+    const libro = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    libro.setAttribute('viewBox', '0 0 16 16');
+    libro.setAttribute('aria-hidden', 'true');
+    libro.setAttribute('class', 'v2-rail-book');
+    libro.innerHTML = '<path d="M2 3.5c2-1 4-1 6 .5v9c-2-1.5-4-1.5-6-.5zM14 3.5c-2-1-4-1-6 .5v9c2-1.5 4-1.5 6-.5z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>';
+    return el('a', { class: 'v2-rail-item v2-rail-theory', help: 'theorylink', attrs: { href: '../teoria/', target: '_blank', rel: 'noopener', id: 'v2-theory' } },
+      libro, el('span', { class: 'v2-rail-name' }, el('span', { i18n: 'app.theory' }), el('span', { class: 'v2-rail-out', attrs: { 'aria-hidden': 'true' }, text: ' ↗' })));
+  }
   const railLinks = new Map(); // stage id → elemento
   const rail = el('nav', { class: 'v2-rail', i18nAttr: 'aria-label:app.stages' },
     el('button', { class: 'v2-rail-item v2-rail-journey', help: 'journey', attrs: { type: 'button' }, on: { click: () => journey.showModal() } },
@@ -83,7 +95,8 @@ export function createShell({ root, i18n, prefs, stageModules = {}, services = {
       // La pestaña de la V1 que cubre cada etapa (data-v1, para la prueba de paridad, tarea 16.1).
       for (const [id, link] of railLinks) if (r.stages.includes(id)) link.dataset.v1 = `tab.${stageById(id).v1Tab}`;
       return el('div', { class: 'v2-rail-group' }, items);
-    }));
+    }),
+    theoryLink());
 
   // ---------- mesa, aviso de ventana angosta y de almacenamiento ----------
   const mesa = el('main', { class: 'v2-mesa' });
